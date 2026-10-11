@@ -62,6 +62,15 @@ class ProbeTests(unittest.TestCase):
     def test_wrong_recall(self):
         self.refuse(lambda r: r[-1]["message"]["content"][0].update(text="forgot"), "HISTORY_RECALL")
 
+    def test_nonstring_text_is_closed_failure(self):
+        self.refuse(lambda r: r[-1]["message"]["content"][0].update(text={"value": "not-text"}), "CONTENT")
+
+    def test_missing_parent_is_closed_failure(self):
+        self.refuse(lambda r: r[-1].pop("parentId"), "ENTRY_PARENT")
+
+    def test_empty_entry_id_is_closed_failure(self):
+        self.refuse(lambda r: r[-1].update(id=""), "ENTRY_ID")
+
     def test_tool_call(self):
         self.refuse(lambda r: r[-1]["message"]["content"].append({"type": "toolCall"}), "UNEXPECTED_TOOL")
 
