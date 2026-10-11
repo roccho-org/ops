@@ -32,3 +32,21 @@ test('generic scoring preserves full denominator and class confusion',async()=>{
 test('changed input and missing gold rejected',async()=>{const r=await evaluate(core,rows,fake(),{});assert.throws(()=>score(core,rows,[],r));assert.throws(()=>score(core,[...rows].reverse(),[{id:'case-a',label:'yes'},{id:'case-b',label:'no'}],r));});
 test('dirtree output identifies exactly supplied subjects',async()=>{const r=await dirtreeCore.run({goal:'one owner',tree:'x/y',subjects:['x','y']},fake('overlap'));assert.equal(r.label,'overlap');assert.deepEqual(r.subjects,['x','y']);});
 test('unknown dirtree remains unknown',async()=>assert.equal((await dirtreeCore.run({goal:'none specified',tree:'a/b',subjects:['a','b']},fake('unknown'))).label,'unknown'));
+
+test('separate reserved trials cannot settle with one external CI receipt',()=>{
+  let s=reserve(base(),'trial-a','binding-a',3).state;
+  s=reserve(s,'trial-b','binding-b',3).state;
+  const first=settle(s,'trial-a','binding-a',3,'ci:run-1/job-1');
+  assert.equal(remaining(first),114);
+  assert.throws(()=>settle(first,'trial-b','binding-b',3,'ci:run-1/job-1'),/DUPLICATE_RUN_RECEIPT/);
+  assert.equal(remaining(settle(first,'trial-b','binding-b',3,'ci:run-1/job-2')),114);
+});
+test('persisted duplicated CI receipts block accounting and further dispatch',()=>{
+  let s=reserve(base(),'trial-a','binding-a',3).state;
+  s=reserve(s,'trial-b','binding-b',3).state;
+  s=settle(s,'trial-a','binding-a',3,'ci:run-1/job-1');
+  const forged=structuredClone(s);
+  forged.runs['trial-b']={...forged.runs['trial-b'],status:'settled',actual:3,receipt:'ci:run-1/job-1'};
+  assert.throws(()=>remaining(forged),/DUPLICATE_RUN_RECEIPT/);
+  assert.throws(()=>reserve(forged,'trial-c','binding-c',1),/DUPLICATE_RUN_RECEIPT/);
+});

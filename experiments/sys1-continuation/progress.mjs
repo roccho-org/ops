@@ -29,9 +29,15 @@ export function remaining(s) {
     || !s.runs || typeof s.runs !== 'object' || Array.isArray(s.runs)) fail('INVALID_PROGRESS');
   validateGrantLedger(s);
   let spent=s.previous;
+  const seenReceipts=new Set();
   for(const [id,r] of Object.entries(s.runs)) {
     if(!value(id)||!value(r.binding)||!integer(r.reserved)||r.reserved===0||!['reserved','settled'].includes(r.status))fail('INVALID_RUN');
     if(r.status==='settled'&&(!integer(r.actual)||r.actual>r.reserved||!value(r.receipt)))fail('INVALID_RECEIPT');
+    if(r.status==='settled') {
+      // One external execution receipt cannot prove two independent reservations.
+      if(seenReceipts.has(r.receipt))fail('DUPLICATE_RUN_RECEIPT');
+      seenReceipts.add(r.receipt);
+    }
     spent+=r.status==='settled'?r.actual:r.reserved;
   }
   if(spent>s.limit)fail('ACCOUNTING_OVERFLOW');
@@ -56,7 +62,9 @@ export function settle(s,id,binding,actual,receipt) {
     if(r.actual!==actual||r.receipt!==receipt)fail('CONFLICTING_RESULT');
     return s;
   }
-  const out=structuredClone(s);out.runs[id]={...r,status:'settled',actual,receipt};return out;
+  const out=structuredClone(s);out.runs[id]={...r,status:'settled',actual,receipt};
+  remaining(out); // Reject a reused receipt before persisting the settlement.
+  return out;
 }
 export function selectPhase(phases,verified,blocked=[]) {
   const seen=new Set();
