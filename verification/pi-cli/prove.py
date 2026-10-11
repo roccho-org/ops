@@ -49,8 +49,8 @@ def inspect_session(raw: bytes, previous: bytes, session: str, cwd: str,
     messages = []
     for row in rows[1:]:
         identity, parent = row.get("id"), row.get("parentId")
-        require(isinstance(identity, str) and identity not in seen, "ENTRY_ID")
-        require(parent is None or isinstance(parent, str) and parent in seen, "ENTRY_PARENT")
+        require(isinstance(identity, str) and identity != "" and identity not in seen, "ENTRY_ID")
+        require("parentId" in row and (parent is None or isinstance(parent, str) and parent in seen), "ENTRY_PARENT")
         seen[identity] = row
         message = row.get("message")
         if row.get("type") == "message" and isinstance(message, dict):
@@ -64,7 +64,8 @@ def inspect_session(raw: bytes, previous: bytes, session: str, cwd: str,
     content = message.get("content")
     require(isinstance(content, list) and all(isinstance(x, dict) for x in content), "CONTENT")
     require(not any(x.get("type") == "toolCall" for x in content), "UNEXPECTED_TOOL")
-    text = "".join(x.get("text", "") for x in content if x.get("type") == "text")
+    require(all(isinstance(x.get("text"), str) for x in content if x.get("type") == "text"), "CONTENT")
+    text = "".join(x["text"] for x in content if x.get("type") == "text")
     require(text.strip() == marker, "HISTORY_RECALL")
     # Every prior assistant must be on the selected branch, not merely somewhere in the file.
     ancestors: set[str] = set()
