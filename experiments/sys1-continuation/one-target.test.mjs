@@ -77,3 +77,39 @@ test('admission refuses stale version after world changes',()=>{
   bad.worldVersion='changed';
   assert.equal(transition(next,bad).state.phase,'EFFECT');
 });
+
+test('READBACK cannot reuse initial OBSERVED evidence as proof of NO_GAP',()=>{
+  const s=many(ready(),admitted());
+  const bad=readback('reused-observation','NO_GAP');
+  bad.evidence.ref='obs-obs';
+  assert.throws(()=>transition(s,bad),/REUSED_EVIDENCE/);
+  assert.equal(s.phase,'READBACK');
+  assert.equal(s.result,'NOT_PROVEN');
+});
+test('next cycle OBSERVED cannot recycle previous READBACK evidence',()=>{
+  const previous=many(ready(),admitted(),readback('r','GAP'));
+  const bad=observed('new-cycle');
+  bad.evidence.ref='rb-r';
+  assert.throws(()=>transition(previous,bad),/REUSED_EVIDENCE/);
+  assert.equal(previous.phase,'OBSERVE');
+  assert.equal(previous.cycles,1);
+});
+test('RESUMED after UNKNOWN review cannot claim prior VERIFIED evidence is new',()=>{
+  const blocked=many(openTrial(spec()),observed('first'),proposed(),verified('unknown-review','UNKNOWN'));
+  assert.equal(blocked.phase,'BLOCKED');
+  const bad=ev('resume-old-review','RESUMED',{newEvidenceRef:'review-unknown-review',reason:'claimed fresh'});
+  assert.throws(()=>transition(blocked,bad),/STALE_RESUME_EVIDENCE/);
+  const good=ev('resume-fresh','RESUMED',{newEvidenceRef:'unseen-independent-source',reason:'new source'});
+  assert.equal(transition(blocked,good).state.phase,'OBSERVE');
+});
+test('a distinct effectKey cannot claim an earlier effect receipt',()=>{
+  const first=many(ready(),admitted('change-draft'),receipt(),readback('r','GAP','changed'));
+  const second=many(first,ev('ob2','OBSERVED',{...observed('ob2'),worldVersion:'changed'}),proposed('p2'),verified('v2'),
+    {...admitted('change-draft'),id:'admit-second',worldVersion:'changed',effectKey:'another-effect'});
+  const bad=ev('another-effect-record','EFFECT_RECORDED',{worldId:'one-scope',worldVersion:'changed',
+    effectKey:'another-effect',receiptRef:'synthetic-receipt',resultWorldVersion:'next-world',actor:'another-actor'});
+  assert.throws(()=>transition(second,bad),/REUSED_EFFECT_RECEIPT/);
+  assert.equal(second.phase,'EFFECT');
+  const good={...bad,receiptRef:'independent-second-receipt'};
+  assert.equal(transition(second,good).state.phase,'READBACK');
+});
