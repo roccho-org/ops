@@ -24,6 +24,12 @@ export function transition(previous,event){
   requireThat(!['DONE','STOPPED'].includes(previous.phase),'TERMINAL_TRIAL');
   const s=structuredClone(previous),contract=s.contract;
   if(s.events.length>=contract.maxSteps){s.phase='STOPPED';s.result='STEP_LIMIT';return {state:s,changed:true};}
+  // A fresh event cannot turn an earlier receipt into a new observation.
+  const evidenceAlreadyUsed=ref=>s.events.some(x=>x.evidenceRef===ref)
+    ||[s.active?.observed?.ref,s.active?.readback?.ref,s.active?.verification].includes(ref);
+  const evidenceRef=event.evidence?.ref;
+  const recordsEvidence=['OBSERVED','VERIFIED','READBACK'].includes(event.kind);
+  const freshEvidence=()=>requireThat(!evidenceAlreadyUsed(evidenceRef),'REUSED_EVIDENCE');
   const phase=name=>requireThat(s.phase===name,'INVALID_TRANSITION');
   const world=x=>requireThat(x.worldId===contract.world.id&&x.worldVersion===s.worldVersion,'STALE_WORLD');
   const evidence=x=>requireThat(str(x?.ref)&&str(x?.author)&&str(x?.reviewer)&&x.author!==x.reviewer&&x.criteriaDigest===contract.criteriaDigest,'INCOMPLETE_EVIDENCE');
@@ -34,6 +40,7 @@ export function transition(previous,event){
       phase('OBSERVE');world(event);coverage(event);evidence(event.evidence);verdict(event.verdict);
       // A resume reference must identify the evidence actually used for the next observation.
       if(s.active?.resumeEvidenceRef)requireThat(event.evidence.ref===s.active.resumeEvidenceRef,'RESUME_EVIDENCE_MISMATCH');
+      freshEvidence();
       s.active={observed:{ref:event.evidence.ref,verdict:event.verdict}};
       if(event.verdict==='NO_GAP'){s.phase='DONE';s.result='TARGET_REPORTED_MET';}
       else if(event.verdict==='UNKNOWN'){s.phase='BLOCKED';s.result='NEEDS_OBSERVATION';}
@@ -47,7 +54,7 @@ export function transition(previous,event){
       s.active.proposal={digest:event.proposalDigest,author:event.author,questions:structuredClone(event.questions)};s.phase='VERIFY';
       break;
     case 'VERIFIED':
-      phase('VERIFY');evidence(event.evidence);
+      phase('VERIFY');evidence(event.evidence);freshEvidence();
       requireThat(event.proposalDigest===s.active.proposal.digest&&event.evidence.author===s.active.proposal.author,'WRONG_PROPOSAL');
       requireThat(['PASS','REJECT','UNKNOWN'].includes(event.verdict),'INVALID_REVIEW');
       if(event.verdict==='PASS'){s.active.verification=event.evidence.ref;s.phase='ADMIT';}
@@ -65,10 +72,11 @@ export function transition(previous,event){
     case 'EFFECT_RECORDED':
       phase('EFFECT');world(event);
       requireThat(event.effectKey===s.active.admission.key&&str(event.receiptRef)&&str(event.resultWorldVersion)&&str(event.actor),'MISSING_EFFECT_RECEIPT');
+      requireThat(!s.events.some(x=>x.effectReceiptRef===event.receiptRef),'REUSED_EFFECT_RECEIPT');
       s.active.effect={key:event.effectKey,receiptRef:event.receiptRef,version:event.resultWorldVersion,actor:event.actor};s.phase='READBACK';
       break;
     case 'READBACK':
-      phase('READBACK');coverage(event);evidence(event.evidence);verdict(event.verdict);
+      phase('READBACK');coverage(event);evidence(event.evidence);verdict(event.verdict);freshEvidence();
       requireThat(event.worldId===contract.world.id&&event.worldVersion===(s.active.effect?.version??s.worldVersion),'WRONG_READBACK_WORLD');
       requireThat(event.evidence.reviewer!==s.active.proposal.author&&event.evidence.reviewer!==s.active.effect?.actor,'SELF_READBACK');
       requireThat(event.cost&&costKeys.every(k=>Object.hasOwn(event.cost,k)&&(event.cost[k]===null||(Number.isFinite(event.cost[k])&&event.cost[k]>=0))),'UNKNOWN_OR_INVALID_COST');
@@ -92,12 +100,12 @@ export function transition(previous,event){
       break;
     case 'RESUMED':
       phase('BLOCKED');requireThat(str(event.newEvidenceRef)&&str(event.reason),'NO_RESUME_EVIDENCE');
-      requireThat(event.newEvidenceRef!==s.active?.readback?.ref&&event.newEvidenceRef!==s.active?.observed?.ref,'STALE_RESUME_EVIDENCE');
+      requireThat(!evidenceAlreadyUsed(event.newEvidenceRef),'STALE_RESUME_EVIDENCE');
       s.active.resumeEvidenceRef=event.newEvidenceRef;
       s.phase='OBSERVE';s.result='NOT_PROVEN';
       break;
     default:throw Error('UNKNOWN_EVENT_KIND');
   }
-  s.events.push({id:event.id,kind:event.kind,hash:digest,after:s.phase});
+  s.events.push({id:event.id,kind:event.kind,hash:digest,after:s.phase,...(recordsEvidence&&str(evidenceRef)?{evidenceRef}:{}),...(event.kind==='EFFECT_RECORDED'?{effectReceiptRef:event.receiptRef}:{})});
   return {state:s,changed:true};
 }
