@@ -1,0 +1,112 @@
+name: contract-632-phase1
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/contract-632-phase1.yml'
+      - 'governance/contract-632-phase1-selector.v1.json'
+      - 'tools/contract-632-phase1-proof.py'
+      - 'packages/ops-package-contract-bridge/**'
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'build/packages.jsonl'
+      - 'build/checks.jsonl'
+
+permissions:
+  contents: read
+
+jobs:
+  phase1-bundle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+      - name: Build and read back the exact Phase 1 bundle
+        id: bundle
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          tree="$(git rev-parse 'HEAD^{tree}')"
+          check="$(nix build --no-link --print-out-paths .#checks.x86_64-linux.ops-package-contract-bridge-phase1)"
+          bridge="$(nix build --no-link --print-out-paths .#packages.x86_64-linux.ops-package-contract-bridge)"
+          diff -r "$check/run1" "$check/run2"
+
+          root=contract-632-phase1-bundle
+          mkdir -p "$root/proof"
+          cp -R "$check/run1/." "$root/proof/"
+          "$bridge/bin/ops-package-contract-bridge" verify-phase1 "$root/proof" > "$root/workflow-readback.json"
+
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg commit "$EXPECTED_SHA" \
+            --arg tree "$tree" \
+            --arg workflowRef "$GITHUB_WORKFLOW_REF" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg runAttempt "$GITHUB_RUN_ATTEMPT" \
+            --arg checkStorePath "$check" \
+            --arg proofReceiptSha256 "$(sha256sum "$root/proof/phase1-receipt.json" | cut -d' ' -f1)" \
+            --arg proofVerificationSha256 "$(sha256sum "$root/proof/bridge-verification.json" | cut -d' ' -f1)" \
+            --arg workflowReadbackSha256 "$(sha256sum "$root/workflow-readback.json" | cut -d' ' -f1)" \
+            --arg selectorSha256 "$(sha256sum "$root/proof/phase1-selector.json" | cut -d' ' -f1)" \
+            '{
+              schema: "ops.contract632.phase1ArtifactProvenance.v1",
+              authority: false,
+              claim: "BOUNDED_COMPILER_PROOF_NOT_ORGANIZATION_ADMISSION",
+              producer: {
+                repository: $repository,
+                workflowRef: $workflowRef,
+                runId: $runId,
+                runAttempt: $runAttempt
+              },
+              source: { commit: $commit, tree: $tree },
+              checkStorePath: $checkStorePath,
+              proof: {
+                receiptSha256: $proofReceiptSha256,
+                verificationSha256: $proofVerificationSha256,
+                workflowReadbackSha256: $workflowReadbackSha256,
+                selectorSha256: $selectorSha256
+              }
+            }' > "$root/provenance.json"
+
+          manifest="$RUNNER_TEMP/contract-632-phase1-manifest.json"
+          (cd "$root" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+            | jq -Rn '[inputs | capture("^(?<sha256>[0-9a-f]{64})  (?<path>.+)$") | {path: .path, sha256: .sha256}]' \
+            > "$manifest"
+          mv "$manifest" "$root/bundle-manifest.json"
+          manifest_digest="$(sha256sum "$root/bundle-manifest.json" | cut -d' ' -f1)"
+          printf 'tree=%s\nmanifest_sha256=%s\n' "$tree" "$manifest_digest" >> "$GITHUB_OUTPUT"
+          jq -e '.status == "PASS" and .phaseClosed == false and .authority == false' "$root/workflow-readback.json" >/dev/null
+      - name: Upload exact Phase 1 bundle
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-632-phase1-${{ github.event.pull_request.head.sha }}
+          path: contract-632-phase1-bundle/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Emit artifact identity
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          SOURCE_TREE: ${{ steps.bundle.outputs.tree }}
+          MANIFEST_SHA256: ${{ steps.bundle.outputs.manifest_sha256 }}
+        run: |
+          set -euo pipefail
+          test -n "$ARTIFACT_ID"
+          test -n "$ARTIFACT_URL"
+          [[ "$ARTIFACT_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          [[ "$SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          printf 'contract_632_phase1 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s\n' \
+            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256"

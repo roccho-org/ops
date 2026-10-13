@@ -12,10 +12,17 @@ import shutil
 import stat
 import subprocess
 import sys
-from typing import Any
+import tempfile
+from typing import Any, Callable
 
 DESIGN = "CONTRACT_W_632_CLOSURE_DESIGN_V3"
 CEILING = "BOUNDED_COMPILER_PROOF_NOT_ORGANIZATION_ADMISSION"
+SELECTOR_CEILING = "BOUNDED_PHASE1_SELECTION_NOT_ORGANIZATION_ADMISSION"
+SELECTOR_SOURCE_PATH = "governance/contract-632-phase1-selector.v1.json"
+EXPECTED_SELECTOR_SHA256 = "14b82b5300b99b1d32209d3acfd3572f2a151de0dc8e47a90b0342f5757c6abc"
+EXPECTED_GOVERNANCE_REPOSITORY = "roccho-dev/governance"
+EXPECTED_GOVERNANCE_REVISION = "7160e56aa8dbafaff4b98cc21fc4842d6600daf6"
+EXPECTED_GOVERNANCE_TREE = "eebaa9ca7b85d63c405eb107f68d5546f26e50ab"
 EXPECTED = {
     "ops/packages/cue-append-contract-core/cmd/contractcheck/main.go": "8f7d127f0eaf618d6535c72452f2c1c4e74d0ef3",
     "ops/packages/cue-append-contract-core/internal/core/appendonly/appendonly.go": "0ae4e5d26b1751f36a15dd6213f1ff0b407c7a11",
@@ -32,6 +39,11 @@ EXPECTED = {
     "governance/tools/contract-modeling/fixtures/model-only.json": "046984182034f0c3b3cb56a3322508c5ca64e25f",
     "governance/tools/contract-modeling/fixtures/generate.py": "0022ce13de37ac149ceaffe93f6c4b5c98ddb096",
     "governance/tools/contract-modeling/fixtures/generate_legacy.py": "18f30b9a62c4e734c3ac8cf8111e4572392607c6",
+}
+ROLE_PROTOCOL = {
+    "before": {"ledger": "L0", "packet": "AC0"},
+    "accepted": {"ledger": "L1", "packet": "AC1"},
+    "candidate": {"ledger": "L2", "packet": "BC1"},
 }
 
 
@@ -86,15 +98,170 @@ def make_writable(root: Path) -> None:
         os.chmod(path, mode | add)
 
 
-def selected(packet: dict[str, Any], label: str) -> dict[str, Any]:
+def exact_keys(value: dict[str, Any], expected: set[str], label: str) -> None:
+    actual = set(value)
+    if actual != expected:
+        raise RuntimeError(f"{label} keys mismatch: actual={sorted(actual)} expected={sorted(expected)}")
+
+
+def require_text(value: Any, label: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise RuntimeError(f"{label} must be non-empty text")
+    return value
+
+
+def require_object(value: Any, label: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError(f"{label} must be an object")
+    return value
+
+
+def accepted_decision(policy: dict[str, Any]) -> dict[str, Any]:
+    decision = policy["decision"]
+    return {
+        "decisionId": decision["decision_id"],
+        "decisionDigest": decision["decision_digest"],
+        "acceptedMerge": decision["accepted_merge"],
+        "source": decision["source"],
+        "release": decision["release"],
+        "status": decision["status"],
+    }
+
+
+def validate_selector(
+    selector: dict[str, Any],
+    policy: dict[str, Any],
+    governance_revision: str,
+    governance_tree: str,
+) -> None:
+    exact_keys(
+        selector,
+        {
+            "kind",
+            "selectorId",
+            "authority",
+            "claimCeiling",
+            "designVersion",
+            "source",
+            "acceptedDecision",
+            "governanceSource",
+            "selection",
+        },
+        "selector",
+    )
+    if selector["kind"] != "governance.packageContractPhase1Selector.v1":
+        raise RuntimeError("selector kind mismatch")
+    if selector["selectorId"] != "adrs-632-phase1-v2":
+        raise RuntimeError("selector id mismatch")
+    if selector["authority"] is not False:
+        raise RuntimeError("selector must be non-authoritative")
+    if selector["claimCeiling"] != SELECTOR_CEILING:
+        raise RuntimeError("selector claim ceiling mismatch")
+    if selector["designVersion"] != DESIGN:
+        raise RuntimeError("selector design version mismatch")
+
+    source = require_object(selector["source"], "selector.source")
+    exact_keys(source, {"rAcceptance", "pBoundary"}, "selector.source")
+    require_text(source["rAcceptance"], "selector.source.rAcceptance")
+    require_text(source["pBoundary"], "selector.source.pBoundary")
+
+    decision = require_object(selector["acceptedDecision"], "selector.acceptedDecision")
+    exact_keys(
+        decision,
+        {"decisionId", "decisionDigest", "acceptedMerge", "source", "release", "status"},
+        "selector.acceptedDecision",
+    )
+    if decision != accepted_decision(policy):
+        raise RuntimeError("selector accepted decision mismatch")
+
+    governance_source = require_object(selector["governanceSource"], "selector.governanceSource")
+    exact_keys(governance_source, {"repository", "revision", "treeSha"}, "selector.governanceSource")
+    if governance_source != {
+        "repository": EXPECTED_GOVERNANCE_REPOSITORY,
+        "revision": governance_revision,
+        "treeSha": governance_tree,
+    }:
+        raise RuntimeError("selector governance source mismatch")
+    if governance_revision != EXPECTED_GOVERNANCE_REVISION or governance_tree != EXPECTED_GOVERNANCE_TREE:
+        raise RuntimeError("unexpected governance source identity")
+
+    selection = require_object(selector["selection"], "selector.selection")
+    exact_keys(selection, {"subjectKey", "before", "accepted", "candidate"}, "selector.selection")
+    require_text(selection["subjectKey"], "selector.selection.subjectKey")
+    for role, protocol in ROLE_PROTOCOL.items():
+        entry = require_object(selection[role], f"selector.selection.{role}")
+        expected_keys = {"ledger", "rowId"} if role == "before" else {"ledger", "rowId", "supersedes"}
+        exact_keys(entry, expected_keys, f"selector.selection.{role}")
+        if entry["ledger"] != protocol["ledger"]:
+            raise RuntimeError(f"selector {role} ledger mismatch")
+        require_text(entry["rowId"], f"selector.selection.{role}.rowId")
+        if role != "before":
+            require_text(entry["supersedes"], f"selector.selection.{role}.supersedes")
+
+
+def load_selector(
+    path: Path,
+    expected_sha256: str,
+    policy: dict[str, Any],
+    governance_revision: str,
+    governance_tree: str,
+) -> dict[str, Any]:
+    if not path.is_file():
+        raise RuntimeError(f"selector missing: {path}")
+    actual = sha_file(path)
+    if actual != expected_sha256:
+        raise RuntimeError(f"selector digest mismatch: {actual} != {expected_sha256}")
+    selector = json.loads(path.read_text(encoding="utf-8"))
+    validate_selector(selector, policy, governance_revision, governance_tree)
+    return selector
+
+
+def find_row(rows: list[dict[str, Any]], row_id: str, label: str) -> dict[str, Any]:
+    found = [row for row in rows if row.get("id") == row_id]
+    if len(found) != 1:
+        raise RuntimeError(f"{label}: expected one row {row_id}, got {len(found)}")
+    return found[0]
+
+
+def bind_selector_to_ledgers(selector: dict[str, Any], ledgers: dict[str, list[dict[str, Any]]]) -> None:
+    selection = selector["selection"]
+    subject = selection["subjectKey"]
+    before = find_row(ledgers["L0"], selection["before"]["rowId"], "before")
+    accepted = find_row(ledgers["L1"], selection["accepted"]["rowId"], "accepted")
+    candidate = find_row(ledgers["L2"], selection["candidate"]["rowId"], "candidate")
+    if any(row.get("subject_key") != subject for row in (before, accepted, candidate)):
+        raise RuntimeError("selector subject binding mismatch")
+    if before.get("supersedes") != []:
+        raise RuntimeError("before row must not supersede another row")
+    if accepted.get("supersedes") != [selection["accepted"]["supersedes"]]:
+        raise RuntimeError("accepted supersession binding mismatch")
+    if candidate.get("supersedes") != [selection["candidate"]["supersedes"]]:
+        raise RuntimeError("candidate supersession binding mismatch")
+    if selection["accepted"]["supersedes"] != before["id"]:
+        raise RuntimeError("accepted row does not supersede before row")
+    if selection["candidate"]["supersedes"] != accepted["id"]:
+        raise RuntimeError("candidate row does not supersede accepted row")
+    if ledgers["L1"][:-1] != ledgers["L0"] or ledgers["L1"][-1] != accepted:
+        raise RuntimeError("L1 is not exactly L0 plus the accepted row")
+    if ledgers["L2"][:-1] != ledgers["L1"] or ledgers["L2"][-1] != candidate:
+        raise RuntimeError("L2 is not exactly L1 plus the candidate row")
+
+
+def compiler_packet(
+    packet: dict[str, Any],
+    label: str,
+    ledger_name: str,
+    ledger_sha256: str,
+) -> dict[str, Any]:
     current = packet.get("current_state")
     if not isinstance(current, list) or not current:
         raise RuntimeError(f"{label}: empty current_state")
     return {
-        "kind": "ops.packageContractBridge.compilerPacket.v1",
+        "kind": "ops.packageContractBridge.compilerPacket.v2",
         "label": label,
         "authority": False,
         "claimCeiling": CEILING,
+        "input": {"ledger": f"{ledger_name}.jsonl", "ledgerSha256": ledger_sha256},
         "semanticDigest": packet["semantic_digest"],
         "currentDigest": packet["current_digest"],
         "replayDigest": packet["replay_digest"],
@@ -105,19 +272,70 @@ def selected(packet: dict[str, Any], label: str) -> dict[str, Any]:
     }
 
 
-def decision(packet: dict[str, Any], subject: str) -> str:
+def current_decision(packet: dict[str, Any], subject: str) -> str:
     rows = [row for row in packet["current_state"] if row.get("subject_key") == subject]
     if len(rows) != 1:
         raise RuntimeError(f"expected one current row for {subject}, got {len(rows)}")
     return str(rows[0]["decision"])
 
 
-def rejected(engine: Any, rows: list[dict[str, Any]], policy: dict[str, Any], case: str) -> dict[str, str]:
+def compiler_rejected(
+    engine: Any,
+    rows: list[dict[str, Any]],
+    policy: dict[str, Any],
+    case: str,
+) -> dict[str, str]:
     try:
         engine.validate_and_reduce(rows, policy)
     except Exception as error:
         return {"case": case, "status": "REJECTED", "error": str(error)}
-    raise RuntimeError(f"destructive case passed: {case}")
+    raise RuntimeError(f"destructive compiler case passed: {case}")
+
+
+def rejected(case: str, action: Callable[[], None]) -> dict[str, str]:
+    try:
+        action()
+    except Exception as error:
+        return {"case": case, "status": "REJECTED", "error": str(error)}
+    raise RuntimeError(f"destructive selector case passed: {case}")
+
+
+def selection_record(
+    selector: dict[str, Any],
+    out: Path,
+    packets: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    subject = selector["selection"]["subjectKey"]
+    record: dict[str, Any] = {
+        "kind": "ops.packageContractBridge.phase1Selection.v2",
+        "authority": False,
+        "claimCeiling": CEILING,
+        "selector": {
+            "path": "phase1-selector.json",
+            "sha256": sha_file(out / "phase1-selector.json"),
+            "selectorId": selector["selectorId"],
+        },
+    }
+    for role, protocol in ROLE_PROTOCOL.items():
+        packet_label = protocol["packet"]
+        packet_path = f"{packet_label}.compiler-packet.json"
+        packet = packets[packet_label]
+        record[role] = {
+            "ledger": f"{protocol['ledger']}.jsonl",
+            "ledgerSha256": sha_file(out / f"{protocol['ledger']}.jsonl"),
+            "rowId": selector["selection"][role]["rowId"],
+            "packet": packet_path,
+            "packetSha256": sha_file(out / packet_path),
+            "decision": current_decision(packet, subject),
+            "currentDigest": packet["current_digest"],
+        }
+    record["acceptedCurrentAfterCandidate"] = {
+        "sourceRole": "accepted",
+        "packet": record["accepted"]["packet"],
+        "packetSha256": record["accepted"]["packetSha256"],
+        "currentDigest": record["accepted"]["currentDigest"],
+    }
+    return record
 
 
 def main() -> int:
@@ -141,60 +359,175 @@ def main() -> int:
     fixtures = governance / "tools/contract-modeling/fixtures"
     command([sys.executable, "generate.py"], fixtures)
     policy = json.loads((fixtures / "accepted-policy.json").read_text(encoding="utf-8"))
-    rows = [json.loads(line) for line in (fixtures / "claims.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    rows = [
+        json.loads(line)
+        for line in (fixtures / "claims.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
     original = next(row for row in rows if row["id"] == "request:02-semantic")
 
+    selector_source = args.ops_source.resolve() / SELECTOR_SOURCE_PATH
+    selector = load_selector(
+        selector_source,
+        EXPECTED_SELECTOR_SHA256,
+        policy,
+        args.governance_revision,
+        EXPECTED_GOVERNANCE_TREE,
+    )
+    shutil.copyfile(selector_source, out / "phase1-selector.json")
+
     v2 = copy.deepcopy(original)
-    v2.update(id="request:02-semantic:v2", supersedes=[original["id"]])
+    v2.update(id=selector["selection"]["accepted"]["rowId"], supersedes=[original["id"]])
     v2["payload"]["terms"] = ["customer-alias"]
     v3 = copy.deepcopy(v2)
-    v3.update(id="request:02-semantic:v3", supersedes=[v2["id"]])
+    v3.update(id=selector["selection"]["candidate"]["rowId"], supersedes=[v2["id"]])
     v3["payload"]["requested_projection"] = "customer-alias-v1"
 
     ledgers = {"L0": rows, "L1": [*rows, v2], "L2": [*rows, v2, v3]}
+    bind_selector_to_ledgers(selector, ledgers)
     for label, value in ledgers.items():
         write_jsonl(out / f"{label}.jsonl", value)
 
     append_results: dict[str, Any] = {}
-    for label, base, candidate in (("l0-l1", "L0.jsonl", "L1.jsonl"), ("l1-l2", "L1.jsonl", "L2.jsonl")):
-        result = command([str(args.contractcheck), "append-only-check", "--base", base, "--candidate", candidate], out)
+    for label, base, candidate in (
+        ("l0-l1", "L0.jsonl", "L1.jsonl"),
+        ("l1-l2", "L1.jsonl", "L2.jsonl"),
+    ):
+        result = command(
+            [str(args.contractcheck), "append-only-check", "--base", base, "--candidate", candidate],
+            out,
+        )
         append_results[label] = json.loads(result.stdout)
         write_json(out / f"append-{label}.json", append_results[label])
 
     bin_root = governance / "tools/contract-modeling/bin"
-    epoch = load("contract_w_phase1_epoch", bin_root / "epoch.py")
+    epoch = load("contract_w_phase1_epoch_v2", bin_root / "epoch.py")
     packets: dict[str, dict[str, Any]] = {}
-    for label, ledger in (("AC0", out / "L0.jsonl"), ("AC1", out / "L1.jsonl"), ("BC1", out / "L2.jsonl")):
-        packet = epoch.evaluate(args.governance_revision, governance, claims_path=ledger, require_duckdb=False)
+    for label, ledger_name in (("AC0", "L0"), ("AC1", "L1"), ("BC1", "L2")):
+        ledger = out / f"{ledger_name}.jsonl"
+        packet = epoch.evaluate(
+            args.governance_revision,
+            governance,
+            claims_path=ledger,
+            require_duckdb=False,
+        )
         packets[label] = packet
-        write_json(out / f"{label}.compiler-packet.json", selected(packet, label))
+        write_json(
+            out / f"{label}.compiler-packet.json",
+            compiler_packet(packet, label, ledger_name, sha_file(ledger)),
+        )
 
-    before = decision(packets["AC0"], original["subject_key"])
-    after = decision(packets["AC1"], original["subject_key"])
-    candidate = decision(packets["BC1"], original["subject_key"])
+    subject = selector["selection"]["subjectKey"]
+    before = current_decision(packets["AC0"], subject)
+    after = current_decision(packets["AC1"], subject)
+    candidate = current_decision(packets["BC1"], subject)
     if len({before, after, candidate}) != 3:
         raise RuntimeError(f"expected three decisions, got {before}/{after}/{candidate}")
 
-    engine = load("contract_w_phase1_engine", bin_root / "engine.py")
-    bad: list[dict[str, str]] = []
+    engine = load("contract_w_phase1_engine_v2", bin_root / "engine.py")
+    compiler_bad: list[dict[str, str]] = []
     row = copy.deepcopy(original)
     row.update(id="request:02-semantic:missing-parent", supersedes=["request:not-found"])
-    bad.append(rejected(engine, [*rows, row], policy, "missing-parent"))
+    compiler_bad.append(compiler_rejected(engine, [*rows, row], policy, "missing-parent"))
     row = copy.deepcopy(original)
-    row.update(id="request:02-semantic:cross-subject", subject_key="request:cross-subject", supersedes=[original["id"]])
-    bad.append(rejected(engine, [*rows, row], policy, "cross-subject"))
+    row.update(
+        id="request:02-semantic:cross-subject",
+        subject_key="request:cross-subject",
+        supersedes=[original["id"]],
+    )
+    compiler_bad.append(compiler_rejected(engine, [*rows, row], policy, "cross-subject"))
     a = copy.deepcopy(original)
     a.update(id="request:02-semantic:cycle-a", supersedes=["request:02-semantic:cycle-b"])
     b = copy.deepcopy(original)
     b.update(id="request:02-semantic:cycle-b", supersedes=[a["id"]])
-    bad.append(rejected(engine, [*rows, a, b], policy, "supersession-cycle"))
+    compiler_bad.append(compiler_rejected(engine, [*rows, a, b], policy, "supersession-cycle"))
     row = copy.deepcopy(original)
     row.update(id="request:02-semantic:duplicate-active", supersedes=[])
-    bad.append(rejected(engine, [*rows, row], policy, "duplicate-active"))
-    write_json(out / "destructive-results.json", {"kind": "ops.packageContractBridge.phase1Destructive.v1", "results": bad})
+    compiler_bad.append(compiler_rejected(engine, [*rows, row], policy, "duplicate-active"))
+    write_json(
+        out / "destructive-results.json",
+        {"kind": "ops.packageContractBridge.phase1CompilerDestructive.v2", "results": compiler_bad},
+    )
 
-    identities = []
-    gov_files: list[Path] = []
+    selector_bad: list[dict[str, str]] = []
+    selector_bad.append(
+        rejected(
+            "selector-missing",
+            lambda: load_selector(
+                out / "does-not-exist.json",
+                EXPECTED_SELECTOR_SHA256,
+                policy,
+                args.governance_revision,
+                EXPECTED_GOVERNANCE_TREE,
+            ),
+        )
+    )
+    with tempfile.TemporaryDirectory() as temporary:
+        tampered_path = Path(temporary) / "selector.json"
+        tampered_path.write_bytes(selector_source.read_bytes() + b" ")
+        selector_bad.append(
+            rejected(
+                "selector-byte-tamper",
+                lambda: load_selector(
+                    tampered_path,
+                    EXPECTED_SELECTOR_SHA256,
+                    policy,
+                    args.governance_revision,
+                    EXPECTED_GOVERNANCE_TREE,
+                ),
+            )
+        )
+    wrong_decision = copy.deepcopy(selector)
+    wrong_decision["acceptedDecision"]["decisionDigest"] = "0" * 64
+    selector_bad.append(
+        rejected(
+            "selector-wrong-decision-digest",
+            lambda: validate_selector(
+                wrong_decision,
+                policy,
+                args.governance_revision,
+                EXPECTED_GOVERNANCE_TREE,
+            ),
+        )
+    )
+    wrong_source = copy.deepcopy(selector)
+    wrong_source["governanceSource"]["revision"] = "0" * 40
+    selector_bad.append(
+        rejected(
+            "selector-wrong-governance-revision",
+            lambda: validate_selector(
+                wrong_source,
+                policy,
+                args.governance_revision,
+                EXPECTED_GOVERNANCE_TREE,
+            ),
+        )
+    )
+    self_admitted = copy.deepcopy(selector)
+    self_admitted["selection"]["accepted"] = {
+        "ledger": "L2",
+        "rowId": selector["selection"]["candidate"]["rowId"],
+        "supersedes": selector["selection"]["candidate"]["supersedes"],
+    }
+    selector_bad.append(
+        rejected(
+            "candidate-self-admission",
+            lambda: validate_selector(
+                self_admitted,
+                policy,
+                args.governance_revision,
+                EXPECTED_GOVERNANCE_TREE,
+            ),
+        )
+    )
+    write_json(
+        out / "selector-destructive-results.json",
+        {"kind": "ops.packageContractBridge.phase1SelectorDestructive.v2", "results": selector_bad},
+    )
+
+    ops_files: list[dict[str, str]] = []
+    governance_files: list[dict[str, str]] = []
+    selected_governance_files: list[Path] = []
     for key, expected in EXPECTED.items():
         owner, relative = key.split("/", 1)
         root = args.ops_source.resolve() if owner == "ops" else governance
@@ -202,32 +535,76 @@ def main() -> int:
         actual = blob_sha(file)
         if actual != expected:
             raise RuntimeError(f"accepted source changed: {key}: {actual} != {expected}")
-        identities.append({"path": key, "gitBlobSha": actual})
-        if owner == "governance":
-            gov_files.append(file)
-    write_json(out / "source-identities.json", {"kind": "ops.packageContractBridge.sourceIdentities.v1", "sources": identities})
+        item = {"path": relative, "gitBlobSha": actual, "sha256": sha_file(file)}
+        if owner == "ops":
+            ops_files.append(item)
+        else:
+            governance_files.append(item)
+            selected_governance_files.append(file)
 
-    compiler_digest = sha_bytes("\n".join(
-        f"{file.relative_to(governance).as_posix()}:{sha_file(file)}" for file in sorted(gov_files)
-    ).encode())
-    governance_digest = sha_bytes("\n".join(
-        f"{key}:{EXPECTED[key]}" for key in sorted(EXPECTED) if key.startswith("governance/")
-    ).encode())
-    manifests = {
-        "AC0": {"ledger": "L0.jsonl", "ledgerSha256": sha_file(out / "L0.jsonl"), "selected": True, "organizationAdmissionChanged": False},
-        "AC1": {"ledger": "L1.jsonl", "ledgerSha256": sha_file(out / "L1.jsonl"), "selected": True, "organizationAdmissionChanged": False},
-        "BC1": {"ledger": "L2.jsonl", "ledgerSha256": sha_file(out / "L2.jsonl"), "selected": False, "organizationAdmissionChanged": False},
+    selector_identity = {
+        "path": SELECTOR_SOURCE_PATH,
+        "gitBlobSha": blob_sha(selector_source),
+        "sha256": sha_file(selector_source),
     }
-    write_json(out / "input-manifests.json", {"kind": "ops.packageContractBridge.phase1Inputs.v1", "claimCeiling": CEILING, "manifests": manifests})
+    ops_files.append(selector_identity)
+    governance_file_set_digest = sha_bytes(
+        "\n".join(
+            f"{file.relative_to(governance).as_posix()}:{sha_file(file)}"
+            for file in sorted(selected_governance_files)
+        ).encode()
+    )
+    source_identities = {
+        "kind": "ops.packageContractBridge.sourceIdentities.v2",
+        "ops": {"candidateSha": args.ops_candidate_sha, "selectedFiles": ops_files},
+        "governance": {
+            "repository": EXPECTED_GOVERNANCE_REPOSITORY,
+            "revision": args.governance_revision,
+            "treeSha": EXPECTED_GOVERNANCE_TREE,
+            "selectedFileSetSha256": governance_file_set_digest,
+            "selectedFiles": governance_files,
+        },
+    }
+    write_json(out / "source-identities.json", source_identities)
+
+    manifests = {
+        label: {"ledger": f"{label}.jsonl", "ledgerSha256": sha_file(out / f"{label}.jsonl")}
+        for label in ("L0", "L1", "L2")
+    }
+    input_manifests = {
+        "kind": "ops.packageContractBridge.phase1Inputs.v2",
+        "claimCeiling": CEILING,
+        "selector": {
+            "path": "phase1-selector.json",
+            "sha256": sha_file(out / "phase1-selector.json"),
+            "selectorId": selector["selectorId"],
+        },
+        "manifests": manifests,
+    }
+    write_json(out / "input-manifests.json", input_manifests)
+
+    selected_current = selection_record(selector, out, packets)
+    write_json(out / "accepted-current-selection.json", selected_current)
 
     names = [
-        "L0.jsonl", "L1.jsonl", "L2.jsonl", "append-l0-l1.json", "append-l1-l2.json",
-        "AC0.compiler-packet.json", "AC1.compiler-packet.json", "BC1.compiler-packet.json",
-        "destructive-results.json", "source-identities.json", "input-manifests.json",
+        "phase1-selector.json",
+        "L0.jsonl",
+        "L1.jsonl",
+        "L2.jsonl",
+        "append-l0-l1.json",
+        "append-l1-l2.json",
+        "AC0.compiler-packet.json",
+        "AC1.compiler-packet.json",
+        "BC1.compiler-packet.json",
+        "destructive-results.json",
+        "selector-destructive-results.json",
+        "source-identities.json",
+        "input-manifests.json",
+        "accepted-current-selection.json",
     ]
     artifacts = [{"path": name, "sha256": sha_file(out / name)} for name in names]
     receipt = {
-        "kind": "ops.packageContractBridge.phase1Receipt.v1",
+        "kind": "ops.packageContractBridge.phase1Receipt.v2",
         "status": "PASS",
         "authority": False,
         "claimCeiling": CEILING,
@@ -236,39 +613,54 @@ def main() -> int:
         "phaseClosed": False,
         "source": {
             "opsCandidateSha": args.ops_candidate_sha,
+            "governanceRepository": EXPECTED_GOVERNANCE_REPOSITORY,
             "governanceRevision": args.governance_revision,
-            "governanceTreeDigest": governance_digest,
+            "governanceTreeSha": EXPECTED_GOVERNANCE_TREE,
+            "governanceSelectedFileSetSha256": governance_file_set_digest,
         },
-        "acceptedDecision": {
-            "decisionId": policy["decision"]["decision_id"],
-            "decisionDigest": policy["decision"]["decision_digest"],
-            "acceptedMerge": policy["decision"]["accepted_merge"],
-            "source": policy["decision"]["source"],
+        "acceptedDecision": accepted_decision(policy),
+        "selector": {
+            "selectorId": selector["selectorId"],
+            "sourcePath": SELECTOR_SOURCE_PATH,
+            "bundlePath": "phase1-selector.json",
+            "sha256": sha_file(out / "phase1-selector.json"),
+            "authority": False,
+            "claimCeiling": SELECTOR_CEILING,
         },
-        "compiler": {"version": policy["compiler"]["version"], "sourceDigest": compiler_digest},
+        "compiler": {
+            "version": policy["compiler"]["version"],
+            "selectedFileSetSha256": governance_file_set_digest,
+        },
         "append": {
             "l0ToL1": "PASS" if append_results["l0-l1"]["status"] == "pass" else "FAIL",
             "l1ToL2": "PASS" if append_results["l1-l2"]["status"] == "pass" else "FAIL",
         },
         "supersession": {
-            "subjectKey": original["subject_key"],
-            "beforeRowId": original["id"],
-            "afterRowId": v2["id"],
+            "subjectKey": subject,
+            "beforeRowId": selector["selection"]["before"]["rowId"],
+            "afterRowId": selector["selection"]["accepted"]["rowId"],
             "beforeDecision": before,
             "afterDecision": after,
             "beforeCurrentDigest": packets["AC0"]["current_digest"],
             "afterCurrentDigest": packets["AC1"]["current_digest"],
         },
-        "candidateIsolation": {
-            "candidateRowId": v3["id"],
-            "candidateDecision": candidate,
-            "candidateAdmitted": False,
+        "selection": {
+            "path": "accepted-current-selection.json",
+            "sha256": sha_file(out / "accepted-current-selection.json"),
             "acceptedCurrentDigest": packets["AC1"]["current_digest"],
             "candidateCurrentDigest": packets["BC1"]["current_digest"],
-            "acceptedCurrentUnchanged": True,
         },
-        "destructive": {"total": len(bad), "rejected": sum(row["status"] == "REJECTED" for row in bad)},
-        "commonCode": {"changed": False, "verifiedSourceCount": len(identities)},
+        "destructive": {
+            "compiler": {
+                "total": len(compiler_bad),
+                "rejected": sum(row["status"] == "REJECTED" for row in compiler_bad),
+            },
+            "selector": {
+                "total": len(selector_bad),
+                "rejected": sum(row["status"] == "REJECTED" for row in selector_bad),
+            },
+        },
+        "commonCode": {"changed": False, "verifiedSourceCount": len(ops_files) + len(governance_files)},
         "artifacts": artifacts,
         "semantic": {
             "nonEmpty": all(bool(packet["current_state"]) for packet in packets.values()),
