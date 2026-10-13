@@ -6,7 +6,20 @@ from pathlib import Path
 import sys
 from typing import Callable
 
-CORE = Path(__file__).with_name("contract-632-phase1-proof-core.py")
+
+def argument_path(name: str) -> Path:
+    try:
+        index = sys.argv.index(name)
+        value = sys.argv[index + 1]
+    except (ValueError, IndexError) as error:
+        raise RuntimeError(f"missing required argument: {name}") from error
+    return Path(value).resolve()
+
+
+CORE = argument_path("--ops-source") / "tools/contract-632-phase1-proof-core.py"
+if not CORE.is_file():
+    raise RuntimeError(f"proof core missing from exact ops source: {CORE}")
+
 spec = importlib.util.spec_from_file_location("contract_632_phase1_proof_core", CORE)
 if spec is None or spec.loader is None:
     raise RuntimeError(f"cannot load {CORE}")
