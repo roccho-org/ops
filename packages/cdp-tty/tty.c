@@ -20,8 +20,9 @@ typedef struct {
     Frame frame; struct winsize size;
     int cw,ch,left,top,cols,rows,ready,observe,down,dx,dy,button,recapture;
     unsigned modifiers;
-    int had_ack, can_defer;
-    long long stale_since;
+    int had_ack, can_defer, ending, discard_read;
+    unsigned replies[16]; size_t reply_count;
+    long long stale_since, reply_deadline;
     const char *stage, *completion;
     unsigned image, next_image, pending_image;
     Action pending_action; int has_pending;
@@ -40,6 +41,21 @@ static int output(Terminal *t, const char *data, size_t len) {
     return len ? -1:0;
 }
 static int literal(Terminal *t, const char *s) { return output(t,s,strlen(s)); }
+/* An image response is owned until its complete ST is consumed. Keep a
+ * bounded set because resize can replace a frame before its reply arrives. */
+static int image_reply(Terminal *t, const char *s, size_t n) {
+    if (n<10 || memcmp(s,"\033_Gi=",5) || s[5]<'0' || s[5]>'9') return 0;
+    char *end=NULL; errno=0;
+    unsigned long id=strtoul(s+5,&end,10);
+    if (errno || !id || id>UINT_MAX || !end || (*end!=';' && *end!=',')) return 0;
+    size_t i=0; while (i<t->reply_count && t->replies[i]!=(unsigned)id) i++;
+    if (i==t->reply_count) return 0;
+    t->replies[i]=t->replies[--t->reply_count];
+    const char *semi=memchr(s+3,';',n-5);
+    if (!semi || semi+3!=s+n-2 || memcmp(semi+1,"OK",2)) return -1;
+    if (!t->ending && !t->recapture && id==t->image) { t->ready=1; t->had_ack=1; }
+    return 0;
+}
 static int draw(Terminal *t, Frame *f) {
     double scale=fmin((double)t->size.ws_col*t->cw/f->width,(double)(t->size.ws_row-1)*t->ch/f->height);
     t->cols=(int)floor(f->width*scale/t->cw); t->rows=(int)floor(f->height*scale/t->ch);
@@ -57,7 +73,12 @@ static int draw(Terminal *t, Frame *f) {
         if (output(t,control,(size_t)n)) return -1;
     }
     if (++t->next_image==0) ++t->next_image;
+    if (t->reply_count==sizeof(t->replies)/sizeof(*t->replies)) {
+        t->stage="image-reply-limit"; return -1;
+    }
     t->image=t->next_image;
+    if (!t->reply_count) t->reply_deadline=clock_ms()+3000;
+    t->replies[t->reply_count++]=t->image;
     n=snprintf(control,sizeof(control),"\033[2J\033[%u;1H%s | Ctrl-Q: exit\033[%d;%dH",
         t->size.ws_row,t->observe ? "observe only":"fresh-frame input; bounded drag; committed text",t->top+1,t->left+1);
     if (n<0 || (size_t)n>=sizeof(control) || output(t,control,(size_t)n)) return -1;
@@ -84,7 +105,7 @@ static int refresh(Terminal *t, int force) {
     r=draw(t,&f); frame_free(&f); return r;
 }
 static int apply(Terminal *t, Action *a) {
-    if (t->observe) return 0;
+    if (t->observe || t->ending || t->discard_read) return 0;
     if (!t->ready) {
         /* One complete action can precede its image ACK on the input stream.
          * Bind it to that already-sent frame, never to a later presentation.
@@ -107,8 +128,8 @@ static int apply(Terminal *t, Action *a) {
     int r=cdp_apply(t->cdp,&t->frame,a);
     t->completion=r==CDP_OK ? "acknowledged" : r==CDP_ERROR ? "unknown":"not-sent";
     t->ready=0; t->down=0;
-    /* Discard the remainder of this read: it belongs to the old presentation. */
-    t->used=0;
+    /* Discard remaining user actions, NOT outstanding terminal replies. */
+    t->discard_read=1;
     if (r==CDP_ERROR) return -1;
     if (r==CDP_STALE) fputs("cdp-tty: stage=input-check completion=not-sent reason=stale-frame; no input replay\n",stderr);
     if (r==CDP_UNSUPPORTED) fputs("cdp-tty: stage=input-check completion=not-sent reason=unsupported; no input replay\n",stderr);
@@ -205,21 +226,21 @@ static int consume(Terminal *t, int escape_timeout) {
         if (flush_pending(t)) return -1;
         if (!t->used) break;
         char *s=t->input; size_t n=0; Action a={0}; int do_apply=0;
-        if ((unsigned char)s[0]==17) return 1;
+        if ((unsigned char)s[0]==17) {
+            memmove(s,s+1,--t->used); s[t->used]=0;
+            if (!t->ending) return 1;
+            continue;
+        }
         if (s[0]=='\033') {
             if (t->used==1) { if (!escape_timeout) return 0; n=1; a.kind=KEY; a.key=ESCAPE; do_apply=1; }
             else if (s[1]=='_' || s[1]==']' || s[1]=='P' || s[1]=='^' || s[1]=='X') {
                 if (t->used<3) return 0;
                 char *end=strstr(s+3,"\033\\"); if (!end) return 0;
                 n=(size_t)(end-s)+2;
-                char *id_end=NULL; errno=0;
-                unsigned long id=0;
-                if (s[1]=='_' && s[2]=='G' && !strncmp(s+3,"i=",2) && s[5]>='0' && s[5]<='9') id=strtoul(s+5,&id_end,10);
-                if (!t->recapture && !errno && id && id<=UINT_MAX && id==t->image && id_end && (*id_end==';' || *id_end==',')) {
-                    char *semi=memchr(s+3,';',n-5);
-                    if (!semi || semi+3!=end || memcmp(semi+1,"OK",2)) return -1;
-                    t->ready=1; t->had_ack=1;
-                }
+                int rejected=image_reply(t,s,n);
+                memmove(s,s+n,t->used-n); t->used-=n; s[t->used]=0;
+                if (rejected) return -1;
+                continue;
             } else if (s[1]=='[') {
                 size_t k=2; while (k<t->used && !((unsigned char)s[k]>=0x40 && (unsigned char)s[k]<=0x7e)) k++;
                 if (k==t->used) return 0;
@@ -278,6 +299,31 @@ static int consume(Terminal *t, int escape_timeout) {
     }
     return 0;
 }
+/* Returning while a reply is still in flight lets it become the next
+ * shell's input. Reuse the same parser without input effects or new requests.
+ * A missing/malformed reply is a bounded failed shutdown, never success. */
+static int finish_replies(Terminal *t) {
+    t->ending=1; t->has_pending=0; t->discard_read=1;
+    long long end=t->reply_deadline; /* never restart the existing reply budget */
+    int rejected=0;
+    while (t->reply_count && clock_ms()<end) {
+        size_t before=t->reply_count;
+        if (consume(t,1)<0) {
+            rejected=1;
+            if (t->reply_count==before) break;
+        }
+        if (!t->reply_count) break;
+        struct pollfd p={STDIN_FILENO,POLLIN,0};
+        int r=poll(&p,1,25);
+        if (r<0) { if (errno==EINTR) continue; break; }
+        if (!r) continue;
+        if (!(p.revents&POLLIN) || t->used>=sizeof(t->input)-1) break;
+        ssize_t n=read(STDIN_FILENO,t->input+t->used,sizeof(t->input)-t->used-1);
+        if (n<=0 || memchr(t->input+t->used,0,(size_t)n)) break;
+        t->used+=(size_t)n; t->input[t->used]=0;
+    }
+    return t->reply_count || rejected ? -1:0;
+}
 int tty_run(Cdp *c, int observe, const volatile sig_atomic_t *cancel) {
     Terminal t={.cdp=c,.observe=observe,.cancel=cancel,.stage="terminal-setup",.completion="not-sent"};
     struct termios saved, raw; int flags=-1, result=CDP_ERROR, entered=0;
@@ -301,7 +347,7 @@ int tty_run(Cdp *c, int observe, const volatile sig_atomic_t *cancel) {
             /* Invalidate the old presentation and its not-yet-sent action.
              * A resize never rebinds pending input to the replacement image. */
             t.has_pending=0; t.had_ack=0; t.can_defer=0;
-            t.size=size; t.ready=0; t.down=0; t.used=0;
+            t.size=size; t.ready=0; t.down=0; t.discard_read=1;
             if (t.cw && t.ch && refresh(&t,1)) goto done;
             pending=clock_ms(); next=pending+500;
         }
@@ -317,6 +363,7 @@ int tty_run(Cdp *c, int observe, const volatile sig_atomic_t *cancel) {
         struct pollfd p={STDIN_FILENO,POLLIN,0}; int r=poll(&p,1,25);
         if (r<0 && errno!=EINTR) goto done;
         if (r>0) {
+            if (!t.used) t.discard_read=0;
             if (!(p.revents&POLLIN) || t.used>=sizeof(t.input)-1) goto done;
             ssize_t n=read(STDIN_FILENO,t.input+t.used,sizeof(t.input)-t.used-1);
             if (n<=0 || memchr(t.input+t.used,0,(size_t)n)) goto done;
@@ -344,6 +391,10 @@ done:
         if (t.image) {
             int n=snprintf(end,sizeof(end),"\033_Ga=d,d=I,i=%u,q=2;\033\\",t.image);
             output(&t,end,(size_t)n);
+        }
+        if (finish_replies(&t)) {
+            fputs("cdp-tty: stage=terminal-shutdown completion=unconfirmed-terminal-reply; no input replay\n",stderr);
+            result=CDP_ERROR;
         }
         literal(&t,"\033[?2004l\033[?1006l\033[?1002l\033[?25h\033[?1049l");
         if (tcsetattr(STDIN_FILENO,TCSANOW,&saved)) result=CDP_ERROR;

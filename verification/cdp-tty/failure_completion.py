@@ -183,7 +183,65 @@ def pending_ack_proof():
                     matching_ack_required=True, input_retry=0, terminal_restored=True)
 
 
+
+def shutdown_reply_proof():
+    """A reply to an issued image must not become the next shell's input."""
+    import select
+    import signal
+    import termios
+
+    for mode in ("late", "fragment", "wrong-id", "resize-reordered", "signal", "missing"):
+        with browser() as (page, ctl, chrome, _debug, _port):
+            with Audit(page["webSocketDebuggerUrl"]) as audit:
+                sink=Sink(audit.url,ack=False)
+                try:
+                    sink.wait_frame()
+                    oldest=sink.image
+                    if mode=="resize-reordered":
+                        sink.resize(33,101)
+                        sink.wait_frame(sink.frames+1)
+                        assert sink.image!=oldest
+                    image=sink.image
+                    ack=f"\x1b_Gi={image},p=1;OK\x1b\\".encode()
+                    if mode=="signal": sink.p.send_signal(signal.SIGTERM)
+                    else: sink.send(b"\x11" + (ack[:4] if mode=="fragment" else b""))
+                    until=time.monotonic()+.12
+                    while time.monotonic()<until: sink.pump()
+                    assert sink.p.poll() is None, "exit before the owned image reply"
+                    assert termios.tcgetattr(sink.slave)!=sink.saved, "shell mode restored before reply"
+                    if mode=="wrong-id":
+                        sink.send(f"\x1b_Gi={image^0x40000000};OK\x1b\\".encode())
+                        for _ in range(3): sink.pump()
+                        assert sink.p.poll() is None, "unowned ACK completed shutdown"
+                    if mode!="missing":
+                        sink.send(ack[4:] if mode=="fragment" else ack)
+                        if mode=="resize-reordered":
+                            for _ in range(3): sink.pump()
+                            assert sink.p.poll() is None, "old resize reply still outstanding"
+                            sink.send(f"\x1b_Gi={oldest};OK\x1b\\".encode())
+                    until=time.monotonic()+3.3
+                    while sink.p.poll() is None and time.monotonic()<until: sink.pump()
+                    assert sink.p.poll()==(1 if mode=="missing" else 0), (mode,sink.p.poll())
+                    assert termios.tcgetattr(sink.slave)==sink.saved
+                    # Read without waiting for a newline: a partial reply must
+                    # not be hiding in the canonical input buffer after exit.
+                    raw=termios.tcgetattr(sink.slave)
+                    raw[3]&=~termios.ICANON
+                    termios.tcsetattr(sink.slave,termios.TCSANOW,raw)
+                    assert not select.select([sink.slave],[],[],0)[0], "reply bytes leaked to the next input owner"
+                    termios.tcsetattr(sink.slave,termios.TCSANOW,sink.saved)
+                    assert not any(m.startswith("Input.") for m in audit.methods)
+                    assert chrome.poll() is None
+                finally:
+                    code,error=sink.close()
+                assert code==(1 if mode=="missing" else 0), (mode,code,error)
+                if mode=="missing": assert "stage=terminal-shutdown" in error
+                else: assert not error, error
+                record("A-exit-reply-"+mode, input_count=0, terminal_restored=True,
+                    reply_consumed=mode!="missing", input_replay=0)
+
 if __name__ == "__main__":
+    shutdown_reply_proof()
     pending_ack_proof()
     pre_effect_repaint_proof()
     standalone_enter_proof()
