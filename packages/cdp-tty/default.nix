@@ -1,4 +1,4 @@
-{ lib, stdenv, pkg-config, curl, json_c, chromium, python3, binutils, makeFontsConf, noto-fonts-cjk-sans, kitty, xorg, xdotool, scrot, mesa, dejavu_fonts }:
+{ lib, stdenv, pkg-config, curl, json_c, chromium, python3, binutils, makeFontsConf, noto-fonts-cjk-sans, kitty, xorg, xdotool, scrot, mesa, libglvnd, dbus, dejavu_fonts }:
 let
   # The exact nixpkgs curl defaults to websocketSupport = false. CDP requires
   # ws/wss at runtime; override only this package dependency, not the package set.
@@ -15,7 +15,7 @@ stdenv.mkDerivation {
   strictDeps = true;
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [ curlWebsocket json_c ];
-  nativeCheckInputs = [ chromium (python3.withPackages (p: [ p.websocket-client p.pillow ])) binutils kitty xorg.xorgserver xdotool scrot ];
+  nativeCheckInputs = [ chromium (python3.withPackages (p: [ p.websocket-client p.pillow ])) binutils kitty xorg.xorgserver xdotool scrot dbus ];
   doCheck = true;
   checkPhase = ''
     runHook preCheck
@@ -24,6 +24,8 @@ stdenv.mkDerivation {
     chmod 700 "$XDG_RUNTIME_DIR"
     export LIBGL_DRIVERS_PATH=${mesa}/lib/dri
     export LIBGL_ALWAYS_SOFTWARE=1
+    export LD_LIBRARY_PATH=${lib.makeLibraryPath [ mesa libglvnd ]}
+    export __GLX_VENDOR_LIBRARY_NAME=mesa
     export CHROME_BIN=${chromium}/bin/chromium
     # Fonts are required by the test browser for visible text and real text input.
     export FONTCONFIG_FILE=${makeFontsConf { fontDirectories = [ noto-fonts-cjk-sans dejavu_fonts ]; }}
@@ -35,7 +37,7 @@ stdenv.mkDerivation {
     sed -n 's/^Protocols: //p' curl-version.txt | tr ' ' '\n' > curl-protocols.txt
     grep -Fx ws curl-protocols.txt
     grep -Fx wss curl-protocols.txt
-    CDP_TTY_PACKAGE="$PWD" python3 -u tests/proof.py | tee proof.jsonl
+    CDP_TTY_PACKAGE="$PWD" dbus-run-session -- python3 -u tests/proof.py | tee proof.jsonl
     runHook postCheck
   '';
   installPhase = ''
