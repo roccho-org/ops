@@ -218,8 +218,14 @@ static json_object *focus_identity(Cdp *c) {
         !json_object_is_type(name,json_type_string)) goto cleanup;
     const char *tag=json_object_get_string(name);
     json_object *shadow=get(details,"shadowRoots");
-    int opaque=!strcmp(tag,"IFRAME") || !strcmp(tag,"FRAME") ||
-        (json_object_is_type(shadow,json_type_array) && json_object_array_length(shadow)>0);
+    int opaque=!strcmp(tag,"IFRAME") || !strcmp(tag,"FRAME");
+    if (json_object_is_type(shadow,json_type_array)) {
+        for (size_t i=0;i<json_object_array_length(shadow);i++) {
+            json_object *type=get(json_object_array_get_idx(shadow,i),"shadowRootType");
+            if (!json_object_is_type(type,json_type_string) ||
+                strcmp(json_object_get_string(type),"user-agent")) opaque=1;
+        }
+    }
     out=json_object_new_object();
     json_object_object_add(out,"node",json_object_new_int64(json_object_get_int64(id)));
     json_object_object_add(out,"opaque",json_object_new_boolean(opaque));
