@@ -332,7 +332,11 @@ int cdp_apply(Cdp *c, const Frame *shown, const Action *a) {
         json_object_object_add(p,"key",json_object_new_string(key));
         json_object_object_add(p,"windowsVirtualKeyCode",json_object_new_int(code));
         json_object_object_add(p,"modifiers",json_object_new_int((int)a->modifiers | (a->key==SELECT_ALL ? 2:0)));
-        if (a->key>=LETTER_A && a->key<=DIGIT_9 && !(a->modifiers&7))
+        /* Enter's default newline/submit action needs text on keyDown only.
+         * Preserve Ctrl/Alt/Meta chords; do not add a separate insertText. */
+        if (a->key==ENTER && !(a->modifiers&7))
+            json_object_object_add(p,"text",json_object_new_string("\r"));
+        else if (a->key>=LETTER_A && a->key<=DIGIT_9 && !(a->modifiers&7))
             json_object_object_add(p,"text",json_object_new_string(key));
         json_object_object_add(p,"type",json_object_new_string("keyDown"));
         if (effect(c,KEYS,json_object_get(p))) { json_object_put(p); return CDP_ERROR; }
