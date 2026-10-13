@@ -32,7 +32,7 @@ auditing proxy. No Anoa/casty/cmux code is copied; licensing policy is unchanged
 
 ## Browser boundary
 
-Only these seven methods can appear on the wire; caller-supplied JavaScript or
+Only these nine methods can appear on the wire; caller-supplied JavaScript or
 arbitrary method/JSON forwarding is not exposed:
 
 | Method | Purpose |
@@ -43,16 +43,25 @@ arbitrary method/JSON forwarding is not exposed:
 | `Input.dispatchMouseEvent` | Click, wheel or a finite endpoint drag |
 | `Input.dispatchKeyEvent` | Supported key-down/up pairs and modifiers |
 | `Input.insertText` | Committed UTF-8 text |
-| `Runtime.evaluate` | One fixed side-effect-checked viewport/DPR read |
+| `Runtime.evaluate` | Two fixed side-effect-checked reads: viewport/DPR and activeElement identity handle |
+| `DOM.describeNode` | Compare stable backend node IDs; reject invisible focus change |
+| `Runtime.releaseObject` | Release the temporary activeElement object reference |
 
 Capturing with a clip previously reset an independent controller's DPR. The
 current capture uses `fromSurface:false`, no clip and no viewport mutation.
 The exact fixed geometry expression supplies scrollbar-inclusive dimensions;
 `throwOnSideEffect` rejects a page getter that would write state. Tests assert
-both the method allowlist and the exact expression/flags.
+both the method allowlist and the exact expression/flags. No form values, page
+HTML, credentials or variable expressions are read by the viewer.
 
-Before input, compare fresh pixels, geometry and loader with the acknowledged
-presentation. Stale input is rejected, not replayed. This is not an atomic lock
+Before input, compare fresh pixels, geometry, loader and backend focus identity
+with the acknowledged presentation. A focus switch between two input elements
+with pixel-identical screens is rejected. Authored Shadow DOM and nested frame
+focus are opaque to this bounded adapter: TEXT/KEY are refused there rather
+than assuming a global caret. Native input user-agent shadow roots remain
+allowed. Focus revalidation is still subject to an unavoidable check/use race;
+there is no browser-side atomic focus lock. A changed input target must be
+re-ACKed with a fresh screen before entering more text. Stale input is rejected, not replayed. This is not an atomic lock
 against another client: animation, caret changes or concurrent navigation can
 reject otherwise useful input. Agent/human handoff remains outside this package.
 
@@ -104,7 +113,8 @@ Japanese input, wheel, resize, normal exit and explicit reattachment to the same
 still-running Chrome target. No Meltype or bcon is required by A.
 
 Fault tests retain malformed/oversized WebSocket, JSON, PNG, paste and numeric
-control cases, stale navigation/pixels, image-ACK generation, read-only capture
+control cases, stale navigation/pixels, pixel-identical focus changes,
+image-ACK generation, read-only capture
 instability and unknown input completion with exactly one send. A loopback HTTP
 login fixture verifies authenticated requests, cookies, targets and viewport
 survive normal exit, SIGTERM, SIGHUP and SIGKILL, and missing cookies are rejected.
