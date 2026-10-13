@@ -6,15 +6,17 @@ import copy
 import hashlib
 import importlib.util
 import json
-import pathlib
+import os
+from pathlib import Path
 import shutil
+import stat
 import subprocess
 import sys
 from typing import Any
 
-DESIGN_VERSION = "CONTRACT_W_632_CLOSURE_DESIGN_V3"
-CLAIM_CEILING = "BOUNDED_COMPILER_PROOF_NOT_ORGANIZATION_ADMISSION"
-EXPECTED_BLOBS = {
+DESIGN = "CONTRACT_W_632_CLOSURE_DESIGN_V3"
+CEILING = "BOUNDED_COMPILER_PROOF_NOT_ORGANIZATION_ADMISSION"
+EXPECTED = {
     "ops/packages/cue-append-contract-core/cmd/contractcheck/main.go": "8f7d127f0eaf618d6535c72452f2c1c4e74d0ef3",
     "ops/packages/cue-append-contract-core/internal/core/appendonly/appendonly.go": "0ae4e5d26b1751f36a15dd6213f1ff0b407c7a11",
     "governance/tools/contract-modeling/bin/contract_modeling.py": "655fcade7903942922e076a809020fc48be64f22",
@@ -33,32 +35,41 @@ EXPECTED_BLOBS = {
 }
 
 
-def canonical(value: Any) -> str:
+def canon(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def sha256_bytes(value: bytes) -> str:
+def sha_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
 
-def sha256_file(path: pathlib.Path) -> str:
-    return sha256_bytes(path.read_bytes())
+def sha_file(path: Path) -> str:
+    return sha_bytes(path.read_bytes())
 
 
-def git_blob_sha(path: pathlib.Path) -> str:
+def blob_sha(path: Path) -> str:
     value = path.read_bytes()
     return hashlib.sha1(f"blob {len(value)}\0".encode() + value).hexdigest()
 
 
-def write_json(path: pathlib.Path, value: Any) -> None:
-    path.write_text(canonical(value) + "\n", encoding="utf-8")
+def write_json(path: Path, value: Any) -> None:
+    path.write_text(canon(value) + "\n", encoding="utf-8")
 
 
-def write_jsonl(path: pathlib.Path, values: list[dict[str, Any]]) -> None:
-    path.write_text("".join(canonical(value) + "\n" for value in values), encoding="utf-8")
+def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.write_text("".join(canon(row) + "\n" for row in rows), encoding="utf-8")
 
 
-def load_module(name: str, path: pathlib.Path):
+def command(argv: list[str], cwd: Path, expected: int = 0) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(argv, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode != expected:
+        raise RuntimeError(
+            f"rc={result.returncode} expected={expected}: {' '.join(argv)}\nstdout={result.stdout}\nstderr={result.stderr}"
+        )
+    return result
+
+
+def load(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load {path}")
@@ -68,24 +79,22 @@ def load_module(name: str, path: pathlib.Path):
     return module
 
 
-def run(command: list[str], cwd: pathlib.Path, *, expected: int = 0) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(command, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if result.returncode != expected:
-        raise RuntimeError(
-            f"command failed rc={result.returncode} expected={expected}: {' '.join(command)}\nstdout={result.stdout}\nstderr={result.stderr}"
-        )
-    return result
+def make_writable(root: Path) -> None:
+    for path in [root, *root.rglob("*")]:
+        mode = path.stat().st_mode
+        add = stat.S_IWUSR | (stat.S_IXUSR if path.is_dir() else 0)
+        os.chmod(path, mode | add)
 
 
-def selected_packet(packet: dict[str, Any], label: str) -> dict[str, Any]:
+def selected(packet: dict[str, Any], label: str) -> dict[str, Any]:
     current = packet.get("current_state")
     if not isinstance(current, list) or not current:
-        raise RuntimeError(f"{label}: current_state is empty")
+        raise RuntimeError(f"{label}: empty current_state")
     return {
         "kind": "ops.packageContractBridge.compilerPacket.v1",
         "label": label,
         "authority": False,
-        "claimCeiling": CLAIM_CEILING,
+        "claimCeiling": CEILING,
         "semanticDigest": packet["semantic_digest"],
         "currentDigest": packet["current_digest"],
         "replayDigest": packet["replay_digest"],
@@ -96,30 +105,30 @@ def selected_packet(packet: dict[str, Any], label: str) -> dict[str, Any]:
     }
 
 
-def decision_for(packet: dict[str, Any], subject: str) -> str:
+def decision(packet: dict[str, Any], subject: str) -> str:
     rows = [row for row in packet["current_state"] if row.get("subject_key") == subject]
     if len(rows) != 1:
         raise RuntimeError(f"expected one current row for {subject}, got {len(rows)}")
     return str(rows[0]["decision"])
 
 
-def failure(engine: Any, rows: list[dict[str, Any]], policy: dict[str, Any], label: str) -> dict[str, str]:
+def rejected(engine: Any, rows: list[dict[str, Any]], policy: dict[str, Any], case: str) -> dict[str, str]:
     try:
         engine.validate_and_reduce(rows, policy)
-    except Exception as exc:
-        return {"case": label, "status": "REJECTED", "error": str(exc)}
-    raise RuntimeError(f"destructive case unexpectedly passed: {label}")
+    except Exception as error:
+        return {"case": case, "status": "REJECTED", "error": str(error)}
+    raise RuntimeError(f"destructive case passed: {case}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--governance-source", type=pathlib.Path, required=True)
+    parser.add_argument("--governance-source", type=Path, required=True)
     parser.add_argument("--governance-revision", required=True)
-    parser.add_argument("--ops-source", type=pathlib.Path, required=True)
+    parser.add_argument("--ops-source", type=Path, required=True)
     parser.add_argument("--ops-candidate-sha", required=True)
-    parser.add_argument("--contractcheck", type=pathlib.Path, required=True)
-    parser.add_argument("--bridge", type=pathlib.Path, required=True)
-    parser.add_argument("--out", type=pathlib.Path, required=True)
+    parser.add_argument("--contractcheck", type=Path, required=True)
+    parser.add_argument("--bridge", type=Path, required=True)
+    parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
 
     out = args.out.resolve()
@@ -127,129 +136,108 @@ def main() -> int:
     work = out / "work"
     governance = work / "governance"
     shutil.copytree(args.governance_source.resolve(), governance)
-    fixtures = governance / "tools/contract-modeling/fixtures"
-    run([sys.executable, "generate.py"], fixtures)
+    make_writable(governance)
 
+    fixtures = governance / "tools/contract-modeling/fixtures"
+    command([sys.executable, "generate.py"], fixtures)
     policy = json.loads((fixtures / "accepted-policy.json").read_text(encoding="utf-8"))
     rows = [json.loads(line) for line in (fixtures / "claims.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
     original = next(row for row in rows if row["id"] == "request:02-semantic")
 
     v2 = copy.deepcopy(original)
-    v2["id"] = "request:02-semantic:v2"
-    v2["supersedes"] = [original["id"]]
+    v2.update(id="request:02-semantic:v2", supersedes=[original["id"]])
     v2["payload"]["terms"] = ["customer-alias"]
-
     v3 = copy.deepcopy(v2)
-    v3["id"] = "request:02-semantic:v3"
-    v3["supersedes"] = [v2["id"]]
+    v3.update(id="request:02-semantic:v3", supersedes=[v2["id"]])
     v3["payload"]["requested_projection"] = "customer-alias-v1"
-    v3["payload"]["required_queries"] = []
 
-    l0, l1, l2 = rows, [*rows, v2], [*rows, v2, v3]
-    for name, values in (("L0", l0), ("L1", l1), ("L2", l2)):
-        write_jsonl(out / f"{name}.jsonl", values)
+    ledgers = {"L0": rows, "L1": [*rows, v2], "L2": [*rows, v2, v3]}
+    for label, value in ledgers.items():
+        write_jsonl(out / f"{label}.jsonl", value)
 
     append_results: dict[str, Any] = {}
-    for name, base, candidate in (("l0-l1", "L0.jsonl", "L1.jsonl"), ("l1-l2", "L1.jsonl", "L2.jsonl")):
-        result = run([str(args.contractcheck), "append-only-check", "--base", base, "--candidate", candidate], out)
-        parsed = json.loads(result.stdout)
-        write_json(out / f"append-{name}.json", parsed)
-        append_results[name] = parsed
+    for label, base, candidate in (("l0-l1", "L0.jsonl", "L1.jsonl"), ("l1-l2", "L1.jsonl", "L2.jsonl")):
+        result = command([str(args.contractcheck), "append-only-check", "--base", base, "--candidate", candidate], out)
+        append_results[label] = json.loads(result.stdout)
+        write_json(out / f"append-{label}.json", append_results[label])
 
     bin_root = governance / "tools/contract-modeling/bin"
-    epoch = load_module("contract_w_phase1_epoch", bin_root / "epoch.py")
+    epoch = load("contract_w_phase1_epoch", bin_root / "epoch.py")
     packets: dict[str, dict[str, Any]] = {}
     for label, ledger in (("AC0", out / "L0.jsonl"), ("AC1", out / "L1.jsonl"), ("BC1", out / "L2.jsonl")):
-        packet = epoch.evaluate(
-            args.governance_revision,
-            governance,
-            claims_path=ledger,
-            require_duckdb=False,
-        )
+        packet = epoch.evaluate(args.governance_revision, governance, claims_path=ledger, require_duckdb=False)
         packets[label] = packet
-        write_json(out / f"{label}.compiler-packet.json", selected_packet(packet, label))
+        write_json(out / f"{label}.compiler-packet.json", selected(packet, label))
 
-    before = decision_for(packets["AC0"], original["subject_key"])
-    after = decision_for(packets["AC1"], original["subject_key"])
-    candidate = decision_for(packets["BC1"], original["subject_key"])
-    if before == after or after == candidate:
-        raise RuntimeError(f"expected distinct decisions, got {before}/{after}/{candidate}")
+    before = decision(packets["AC0"], original["subject_key"])
+    after = decision(packets["AC1"], original["subject_key"])
+    candidate = decision(packets["BC1"], original["subject_key"])
+    if len({before, after, candidate}) != 3:
+        raise RuntimeError(f"expected three decisions, got {before}/{after}/{candidate}")
 
-    engine = load_module("contract_w_phase1_engine", bin_root / "engine.py")
-    destructive: list[dict[str, str]] = []
+    engine = load("contract_w_phase1_engine", bin_root / "engine.py")
+    bad: list[dict[str, str]] = []
+    row = copy.deepcopy(original)
+    row.update(id="request:02-semantic:missing-parent", supersedes=["request:not-found"])
+    bad.append(rejected(engine, [*rows, row], policy, "missing-parent"))
+    row = copy.deepcopy(original)
+    row.update(id="request:02-semantic:cross-subject", subject_key="request:cross-subject", supersedes=[original["id"]])
+    bad.append(rejected(engine, [*rows, row], policy, "cross-subject"))
+    a = copy.deepcopy(original)
+    a.update(id="request:02-semantic:cycle-a", supersedes=["request:02-semantic:cycle-b"])
+    b = copy.deepcopy(original)
+    b.update(id="request:02-semantic:cycle-b", supersedes=[a["id"]])
+    bad.append(rejected(engine, [*rows, a, b], policy, "supersession-cycle"))
+    row = copy.deepcopy(original)
+    row.update(id="request:02-semantic:duplicate-active", supersedes=[])
+    bad.append(rejected(engine, [*rows, row], policy, "duplicate-active"))
+    write_json(out / "destructive-results.json", {"kind": "ops.packageContractBridge.phase1Destructive.v1", "results": bad})
 
-    missing_parent = copy.deepcopy(original)
-    missing_parent["id"] = "request:02-semantic:missing-parent"
-    missing_parent["supersedes"] = ["request:not-found"]
-    destructive.append(failure(engine, [*rows, missing_parent], policy, "missing-parent"))
-
-    cross_subject = copy.deepcopy(original)
-    cross_subject["id"] = "request:02-semantic:cross-subject"
-    cross_subject["subject_key"] = "request:cross-subject"
-    cross_subject["supersedes"] = [original["id"]]
-    destructive.append(failure(engine, [*rows, cross_subject], policy, "cross-subject"))
-
-    cycle_a = copy.deepcopy(original)
-    cycle_a["id"] = "request:02-semantic:cycle-a"
-    cycle_a["supersedes"] = ["request:02-semantic:cycle-b"]
-    cycle_b = copy.deepcopy(original)
-    cycle_b["id"] = "request:02-semantic:cycle-b"
-    cycle_b["supersedes"] = [cycle_a["id"]]
-    destructive.append(failure(engine, [*rows, cycle_a, cycle_b], policy, "supersession-cycle"))
-
-    duplicate_active = copy.deepcopy(original)
-    duplicate_active["id"] = "request:02-semantic:duplicate-active"
-    duplicate_active["supersedes"] = []
-    destructive.append(failure(engine, [*rows, duplicate_active], policy, "duplicate-active"))
-    write_json(out / "destructive-results.json", {"kind": "ops.packageContractBridge.phase1Destructive.v1", "results": destructive})
-
-    source_paths: list[tuple[str, pathlib.Path]] = []
-    for key in EXPECTED_BLOBS:
+    identities = []
+    gov_files: list[Path] = []
+    for key, expected in EXPECTED.items():
         owner, relative = key.split("/", 1)
         root = args.ops_source.resolve() if owner == "ops" else governance
-        source_paths.append((key, root / relative))
-    source_results = []
-    for key, file in source_paths:
-        actual = git_blob_sha(file)
-        expected = EXPECTED_BLOBS[key]
+        file = root / relative
+        actual = blob_sha(file)
         if actual != expected:
             raise RuntimeError(f"accepted source changed: {key}: {actual} != {expected}")
-        source_results.append({"path": key, "gitBlobSha": actual})
-    write_json(out / "source-identities.json", {"kind": "ops.packageContractBridge.sourceIdentities.v1", "sources": source_results})
+        identities.append({"path": key, "gitBlobSha": actual})
+        if owner == "governance":
+            gov_files.append(file)
+    write_json(out / "source-identities.json", {"kind": "ops.packageContractBridge.sourceIdentities.v1", "sources": identities})
 
-    compiler_files = [file for key, file in source_paths if key.startswith("governance/")]
-    compiler_digest = sha256_bytes("\n".join(f"{file.relative_to(governance).as_posix()}:{sha256_file(file)}" for file in sorted(compiler_files)).encode())
-    governance_tree_digest = sha256_bytes("\n".join(f"{key}:{EXPECTED_BLOBS[key]}" for key in sorted(EXPECTED_BLOBS) if key.startswith("governance/")).encode())
-
+    compiler_digest = sha_bytes("\n".join(
+        f"{file.relative_to(governance).as_posix()}:{sha_file(file)}" for file in sorted(gov_files)
+    ).encode())
+    governance_digest = sha_bytes("\n".join(
+        f"{key}:{EXPECTED[key]}" for key in sorted(EXPECTED) if key.startswith("governance/")
+    ).encode())
     manifests = {
-        "AC0": {"ledger": "L0.jsonl", "ledgerSha256": sha256_file(out / "L0.jsonl"), "selected": True, "organizationAdmissionChanged": False},
-        "AC1": {"ledger": "L1.jsonl", "ledgerSha256": sha256_file(out / "L1.jsonl"), "selected": True, "organizationAdmissionChanged": False},
-        "BC1": {"ledger": "L2.jsonl", "ledgerSha256": sha256_file(out / "L2.jsonl"), "selected": False, "organizationAdmissionChanged": False},
+        "AC0": {"ledger": "L0.jsonl", "ledgerSha256": sha_file(out / "L0.jsonl"), "selected": True, "organizationAdmissionChanged": False},
+        "AC1": {"ledger": "L1.jsonl", "ledgerSha256": sha_file(out / "L1.jsonl"), "selected": True, "organizationAdmissionChanged": False},
+        "BC1": {"ledger": "L2.jsonl", "ledgerSha256": sha_file(out / "L2.jsonl"), "selected": False, "organizationAdmissionChanged": False},
     }
-    write_json(out / "input-manifests.json", {"kind": "ops.packageContractBridge.phase1Inputs.v1", "claimCeiling": CLAIM_CEILING, "manifests": manifests})
+    write_json(out / "input-manifests.json", {"kind": "ops.packageContractBridge.phase1Inputs.v1", "claimCeiling": CEILING, "manifests": manifests})
 
-    artifacts = []
     names = [
-        "L0.jsonl", "L1.jsonl", "L2.jsonl",
-        "append-l0-l1.json", "append-l1-l2.json",
+        "L0.jsonl", "L1.jsonl", "L2.jsonl", "append-l0-l1.json", "append-l1-l2.json",
         "AC0.compiler-packet.json", "AC1.compiler-packet.json", "BC1.compiler-packet.json",
         "destructive-results.json", "source-identities.json", "input-manifests.json",
     ]
-    for name in names:
-        artifacts.append({"path": name, "sha256": sha256_file(out / name)})
-
+    artifacts = [{"path": name, "sha256": sha_file(out / name)} for name in names]
     receipt = {
         "kind": "ops.packageContractBridge.phase1Receipt.v1",
         "status": "PASS",
         "authority": False,
-        "claimCeiling": CLAIM_CEILING,
-        "designVersion": DESIGN_VERSION,
+        "claimCeiling": CEILING,
+        "designVersion": DESIGN,
         "phase": 1,
         "phaseClosed": False,
         "source": {
             "opsCandidateSha": args.ops_candidate_sha,
             "governanceRevision": args.governance_revision,
-            "governanceTreeDigest": governance_tree_digest,
+            "governanceTreeDigest": governance_digest,
         },
         "acceptedDecision": {
             "decisionId": policy["decision"]["decision_id"],
@@ -257,10 +245,7 @@ def main() -> int:
             "acceptedMerge": policy["decision"]["accepted_merge"],
             "source": policy["decision"]["source"],
         },
-        "compiler": {
-            "version": policy["compiler"]["version"],
-            "sourceDigest": compiler_digest,
-        },
+        "compiler": {"version": policy["compiler"]["version"], "sourceDigest": compiler_digest},
         "append": {
             "l0ToL1": "PASS" if append_results["l0-l1"]["status"] == "pass" else "FAIL",
             "l1ToL2": "PASS" if append_results["l1-l2"]["status"] == "pass" else "FAIL",
@@ -282,23 +267,22 @@ def main() -> int:
             "candidateCurrentDigest": packets["BC1"]["current_digest"],
             "acceptedCurrentUnchanged": True,
         },
-        "destructive": {"total": len(destructive), "rejected": sum(row["status"] == "REJECTED" for row in destructive)},
-        "commonCode": {"changed": False, "verifiedSourceCount": len(source_results)},
+        "destructive": {"total": len(bad), "rejected": sum(row["status"] == "REJECTED" for row in bad)},
+        "commonCode": {"changed": False, "verifiedSourceCount": len(identities)},
         "artifacts": artifacts,
         "semantic": {
-            "nonEmpty": all(bool(packets[name]["current_state"]) for name in packets),
-            "replayEqual": all(packets[name]["replay_equal"] for name in packets),
+            "nonEmpty": all(bool(packet["current_state"]) for packet in packets.values()),
+            "replayEqual": all(packet["replay_equal"] for packet in packets.values()),
             "ac0SemanticDigest": packets["AC0"]["semantic_digest"],
             "ac1SemanticDigest": packets["AC1"]["semantic_digest"],
             "bc1SemanticDigest": packets["BC1"]["semantic_digest"],
         },
     }
     write_json(out / "phase1-receipt.json", receipt)
-
-    verified = run([str(args.bridge), "verify-phase1", str(out)], out)
+    verified = command([str(args.bridge), "verify-phase1", str(out)], out)
     (out / "bridge-verification.json").write_text(verified.stdout, encoding="utf-8")
     shutil.rmtree(work)
-    print(canonical({"status": "PASS", "phase": 1, "receipt": str(out / "phase1-receipt.json")}))
+    print(canon({"status": "PASS", "phase": 1, "receipt": str(out / "phase1-receipt.json")}))
     return 0
 
 
