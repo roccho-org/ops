@@ -6,6 +6,7 @@ let
   # Test-owned browser/controller/proxy capabilities stay outside runtime source.
   # This source is a required Nix input, not an optional CI-side download.
   proofSource = ../../verification/cdp-tty/proof.py;
+  rendererSource = ../../verification/cdp-tty/renderer.py;
 in
 stdenv.mkDerivation {
   pname = "cdp-tty";
@@ -31,6 +32,7 @@ stdenv.mkDerivation {
     export FONTCONFIG_FILE=${makeFontsConf { fontDirectories = [ noto-fonts-cjk-sans dejavu_fonts ]; }}
     test ! -e tests/proof.py
     cp ${proofSource} tests/proof.py
+    cp ${rendererSource} tests/renderer.py
     make probe
     set -o pipefail
     ${lib.getBin curlWebsocket}/bin/curl --version | tee curl-version.txt
@@ -64,7 +66,7 @@ stdenv.mkDerivation {
         if any(key in row["test"] for key in ("block", "rejected", "only", "generation", "wire-", "no-retry", "isolation")):
             print(json.dumps(row))
     PYTHON
-    sha256sum cdp.c cdp.h tty.c tty.h main.c Makefile tests/probe.c tests/proof.py default.nix proof.nix > "$proof/source.sha256"
+    sha256sum cdp.c cdp.h tty.c tty.h main.c Makefile tests/probe.c tests/proof.py tests/renderer.py default.nix proof.nix > "$proof/source.sha256"
     ${chromium}/bin/chromium --version > "$proof/versions.txt"
     pkg-config --modversion libcurl json-c >> "$proof/versions.txt"
     runHook postInstall

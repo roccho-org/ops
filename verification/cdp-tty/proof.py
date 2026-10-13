@@ -570,92 +570,10 @@ def standalone_input_proof():
                 assert code == 0, err
 
 def graphical_terminal_proof():
-    """Actual Kitty rendering/XTEST input, not the simulated protocol sink.
+    # Separate renderer observation from the protocol-sink tests above.
+    from renderer import prove
+    prove(ROOT, browser, eventually, record)
 
-    Xvfb and all profiles are test-owned. Screenshots contain only PAGE data.
-    This is Linux graphical-terminal evidence, not physical Windows/SSH proof.
-    """
-    from PIL import Image
-    for program in ('Xvfb', 'kitty', 'xdotool', 'scrot'):
-        assert shutil.which(program), f'real renderer dependency REQUIRED: {program}'
-    with tempfile.TemporaryDirectory(prefix='cdp-tty-renderer-') as home:
-        read_fd, write_fd = os.pipe()
-        with open(Path(home)/'xvfb.log', 'wb') as server_log:
-            server = subprocess.Popen(['Xvfb', '-displayfd', str(write_fd), '-screen', '0',
-                '1280x900x24', '-nolisten', 'tcp'], pass_fds=(write_fd,),
-                stdout=server_log, stderr=server_log)
-            os.close(write_fd)
-            try:
-                assert select.select([read_fd], [], [], 8)[0], 'Xvfb readiness not observed'
-                number = os.read(read_fd, 64).strip().decode()
-                assert number.isdecimal(), number
-                env = {**os.environ, 'DISPLAY': ':'+number, 'HOME': home,
-                       'XDG_CONFIG_HOME': home+'/config', 'LIBGL_ALWAYS_SOFTWARE': '1'}
-                env.pop('WAYLAND_DISPLAY', None)
-                def xdo(*args):
-                    return subprocess.run(['xdotool', *map(str,args)],env=env,check=True,
-                        capture_output=True,text=True,timeout=5).stdout.strip()
-                def snapshot(name):
-                    path=Path(home)/(name+'.png')
-                    subprocess.run(['scrot','--overwrite',str(path)],env=env,check=True,
-                        capture_output=True,timeout=5)
-                    with Image.open(path) as image:
-                        rgb=image.convert('RGB')
-                        count=sum(1 for pixel in rgb.getdata() if all(abs(a-b)<=2 for a,b in zip(pixel,(190,210,230))))
-                    return count,path
-                with browser() as (page,ctl,chrome,debug,_):
-                    ctl.evaluate("document.body.style.background='rgb(190,210,230)';document.querySelector('#text').focus()")
-                    before=ctl.evaluate('[innerWidth,innerHeight,devicePixelRatio]')
-                    target=page['id']
-                    for iteration in range(2):
-                        with open(Path(home)/f'kitty-{iteration}.log','wb') as terminal_log:
-                            terminal=subprocess.Popen(['kitty','--config','NONE','--title','cdp-tty-A-proof',
-                                '-o','linux_display_server=x11','-o','remember_window_size=no',
-                                '-o','initial_window_width=1000','-o','initial_window_height=720',
-                                '-o','enable_audio_bell=no','-o','font_family=DejaVu Sans Mono',
-                                '-o','font_size=12',str(ROOT/'cdp-tty'),page['webSocketDebuggerUrl']],
-                                env=env,stdout=terminal_log,stderr=terminal_log)
-                            try:
-                                def visible():
-                                    assert terminal.poll() is None, (Path(home)/f'kitty-{iteration}.log').read_text()
-                                    found=subprocess.run(['xdotool','search','--onlyvisible','--name','^cdp-tty-A-proof$'],
-                                        env=env,capture_output=True,text=True,timeout=3)
-                                    return found.stdout.strip().splitlines()[0] if found.returncode==0 and found.stdout.strip() else None
-                                window=eventually(visible)
-                                xdo('windowfocus','--sync',window)
-                                eventually(lambda: snapshot('shown')[0]>10000)
-                                if iteration==0:
-                                    xdo('type','--clearmodifiers','--delay','5','日本語')
-                                    eventually(lambda: ctl.evaluate("document.querySelector('#text').value")=='日本語')
-                                    xdo('windowsize',window,900,660)
-                                    eventually(lambda: snapshot('resized')[0]>10000)
-                                    assert ctl.evaluate('[innerWidth,innerHeight,devicePixelRatio]')==before
-                                    xdo('mousemove','--window',window,400,380,'click',5)
-                                    eventually(lambda: ctl.evaluate('scrollY')>0)
-                                    eventually(lambda: snapshot('wheel')[0]>10000)
-                                    count,path=snapshot('real-terminal')
-                                    shutil.copyfile(path,ROOT/'real-terminal.png')
-                                    record('A-real-kitty-X11-render-input-resize-wheel',pixels=count,
-                                        png_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
-                                        renderer=True,physical_keyboard=False)
-                                xdo('key','--clearmodifiers','ctrl+q')
-                                terminal.wait(timeout=8)
-                                assert terminal.returncode==0, (Path(home)/f'kitty-{iteration}.log').read_text()
-                            finally:
-                                if terminal.poll() is None:
-                                    terminal.terminate()
-                                    try: terminal.wait(timeout=3)
-                                    except subprocess.TimeoutExpired: terminal.kill();terminal.wait(timeout=3)
-                        assert chrome.poll() is None
-                        pages=json.load(urllib.request.urlopen(f'http://127.0.0.1:{debug}/json/list',timeout=2))
-                        assert any(item['id']==target for item in pages)
-                        assert ctl.evaluate("document.querySelector('#text').value")=='日本語'
-                    record('A-real-kitty-explicit-reattach-same-Chrome',attachments=2,same_target=True)
-            finally:
-                os.close(read_fd)
-                server.terminate()
-                try: server.wait(timeout=3)
-                except subprocess.TimeoutExpired: server.kill();server.wait(timeout=3)
 
 def run():
     standalone_input_proof()
