@@ -91,12 +91,14 @@ def prove(root, browser, eventually, record):
                                     record('A-real-kitty-XTEST-ASCII',renderer=True,physical_keyboard=False)
                                     xdo('key','--clearmodifiers','ctrl+a')
                                     eventually(lambda: ctl.evaluate("document.querySelector('#text').selectionEnd-document.querySelector('#text').selectionStart")==3)
-                                    eventually(lambda: changed(ascii_image,'selected'))
+                                    selected_image=eventually(lambda: changed(ascii_image,'selected'))[2]
                                     # A terminal-native committed string, not an X keymap's
                                     # attempted emulation of a Japanese input method.
                                     xdo('key','--clearmodifiers','ctrl+alt+j')
                                     eventually(lambda: page_text('日本語'))
-                                    count,path,_=snapshot('real-terminal')
+                                    # DOM input can complete before the new PNG reaches the terminal.
+                                    # The evidence must be the *updated* rendered frame, not old 'abc'.
+                                    count,path,_=eventually(lambda: changed(selected_image,'real-terminal'))
                                     shutil.copyfile(path,root/'real-terminal.png')
                                     record('A-real-kitty-committed-Japanese',renderer=True,
                                         input_source='Kitty send_text via XTEST key chord',
