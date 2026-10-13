@@ -101,8 +101,10 @@ or its profile changed by viewer shutdown.
 mock-only path can pass the package proof. `nix-build packages/cdp-tty/proof.nix
 --no-out-link` uses the repository's pinned nixpkgs without unrelated private
 flake inputs. Outputs: `out` (CLI), `dev` (library/header), `proof` (evidence).
-The previously deferred CI proof job is enabled only for PR #534's A scope;
-other deferred #460 work is unchanged.
+The same proof runs in `.github/workflows/cdp-tty-proof.yml` for changes to its
+package, tests, lock or workflow, on PRs and pushes to proposals. It no longer
+depends on PR #534 existing. The job is moved, not duplicated; unrelated
+previously deferred #460 work remains unchanged.
 
 The independent CDP observer prepares synthetic test pages and reads actual DOM
 changes. An audit proxy verifies the finite wire surface. The real PTY protocol
