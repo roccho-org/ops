@@ -765,7 +765,7 @@ def run():
                     record("unknown-input-result-no-retry")
     # No source-side subprocess or browser lifecycle entrypoint is allowed.
     core = (ROOT / "cdp.c").read_text()
-    wire = set(re.findall(r'"((?:Page|Input|Target|Browser|Runtime|Network|Storage|Emulation)\.[A-Za-z]+)"', core))
+    wire = set(re.findall(r'"((?:Page|Input|Target|Browser|Runtime|DOM|Network|Storage|Emulation)\.[A-Za-z]+)"', core))
     assert wire == ALLOWED
     symbols = subprocess.run(["nm", "-u", str(ROOT / "libcdp-tty.a")], capture_output=True, text=True, check=True).stdout
     assert not re.search(r"\b(exec\w*|fork|system|popen|tcsetattr|signal|sigaction|exit)\b", symbols)
