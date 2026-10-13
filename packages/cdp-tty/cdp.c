@@ -13,10 +13,10 @@
 #define LIMIT (16u * 1024u * 1024u)
 struct Cdp { CURL *curl; curl_socket_t socket; unsigned id; int broken;
     const volatile sig_atomic_t *cancel; const char *error_method; };
-typedef enum { METRICS, TREE, SHOT, MOUSE, KEYS, INSERT, VIEW } Method;
+typedef enum { METRICS, TREE, SHOT, MOUSE, KEYS, INSERT, VIEW, FOCUS_NODE, FOCUS_RELEASE } Method;
 /* The only wire method names. No generic passthrough API. */
 static const char *const methods[] = { "Page.getLayoutMetrics", "Page.getFrameTree",
-    "Page.captureScreenshot", "Input.dispatchMouseEvent", "Input.dispatchKeyEvent", "Input.insertText", "Runtime.evaluate" };
+    "Page.captureScreenshot", "Input.dispatchMouseEvent", "Input.dispatchKeyEvent", "Input.insertText", "Runtime.evaluate", "DOM.describeNode", "Runtime.releaseObject" };
 static int64_t now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec*1000LL+t.tv_nsec/1000000; }
 static int cancelled(Cdp *c) { return c->cancel && *c->cancel; }
 static int wait_socket(Cdp *c, short events, int64_t deadline) {
@@ -57,7 +57,7 @@ static json_object *receive(Cdp *c, int64_t end) {
 }
 static json_object *call(Cdp *c, Method method, json_object *params) {
     json_object *answer = NULL, *req = json_object_new_object();
-    if (!req || !params || !c || c->broken || cancelled(c) || method < METRICS || method > VIEW) goto done;
+    if (!req || !params || !c || c->broken || cancelled(c) || method < METRICS || method > FOCUS_RELEASE) goto done;
     unsigned id = ++c->id;
     json_object_object_add(req, "id", json_object_new_int64(id));
     json_object_object_add(req, "method", json_object_new_string(methods[method]));
@@ -193,12 +193,52 @@ static json_object *view_geometry(Cdp *c) {
 done:
     json_object_put(r); return out;
 }
+/* A pixel-identical page can silently move focus to another editable node.
+ * Obtain one backend DOM identity without querying values or modifying the page.
+ * Release the ephemeral Runtime handle on every path. Opaque subframes/shadow
+ * hosts cannot safely receive text via the parent target. */
+static json_object *focus_identity(Cdp *c) {
+    json_object *p=json_object_new_object(), *eval=NULL, *desc=NULL, *release=NULL, *out=NULL;
+    if (!p) return NULL;
+    json_object_object_add(p,"expression",json_object_new_string("document.activeElement"));
+    json_object_object_add(p,"returnByValue",json_object_new_boolean(0));
+    json_object_object_add(p,"throwOnSideEffect",json_object_new_boolean(1));
+    json_object_object_add(p,"silent",json_object_new_boolean(1));
+    json_object_object_add(p,"timeout",json_object_new_int(1000));
+    eval=call(c,VIEW,p);
+    json_object *node=get(eval,"result"), *oid=get(node,"objectId");
+    if (get(eval,"exceptionDetails") || !json_object_is_type(oid,json_type_string)) goto done;
+    const char *handle=json_object_get_string(oid);
+    if (!handle || !*handle || strlen(handle)>256) goto done;
+    p=json_object_new_object();
+    json_object_object_add(p,"objectId",json_object_new_string(handle));
+    desc=call(c,FOCUS_NODE,p);
+    json_object *details=get(desc,"node"), *id=get(details,"backendNodeId"), *name=get(details,"nodeName");
+    if (!json_object_is_type(id,json_type_int) || json_object_get_int64(id)<=0 ||
+        !json_object_is_type(name,json_type_string)) goto cleanup;
+    const char *tag=json_object_get_string(name);
+    json_object *shadow=get(details,"shadowRoots");
+    int opaque=!strcmp(tag,"IFRAME") || !strcmp(tag,"FRAME") ||
+        (json_object_is_type(shadow,json_type_array) && json_object_array_length(shadow)>0);
+    out=json_object_new_object();
+    json_object_object_add(out,"node",json_object_new_int64(json_object_get_int64(id)));
+    json_object_object_add(out,"opaque",json_object_new_boolean(opaque));
+cleanup:
+    p=json_object_new_object();
+    json_object_object_add(p,"objectId",json_object_new_string(handle));
+    release=call(c,FOCUS_RELEASE,p);
+    if (!release) { json_object_put(out); out=NULL; }
+done:
+    json_object_put(eval); json_object_put(desc); json_object_put(release);
+    return out;
+}
 static json_object *geometry(Cdp *c) {
     json_object *metrics=call(c,METRICS,json_object_new_object());
-    json_object *tree=call(c,TREE,json_object_new_object()), *view=view_geometry(c), *result=NULL;
+    json_object *tree=call(c,TREE,json_object_new_object()), *view=view_geometry(c),
+        *focus=focus_identity(c), *result=NULL;
     json_object *v=get(metrics,"cssVisualViewport"), *l=get(metrics,"cssLayoutViewport");
     json_object *loader=get(get(get(tree,"frameTree"),"frame"),"loaderId");
-    if (!view || !json_object_is_type(v,json_type_object) || !json_object_is_type(l,json_type_object) ||
+    if (!view || !focus || !json_object_is_type(v,json_type_object) || !json_object_is_type(l,json_type_object) ||
         !json_object_is_type(loader,json_type_string)) goto done;
     const char *numbers[]={"clientWidth","clientHeight","pageX","pageY","offsetX","offsetY","scale"};
     for (size_t i=0;i<sizeof(numbers)/sizeof(*numbers);i++) {
@@ -214,8 +254,9 @@ static json_object *geometry(Cdp *c) {
     json_object_object_add(result,"layout",json_object_get(l));
     json_object_object_add(result,"loader",json_object_get(loader));
     json_object_object_add(result,"view",json_object_get(view));
+    json_object_object_add(result,"focus",json_object_get(focus));
 done:
-    json_object_put(metrics); json_object_put(tree); json_object_put(view); return result;
+    json_object_put(metrics); json_object_put(tree); json_object_put(view); json_object_put(focus); return result;
 }
 int cdp_frame(Cdp *c, Frame *out) {
     memset(out,0,sizeof(*out));
@@ -258,7 +299,16 @@ int cdp_apply(Cdp *c, const Frame *shown, const Action *a) {
     if (a->kind==DRAG && (!isfinite(a->x2) || !isfinite(a->y2) ||
         a->x2<0 || a->y2<0 || a->x2>=shown->css_width || a->y2>=shown->css_height)) return CDP_UNSUPPORTED;
     Frame fresh; int s=cdp_frame(c,&fresh); if (s) return s;
-    int same=frame_equal(shown,&fresh); frame_free(&fresh); if (!same) return CDP_STALE;
+    int same=frame_equal(shown,&fresh);
+    int opaque=0;
+    if (fresh.geometry) {
+        json_object *g=json_tokener_parse(fresh.geometry);
+        opaque=json_object_get_boolean(get(get(g,"focus"),"opaque"));
+        json_object_put(g);
+    }
+    frame_free(&fresh);
+    if (!same) return CDP_STALE;
+    if (opaque && (a->kind==TEXT || a->kind==KEY)) return CDP_UNSUPPORTED;
     json_object *p=json_object_new_object();
     if (a->kind==TEXT) {
         json_object_object_add(p,"text",json_object_new_string(a->text)); return effect(c,INSERT,p);

@@ -29,7 +29,8 @@ import websocket
 
 ROOT = Path(os.environ.get("CDP_TTY_PACKAGE", Path(__file__).resolve().parents[2] / "packages/cdp-tty")).resolve()
 ALLOWED = {"Page.getLayoutMetrics", "Page.getFrameTree", "Page.captureScreenshot",
-           "Input.dispatchMouseEvent", "Input.dispatchKeyEvent", "Input.insertText", "Runtime.evaluate"}
+           "Input.dispatchMouseEvent", "Input.dispatchKeyEvent", "Input.insertText", "Runtime.evaluate",
+           "DOM.describeNode", "Runtime.releaseObject"}
 RECEIPTS: list[dict] = []
 PAGE = b'''<!doctype html><meta charset=utf-8><title>fixture</title>
 <style>body{margin:0;height:2500px;background:#eee;font:18px sans-serif}
@@ -175,8 +176,13 @@ class AuditHandler(socketserver.StreamRequestHandler):
                 self.server.methods.append(method)  # never retain params, frames or secrets
                 assert method in ALLOWED, f"forbidden wire method: {method}"
                 if method == "Runtime.evaluate":
-                    assert req["params"] == {"expression": "({width:innerWidth,height:innerHeight,dpr:devicePixelRatio})",
-                        "returnByValue": True, "throwOnSideEffect": True, "silent": True, "timeout": 1000}
+                    assert req["params"] in (
+                        {"expression": "({width:innerWidth,height:innerHeight,dpr:devicePixelRatio})",
+                         "returnByValue": True, "throwOnSideEffect": True, "silent": True, "timeout": 1000},
+                        {"expression": "document.activeElement", "returnByValue": False,
+                         "throwOnSideEffect": True, "silent": True, "timeout": 1000})
+                if method in ("DOM.describeNode", "Runtime.releaseObject"):
+                    assert set(req["params"]) == {"objectId"} and isinstance(req["params"]["objectId"],str)
                 if method == "Page.captureScreenshot":
                     assert req["params"] == {"format": "png", "captureBeyondViewport": False, "fromSurface": False}
                 fault = self.server.fault
@@ -530,6 +536,22 @@ def standalone_gesture_proof():
                 code, err = sink.close()
                 assert code == 0, err
 
+def silent_focus_proof():
+    """A real focus change with identical pixels must not deliver typed input."""
+    with browser() as (page,ctl,chrome,debug,_):
+        ctl.evaluate("for (const e of document.querySelectorAll('input'))e.style.outline='none';document.querySelector('#text').focus()")
+        shot={"format":"png","captureBeyondViewport":False,"fromSurface":False}
+        with Audit(page["webSocketDebuggerUrl"]) as audit, Probe(audit.url) as p:
+            p.frame()
+            pixels_before=ctl.call("Page.captureScreenshot",shot)["data"]
+            ctl.evaluate("document.querySelector('#other').focus()")
+            assert pixels_before == ctl.call("Page.captureScreenshot",shot)["data"], "focus test was visibly different"
+            assert p.command("text forbidden-hidden-focus")[0] == 2
+            assert ctl.evaluate("[document.querySelector('#text').value,document.querySelector('#other').value]")==["",""]
+            assert not any(x.startswith("Input.") for x in audit.methods)
+            assert audit.methods.count("DOM.describeNode")>0
+            record("A-silent-focus-ABA-blocked",inputs=0,pixel_identity=True)
+
 def standalone_input_proof():
     """A regressions: real Chrome and unchanged PTY/wire observer, no B/C."""
     with browser() as (page, ctl, chrome, debug, _):
@@ -577,6 +599,7 @@ def graphical_terminal_proof():
 
 def run():
     standalone_input_proof()
+    silent_focus_proof()
     standalone_gesture_proof()
     standalone_failure_proof()
     independent_geometry_proof()
