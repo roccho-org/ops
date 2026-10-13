@@ -22,7 +22,7 @@ stdenv.mkDerivation {
     export HOME="$TMPDIR/home" XDG_RUNTIME_DIR="$TMPDIR/runtime"
     mkdir -p "$HOME" "$XDG_RUNTIME_DIR"
     chmod 700 "$XDG_RUNTIME_DIR"
-    export LIBGL_DRIVERS_PATH=${mesa.drivers}/lib/dri
+    export LIBGL_DRIVERS_PATH=${mesa}/lib/dri
     export LIBGL_ALWAYS_SOFTWARE=1
     export CHROME_BIN=${chromium}/bin/chromium
     # Fonts are required by the test browser for visible text and real text input.
