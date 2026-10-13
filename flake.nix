@@ -247,7 +247,7 @@
               ''
                 set -euo pipefail
                 for run in 1 2; do
-                  ${python}/bin/python3 ${./packages/ops-package-contract-bridge/tests/phase1-proof.py} \
+                  ${python}/bin/python3 ${./tools/contract-632-phase1-proof.py} \
                     --governance-source ${governance} \
                     --governance-revision ${governance.rev or "unknown-governance-revision"} \
                     --ops-source ${self} \
