@@ -65,6 +65,13 @@ re-ACKed with a fresh screen before entering more text. Stale input is rejected,
 against another client: animation, caret changes or concurrent navigation can
 reject otherwise useful input. Agent/human handoff remains outside this package.
 
+For TEXT/KEY only, a transient pixel mismatch with unchanged loader/focus/geometry
+gets at most 16 further read-only captures, starting only within a one-second
+window. Every capture retains its existing bounded wire deadline. The expected
+acknowledged image is never replaced: its full pixels and geometry must recur
+before the first input effect. A persistent image difference, navigation or
+focus change still rejects. No input is resent.
+
 A change during read-only capture retries only that read, within a three-second
 stability deadline. It does not wait for an acknowledgement of a frame that was
 never sent. Terminal resize fits/centres locally without changing Chrome's
@@ -78,8 +85,14 @@ PageDown, Insert, Ctrl-A; finite ASCII Ctrl/Alt and CSI-u keys; modified arrows
 and Shift-Tab. Unsupported control reports are never reinterpreted as text.
 A terminal read boundary is not an IME commit boundary: split printable text is
 coalesced for a bounded 40 ms quiet interval or a following control delimiter.
-This is not an unbounded typing queue. Input received for an unacknowledged or
-stale presentation can be discarded; users must inspect the refreshed view.
+One complete TEXT/KEY action (text at most 4096 bytes) may wait for the ACK of
+an already-sent repaint in a previously acknowledged input context. The exact
+image ID and full pre-effect frame check are both mandatory. This is not a
+queue of effects: there is no input send before acceptance, and no retry after
+an uncertain send. A second pending action fails closed. Initial setup, a
+changed context or a resize cannot retain or rebind old input. Resize invalidates
+the pending action while preserving terminal recovery and old-ACK rejection.
+Input outside those bounds can be discarded; inspect the refreshed view.
 
 Mouse positions use terminal cell centres, not pixel-precise pointer reports.
 A drag retains only start/end and sends press, eight interpolated moves, release
@@ -116,8 +129,10 @@ still-running Chrome target. No Meltype or bcon is required by A.
 
 Fault tests retain malformed/oversized WebSocket, JSON, PNG, paste and numeric
 control cases, stale navigation/pixels, pixel-identical focus changes,
-image-ACK generation, read-only capture
-instability and unknown input completion with exactly one send. A loopback HTTP
+image-ACK generation, one pending action with correct/wrong/missing ACK,
+pending focus change/overflow/resize, exact-pixel return versus persistent
+repaint, read-only capture instability and unknown input completion with exactly
+one send. A loopback HTTP
 login fixture verifies authenticated requests, cookies, targets and viewport
 survive normal exit, SIGTERM, SIGHUP and SIGKILL, and missing cookies are rejected.
 That is synthetic-service evidence, not a user's third-party login or SSH outage.

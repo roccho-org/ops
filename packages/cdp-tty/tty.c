@@ -20,9 +20,12 @@ typedef struct {
     Frame frame; struct winsize size;
     int cw,ch,left,top,cols,rows,ready,observe,down,dx,dy,button,recapture;
     unsigned modifiers;
+    int had_ack, can_defer;
     long long stale_since;
     const char *stage, *completion;
-    unsigned image, next_image;
+    unsigned image, next_image, pending_image;
+    Action pending_action; int has_pending;
+    char pending_text[4097];
     char input[8192]; size_t used;
 } Terminal;
 static long long clock_ms(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC,&t); return t.tv_sec*1000LL+t.tv_nsec/1000000; }
@@ -42,6 +45,11 @@ static int draw(Terminal *t, Frame *f) {
     t->cols=(int)floor(f->width*scale/t->cw); t->rows=(int)floor(f->height*scale/t->ch);
     if (t->cols<1 || t->rows<1) return -1;
     t->left=(t->size.ws_col-t->cols)/2; t->top=(t->size.ws_row-1-t->rows)/2;
+    /* Never defer input across initial setup, a resize, or a different input
+     * context. Only a repaint of the previously acknowledged context qualifies. */
+    t->can_defer=t->had_ack && t->frame.geometry && f->geometry &&
+        !strcmp(t->frame.geometry,f->geometry);
+    if (!t->can_defer) t->had_ack=0;
     t->ready=0; t->down=0; t->recapture=0;
     char control[256]; int n;
     if (t->image) {
@@ -68,7 +76,7 @@ static int refresh(Terminal *t, int force) {
     Frame f; int r=cdp_frame(t->cdp,&f);
     if (r==CDP_STALE) {
         if (!t->recapture) t->stale_since=clock_ms();
-        t->ready=0; t->down=0; t->recapture=1;
+        t->ready=0; t->down=0; t->recapture=1; t->had_ack=0; t->can_defer=0;
         return 0; /* retry the read-only frame, never the previous input */
     }
     if (r) return -1;
@@ -76,7 +84,25 @@ static int refresh(Terminal *t, int force) {
     r=draw(t,&f); frame_free(&f); return r;
 }
 static int apply(Terminal *t, Action *a) {
-    if (!t->ready || t->observe) return 0;
+    if (t->observe) return 0;
+    if (!t->ready) {
+        /* One complete action can precede its image ACK on the input stream.
+         * Bind it to that already-sent frame, never to a later presentation.
+         * No effect occurs before the exact ACK and the normal CDP recheck. */
+        if (!t->frame.png || t->recapture || !t->can_defer) return 0;
+        if (t->has_pending || (a->kind!=TEXT && a->kind!=KEY)) {
+            t->stage="pending-input-limit"; t->completion="not-sent"; return -1;
+        }
+        t->pending_action=*a;
+        if (a->kind==TEXT) {
+            size_t n=strlen(a->text);
+            if (n>=sizeof(t->pending_text)) return -1;
+            memcpy(t->pending_text,a->text,n+1);
+            t->pending_action.text=t->pending_text;
+        }
+        t->pending_image=t->image; t->has_pending=1;
+        return 0;
+    }
     t->stage="input-dispatch";
     int r=cdp_apply(t->cdp,&t->frame,a);
     t->completion=r==CDP_OK ? "acknowledged" : r==CDP_ERROR ? "unknown":"not-sent";
@@ -87,6 +113,15 @@ static int apply(Terminal *t, Action *a) {
     if (r==CDP_STALE) fputs("cdp-tty: stage=input-check completion=not-sent reason=stale-frame; no input replay\n",stderr);
     if (r==CDP_UNSUPPORTED) fputs("cdp-tty: stage=input-check completion=not-sent reason=unsupported; no input replay\n",stderr);
     return refresh(t,1);
+}
+static int flush_pending(Terminal *t) {
+    if (!t->has_pending || !t->ready) return 0;
+    if (t->pending_image!=t->image) {
+        t->stage="pending-frame-changed"; t->completion="not-sent"; return -1;
+    }
+    Action a=t->pending_action;
+    t->has_pending=0;
+    return apply(t,&a);
 }
 static unsigned mouse_modifiers(int b) {
     return ((b&4) ? 8u:0u) | ((b&8) ? 1u:0u) | ((b&16) ? 2u:0u);
@@ -167,6 +202,8 @@ static int csi_key(const char *s, size_t n, Action *a) {
 /* Returns -1 error, 1 exit, 0 continue. Incomplete tokens stay bounded. */
 static int consume(Terminal *t, int escape_timeout) {
     while (t->used) {
+        if (flush_pending(t)) return -1;
+        if (!t->used) break;
         char *s=t->input; size_t n=0; Action a={0}; int do_apply=0;
         if ((unsigned char)s[0]==17) return 1;
         if (s[0]=='\033') {
@@ -181,7 +218,7 @@ static int consume(Terminal *t, int escape_timeout) {
                 if (!t->recapture && !errno && id && id<=UINT_MAX && id==t->image && id_end && (*id_end==';' || *id_end==',')) {
                     char *semi=memchr(s+3,';',n-5);
                     if (!semi || semi+3!=end || memcmp(semi+1,"OK",2)) return -1;
-                    t->ready=1;
+                    t->ready=1; t->had_ack=1;
                 }
             } else if (s[1]=='[') {
                 size_t k=2; while (k<t->used && !((unsigned char)s[k]>=0x40 && (unsigned char)s[k]<=0x7e)) k++;
@@ -261,13 +298,16 @@ int tty_run(Cdp *c, int observe, const volatile sig_atomic_t *cancel) {
         t.stage="terminal-size";
         if (ioctl(STDOUT_FILENO,TIOCGWINSZ,&size) || size.ws_col<2 || size.ws_row<3) goto done;
         if (size.ws_col!=t.size.ws_col || size.ws_row!=t.size.ws_row) {
+            /* Invalidate the old presentation and its not-yet-sent action.
+             * A resize never rebinds pending input to the replacement image. */
+            t.has_pending=0; t.had_ack=0; t.can_defer=0;
             t.size=size; t.ready=0; t.down=0; t.used=0;
             if (t.cw && t.ch && refresh(&t,1)) goto done;
             pending=clock_ms(); next=pending+500;
         }
         if (!t.cw || !t.ch) { if (now-pending>3000) { t.stage="cell-size-reply"; goto done; } }
         else if ((t.recapture && now>=next) || (!t.frame.png && !t.recapture) ||
-                 (t.ready && !t.down && !t.used && now>=next)) {
+                 (t.ready && !t.down && !t.used && !t.has_pending && now>=next)) {
             if (refresh(&t,t.recapture)) goto done;
             pending=clock_ms(); next=pending+(t.recapture ? 50:500);
         }
@@ -282,12 +322,14 @@ int tty_run(Cdp *c, int observe, const volatile sig_atomic_t *cancel) {
             if (n<=0 || memchr(t.input+t.used,0,(size_t)n)) goto done;
             t.used+=(size_t)n; t.input[t.used]=0; last_byte=clock_ms();
         }
-        int was_ready=t.ready;
+        int was_ready=t.ready, was_recapture=t.recapture;
+        unsigned was_image=t.image;
         t.stage="terminal-token";
         r=consume(&t,clock_ms()-last_byte>40);
         if (r<0) goto done;
         if (r>0) { result=CDP_OK; goto done; }
-        if (was_ready && !t.ready) { pending=clock_ms(); next=pending+(t.recapture ? 50:500); }
+        if (flush_pending(&t)) goto done;
+        if ((was_ready && !t.ready) || was_image!=t.image || (!was_recapture && t.recapture)) { pending=clock_ms(); next=pending+(t.recapture ? 50:500); }
         if (t.used>=sizeof(t.input)-1 || (t.used && clock_ms()-last_byte>3000)) { t.stage="incomplete-input"; goto done; }
     }
     result=CDP_OK;

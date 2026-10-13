@@ -306,6 +306,20 @@ int cdp_apply(Cdp *c, const Frame *shown, const Action *a) {
         a->x2<0 || a->y2<0 || a->x2>=shown->css_width || a->y2>=shown->css_height)) return CDP_UNSUPPORTED;
     Frame fresh; int s=cdp_frame(c,&fresh); if (s) return s;
     int same=frame_equal(shown,&fresh);
+    /* A caret/compositor repaint can differ while the shown loader, focus and
+     * geometry are unchanged. Before the FIRST effect only, look for the exact
+     * acknowledged pixels again. Never replace the expected frame, relax its
+     * equality, wait through a focus/navigation change, or retry an input. */
+    int64_t until=now()+1000;
+    for (int reads=0; !same && (a->kind==TEXT || a->kind==KEY) &&
+         reads<16 && now()<until && !cancelled(c) && fresh.geometry &&
+         shown->geometry && !strcmp(shown->geometry,fresh.geometry); reads++) {
+        struct timespec pause={.tv_nsec=20000000};
+        nanosleep(&pause,NULL);
+        frame_free(&fresh);
+        s=cdp_frame(c,&fresh); if (s) return s;
+        same=frame_equal(shown,&fresh);
+    }
     int opaque=0;
     if (fresh.geometry) {
         json_object *g=json_tokener_parse(fresh.geometry);
