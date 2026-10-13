@@ -59,6 +59,7 @@ export async function plan(request, { propose, cores = [], ...options }) {
     if (!core || q.question !== core.question || ['problem', 'ok', 'unknown'].some(key => q.criteria[key] !== core.criteria[key])) fail('CORE_MISMATCH');
   }
   if (!value.questions.length && !value.missing.length) value.missing.push({ need: 'Goal coverage', reason: 'No questions or independent evidence of non-applicability supplied.' });
+  validate(value, ceiling);
   return freeze(value);
 }
 
