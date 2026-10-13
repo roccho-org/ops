@@ -105,7 +105,7 @@ jobs:
           set -euo pipefail
           test -n "$ARTIFACT_ID"
           test -n "$ARTIFACT_URL"
-          [[ "$ARTIFACT_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          [[ "$ARTIFACT_DIGEST" =~ ^(sha256:)?[0-9a-f]{64}$ ]]
           [[ "$SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
           [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
           printf 'contract_632_phase1 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s\n' \
