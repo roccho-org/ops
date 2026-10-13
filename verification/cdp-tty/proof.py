@@ -38,8 +38,8 @@ button{position:absolute;left:200px;top:120px;width:220px;height:90px}
 #stamp{position:absolute;left:20px;top:250px}</style>
 <input id=text><input id=other style="top:350px"><button id=button>fixture button</button><div id=stamp>stable</div>
 <script>window.events=[];window.clicks=0;
-for(const type of ['mousedown','mouseup','click','keydown','keyup','wheel','input'])
-addEventListener(type,e=>events.push({type,key:e.key,button:e.button,x:e.clientX,y:e.clientY,dy:e.deltaY}));
+for(const type of ['mousedown','mouseup','mousemove','click','keydown','keyup','wheel','input'])
+addEventListener(type,e=>events.push({type,key:e.key,button:e.button,x:e.clientX,y:e.clientY,dy:e.deltaY,shift:e.shiftKey,ctrl:e.ctrlKey,alt:e.altKey,meta:e.metaKey,buttons:e.buttons}));
 button.onclick=()=>clicks++;</script>'''
 
 def record(name: str, **observed):
@@ -119,6 +119,7 @@ class Audit(socketserver.ThreadingTCPServer):
     def __init__(self, upstream, fault=""):
         self.upstream, self.fault, self.methods = upstream, fault, []
         self.connections = 0
+        self.input_seen = self.stale_injected = False
         super().__init__(("127.0.0.1", 0), AuditHandler)
         self.thread = threading.Thread(target=self.serve_forever, daemon=True)
         self.thread.start()
@@ -183,6 +184,20 @@ class AuditHandler(socketserver.StreamRequestHandler):
                     time.sleep(4)
                     break
                 result = upstream.call(method, req.get("params"))
+                if method.startswith("Input."):
+                    self.server.input_seen = True
+                if fault == "always_stale" and method == "Page.captureScreenshot":
+                    target = 160 if upstream.evaluate("scrollY") == 0 else 0
+                    upstream.evaluate(f"scrollTo(0,{target})")
+                    eventually(lambda: upstream.evaluate("scrollY") == target)
+                if (fault == "stale_after_input" and self.server.input_seen and
+                        method == "Page.captureScreenshot" and not self.server.stale_injected):
+                    # Reproduce a compositor/scroll change *during* a capture.
+                    # The following metrics must reject this old PNG once; no
+                    # product input is replayed by the test.
+                    upstream.evaluate("scrollTo(0,160)")
+                    eventually(lambda: upstream.evaluate("scrollY") == 160)
+                    self.server.stale_injected = True
                 if fault == "close_after_input" and method.startswith("Input."):
                     break
                 if fault == "bad_png" and method == "Page.captureScreenshot":
@@ -438,7 +453,214 @@ def fixture_auth_proof():
         server.server_close()
         thread.join(timeout=2)
 
+def standalone_failure_proof():
+    with browser() as (page, ctl, chrome, debug, _):
+        for fault, stage in (("always_stale", "unstable-frame"), ("wrong_id", "frame-capture")):
+            with Audit(page["webSocketDebuggerUrl"], fault) as audit:
+                sink=Sink(audit.url)
+                try:
+                    eventually(lambda: sink.pump() or sink.p.poll() is not None, timeout=8)
+                finally:
+                    code, err=sink.close()
+                assert code==1 and f"stage={stage}" in err, (fault, code, err)
+                assert not any(m.startswith('Input.') for m in audit.methods)
+                assert page['webSocketDebuggerUrl'] not in err
+                record("A-bounded-failure-stage-"+fault, stage=stage, inputs=0)
+        with Audit(page["webSocketDebuggerUrl"]) as audit:
+            sink=Sink(audit.url,ack=False)
+            try:
+                sink.wait_frame()
+                eventually(lambda: sink.pump() or sink.p.poll() is not None, timeout=5)
+            finally:
+                code, err=sink.close()
+            assert code==1 and 'stage=image-ack-timeout' in err, (code, err)
+            assert not any(m.startswith('Input.') for m in audit.methods)
+            record('A-image-ack-deadline-restores-TTY')
+        ctl.evaluate("document.querySelector('#text').focus()")
+        with Audit(page["webSocketDebuggerUrl"],"close_after_input") as audit:
+            sink=Sink(audit.url)
+            try:
+                sink.wait_frame()
+                sink.send('一度だけ'.encode())
+                eventually(lambda: sink.pump() or sink.p.poll() is not None, timeout=5)
+            finally:
+                code, err=sink.close()
+            assert code==1 and 'stage=input-dispatch' in err and 'completion=unknown' in err, (code,err)
+            assert audit.methods.count('Input.insertText')==1 and audit.connections==1
+            eventually(lambda: ctl.evaluate("document.querySelector('#text').value") == '一度だけ')
+            assert '一度だけ' not in err and page['webSocketDebuggerUrl'] not in err
+            record('A-unknown-input-reply-no-reconnect-replay', count=1)
+        assert chrome.poll() is None
+
+def standalone_gesture_proof():
+    with browser() as (page, ctl, chrome, debug, _):
+        ctl.evaluate("document.querySelector('#text').value='abcdef';document.querySelector('#text').focus();document.querySelector('#text').setSelectionRange(6,6)")
+        with Audit(page["webSocketDebuggerUrl"]) as audit:
+            sink = Sink(audit.url)
+            try:
+                sink.wait_frame()
+                sink.send(b"\x1b[1;2D")  # Shift + Left: selection, not unmodified motion.
+                sink.wait_frame(sink.frames+1)
+                eventually(lambda: ctl.evaluate("document.querySelector('#text').selectionStart") == 5)
+                assert ctl.evaluate("document.querySelector('#text').selectionEnd") == 6
+                assert ctl.evaluate("events.filter(e=>e.type==='keydown').at(-1).shift")
+                record("A-modified-arrow-selection")
+                sink.send(b"\x1b[99;5u")  # Kitty Ctrl-C, preserve control meaning.
+                sink.wait_frame(sink.frames+1)
+                eventually(lambda: ctl.evaluate("events.some(e=>e.type==='keydown' && e.key==='c' && e.ctrl)"))
+                assert ctl.evaluate("document.querySelector('#text').value") == 'abcdef'
+                record("A-kitty-modified-letter-no-text-fallback")
+                ctl.evaluate("document.querySelector('#text').blur();window.moves=[];window.addEventListener('mousemove',e=>{if(e.buttons)moves.push([e.clientX,e.clientY,e.buttons])});window.addEventListener('mouseup',e=>{window.lastRelease=[e.clientX,e.clientY,e.shiftKey]})")
+                # The controller's blur changes pixels. Require the newly shown frame.
+                sink.wait_frame(sink.frames+1)
+                cols, rows = sink.last_size
+                left, top = (sink.cols-cols)//2, (sink.rows-1-rows)//2
+                start = (left+20, top+18)
+                finish = (left+50, top+21)
+                before = audit.methods.count('Input.dispatchMouseEvent')
+                sink.send(f"\x1b[<4;{start[0]};{start[1]}M\x1b[<36;{finish[0]};{finish[1]}M\x1b[<4;{finish[0]};{finish[1]}m".encode())
+                sink.wait_frame(sink.frames+1)
+                eventually(lambda: ctl.evaluate("moves.length") > 0)
+                assert ctl.evaluate("lastRelease[2]") is True
+                assert ctl.evaluate("events.filter(e=>e.type==='mousedown').at(-1).shift") is True
+                assert audit.methods.count('Input.dispatchMouseEvent')-before == 10
+                assert ctl.evaluate("moves.every(e=>e[2]===1)")
+                record("A-bounded-point-to-point-drag", moves=8, shift=True)
+            finally:
+                code, err = sink.close()
+                assert code == 0, err
+
+def standalone_input_proof():
+    """A regressions: real Chrome and unchanged PTY/wire observer, no B/C."""
+    with browser() as (page, ctl, chrome, debug, _):
+        # A valid UTF-8 codepoint is not necessarily a whole IME commit; terminal
+        # writes may fragment between codepoints, not just within one character.
+        ctl.evaluate("document.querySelector('#text').focus()")
+        with Audit(page["webSocketDebuggerUrl"]) as audit:
+            sink = Sink(audit.url)
+            try:
+                sink.wait_frame()
+                for char in "日本語":
+                    sink.send(char.encode())
+                    time.sleep(.01)
+                sink.wait_frame(sink.frames+1)
+                eventually(lambda: ctl.evaluate("document.querySelector('#text').value") == "日本語")
+                assert audit.methods.count("Input.insertText") == 1
+                record("A-fragmented-committed-text-once", codepoints=3)
+            finally:
+                code, err = sink.close()
+                assert code == 0, err
+        ctl.evaluate("document.querySelector('#text').blur();scrollTo(0,0)")
+        with Audit(page["webSocketDebuggerUrl"], "stale_after_input") as audit:
+            sink = Sink(audit.url)
+            try:
+                sink.wait_frame()
+                cols, rows = sink.last_size
+                x = (sink.cols-cols)//2 + cols//2
+                y = (sink.rows-1-rows)//2 + rows//2
+                sink.send(f"\x1b[<65;{x};{y}M".encode())
+                sink.wait_frame(sink.frames+1)
+                assert audit.stale_injected
+                assert audit.methods.count("Input.dispatchMouseEvent") == 1
+                eventually(lambda: ctl.evaluate("scrollY") == 160)
+                assert sink.p.poll() is None
+                record("A-readonly-frame-recapture-after-wheel", input_count=1)
+            finally:
+                code, err = sink.close()
+                assert code == 0, err
+
+def graphical_terminal_proof():
+    """Actual Kitty rendering/XTEST input, not the simulated protocol sink.
+
+    Xvfb and all profiles are test-owned. Screenshots contain only PAGE data.
+    This is Linux graphical-terminal evidence, not physical Windows/SSH proof.
+    """
+    from PIL import Image
+    for program in ('Xvfb', 'kitty', 'xdotool', 'scrot'):
+        assert shutil.which(program), f'real renderer dependency REQUIRED: {program}'
+    with tempfile.TemporaryDirectory(prefix='cdp-tty-renderer-') as home:
+        read_fd, write_fd = os.pipe()
+        with open(Path(home)/'xvfb.log', 'wb') as server_log:
+            server = subprocess.Popen(['Xvfb', '-displayfd', str(write_fd), '-screen', '0',
+                '1280x900x24', '-nolisten', 'tcp'], pass_fds=(write_fd,),
+                stdout=server_log, stderr=server_log)
+            os.close(write_fd)
+            try:
+                assert select.select([read_fd], [], [], 8)[0], 'Xvfb readiness not observed'
+                number = os.read(read_fd, 64).strip().decode()
+                assert number.isdecimal(), number
+                env = {**os.environ, 'DISPLAY': ':'+number, 'HOME': home,
+                       'XDG_CONFIG_HOME': home+'/config', 'LIBGL_ALWAYS_SOFTWARE': '1'}
+                env.pop('WAYLAND_DISPLAY', None)
+                def xdo(*args):
+                    return subprocess.run(['xdotool', *map(str,args)],env=env,check=True,
+                        capture_output=True,text=True,timeout=5).stdout.strip()
+                def snapshot(name):
+                    path=Path(home)/(name+'.png')
+                    subprocess.run(['scrot','--overwrite',str(path)],env=env,check=True,
+                        capture_output=True,timeout=5)
+                    with Image.open(path) as image:
+                        rgb=image.convert('RGB')
+                        count=sum(1 for pixel in rgb.getdata() if all(abs(a-b)<=2 for a,b in zip(pixel,(190,210,230))))
+                    return count,path
+                with browser() as (page,ctl,chrome,debug,_):
+                    ctl.evaluate("document.body.style.background='rgb(190,210,230)';document.querySelector('#text').focus()")
+                    before=ctl.evaluate('[innerWidth,innerHeight,devicePixelRatio]')
+                    target=page['id']
+                    for iteration in range(2):
+                        with open(Path(home)/f'kitty-{iteration}.log','wb') as terminal_log:
+                            terminal=subprocess.Popen(['kitty','--config','NONE','--title','cdp-tty-A-proof',
+                                '-o','linux_display_server=x11','-o','remember_window_size=no',
+                                '-o','initial_window_width=1000','-o','initial_window_height=720',
+                                '-o','enable_audio_bell=no','-o','font_family=DejaVu Sans Mono',
+                                '-o','font_size=12',str(ROOT/'cdp-tty'),page['webSocketDebuggerUrl']],
+                                env=env,stdout=terminal_log,stderr=terminal_log)
+                            try:
+                                def visible():
+                                    assert terminal.poll() is None, (Path(home)/f'kitty-{iteration}.log').read_text()
+                                    found=subprocess.run(['xdotool','search','--onlyvisible','--name','^cdp-tty-A-proof$'],
+                                        env=env,capture_output=True,text=True,timeout=3)
+                                    return found.stdout.strip().splitlines()[0] if found.returncode==0 and found.stdout.strip() else None
+                                window=eventually(visible)
+                                xdo('windowfocus','--sync',window)
+                                eventually(lambda: snapshot('shown')[0]>10000)
+                                if iteration==0:
+                                    xdo('type','--clearmodifiers','--delay','5','日本語')
+                                    eventually(lambda: ctl.evaluate("document.querySelector('#text').value")=='日本語')
+                                    xdo('windowsize',window,900,660)
+                                    eventually(lambda: snapshot('resized')[0]>10000)
+                                    assert ctl.evaluate('[innerWidth,innerHeight,devicePixelRatio]')==before
+                                    xdo('mousemove','--window',window,400,380,'click',5)
+                                    eventually(lambda: ctl.evaluate('scrollY')>0)
+                                    eventually(lambda: snapshot('wheel')[0]>10000)
+                                    count,path=snapshot('real-terminal')
+                                    shutil.copyfile(path,ROOT/'real-terminal.png')
+                                    record('A-real-kitty-X11-render-input-resize-wheel',pixels=count,
+                                        png_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                                        renderer=True,physical_keyboard=False)
+                                xdo('key','--clearmodifiers','ctrl+q')
+                                terminal.wait(timeout=8)
+                                assert terminal.returncode==0, (Path(home)/f'kitty-{iteration}.log').read_text()
+                            finally:
+                                if terminal.poll() is None:
+                                    terminal.terminate()
+                                    try: terminal.wait(timeout=3)
+                                    except subprocess.TimeoutExpired: terminal.kill();terminal.wait(timeout=3)
+                        assert chrome.poll() is None
+                        pages=json.load(urllib.request.urlopen(f'http://127.0.0.1:{debug}/json/list',timeout=2))
+                        assert any(item['id']==target for item in pages)
+                        assert ctl.evaluate("document.querySelector('#text').value")=='日本語'
+                    record('A-real-kitty-explicit-reattach-same-Chrome',attachments=2,same_target=True)
+            finally:
+                os.close(read_fd)
+                server.terminate()
+                try: server.wait(timeout=3)
+                except subprocess.TimeoutExpired: server.kill();server.wait(timeout=3)
+
 def run():
+    standalone_input_proof()
+    standalone_gesture_proof()
+    standalone_failure_proof()
     independent_geometry_proof()
     assert subprocess.run([str(ROOT / "cdp-tty"), "--help"], capture_output=True).returncode == 0
     for url in ["http://127.0.0.1:1/json", "ws://0.0.0.0:1/devtools/page/a", "ws://127.0.0.1:1/devtools/browser/a",
@@ -608,7 +830,8 @@ def run():
     assert not re.search(r"\b(exec\w*|fork|system|popen|tcsetattr|signal|sigaction|exit)\b", symbols)
     record("finite-wire-surface-no-process-tty-global-core", method_count=len(wire))
     fixture_auth_proof()
-    residuals = dict(windows_ssh="NOT_RUN", real_service_auth="NOT_RUN", real_terminal_renderer="NOT_RUN", drag="NOT_IMPLEMENTED", ime_composition="NOT_IMPLEMENTED")
+    graphical_terminal_proof()
+    residuals = dict(windows_ssh="NOT_RUN", real_service_auth="NOT_RUN", real_terminal_renderer="PASS_LINUX_X11", drag="PASS_BOUNDED_ENDPOINT", ime_composition="NOT_IMPLEMENTED")
     print(json.dumps({"test": "residuals", "status": "NOT_RUN", **residuals}), flush=True)
 
 if __name__ == "__main__":

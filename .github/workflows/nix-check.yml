@@ -11,7 +11,8 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-    if: false # DEFERRED_NOT_RUN: ops#460
+    # User-authorized A scope only; other deferred #460 paths stay unchanged.
+    if: github.event_name == 'pull_request' && github.event.pull_request.number == 534
     steps:
       - uses: actions/checkout@v4
         with:

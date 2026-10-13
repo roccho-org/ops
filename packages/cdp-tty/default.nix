@@ -1,4 +1,4 @@
-{ lib, stdenv, pkg-config, curl, json_c, chromium, python3, binutils, makeFontsConf, noto-fonts-cjk-sans }:
+{ lib, stdenv, pkg-config, curl, json_c, chromium, python3, binutils, makeFontsConf, noto-fonts-cjk-sans, kitty, xorg, xdotool, scrot, mesa, dejavu_fonts }:
 let
   # The exact nixpkgs curl defaults to websocketSupport = false. CDP requires
   # ws/wss at runtime; override only this package dependency, not the package set.
@@ -15,16 +15,18 @@ stdenv.mkDerivation {
   strictDeps = true;
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [ curlWebsocket json_c ];
-  nativeCheckInputs = [ chromium (python3.withPackages (p: [ p.websocket-client ])) binutils ];
+  nativeCheckInputs = [ chromium (python3.withPackages (p: [ p.websocket-client p.pillow ])) binutils kitty xorg.xorgserver xdotool scrot ];
   doCheck = true;
   checkPhase = ''
     runHook preCheck
     export HOME="$TMPDIR/home" XDG_RUNTIME_DIR="$TMPDIR/runtime"
     mkdir -p "$HOME" "$XDG_RUNTIME_DIR"
     chmod 700 "$XDG_RUNTIME_DIR"
+    export LIBGL_DRIVERS_PATH=${mesa.drivers}/lib/dri
+    export LIBGL_ALWAYS_SOFTWARE=1
     export CHROME_BIN=${chromium}/bin/chromium
     # Fonts are required by the test browser for visible text and real text input.
-    export FONTCONFIG_FILE=${makeFontsConf { fontDirectories = [ noto-fonts-cjk-sans ]; }}
+    export FONTCONFIG_FILE=${makeFontsConf { fontDirectories = [ noto-fonts-cjk-sans dejavu_fonts ]; }}
     test ! -e tests/proof.py
     cp ${proofSource} tests/proof.py
     make probe
@@ -44,6 +46,8 @@ stdenv.mkDerivation {
     cp libcdp-tty.a "$dev/lib/"
     cp cdp.h "$dev/include/cdp-tty/"
     cp proof.jsonl "$proof/raws.jsonl"
+    test -s real-terminal.png
+    cp real-terminal.png "$proof/real-terminal.png"
     cp curl-protocols.txt "$proof/curl-protocols.txt"
     python3 <<'PYTHON' > "$proof/disruptives.jsonl"
     import json

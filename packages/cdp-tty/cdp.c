@@ -5,13 +5,14 @@
 #include <errno.h>
 #include <math.h>
 #include <poll.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
 #define LIMIT (16u * 1024u * 1024u)
 struct Cdp { CURL *curl; curl_socket_t socket; unsigned id; int broken;
-    const volatile sig_atomic_t *cancel; };
+    const volatile sig_atomic_t *cancel; const char *error_method; };
 typedef enum { METRICS, TREE, SHOT, MOUSE, KEYS, INSERT, VIEW } Method;
 /* The only wire method names. No generic passthrough API. */
 static const char *const methods[] = { "Page.getLayoutMetrics", "Page.getFrameTree",
@@ -87,7 +88,7 @@ static json_object *call(Cdp *c, Method method, json_object *params) {
         json_object_put(msg); /* no event queue */
     }
 broken:
-    c->broken = 1;
+    c->broken = 1; c->error_method = methods[method];
 done:
     json_object_put(req); json_object_put(params); return answer;
 }
@@ -126,6 +127,7 @@ int cdp_attach(Cdp **out, const char *url, const volatile sig_atomic_t *cancel) 
     }
     *out=c; return CDP_OK;
 }
+const char *cdp_error_method(const Cdp *c) { return c && c->error_method ? c->error_method : "none"; }
 void cdp_detach(Cdp *c) { if (c) { curl_easy_cleanup(c->curl); free(c); } }
 void frame_free(Frame *f) { free(f->png); free(f->geometry); memset(f,0,sizeof(*f)); }
 int valid_utf8(const unsigned char *s, size_t n) {
@@ -248,11 +250,13 @@ int frame_equal(const Frame *a, const Frame *b) {
 }
 static int effect(Cdp *c, Method m, json_object *p) { json_object *r=call(c,m,p); int s=r ? CDP_OK:CDP_ERROR; json_object_put(r); return s; }
 int cdp_apply(Cdp *c, const Frame *shown, const Action *a) {
-    if (!c || !shown || !shown->png || !a || a->kind<TEXT || a->kind>WHEEL) return CDP_UNSUPPORTED;
-    if (a->kind==TEXT && (!a->text || strlen(a->text)>4096 || !valid_utf8((const unsigned char *)a->text,strlen(a->text)))) return CDP_UNSUPPORTED;
-    if (a->kind==KEY && (a->key<ENTER || a->key>SELECT_ALL)) return CDP_UNSUPPORTED;
-    if ((a->kind==CLICK || a->kind==WHEEL) && (!isfinite(a->x) || !isfinite(a->y) || !isfinite(a->delta) ||
+    if (!c || !shown || !shown->png || !a || a->kind<TEXT || a->kind>DRAG || a->modifiers>15) return CDP_UNSUPPORTED;
+    if (a->kind==TEXT && (a->modifiers || !a->text || strlen(a->text)>4096 || !valid_utf8((const unsigned char *)a->text,strlen(a->text)))) return CDP_UNSUPPORTED;
+    if (a->kind==KEY && (a->key<ENTER || a->key>FUNCTION_12)) return CDP_UNSUPPORTED;
+    if ((a->kind==CLICK || a->kind==WHEEL || a->kind==DRAG) && (!isfinite(a->x) || !isfinite(a->y) || !isfinite(a->delta) ||
         a->x<0 || a->y<0 || a->x>=shown->css_width || a->y>=shown->css_height || a->button<0 || a->button>2 || fabs(a->delta)>1000)) return CDP_UNSUPPORTED;
+    if (a->kind==DRAG && (!isfinite(a->x2) || !isfinite(a->y2) ||
+        a->x2<0 || a->y2<0 || a->x2>=shown->css_width || a->y2>=shown->css_height)) return CDP_UNSUPPORTED;
     Frame fresh; int s=cdp_frame(c,&fresh); if (s) return s;
     int same=frame_equal(shown,&fresh); frame_free(&fresh); if (!same) return CDP_STALE;
     json_object *p=json_object_new_object();
@@ -260,15 +264,26 @@ int cdp_apply(Cdp *c, const Frame *shown, const Action *a) {
         json_object_object_add(p,"text",json_object_new_string(a->text)); return effect(c,INSERT,p);
     }
     if (a->kind==KEY) {
-        static const char *const names[]={"Enter","Tab","Backspace","Delete","Escape","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End","a"};
-        static const int vk[]={13,9,8,46,27,37,39,38,40,36,35,65};
-        json_object_object_add(p,"key",json_object_new_string(names[a->key]));
-        json_object_object_add(p,"windowsVirtualKeyCode",json_object_new_int(vk[a->key]));
-        json_object_object_add(p,"modifiers",json_object_new_int(a->key==SELECT_ALL ? 2:0));
+        static const char *const names[]={"Enter","Tab","Backspace","Delete","Escape","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End","a","PageUp","PageDown","Insert"};
+        static const int vk[]={13,9,8,46,27,37,39,38,40,36,35,65,33,34,45};
+        char name[8]; const char *key; int code;
+        if (a->key<LETTER_A) { key=names[a->key]; code=vk[a->key]; }
+        else if (a->key<=LETTER_Z) {
+            code=65+a->key-LETTER_A; name[0]=(char)(code+((a->modifiers&8) ? 0:32)); name[1]=0; key=name;
+        } else if (a->key<=DIGIT_9) {
+            code=48+a->key-DIGIT_0; name[0]=(char)code; name[1]=0; key=name;
+        } else { code=112+a->key-FUNCTION_1; snprintf(name,sizeof(name),"F%d",code-111); key=name; }
+        json_object_object_add(p,"key",json_object_new_string(key));
+        json_object_object_add(p,"windowsVirtualKeyCode",json_object_new_int(code));
+        json_object_object_add(p,"modifiers",json_object_new_int((int)a->modifiers | (a->key==SELECT_ALL ? 2:0)));
+        if (a->key>=LETTER_A && a->key<=DIGIT_9 && !(a->modifiers&7))
+            json_object_object_add(p,"text",json_object_new_string(key));
         json_object_object_add(p,"type",json_object_new_string("keyDown"));
         if (effect(c,KEYS,json_object_get(p))) { json_object_put(p); return CDP_ERROR; }
+        json_object_object_del(p,"text");
         json_object_object_add(p,"type",json_object_new_string("keyUp")); return effect(c,KEYS,p);
     }
+    json_object_object_add(p,"modifiers",json_object_new_int((int)a->modifiers));
     json_object_object_add(p,"x",json_object_new_double(a->x)); json_object_object_add(p,"y",json_object_new_double(a->y));
     if (a->kind==WHEEL) {
         json_object_object_add(p,"type",json_object_new_string("mouseWheel"));
@@ -281,6 +296,19 @@ int cdp_apply(Cdp *c, const Frame *shown, const Action *a) {
     json_object_object_add(p,"buttons",json_object_new_int(a->button==0 ? 1 : a->button==1 ? 4 : 2));
     json_object_object_add(p,"type",json_object_new_string("mousePressed"));
     if (effect(c,MOUSE,json_object_get(p))) { json_object_put(p); return CDP_ERROR; }
+    if (a->kind==DRAG) {
+        /* One finite gesture after validating its starting presentation. No
+         * input replay on a lost reply, and no autonomous release after an
+         * unknown effect. The caller must explicitly reattach after failure. */
+        json_object_object_add(p,"type",json_object_new_string("mouseMoved"));
+        json_object_object_add(p,"clickCount",json_object_new_int(0));
+        for (int i=1;i<=8;i++) {
+            json_object_object_add(p,"x",json_object_new_double(a->x+(a->x2-a->x)*i/8));
+            json_object_object_add(p,"y",json_object_new_double(a->y+(a->y2-a->y)*i/8));
+            if (effect(c,MOUSE,json_object_get(p))) { json_object_put(p); return CDP_ERROR; }
+        }
+        json_object_object_add(p,"clickCount",json_object_new_int(1));
+    }
     json_object_object_add(p,"buttons",json_object_new_int(0));
     json_object_object_add(p,"type",json_object_new_string("mouseReleased")); return effect(c,MOUSE,p);
 }
