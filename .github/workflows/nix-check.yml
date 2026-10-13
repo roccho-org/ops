@@ -32,6 +32,23 @@ jobs:
           out="$(nix-build packages/cdp-tty/proof.nix --no-out-link 2> >(tee cdp-tty-proof/build.log >&2))"
           cp "$out"/* cdp-tty-proof/
           cat cdp-tty-proof/raws.jsonl
+          # A6: measure existing producer outputs; do not create a new package or
+          # consumer wrapper. The source NAR is the full tracked tree, not the
+          # smaller review archive or a compiled-binary hash.
+          git rev-parse 'HEAD^{tree}' > cdp-tty-proof/source.tree
+          src="$(mktemp -d)"
+          git archive HEAD | tar -x -C "$src"
+          nix hash path --type sha256 "$src" > cdp-tty-proof/source.narHash
+          expression='source: let p = import (builtins.toPath (source + "/packages/cdp-tty/proof.nix")); in { drvPath = p.drvPath; out = p.out.outPath; dev = p.dev.outPath; proof = p.outPath; system = p.system; }'
+          nix-instantiate --eval --strict --json --argstr source "$PWD" --expr "$expression" > cdp-tty-proof/outputs.json
+          nix-instantiate --eval --strict --json --argstr source "$src" --expr "$expression" > "$RUNNER_TEMP/cdp-tty-archive-outputs.json"
+          cmp cdp-tty-proof/outputs.json "$RUNNER_TEMP/cdp-tty-archive-outputs.json"
+          runtime="$(jq -r .out cdp-tty-proof/outputs.json)"
+          development="$(jq -r .dev cdp-tty-proof/outputs.json)"
+          test "$(jq -r .proof cdp-tty-proof/outputs.json)" = "$out"
+          test -x "$runtime/bin/cdp-tty"
+          sha256sum "$runtime/bin/cdp-tty" "$development/lib/libcdp-tty.a" "$development/include/cdp-tty/cdp.h" > cdp-tty-proof/binaries.sha256
+          nix path-info --json --recursive "$runtime" > cdp-tty-proof/runtime-closure.json
           git diff --exit-code -- flake.lock
       - uses: actions/upload-artifact@v4
         if: always()
