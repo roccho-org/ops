@@ -40,3 +40,4 @@
 {"bin":"repo-health","deps":["git","nix","node"],"entry":"packages/repo-health/bin/repo-health.mjs","env":[],"kind":"package","name":"repo-health","runtime":"node","sourceSiblings":["packages/jev-review","packages/jev"]}
 {"bin":"jev-review","deps":["node"],"entry":"packages/jev-review/bin/jev-review.mjs","env":[],"kind":"package","name":"jev-review","runtime":"node","sourceSiblings":["packages/jev"]}
 {"bin":"contract-diff","deps":["python"],"entry":"packages/contract-diff/bin/contract-diff.py","env":[],"kind":"package","name":"contract-diff","runtime":"python"}
+{"bin":"ops-package-contract-bridge","deps":["node"],"entry":"packages/ops-package-contract-bridge/bin/ops-package-contract-bridge.mjs","env":[],"kind":"package","name":"ops-package-contract-bridge","runtime":"node"}
