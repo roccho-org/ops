@@ -190,7 +190,7 @@ def shutdown_reply_proof():
     import signal
     import termios
 
-    for mode in ("late", "fragment", "wrong-id", "resize-reordered", "signal", "missing"):
+    for mode in ("late", "fragment", "split-escape", "wrong-id", "resize-reordered", "signal", "missing"):
         with browser() as (page, ctl, chrome, _debug, _port):
             with Audit(page["webSocketDebuggerUrl"]) as audit:
                 sink=Sink(audit.url,ack=False)
@@ -204,7 +204,7 @@ def shutdown_reply_proof():
                     image=sink.image
                     ack=f"\x1b_Gi={image},p=1;OK\x1b\\".encode()
                     if mode=="signal": sink.p.send_signal(signal.SIGTERM)
-                    else: sink.send(b"\x11" + (ack[:4] if mode=="fragment" else b""))
+                    else: sink.send(b"\x11" + (ack[:4] if mode=="fragment" else ack[:1] if mode=="split-escape" else b""))
                     until=time.monotonic()+.12
                     while time.monotonic()<until: sink.pump()
                     assert sink.p.poll() is None, "exit before the owned image reply"
@@ -214,7 +214,7 @@ def shutdown_reply_proof():
                         for _ in range(3): sink.pump()
                         assert sink.p.poll() is None, "unowned ACK completed shutdown"
                     if mode!="missing":
-                        sink.send(ack[4:] if mode=="fragment" else ack)
+                        sink.send(ack[4:] if mode=="fragment" else ack[1:] if mode=="split-escape" else ack)
                         if mode=="resize-reordered":
                             for _ in range(3): sink.pump()
                             assert sink.p.poll() is None, "old resize reply still outstanding"

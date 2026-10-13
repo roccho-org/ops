@@ -232,7 +232,7 @@ static int consume(Terminal *t, int escape_timeout) {
             continue;
         }
         if (s[0]=='\033') {
-            if (t->used==1) { if (!escape_timeout) return 0; n=1; a.kind=KEY; a.key=ESCAPE; do_apply=1; }
+            if (t->used==1) { if (!escape_timeout || t->ending) return 0; n=1; a.kind=KEY; a.key=ESCAPE; do_apply=1; }
             else if (s[1]=='_' || s[1]==']' || s[1]=='P' || s[1]=='^' || s[1]=='X') {
                 if (t->used<3) return 0;
                 char *end=strstr(s+3,"\033\\"); if (!end) return 0;
