@@ -7,6 +7,7 @@ let
   # This source is a required Nix input, not an optional CI-side download.
   proofSource = ../../verification/cdp-tty/proof.py;
   rendererSource = ../../verification/cdp-tty/renderer.py;
+  completionSource = ../../verification/cdp-tty/failure_completion.py;
 in
 stdenv.mkDerivation {
   pname = "cdp-tty";
@@ -33,6 +34,7 @@ stdenv.mkDerivation {
     test ! -e tests/proof.py
     cp ${proofSource} tests/proof.py
     cp ${rendererSource} tests/renderer.py
+    cp ${completionSource} tests/failure_completion.py
     make probe
     set -o pipefail
     ${lib.getBin curlWebsocket}/bin/curl --version | tee curl-version.txt
@@ -40,7 +42,8 @@ stdenv.mkDerivation {
     grep -Fx ws curl-protocols.txt
     grep -Fx wss curl-protocols.txt
     test -r ${dbus}/share/dbus-1/session.conf
-    CDP_TTY_PACKAGE="$PWD" dbus-run-session --config-file=${dbus}/share/dbus-1/session.conf -- python3 -u tests/proof.py | tee proof.jsonl
+    CDP_TTY_PACKAGE="$PWD" python3 -u tests/failure_completion.py | tee proof.jsonl
+    CDP_TTY_PACKAGE="$PWD" dbus-run-session --config-file=${dbus}/share/dbus-1/session.conf -- python3 -u tests/proof.py | tee -a proof.jsonl
     runHook postCheck
   '';
   installPhase = ''
@@ -63,10 +66,10 @@ stdenv.mkDerivation {
     assert checks and all(row["status"] == "PASS" for row in checks)
     assert len(residuals) == 1 and residuals[0]["status"] == "NOT_RUN"
     for row in checks:
-        if any(key in row["test"] for key in ("block", "rejected", "only", "generation", "wire-", "no-retry", "isolation")):
+        if any(key in row["test"] for key in ("block", "rejected", "only", "generation", "wire-", "no-retry", "isolation", "failure")):
             print(json.dumps(row))
     PYTHON
-    sha256sum cdp.c cdp.h tty.c tty.h main.c Makefile tests/probe.c tests/proof.py tests/renderer.py default.nix proof.nix > "$proof/source.sha256"
+    sha256sum cdp.c cdp.h tty.c tty.h main.c Makefile tests/probe.c tests/proof.py tests/renderer.py tests/failure_completion.py default.nix proof.nix > "$proof/source.sha256"
     ${chromium}/bin/chromium --version > "$proof/versions.txt"
     pkg-config --modversion libcurl json-c >> "$proof/versions.txt"
     runHook postInstall

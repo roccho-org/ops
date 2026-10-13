@@ -21,7 +21,7 @@ typedef struct {
     int cw,ch,left,top,cols,rows,ready,observe,down,dx,dy,button,recapture;
     unsigned modifiers;
     long long stale_since;
-    const char *stage;
+    const char *stage, *completion;
     unsigned image, next_image;
     char input[8192]; size_t used;
 } Terminal;
@@ -79,6 +79,7 @@ static int apply(Terminal *t, Action *a) {
     if (!t->ready || t->observe) return 0;
     t->stage="input-dispatch";
     int r=cdp_apply(t->cdp,&t->frame,a);
+    t->completion=r==CDP_OK ? "acknowledged" : r==CDP_ERROR ? "unknown":"not-sent";
     t->ready=0; t->down=0;
     /* Discard the remainder of this read: it belongs to the old presentation. */
     t->used=0;
@@ -241,7 +242,7 @@ static int consume(Terminal *t, int escape_timeout) {
     return 0;
 }
 int tty_run(Cdp *c, int observe, const volatile sig_atomic_t *cancel) {
-    Terminal t={.cdp=c,.observe=observe,.cancel=cancel,.stage="terminal-setup"};
+    Terminal t={.cdp=c,.observe=observe,.cancel=cancel,.stage="terminal-setup",.completion="not-sent"};
     struct termios saved, raw; int flags=-1, result=CDP_ERROR, entered=0;
     if (!isatty(STDIN_FILENO) || !isatty(STDOUT_FILENO) || tcgetattr(STDIN_FILENO,&saved) ||
         ioctl(STDOUT_FILENO,TIOCGWINSZ,&t.size) || t.size.ws_col<2 || t.size.ws_row<3) {
@@ -293,7 +294,7 @@ int tty_run(Cdp *c, int observe, const volatile sig_atomic_t *cancel) {
 done:
     if (result!=CDP_OK && !*cancel)
         fprintf(stderr,"cdp-tty: stage=%s method=%s completion=%s; no input replay\n",
-            t.stage,cdp_error_method(c),!strcmp(t.stage,"input-dispatch") ? "unknown":"not-sent");
+            t.stage,cdp_error_method(c),t.completion);
     if (entered) {
         /* Best effort after signal/transport failure, always restore termios/flags. */
         char end[200];
