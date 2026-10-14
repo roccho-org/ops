@@ -1,0 +1,292 @@
+name: contract-632-phase3
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/contract-632-phase3.yml'
+      - 'packages/ops-package-contract-bridge/**'
+      - 'packages/package-architecture-map/**'
+      - 'tools/contract-632-phase1-proof.py'
+      - 'tools/contract-632-phase2-source-universe.nix'
+      - 'governance/contract-632-phase1-selector.v1.json'
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'build/packages.jsonl'
+      - 'build/checks.jsonl'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contract-632-phase3-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  phase3-consumers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/ui
+          ref: b7f9a04b63f25272faacdff5897665e7639413bf
+          path: _external/ui
+          persist-credentials: false
+          fetch-depth: 1
+
+      - uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/apps
+          ref: 71409fa013b6cb681c0a80b4c377e4685685b690
+          path: _external/apps
+          persist-credentials: false
+          fetch-depth: 1
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
+      - name: Build, consume, serve, and read back Phase 3
+        id: proof
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          UI_REVISION: b7f9a04b63f25272faacdff5897665e7639413bf
+          APPS_REVISION: 71409fa013b6cb681c0a80b4c377e4685685b690
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(git -C _external/ui rev-parse HEAD)" = "$UI_REVISION"
+          test "$(git -C _external/apps rev-parse HEAD)" = "$APPS_REVISION"
+          tree="$(git rev-parse 'HEAD^{tree}')"
+          bridge="$(nix build --no-link --print-out-paths .#packages.x86_64-linux.ops-package-contract-bridge)"
+          phase1_check="$(nix build --no-link --print-out-paths .#checks.x86_64-linux.ops-package-contract-bridge-phase1)"
+
+          work="$RUNNER_TEMP/contract-632-phase3"
+          mkdir -p "$work/phase1" "$work/phase2"
+          cp -R "$phase1_check/run1/." "$work/phase1/"
+          "$bridge/bin/ops-package-contract-bridge" verify-phase1 "$work/phase1" > "$work/phase1-readback.json"
+
+          nix eval --json --file tools/contract-632-phase2-source-universe.nix > "$work/source-universe.json"
+          "$bridge/bin/ops-package-contract-bridge" build-phase2-v5 \
+            --ops-source "$PWD" \
+            --ops-candidate-sha "$EXPECTED_SHA" \
+            --local-source-universe "$work/source-universe.json" \
+            --out "$work/phase2" > "$work/phase2-build.json"
+          "$bridge/bin/ops-package-contract-bridge" verify-phase2-v5 "$work/phase2" > "$work/phase2-readback.json"
+
+          map_command="$PWD/packages/package-architecture-map/bin/package-architecture-map.mjs"
+          map_viewer="$PWD/packages/package-architecture-map/viewer/index.html"
+
+          node packages/ops-package-contract-bridge/tests/phase3.mjs \
+            "$work/phase1" "$work/phase2" \
+            "$PWD/_external/ui" "$PWD/_external/apps" \
+            "$UI_REVISION" "$APPS_REVISION" \
+            "$map_command" "$map_viewer" "$EXPECTED_SHA" \
+            > "$work/unit-receipt.json"
+          jq -e '.status == "PASS" and .authority == false' "$work/unit-receipt.json" >/dev/null
+
+          for run in 1 2; do
+            "$bridge/bin/ops-package-contract-bridge" build-phase3 \
+              --phase1-bundle "$work/phase1" \
+              --phase2-bundle "$work/phase2" \
+              --ui-source "$PWD/_external/ui" \
+              --apps-source "$PWD/_external/apps" \
+              --ui-revision "$UI_REVISION" \
+              --apps-revision "$APPS_REVISION" \
+              --package-map-command "$map_command" \
+              --package-map-viewer "$map_viewer" \
+              --ops-candidate-sha "$EXPECTED_SHA" \
+              --out "$work/run$run" > "$work/run$run-build.json"
+          done
+          diff -r "$work/run1" "$work/run2"
+          cmp "$work/run1-build.json" "$work/run2-build.json"
+
+          root=contract-632-phase3-bundle
+          mkdir -p "$root/proof"
+          cp "$work/unit-receipt.json" "$root/unit-receipt.json"
+          cp -R "$work/run1/." "$root/proof/"
+          "$bridge/bin/ops-package-contract-bridge" verify-phase3 "$root/proof" > "$root/workflow-readback.json"
+
+          node _external/apps/packages/atlas/reduce.mjs \
+            --out="$root/apps-cli-reduced.jsonl" \
+            "$root/proof/apps.atlas-purpose-closure.input.jsonl" \
+            > "$root/apps-cli-receipt.json"
+          cmp "$root/apps-cli-reduced.jsonl" "$root/proof/apps.atlas-purpose-closure.reduced.jsonl"
+          jq -e '.status == "PASS" and .authority == false' "$root/apps-cli-receipt.json" >/dev/null
+
+          "$bridge/bin/ops-package-contract-bridge" serve-dist \
+            --dir "$root/proof/dist" --host 127.0.0.1 --port 4173 \
+            > "$root/serve.log" 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 100); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep .2
+          done
+          curl -fsS http://127.0.0.1:4173/latest.mmd > "$root/served-latest.mmd"
+          cmp "$root/served-latest.mmd" "$root/proof/dist/latest.mmd"
+
+          browser=""
+          for candidate in google-chrome-stable google-chrome chromium chromium-browser; do
+            if command -v "$candidate" >/dev/null 2>&1; then browser="$(command -v "$candidate")"; break; fi
+          done
+          test -n "$browser"
+          "$browser" --version > "$root/browser-version.txt"
+          url=http://127.0.0.1:4173/
+          passed=false
+          for attempt in 1 2 3; do
+            if timeout 90 "$browser" \
+              --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+              --virtual-time-budget=20000 --dump-dom "$url" \
+              > "$root/browser-dom.html" 2> "$root/browser-stderr.log"; then
+              if grep -F '<svg' "$root/browser-dom.html" >/dev/null \
+                && grep -F 'ops-package-contract-bridge' "$root/browser-dom.html" >/dev/null \
+                && grep -F 'extend_existing' "$root/browser-dom.html" >/dev/null; then
+                passed=true
+                break
+              fi
+            fi
+            sleep 2
+          done
+          test "$passed" = true
+          timeout 90 "$browser" \
+            --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --virtual-time-budget=20000 --window-size=1600,1200 \
+            --screenshot="$root/browser.png" "$url" \
+            > "$root/browser-stdout.log" 2>> "$root/browser-stderr.log"
+          test -s "$root/browser.png"
+
+          jq -n \
+            --arg url "$url" \
+            --arg browserVersion "$(cat "$root/browser-version.txt")" \
+            --arg domSha256 "$(sha256sum "$root/browser-dom.html" | cut -d' ' -f1)" \
+            --arg screenshotSha256 "$(sha256sum "$root/browser.png" | cut -d' ' -f1)" \
+            --arg servedMmdSha256 "$(sha256sum "$root/served-latest.mmd" | cut -d' ' -f1)" \
+            --arg viewSha256 "$(sha256sum "$root/proof/ui.contract-model-atlas.view.json" | cut -d' ' -f1)" \
+            '{
+              kind: "ops.contract632.phase3BrowserReceipt.v1",
+              status: "PASS",
+              authority: false,
+              consumer: "existing package-architecture-map viewer in a real browser",
+              sourceUrl: $url,
+              browserVersion: $browserVersion,
+              observed: {
+                svg: true,
+                packageLabel: "ops-package-contract-bridge",
+                acceptedDecision: "extend_existing"
+              },
+              domSha256: $domSha256,
+              screenshotSha256: $screenshotSha256,
+              servedMmdSha256: $servedMmdSha256,
+              viewSha256: $viewSha256
+            }' > "$root/browser-receipt.json"
+
+          jq -e '.status == "PASS"
+            and .authority == false
+            and .phaseClosed == false
+            and .packageCount == 60
+            and .fillCount == 0
+            and .receiptCount == 0
+            and .residualCount == 0
+            and .candidateUnchanged == true
+            and .acceptedChanged == true
+            and .browserReceiptRequired == true' \
+            "$root/workflow-readback.json" >/dev/null
+          jq -e '.unmappedFields == []
+            and .apps.inventedFillReceiptResidual == false
+            and .apps.projectedGapCount > 0
+            and .sharedAtlasSnapshots.consumerClaimed == false
+            and .sharedAtlasSnapshots.distinctInputContract == true' \
+            "$root/proof/mapping-coverage.json" >/dev/null
+
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg commit "$EXPECTED_SHA" \
+            --arg tree "$tree" \
+            --arg workflowRef "$GITHUB_WORKFLOW_REF" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg runAttempt "$GITHUB_RUN_ATTEMPT" \
+            --arg uiRevision "$UI_REVISION" \
+            --arg appsRevision "$APPS_REVISION" \
+            --arg phase1Sha256 "$(sha256sum "$work/phase1/accepted-current-selection.json" | cut -d' ' -f1)" \
+            --arg phase2Sha256 "$(sha256sum "$work/phase2/relation-valid-source-assertions-v5.jsonl" | cut -d' ' -f1)" \
+            --arg phase3ReceiptSha256 "$(sha256sum "$root/proof/phase3-receipt.json" | cut -d' ' -f1)" \
+            --arg phase3VerificationSha256 "$(sha256sum "$root/proof/phase3-verification.json" | cut -d' ' -f1)" \
+            --arg browserReceiptSha256 "$(sha256sum "$root/browser-receipt.json" | cut -d' ' -f1)" \
+            --arg appsCliReceiptSha256 "$(sha256sum "$root/apps-cli-receipt.json" | cut -d' ' -f1)" \
+            '{
+              schema: "ops.contract632.phase3ArtifactProvenance.v1",
+              authority: false,
+              claim: "PACKAGE_PROJECTIONS_CONSUMED_NOT_ORGANIZATION_ADMISSION",
+              producer: {
+                repository: $repository,
+                workflowRef: $workflowRef,
+                runId: $runId,
+                runAttempt: $runAttempt
+              },
+              source: {
+                commit: $commit,
+                tree: $tree,
+                uiRevision: $uiRevision,
+                appsRevision: $appsRevision,
+                phase1Sha256: $phase1Sha256,
+                phase2Sha256: $phase2Sha256
+              },
+              proof: {
+                phase3ReceiptSha256: $phase3ReceiptSha256,
+                phase3VerificationSha256: $phase3VerificationSha256,
+                browserReceiptSha256: $browserReceiptSha256,
+                appsCliReceiptSha256: $appsCliReceiptSha256
+              }
+            }' > "$root/provenance.json"
+
+          manifest="$RUNNER_TEMP/contract-632-phase3-manifest.json"
+          (cd "$root" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+            | jq -Rn '[inputs | capture("^(?<sha256>[0-9a-f]{64})  (?<path>.+)$") | {path: .path, sha256: .sha256}]' \
+            > "$manifest"
+          mv "$manifest" "$root/bundle-manifest.json"
+          manifest_digest="$(sha256sum "$root/bundle-manifest.json" | cut -d' ' -f1)"
+          package_count="$(jq -r '.packageCount' "$root/workflow-readback.json")"
+          source_count="$(jq -r '.sourceCount' "$root/workflow-readback.json")"
+          apps_rows="$(jq -r '.appsRowCount' "$root/workflow-readback.json")"
+          printf 'tree=%s\nmanifest_sha256=%s\npackage_count=%s\nsource_count=%s\napps_rows=%s\n' \
+            "$tree" "$manifest_digest" "$package_count" "$source_count" "$apps_rows" >> "$GITHUB_OUTPUT"
+
+      - name: Upload exact Phase 3 bundle
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-632-phase3-${{ github.event.pull_request.head.sha }}
+          path: contract-632-phase3-bundle/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Emit Phase 3 artifact identity
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          SOURCE_TREE: ${{ steps.proof.outputs.tree }}
+          MANIFEST_SHA256: ${{ steps.proof.outputs.manifest_sha256 }}
+          PACKAGE_COUNT: ${{ steps.proof.outputs.package_count }}
+          SOURCE_COUNT: ${{ steps.proof.outputs.source_count }}
+          APPS_ROWS: ${{ steps.proof.outputs.apps_rows }}
+        run: |
+          set -euo pipefail
+          test -n "$ARTIFACT_ID"
+          test -n "$ARTIFACT_URL"
+          [[ "$ARTIFACT_DIGEST" =~ ^(sha256:)?[0-9a-f]{64}$ ]]
+          [[ "$SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$PACKAGE_COUNT" =~ ^[1-9][0-9]*$ ]]
+          [[ "$SOURCE_COUNT" =~ ^[1-9][0-9]*$ ]]
+          [[ "$APPS_ROWS" =~ ^[1-9][0-9]*$ ]]
+          printf 'contract_632_phase3 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s packages=%s sources=%s apps_rows=%s\n' \
+            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256" "$PACKAGE_COUNT" "$SOURCE_COUNT" "$APPS_ROWS"
