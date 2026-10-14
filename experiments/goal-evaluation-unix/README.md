@@ -11,6 +11,20 @@ flowchart LR
 
 The engine is `core.mjs`: two exported functions, no service, registry, DSL, credential handling or case-ID/Goal-family branches. It reuses the existing JSON snapshot validator. The proof adapter uses the existing draft #528 Choice ModelPort and an already-authenticated native Claude CLI; it is not a live Jev/owner-entry proof.
 
+## Plan v2 and the consumer report
+
+Plan v2 (`ops.goal-evaluation.plan.v2`) adds three boundaries that the recorded v1 runs could not express:
+
+- `clauses` are exact quotes from the Goal or a supplied source, typed `obligation`, `exception` or `alternative`. Every question names at least one obligation and carries the exceptions/alternatives that qualify it to the judge. The quote check is mechanical provenance only; it does not prove the clause list is complete or correctly read.
+- `requiredRefs` may name only supplied observations. A necessary observation that was not supplied is a `needs` entry and makes that question `INCOMPLETE` before any call. In recorded v1 confirmation case v81 the free-text need was emitted as a `missingRefs` entry; its INCOMPLETE outcome matched the held expectation and is preserved, not reclassified as a false negative.
+- `report(plan, judgments)` is a pure consumer view: every clause is `JUDGED_UNVERIFIED` or `UNASSESSED` with a reason, raw answers keep their type and value, rationales stay `verified: false`, supplied refs stay `support: NOT_VERIFIED`, and the next decision stays `CONSUMER_OWNED`. In recorded baseline w42 the Goal's shortening clause had no question; v2 lists it as unassessed instead of leaving it implicit behind `NOT_CERTIFIED`.
+- A clause that the planner never quoted cannot be `UNASSESSED`. `unquotedGoalText` therefore lists, mechanically, every Goal span not covered by a Goal clause quote (UTF-16 offsets into `goal.content`; punctuation-only gaps are dropped). It judges no meaning: an unquoted span may be harmless wording or a dropped obligation.
+- The answer type is `native-three-label` (problem/ok/unknown from a ModelPort). It is not the Jev Choice primitive and not a Noul value. Judgments record the port `{id, mode}` and a `planDigest` of the exact Plan answered; `report` refuses results for another Plan, labels outside the question's criteria and malformed per-question records, and re-derives the `missing` rows and `calls` count from the Plan and judgments instead of trusting the result's values. The focused tests run in CI as the `goal-evaluation-unix` check in `build/checks.jsonl`; CI success is functional evidence only.
+
+`requiredRefs` is a declaration of which supplied observations a question depends on; it does not filter the judge input, which still receives the whole request plus the question's clauses. A question with `needs` is never judged under that Plan. Supplying a missing observation later changes the request and therefore the `planDigest`: it is a new Plan version and a new comparison identity, even if the question and criteria text are carried over unchanged. A quote match is mechanical provenance only; very short quotes pass it.
+
+The v2 changes are checked by `core.test.mjs` with test doubles and zero provider calls. The recorded `results/**` are v1 artifacts produced at their recorded sources and are not rerun or rewritten; `verify.mjs` still verifies them unchanged. No v2 plan has been produced by a live model yet, so v2 question quality, F1 method overconstraint and F2 overlap remain unproven.
+
 ## Fixed evidence and retained failures
 
 The independent fixture author fixed Goal/observation inputs and expectations before seeing each trial's outputs. The native model receives only Goal/observations/catalog or the frozen question and observations, never the expectation files. Each CLI invocation uses a separate session with tools, automatic project/memory context and session persistence disabled. `run.mjs plan` and `run.mjs judge` are separate processes communicating through ordinary JSONL.
