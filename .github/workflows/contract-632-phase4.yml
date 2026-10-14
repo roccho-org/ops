@@ -51,12 +51,12 @@ jobs:
             --observer-root . \
             --observer-repository roccho-org/ops \
             --observer-revision "$EXPECTED_SHA" \
-            --observer-path .github/workflows/contract-632-phase4.yml \
+            --observer-path packages/ops-package-contract-bridge/PHASE4.md \
             --contract-diff packages/contract-diff/bin/contract-diff.py \
             --out "$root" > phase4-build.json
           python3 tools/contract-632-phase4-proof.py verify --bundle "$root" > phase4-readback.json
           jq -e '.status == "PASS" and .authority == false and .adoption == false and .remaining == 0' phase4-readback.json >/dev/null
-          cp phase4-build.json phase4-readback.json "$root/"
+          jq -e '.status == "PASS" and .authority == false and .adoption == false and .releasePublished == false and .remaining == 0' "$root/phase4-evidence.json" >/dev/null
       - uses: actions/upload-artifact@v4
         with:
           name: contract-632-phase4-${{ github.event.pull_request.head.sha }}
