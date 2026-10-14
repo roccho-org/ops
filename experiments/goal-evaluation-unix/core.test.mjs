@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { plan, judge, report, unquotedGoalText } from './core.mjs';
+// The existing goal-evaluation-unix CI check runs this file; it also runs the preparer tests.
+import './prepare.test.mjs';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const request = () => ({ goal: { ref: 'goal:original', content: 'Keep every material condition while shortening this explanation.' },
