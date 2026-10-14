@@ -1,5 +1,52 @@
 # Issue invocation contract
 
+## Target-bound PR536 runtime source (v12 S-b, dormant)
+
+Under `semlint-goal-quality-implementation-20261015-v12` (phase `target_bound_runtime`),
+this source replaces the provided grant PR522 with
+[PR536](https://github.com/roccho-org/ops/pull/536) in trusted `targets` and
+`providedRequestTargets` and retires PR511/520/522 as provided targets. Ops483,
+envs52, PR511, the provider receipt, limits and every existing range record are
+unchanged. The PR536 body is not read by this source or its tests.
+
+A run range may carry one optional closed `target` (`{issue}` or `{pullRequest}`)
+that names an already configured target of the range's own repository. Once a
+repository has a scoped range, range selection needs the independently observed
+target: planning passes the event target already validated against trusted
+targets, and admission passes the observed snapshot number and kind. The target
+is never derived from the range. A scoped range admits only its target, and a
+target with a scoped range is never admitted by an unscoped legacy range
+(`RANGE_TARGET_MISMATCH`). A missing or invalid observed target holds
+(`RANGE_TARGET_UNKNOWN`). Overlap stays a settings refusal, so one run number maps
+to at most one range. The plan receipt `run` and the result identity keep their
+existing shapes.
+
+The shipped range is Ops workflow 377399991 runs 104..105 for PR536 only, one call
+per run: two slots, so lifetime reservations go from 204 to 206 with no reset. It
+was derived from the observed latest ordinal 103 and is a code candidate, not a
+live grant. Every comment in this repository consumes an ordinal; if 104..105 are
+consumed before activation, a new reviewed runtime source with a freshly observed
+range is required and the range is never extended silently.
+
+This source is dormant. Both callers still pin runtime
+`305b5321ebc4d41d5c143cc002b82af71f140b8e`, whose settings grant PR522, and the
+current caller guard admits provided requests only on PR522 and literal PR comments
+only on PR511/PR522, so it rejects PR536 (both asserted in tests). Activation is a
+separate scope: the workflow guard/header, `tools/check-ci-intent-workflow-branches.mjs`
+with its mutation cases, the matching source-contract test, both runtime pins and
+a freshly observed range, with the CI-intent and secret-effect records audited
+there. It is not pin-only.
+
+Candidate context is 2199 bytes. Using PR522's historical 4585-byte body as a
+stand-in subject for PR536, the legacy literal producer yields state 27444 bytes,
+longest question 701 and all questions 3965; PR511's 4808-byte snapshot yields
+state 27725 bytes, longest question 731 and all questions 4145. Both fit the
+unchanged Core limits. PR536's own fit is checked when its body is frozen before
+any live use. Literal context for Ops483/envs52/PR511 also changes once this source
+is activated, so earlier literal results are not a like-for-like comparison. The
+sections below are history of the deployed runtime and earlier stages. Live calls
+in this source: 0.
+
 ## Provided-v14 PR522 binding (v4, fixed-runtime wired source)
 
 Under `jev-issue-comment-utility-20261009-v4`, the native consumer can admit the

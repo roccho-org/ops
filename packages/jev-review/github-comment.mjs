@@ -121,6 +121,12 @@ function finishRequest(prepared, identityOf) {
 // Org Secret projection/target is outside this source; no executable, argv or program selector.
 export const ACTIONS_CONFIG_KEYS = ['trustedCallers', 'allowedChecks', 'context', 'subjectScope', 'limits', 'runRanges', 'targets', 'provider'];
 const RANGE_KEYS = ['repository', 'workflowId', 'path', 'first', 'last', 'reservedCallsPerRun'];
+// Retired provided targets never regain a grant (legacy PR511, ended trial PR520, replaced PR522).
+const RETIRED_PROVIDED = Object.freeze([511, 520, 522]);
+// An optional range target is one closed {issue} or {pullRequest} of the range's own repository.
+const rangeTarget = (t) => exact(t, ['issue']) && positive(t.issue) || exact(t, ['pullRequest']) && positive(t.pullRequest);
+const scopes = (r, kind, number) => (Object.hasOwn(r.target, 'pullRequest')
+  ? kind === 'pull-request' && r.target.pullRequest === number : kind === 'issue' && r.target.issue === number);
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const REPO_PATH = /^(?!.*(?:^|\/)\.\.?(?:\/|$))[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*$/;
 const WORKFLOW_PATH = /^\.github\/workflows\/[A-Za-z0-9._-]+\.ya?ml$/;
@@ -165,7 +171,8 @@ export function validateActionsConfig(value) {
     || new Set(config.targets.map((target) => JSON.stringify(Object.hasOwn(target, 'pullRequest')
       ? [target.repository, 'pull-request', target.pullRequest] : [target.repository, 'issue']))).size !== config.targets.length
     || config.targets.filter((target) => Object.hasOwn(target, 'pullRequest')).length > 2
-    || !Array.isArray(ranges) || !ranges.every((r) => exact(r, RANGE_KEYS) && REPOSITORY.test(r.repository) && positive(r.workflowId)
+    || !Array.isArray(ranges) || !ranges.every((r) => (exact(r, RANGE_KEYS) || exact(r, [...RANGE_KEYS, 'target']) && rangeTarget(r.target))
+      && REPOSITORY.test(r.repository) && positive(r.workflowId)
       && WORKFLOW_PATH.test(r.path) && positive(r.first) && positive(r.last) && r.first <= r.last
       && positive(r.reservedCallsPerRun) && r.reservedCallsPerRun <= ENTRY_LIMITS.maxCalls)) throw new Error('INVALID_ACTIONS_CONFIG');
   for (const target of config.targets) {
@@ -183,10 +190,15 @@ export function validateActionsConfig(value) {
   if (Object.hasOwn(config, 'providedRequestTargets') && (!Array.isArray(config.providedRequestTargets)
     || config.providedRequestTargets.length > 1 || !config.providedRequestTargets.every((grant) =>
       exact(grant, ['repository', 'repositoryId', 'pullRequest']) && positive(grant.pullRequest)
-      && ![511, 520].includes(grant.pullRequest)
+      && !RETIRED_PROVIDED.includes(grant.pullRequest)
       && config.targets.some((target) => Object.hasOwn(target, 'pullRequest')
         && target.repository === grant.repository && target.repositoryId === grant.repositoryId
         && target.pullRequest === grant.pullRequest)))) throw new Error('INVALID_ACTIONS_CONFIG');
+  // A scoped range binds an already configured target of its own repository; it never creates a target.
+  if (ranges.some((r) => Object.hasOwn(r, 'target') && !config.targets.some((t) => t.repository === r.repository
+    && (Object.hasOwn(r.target, 'pullRequest') ? t.pullRequest === r.target.pullRequest : t.issue === r.target.issue)))) {
+    throw new Error('INVALID_ACTIONS_CONFIG');
+  }
   // Reservations never overlap for one native workflow identity, so a run number is admitted by at most one.
   for (const a of ranges) for (const b of ranges) {
     if (a !== b && a.repository === b.repository && a.workflowId === b.workflowId && a.first <= b.last && b.first <= a.last) throw new Error('INVALID_ACTIONS_CONFIG');
@@ -208,13 +220,24 @@ export function selectActionsTarget(config, repository, number, targetKind = 'is
 // Hard aggregate bound on attempted consumer provider calls: a provider call is planned only for a
 // first-attempt run whose native repository/workflow id/path/run number fall in one reviewed range, and
 // each run is capped at min(range.reservedCallsPerRun, limits.maxCalls). Total <= sum(width x reserved).
-export function selectRunRange(config, run) {
+// Once a repository has a target-scoped range, every run there needs the caller's independently observed
+// {kind, number} target (event or snapshot, never the range): a scoped range admits only its target, and a
+// target with a scoped range is never admitted by an unscoped legacy range.
+export function selectRunRange(config, run, target) {
   if (!exact(run, ['repository', 'workflowId', 'path', 'number', 'attempt', 'id'])
     || !positive(run.workflowId) || !positive(run.number) || !positive(run.attempt) || !positive(run.id)) return { cause: 'RUN_UNKNOWN' };
   if (run.attempt !== 1) return { cause: 'RERUN_NOT_PAID' };
   const hits = config.runRanges.filter((r) => r.repository === run.repository && r.workflowId === run.workflowId
     && r.path === run.path && r.first <= run.number && run.number <= r.last);
   if (hits.length !== 1) return { cause: 'NO_RANGE' };
+  const scoped = config.runRanges.filter((r) => Object.hasOwn(r, 'target') && r.repository === run.repository);
+  if (scoped.length) {
+    if (!exact(target, ['kind', 'number']) || !['issue', 'pull-request'].includes(target.kind) || !positive(target.number)) {
+      return { cause: 'RANGE_TARGET_UNKNOWN' };
+    }
+    if (Object.hasOwn(hits[0], 'target') ? !scopes(hits[0], target.kind, target.number)
+      : scoped.some((r) => scopes(r, target.kind, target.number))) return { cause: 'RANGE_TARGET_MISMATCH' };
+  }
   return { range: hits[0], callsPerRun: Math.min(hits[0].reservedCallsPerRun, config.limits.maxCalls) };
 }
 
@@ -279,7 +302,7 @@ export async function admitIssueCommand(inputValue, configValue) {
     grant.repository === input.repository && grant.pullRequest === issue.number))) return reject('PROVIDED_REQUEST_NOT_AUTHORIZED');
   if (command.body !== input.eventBody) return reject('COMMAND_DRIFT');
   if (command.lastEditedAt !== null || command.includesCreatedEdit || command.userContentEditsTotal !== 0) return reject('EDITED');
-  const selected = selectRunRange(config, { ...input.run, repository: input.repository });
+  const selected = selectRunRange(config, { ...input.run, repository: input.repository }, { kind: targetKind, number: issue.number });
   if (!selected.range) return reject(selected.cause);
   const revision = subjectRevision(issue);
   const semlintInput = { schema: 'ops.semlint.input.v1',

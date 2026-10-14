@@ -136,7 +136,8 @@ export async function planIssueCommand(ctx, configValue, deps) {
   const run = { repository: rv.repository?.full_name, workflowId: rv.workflow_id, path: rv.path, number: rv.run_number, attempt: rv.run_attempt, id: rv.id };
   if (run.id !== ctx.runId || run.attempt !== ctx.runAttempt || rv.head_sha !== ctx.sha || run.repository !== ctx.repository) return end('NONE', 'RUN_IDENTITY_MISMATCH');
   receipt.run = { id: run.id, number: run.number, attempt: run.attempt, workflowId: run.workflowId };
-  const selected = selectRunRange(config, run);
+  // The event target was validated against trusted targets above; the snapshot re-checks it at admission.
+  const selected = selectRunRange(config, run, { kind: targetKind, number: e.issue.number });
   if (!selected.range) return end('NONE', selected.cause);
   if (await workflowState(deps, ctx.repository, run.workflowId) !== 'active') return end('NONE', 'WORKFLOW_NOT_ACTIVE');
 
