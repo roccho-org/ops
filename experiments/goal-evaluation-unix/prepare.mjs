@@ -109,14 +109,15 @@ export function project(planValue, subject, { fidelity, ...planLimits } = {}) {
     mapping.push({ id: q.id, originalQuestion: q.question, clauses, offWireQualifiers: clauses.filter(c => c.kind !== 'obligation'),
       true: 'problem', false: 'ok', notLowered: { unknown: q.criteria.unknown } });
   }
-  // Every outcome, HOLD included, keeps what the wire does not carry: clauses no check covers and unquoted Goal text.
+  // Every outcome, HOLD included, keeps what the wire does not carry: clauses no check covers, unquoted Goal text
+  // and the Plan's own unresolved needs (including the automatic Goal coverage note).
   const covered = new Set(mapping.flatMap(m => m.clauses.map(c => c.id)));
   const unprojectedClauses = value.clauses.filter(c => !covered.has(c.id)).map(c => {
     const asked = notProjected.filter(n => n.clauseIds.includes(c.id));
     return { ...c, reason: asked.length ? 'NOT_PROJECTED: ' + asked.map(n => `${n.id} ${n.reason}`).join(', ') : 'NO_QUESTION' };
   });
   const goal = value.request.goal;
-  const base = { checks, mapping, notProjected, unprojectedClauses, unquotedGoalText: unquotedGoalText(value.request, value.clauses),
+  const base = { checks, mapping, notProjected, unprojectedClauses, unquotedGoalText: unquotedGoalText(value.request, value.clauses), missing: value.missing,
     goal: { ref: goal.ref, sha256: sha256(goal.content), onWire: !CJK.test(goal.content) } };
   if (!value.clauses.some(c => c.kind === 'obligation')) return hold('NEED_CLARIFICATION', base);
   if (subject?.status !== 'VERIFIED' || !exact(subject.target, ['repository', 'number']) || !REPOSITORY.test(subject.target.repository)

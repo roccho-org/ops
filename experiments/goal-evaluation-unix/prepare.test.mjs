@@ -250,3 +250,26 @@ test('every outcome keeps unprojected clauses, off-wire qualifiers and unquoted 
   const unclear = project(await goalPlan([], goal, []), subject);
   assert.deepEqual([unclear.status, unclear.cause, unclear.unquotedGoalText.map(s => s.text)], ['HOLD', 'NEED_CLARIFICATION', [goal.content]]);
 });
+
+test('the Plan missing list survives every projection outcome, including the automatic Goal coverage note (C7)', async () => {
+  const subject = await snapshotOf(), signOff = { need: 'Owner sign-off record', reason: 'Not supplied with the target.' };
+  const withMissing = (questions, quoted = clauses, goal = GOAL) => plan({ goal, observations: [{ ref: 'target', content: BODY }] },
+    { propose: async () => ({ clauses: quoted, questions, missing: [signOff] }) });
+  const value = await withMissing([question('q1')]);
+  const outcomes = {
+    ELIGIBLE: project(value, subject),
+    HOLD_SUBJECT: project(value, { status: 'HOLD', cause: 'INPUT_UNKNOWN' }),
+    NOTHING_PROJECTED: project(await withMissing([question('q1', { needs: ['destination log'] })]), subject),
+    UNSUPPORTED_CJK: project(await withMissing([question('q1', { question: '一度だけ届くか？' })]), subject),
+  };
+  assert.deepEqual(Object.values(outcomes).map(o => [o.status, o.cause ?? null]),
+    [['ELIGIBLE', null], ['HOLD', 'INPUT_UNKNOWN'], ['HOLD', 'NOTHING_PROJECTED'], ['UNSUPPORTED_CJK', null]]);
+  for (const [name, out] of Object.entries(outcomes)) assert.deepEqual(out.missing, [signOff], name);
+  // No clauses and no questions: plan() adds its own Goal coverage need, which projection must keep as well.
+  const empty = await plan({ goal: GOAL, observations: [{ ref: 'target', content: BODY }] }, { propose: async () => ({ clauses: [], questions: [], missing: [] }) });
+  const unclear = project(empty, subject);
+  assert.deepEqual([unclear.status, unclear.cause, unclear.missing], ['HOLD', 'NEED_CLARIFICATION', empty.missing]);
+  assert.equal(unclear.missing[0].need, 'Goal coverage');
+  const declared = project(await withMissing([], []), subject);
+  assert.deepEqual([declared.cause, declared.missing], ['NEED_CLARIFICATION', [signOff]]);
+});
