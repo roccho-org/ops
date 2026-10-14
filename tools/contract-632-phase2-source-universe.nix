@@ -50,7 +50,16 @@ let
       relativePath = "packages/${packageId}/default.nix";
       file = root + "/${relativePath}";
       exists = builtins.pathExists file;
-      attempted = if exists then builtins.tryEval (import file) else { success = false; value = null; };
+      body = if exists then builtins.readFile file else "";
+      jsonAttempt = if exists then builtins.tryEval (builtins.fromJSON body) else { success = false; value = null; };
+      sourceFormat = if !exists then "absent" else if jsonAttempt.success then "json" else "nix";
+      attempted =
+        if !exists then
+          { success = false; value = null; }
+        else if jsonAttempt.success then
+          jsonAttempt
+        else
+          builtins.tryEval (import file);
       valueType = if attempted.success then builtins.typeOf attempted.value else if exists then "evaluation_error" else "absent";
       attrs = if valueType == "set" then attempted.value else { };
       attrNames = if valueType == "set" then builtins.attrNames attrs else [ ];
@@ -58,7 +67,7 @@ let
       metadata = builtins.listToAttrs (map (key: { name = key; value = safeAttr attrs key; }) presentKeys);
     in
     {
-      inherit packageId relativePath exists valueType attrNames metadata;
+      inherit packageId relativePath exists sourceFormat valueType attrNames metadata;
     };
 in
 {
