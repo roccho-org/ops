@@ -135,3 +135,127 @@ export function project(planValue, subject, { fidelity, ...planLimits } = {}) {
   return { status: 'ELIGIBLE', emittable: subject.readerDeclaredLive === true && review.allFaithful, ...base, envelope, envelopeSha256,
     fidelity: review, postingAuthorized: false };
 }
+
+const SHA1 = /^[0-9a-f]{40}$/;
+const okJson = receipt => receipt?.status === 'OK' ? parse(receipt.content) : undefined;
+const inputCause = receipt => 'INPUT_' + (receipt?.status ?? 'MISSING');
+
+// The plan-stage receipt the existing executor prints to its job log (one JSON object per line, after the runner's
+// timestamp). Logs are not publicly readable and carry no provider digest, so these bytes are a P transport that
+// is only checked for internal digest consistency here; they never stand alone as proof.
+function planStageReceipt(log) {
+  if (!exact(log, ['ref', 'route', 'observedAt', 'bytes', 'sha256', 'content', 'providerDigest']) || log.route !== 'p-transported-job-log'
+    || log.providerDigest !== null || typeof log.content !== 'string' || log.sha256 !== sha256(log.content)
+    || log.bytes !== Buffer.byteLength(log.content, 'utf8')) return { cause: 'PLAN_LOG_RECEIPT_INVALID' };
+  const plans = log.content.split(/\r?\n/).map(line => parse(line.slice(Math.max(line.indexOf('{'), 0))))
+    .filter(x => x?.schema === 'ops.jev.issue-actions-receipt.v1' && x.stage === 'plan');
+  if (plans.length !== 1) return { cause: plans.length ? 'PLAN_RECEIPT_AMBIGUOUS' : 'PLAN_RECEIPT_MISSING' };
+  const [p] = plans;
+  if (p.outcome !== 'PLANNED' || !positive(p.commentId) || !exact(p.run, ['id', 'number', 'attempt', 'workflowId'])
+    || !/^[0-9a-f]{64}$/.test(p.requestDigest ?? '')) return { cause: 'PLAN_RECEIPT_NOT_PLANNED' };
+  return { plan: p };
+}
+
+// Each step's `with:` block, as {uses, repository, ref} (null when absent), read by indentation, plus the number of
+// `actions/checkout` steps. Nothing else is interpreted.
+function withBlocks(workflow) {
+  const lines = workflow.split(/\r?\n/), blocks = [];
+  let uses = null, checkouts = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^\s*-\s/.test(lines[i])) uses = null;
+    const step = /^\s*(?:-\s+)?uses:\s*(\S+)\s*$/.exec(lines[i]);
+    if (step) { uses = step[1]; if (uses.startsWith('actions/checkout@')) checkouts++; }
+    const open = /^(\s*)with:\s*$/.exec(lines[i]);
+    if (!open) continue;
+    const block = { uses, repository: null, ref: null };
+    for (let j = i + 1; j < lines.length && (!lines[j].trim() || /^\s*/.exec(lines[j])[0].length > open[1].length); j++) {
+      const kv = /^\s*(repository|ref):\s*(\S+)\s*$/.exec(lines[j]);
+      if (kv) block[kv[1]] = kv[2];
+    }
+    blocks.push(block);
+  }
+  return { blocks, checkouts };
+}
+
+// N-a: the expected old-literal origin is derived only when the observations agree: the approved posting response,
+// the public readback of that command comment, the public run metadata and the workflow file at the run's exact
+// head_sha, all tied to the executor's own plan receipt (commentId and run). The run's workflow must also be
+// byte-identical to the same path at the caller-approved activation commit, read the same way. Actor, time proximity
+// or the final result's self-identity are never used to bind a run to a command. The code certifies consistency only.
+export function expectedOrigin({ approved, postingResponse, commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt, planLog }) {
+  if (!exact(approved, ['repository', 'number', 'principal', 'commandBody', 'workflowId', 'workflowPath', 'runRange', 'runtimeSource', 'activationCommit'])
+    || !REPOSITORY.test(approved.repository) || !positive(approved.number) || !text(approved.principal) || !text(approved.commandBody)
+    || !positive(approved.workflowId) || !text(approved.workflowPath) || !exact(approved.runRange, ['first', 'last'])
+    || !positive(approved.runRange.first) || !(approved.runRange.last >= approved.runRange.first) || !SHA1.test(approved.runtimeSource)
+    || !SHA1.test(approved.activationCommit)) return hold('APPROVED_ORIGIN_INVALID');
+  if (!exact(postingResponse, ['id']) || !positive(postingResponse.id)) return hold('POSTING_RESPONSE_MISSING');
+  const { plan, cause } = planStageReceipt(planLog);
+  if (!plan) return hold(cause);
+  for (const receipt of [commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt]) if (receipt?.status !== 'OK') return hold(inputCause(receipt));
+  const cmd = okJson(commandReceipt), run = okJson(runReceipt);
+  if (!cmd || !run) return hold('INPUT_UNREADABLE');
+  if (cmd.id !== postingResponse.id || plan.commentId !== postingResponse.id) return hold('COMMAND_MISMATCH');
+  if (cmd.user?.login !== approved.principal) return hold('PRINCIPAL_MISMATCH');
+  if (cmd.body !== approved.commandBody) return hold('COMMAND_BODY_MISMATCH');
+  if (typeof cmd.issue_url !== 'string' || !cmd.issue_url.endsWith(`/repos/${approved.repository}/issues/${approved.number}`)) return hold('TARGET_MISMATCH');
+  if (run.id !== plan.run.id || run.run_number !== plan.run.number || run.run_attempt !== plan.run.attempt || run.run_attempt !== 1
+    || run.workflow_id !== plan.run.workflowId || run.workflow_id !== approved.workflowId || run.path !== approved.workflowPath
+    || run.event !== 'issue_comment' || run.repository?.full_name !== approved.repository || !SHA1.test(run.head_sha ?? '')) return hold('RUN_MISMATCH');
+  if (run.run_number < approved.runRange.first || run.run_number > approved.runRange.last) return hold('RUN_OUTSIDE_RANGE');
+  // The workflow bytes must come from exactly the approved repository, at the run's head_sha, at the approved path.
+  const raw = commit => `https://raw.githubusercontent.com/${approved.repository}/${commit}/${approved.workflowPath}`;
+  if (workflowReceipt.url !== raw(run.head_sha)) return hold('WORKFLOW_NOT_AT_RUN_HEAD');
+  // R-A7: the run's workflow must be byte-identical to the workflow at the caller-approved activation commit. Text
+  // heuristics cannot see every way a later step could replace the pinned runtime (quoted or commented uses, other
+  // spellings, run: git checkout), so equality with the reviewed bytes is the guarantee; the checks below only add to it.
+  if (activationWorkflowReceipt.url !== raw(approved.activationCommit)) return hold('ACTIVATION_WORKFLOW_NOT_CANONICAL');
+  if (workflowReceipt.content !== activationWorkflowReceipt.content || workflowReceipt.sha256 !== activationWorkflowReceipt.sha256) {
+    return hold('WORKFLOW_DRIFT_FROM_ACTIVATION');
+  }
+  // The checkout pin counts only inside a with: block that checks out the approved repository; any other
+  // checkout repository, or a ref pin without one, is not the approved runtime.
+  const { blocks, checkouts } = withBlocks(workflowReceipt.content);
+  if (blocks.some(b => b.repository !== null && b.repository !== approved.repository) || blocks.some(b => b.ref !== null && b.repository === null)) {
+    return hold('CHECKOUT_REPOSITORY_MISMATCH');
+  }
+  // Exactly one checkout step, and it is the pinned one: any further checkout (with or without with:, any path)
+  // could replace the pinned runtime bytes in the workspace with a mutable ref.
+  const pinned = blocks.filter(b => b.ref !== null);
+  if (checkouts !== 1 || pinned.length !== 1 || !pinned[0].uses?.startsWith('actions/checkout@')) return hold('CHECKOUT_STEP_MISMATCH');
+  const pins = [...blocks.filter(b => b.ref !== null).map(b => b.ref),
+    ...[...workflowReceipt.content.matchAll(/^\s*runtime_source=(\S+)\s*$/gm)].map(m => m[1])];
+  if (pins.length !== 2 || pins.some(pin => pin !== approved.runtimeSource)) return hold('RUNTIME_PIN_MISMATCH');
+  return { status: 'BOUND', expected: { commandCommentId: postingResponse.id, runId: run.id, executionSource: approved.runtimeSource },
+    origin: { runNumber: run.run_number, runHeadSha: run.head_sha, activationCommit: approved.activationCommit, workflowSha256: workflowReceipt.sha256,
+      planLogSha256: planLog.sha256, planRequestDigest: plan.requestDigest },
+    limits: ['plan receipt bytes are a P-transported job log without a provider digest; they are only cross-checked here',
+      'the activation commit is a caller-approved fact from the phase contract; this code does not review the activation workflow itself'] };
+}
+
+const FIDELITY_MARKER = '<!-- semlint-fidelity-v1 -->';
+
+// N-e: a fidelity record is taken only from the approved review ID on the approved PR, from one marked, closed JSON
+// block that names the exact envelope digest and every projected check. The GitHub author is a shared account, so the
+// R origin stays a caller-declared reference here; actual R identity is checked by the live-phase R readback.
+export function fidelityFromReview({ approved, reviewReceipt, envelopeSha256, checkIds }) {
+  if (!exact(approved, ['repository', 'number', 'reviewId', 'rOrigin']) || !REPOSITORY.test(approved.repository) || !positive(approved.number)
+    || !positive(approved.reviewId) || !exact(approved.rOrigin, ['session', 'goRef']) || !text(approved.rOrigin.session) || !text(approved.rOrigin.goRef)) {
+    return hold('APPROVED_REVIEW_INVALID');
+  }
+  if (!/^[0-9a-f]{64}$/.test(envelopeSha256 ?? '') || !Array.isArray(checkIds) || !checkIds.length || new Set(checkIds).size !== checkIds.length) return hold('PROJECTION_INVALID');
+  if (reviewReceipt?.status !== 'OK') return hold(inputCause(reviewReceipt));
+  const review = okJson(reviewReceipt);
+  if (review?.id !== approved.reviewId || typeof review.pull_request_url !== 'string'
+    || !review.pull_request_url.endsWith(`/repos/${approved.repository}/pulls/${approved.number}`) || typeof review.body !== 'string') return hold('REVIEW_MISMATCH');
+  const blocks = review.body.split(FIDELITY_MARKER);
+  if (blocks.length !== 2) return hold(blocks.length > 2 ? 'FIDELITY_MARKER_DUPLICATE' : 'FIDELITY_MARKER_MISSING');
+  const fenced = /^\s*```json\n([\s\S]*?)\n```/.exec(blocks[1]), value = fenced && parse(fenced[1]);
+  if (!exact(value, ['schema', 'envelopeSha256', 'verdicts']) || value.schema !== 'ops.goal-evaluation.fidelity.v1') return hold('FIDELITY_BLOCK_INVALID');
+  if (value.envelopeSha256 !== envelopeSha256) return hold('FIDELITY_DIGEST_MISMATCH');
+  if (!exact(value.verdicts, checkIds) || checkIds.some(id => !VERDICTS.includes(value.verdicts[id]))) return hold('FIDELITY_CHECKS_MISMATCH');
+  return { status: 'RECORDED',
+    record: { reviewRef: `https://github.com/${approved.repository}/pull/${approved.number}#pullrequestreview-${approved.reviewId}`,
+      envelopeSha256, verdicts: { ...value.verdicts } },
+    rOriginDeclared: { ...approved.rOrigin },
+    limits: ['shared GitHub author; R origin is a caller-declared reference until the live R readback'] };
+}
