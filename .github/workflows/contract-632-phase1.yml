@@ -116,9 +116,9 @@ jobs:
           printf 'contract_632_phase1 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s\n' \
             "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256"
 
-  phase2-v4-bundle:
+  phase2-v5-bundle:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -129,7 +129,7 @@ jobs:
         with:
           extra_nix_config: |
             extra-experimental-features = nix-command flakes
-      - name: Build and read back the exact Phase 2 v4 bundle
+      - name: Build and read back the exact Phase 2 v5 bundle
         id: bundle
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
@@ -139,22 +139,22 @@ jobs:
           tree="$(git rev-parse 'HEAD^{tree}')"
           bridge="$(nix build --no-link --print-out-paths .#packages.x86_64-linux.ops-package-contract-bridge)"
 
-          work="$RUNNER_TEMP/contract-632-phase2-v4"
+          work="$RUNNER_TEMP/contract-632-phase2-v5"
           mkdir -p "$work"
           nix eval --json --file tools/contract-632-phase2-source-universe.nix > "$work/source-universe-1.json"
           nix eval --json --file tools/contract-632-phase2-source-universe.nix > "$work/source-universe-2.json"
           cmp "$work/source-universe-1.json" "$work/source-universe-2.json"
 
-          node packages/ops-package-contract-bridge/tests/phase2-v4.mjs \
+          node packages/ops-package-contract-bridge/tests/phase2-v5.mjs \
             "$work/source-universe-1.json" > "$work/unit-receipt.json"
           jq -e '.status == "PASS" and .authority == false' "$work/unit-receipt.json" >/dev/null
 
-          "$bridge/bin/ops-package-contract-bridge" build-phase2-v4 \
+          "$bridge/bin/ops-package-contract-bridge" build-phase2-v5 \
             --ops-source "$PWD" \
             --ops-candidate-sha "$EXPECTED_SHA" \
             --local-source-universe "$work/source-universe-1.json" \
             --out "$work/run1" > "$work/run1-build.json"
-          "$bridge/bin/ops-package-contract-bridge" build-phase2-v4 \
+          "$bridge/bin/ops-package-contract-bridge" build-phase2-v5 \
             --ops-source "$PWD" \
             --ops-candidate-sha "$EXPECTED_SHA" \
             --local-source-universe "$work/source-universe-1.json" \
@@ -162,22 +162,24 @@ jobs:
           diff -r "$work/run1" "$work/run2"
           cmp "$work/run1-build.json" "$work/run2-build.json"
 
-          root=contract-632-phase2-v4-bundle
+          root=contract-632-phase2-v5-bundle
           mkdir -p "$root/proof"
           cp "$work/unit-receipt.json" "$root/unit-receipt.json"
           cp -R "$work/run1/." "$root/proof/"
-          "$bridge/bin/ops-package-contract-bridge" verify-phase2-v4 "$root/proof" > "$root/workflow-readback.json"
+          "$bridge/bin/ops-package-contract-bridge" verify-phase2-v5 "$root/proof" > "$root/workflow-readback.json"
 
           jq -e '.status == "PASS"
             and .phaseClosed == false
             and .authority == false
+            and .relationFindingCount == 0
+            and .unresolvedSupportCount == 0
             and .unknownCount == 0
             and .conflictCount == 0
             and .omissionCount == 0
-            and .sourceUniverseFindingCount == 0
-            and .sourceRelationFindingCount == 0
-            and .compositeSourceRefCount == 0
-            and .cdpTtyLambdaAssertionCount > 0' \
+            and .combinedAssertionCount == .relationValidAssertionCount
+            and .directPlacementCount == .packageCount
+            and .structuredDerivedCount > 0
+            and .structuredSupportCount > 0' \
             "$root/workflow-readback.json" >/dev/null
 
           jq -n \
@@ -189,41 +191,38 @@ jobs:
             --arg runAttempt "$GITHUB_RUN_ATTEMPT" \
             --arg nodeVersion "$(node --version)" \
             --arg unitReceiptSha256 "$(sha256sum "$root/unit-receipt.json" | cut -d' ' -f1)" \
-            --arg localSourceUniverseSha256 "$(sha256sum "$root/proof/local-source-universe.json" | cut -d' ' -f1)" \
-            --arg localAssertionsSha256 "$(sha256sum "$root/proof/local-source-assertions-v4.jsonl" | cut -d' ' -f1)" \
-            --arg relationFindingsSha256 "$(sha256sum "$root/proof/source-relation-findings.json" | cut -d' ' -f1)" \
-            --arg proofReceiptSha256 "$(sha256sum "$root/proof/phase2-v4-receipt.json" | cut -d' ' -f1)" \
-            --arg proofVerificationSha256 "$(sha256sum "$root/proof/phase2-v4-verification.json" | cut -d' ' -f1)" \
+            --arg combinedAssertionsSha256 "$(sha256sum "$root/proof/combined-source-assertions-v5.jsonl" | cut -d' ' -f1)" \
+            --arg relationFindingsSha256 "$(sha256sum "$root/proof/combined-source-relation-findings-v5.json" | cut -d' ' -f1)" \
+            --arg relationValidAssertionsSha256 "$(sha256sum "$root/proof/relation-valid-source-assertions-v5.jsonl" | cut -d' ' -f1)" \
+            --arg proofReceiptSha256 "$(sha256sum "$root/proof/phase2-v5-receipt.json" | cut -d' ' -f1)" \
+            --arg proofVerificationSha256 "$(sha256sum "$root/proof/phase2-v5-verification.json" | cut -d' ' -f1)" \
             --arg workflowReadbackSha256 "$(sha256sum "$root/workflow-readback.json" | cut -d' ' -f1)" \
             '{
-              schema: "ops.contract632.phase2ArtifactProvenance.v4",
+              schema: "ops.contract632.phase2ArtifactProvenance.v5",
               authority: false,
-              claim: "PACKAGE_EXACT_SOURCE_RELATIONS_CLOSED_NOT_ORGANIZATION_ADMISSION",
+              claim: "PACKAGE_COMBINED_SOURCE_RELATIONS_CLOSED_NOT_ORGANIZATION_ADMISSION",
               producer: {
                 repository: $repository,
                 workflowRef: $workflowRef,
                 runId: $runId,
                 runAttempt: $runAttempt
               },
-              source: {
-                commit: $commit,
-                tree: $tree,
-                localSourceUniverseSha256: $localSourceUniverseSha256
-              },
+              source: { commit: $commit, tree: $tree },
               testRuntime: {
                 nodeVersion: $nodeVersion,
                 unitReceiptSha256: $unitReceiptSha256
               },
               proof: {
-                localAssertionsSha256: $localAssertionsSha256,
+                combinedAssertionsSha256: $combinedAssertionsSha256,
                 relationFindingsSha256: $relationFindingsSha256,
+                relationValidAssertionsSha256: $relationValidAssertionsSha256,
                 receiptSha256: $proofReceiptSha256,
                 verificationSha256: $proofVerificationSha256,
                 workflowReadbackSha256: $workflowReadbackSha256
               }
             }' > "$root/provenance.json"
 
-          manifest="$RUNNER_TEMP/contract-632-phase2-v4-manifest.json"
+          manifest="$RUNNER_TEMP/contract-632-phase2-v5-manifest.json"
           (cd "$root" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
             | jq -Rn '[inputs | capture("^(?<sha256>[0-9a-f]{64})  (?<path>.+)$") | {path: .path, sha256: .sha256}]' \
             > "$manifest"
@@ -231,18 +230,18 @@ jobs:
           manifest_digest="$(sha256sum "$root/bundle-manifest.json" | cut -d' ' -f1)"
           package_count="$(jq -r '.packageCount' "$root/workflow-readback.json")"
           assertion_count="$(jq -r '.combinedAssertionCount' "$root/workflow-readback.json")"
-          lambda_count="$(jq -r '.lambdaMetadataAssertionCount' "$root/workflow-readback.json")"
-          printf 'tree=%s\nmanifest_sha256=%s\npackage_count=%s\nassertion_count=%s\nlambda_count=%s\n' \
-            "$tree" "$manifest_digest" "$package_count" "$assertion_count" "$lambda_count" >> "$GITHUB_OUTPUT"
-      - name: Upload exact Phase 2 v4 bundle
+          support_count="$(jq -r '.structuredSupportCount' "$root/workflow-readback.json")"
+          printf 'tree=%s\nmanifest_sha256=%s\npackage_count=%s\nassertion_count=%s\nsupport_count=%s\n' \
+            "$tree" "$manifest_digest" "$package_count" "$assertion_count" "$support_count" >> "$GITHUB_OUTPUT"
+      - name: Upload exact Phase 2 v5 bundle
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: contract-632-phase2-v4-${{ github.event.pull_request.head.sha }}
-          path: contract-632-phase2-v4-bundle/
+          name: contract-632-phase2-v5-${{ github.event.pull_request.head.sha }}
+          path: contract-632-phase2-v5-bundle/
           if-no-files-found: error
           retention-days: 90
-      - name: Emit Phase 2 v4 artifact identity
+      - name: Emit Phase 2 v5 artifact identity
         env:
           ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
           ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
@@ -251,7 +250,7 @@ jobs:
           MANIFEST_SHA256: ${{ steps.bundle.outputs.manifest_sha256 }}
           PACKAGE_COUNT: ${{ steps.bundle.outputs.package_count }}
           ASSERTION_COUNT: ${{ steps.bundle.outputs.assertion_count }}
-          LAMBDA_COUNT: ${{ steps.bundle.outputs.lambda_count }}
+          SUPPORT_COUNT: ${{ steps.bundle.outputs.support_count }}
         run: |
           set -euo pipefail
           test -n "$ARTIFACT_ID"
@@ -261,6 +260,6 @@ jobs:
           [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$PACKAGE_COUNT" =~ ^[1-9][0-9]*$ ]]
           [[ "$ASSERTION_COUNT" =~ ^[1-9][0-9]*$ ]]
-          [[ "$LAMBDA_COUNT" =~ ^[1-9][0-9]*$ ]]
-          printf 'contract_632_phase2_v4 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s packages=%s assertions=%s lambda_metadata=%s\n' \
-            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256" "$PACKAGE_COUNT" "$ASSERTION_COUNT" "$LAMBDA_COUNT"
+          [[ "$SUPPORT_COUNT" =~ ^[1-9][0-9]*$ ]]
+          printf 'contract_632_phase2_v5 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s packages=%s assertions=%s supports=%s\n' \
+            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256" "$PACKAGE_COUNT" "$ASSERTION_COUNT" "$SUPPORT_COUNT"
