@@ -37,11 +37,13 @@ with its mutation cases, the matching source-contract test, both runtime pins an
 a freshly observed range, with the CI-intent and secret-effect records audited
 there. It is not pin-only.
 
-Candidate context is 2199 bytes. Using PR522's historical 4585-byte body as a
-stand-in subject for PR536, the legacy literal producer yields state 27444 bytes,
+Candidate context is 2210 bytes. Using PR522's historical 4585-byte body as a
+stand-in subject for PR536, the legacy literal producer yields state 27543 bytes,
 longest question 701 and all questions 3965; PR511's 4808-byte snapshot yields
-state 27725 bytes, longest question 731 and all questions 4145. Both fit the
-unchanged Core limits. PR536's own fit is checked when its body is frozen before
+state 27824 bytes, longest question 731 and all questions 4145. Both fit the
+unchanged Core limits. All nine roles carry this one document, so each context
+byte adds nine state bytes; PR511 is 176 bytes below the 28000 state limit, and
+any later context change must stay within it. PR536's own fit is checked when its body is frozen before
 any live use. Literal context for Ops483/envs52/PR511 also changes once this source
 is activated, so earlier literal results are not a like-for-like comparison. The
 sections below are history of the deployed runtime and earlier stages. Live calls

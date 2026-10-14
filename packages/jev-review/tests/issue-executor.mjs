@@ -1281,7 +1281,7 @@ await check('exact-public-pr511-pr522-current-context-budget', async () => {
   assert.equal(hash(PR522_SNAPSHOT.body), 'a4fdbe79a47775363902f5a1c4534b35ced11d3bb848093429812f2c089f90f4');
   assert.equal(Buffer.byteLength(PR522_SNAPSHOT.body, 'utf8'), 4585);
   for (const required of ['Ops483/envs52 Issues and Ops PR511/536 only', 'the independent PR536 grant', 'PR511 function is complete',
-    'only its own run range', 'PR520 ended NOT_PROVEN', 'pre-J0 input freeze', 'no forced second call or inherited GO',
+    'Evaluating PR536 needs accepted published target-bound runtime', 'only its own run range', 'PR520 ended NOT_PROVEN', 'pre-J0 input freeze', 'no forced second call or inherited GO',
     'two PR536 slots total 206 lifetime calls', 'PR536 replaces retired522', 'Nine native context observations remain',
     'same-PR result append and exact identity/body/input/source/model/accounting readback']) {
     assert.ok(actualContext.includes(required), required);
