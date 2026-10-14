@@ -33,7 +33,7 @@ proof claim ceiling    = BOUNDED_COMPILER_PROOF_NOT_ORGANIZATION_ADMISSION
 selector claim ceiling = BOUNDED_PHASE1_SELECTION_NOT_ORGANIZATION_ADMISSION
 ```
 
-`.github/workflows/contract-632-phase1.yml` publishes exact-head evidence. Its result is review evidence, not Phase closure or organization admission.
+The `phase1-bundle` job in `.github/workflows/contract-632-phase1.yml` publishes exact-head evidence. Its result is review evidence, not Phase closure or organization admission.
 
 ## Phase 2 current path: v4
 
@@ -95,4 +95,4 @@ ops-package-contract-bridge verify-phase2-v4 <bundle-dir>
 
 `build-phase2-v4` independently classifies the direct-package source universe, emits exact source-bound assertions, checks source relations, retains DRIFT without selecting a winner, runs destructive controls and produces a deterministic finite bundle. `verify-phase2-v4` reconstructs the evidence from copied source bytes and rejects set, field, relation, support, digest, authority, omission or destructive-proof drift.
 
-The older `build/verify-phase2` and `build/verify-phase2-v3` commands remain available only to reproduce historical evidence. They are not the current Phase 2 review path.
+The `phase2-v4-bundle` job in `.github/workflows/contract-632-phase1.yml` is the single current Phase 2 proof path. Superseded v3 behavior remains reproducible from its exact Git commit and stored artifact, not from a second live implementation.
