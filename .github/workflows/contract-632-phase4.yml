@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - '.github/workflows/contract-632-phase4.yml'
+      - 'ci.intent.v1.jsonl'
       - 'tools/contract-632-phase4-proof.py'
+      - 'tools/contract-632-phase4-bind.py'
       - 'packages/ops-package-contract-bridge/PHASE4.md'
       - 'governance/final-ci-claim.v1.json'
       - 'tools/check-final-ci-consumer.py'
@@ -20,7 +22,7 @@ concurrency:
 jobs:
   ops-self-diff:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,7 +36,8 @@ jobs:
           path: _external/governance
           persist-credentials: false
           fetch-depth: 1
-      - name: Build and verify Phase 4 candidate evidence
+      - name: Build, bind, replay, and verify Phase 4 evidence
+        id: proof
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
           GOVERNANCE_REVISION: 5b26984eb59e4c03f9d0fe34891fea5e4a436a16
@@ -42,7 +45,9 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           test "$(git -C _external/governance rev-parse HEAD)" = "$GOVERNANCE_REVISION"
+          tree="$(git rev-parse 'HEAD^{tree}')"
           root=contract-632-phase4-bundle
+
           python3 tools/contract-632-phase4-proof.py build \
             --governance-source _external/governance \
             --governance-revision "$GOVERNANCE_REVISION" \
@@ -54,12 +59,125 @@ jobs:
             --observer-path packages/ops-package-contract-bridge/PHASE4.md \
             --contract-diff packages/contract-diff/bin/contract-diff.py \
             --out "$root" > phase4-build.json
-          python3 tools/contract-632-phase4-proof.py verify --bundle "$root" > phase4-readback.json
-          jq -e '.status == "PASS" and .authority == false and .adoption == false and .remaining == 0' phase4-readback.json >/dev/null
-          jq -e '.status == "PASS" and .authority == false and .adoption == false and .releasePublished == false and .remaining == 0' "$root/phase4-evidence.json" >/dev/null
+
+          python3 tools/contract-632-phase4-bind.py bind \
+            --bundle "$root" \
+            --governance-source _external/governance \
+            --governance-revision "$GOVERNANCE_REVISION" \
+            --ops-source . \
+            --ops-candidate "$EXPECTED_SHA" \
+            --observer-root . \
+            --observer-repository roccho-org/ops \
+            --observer-revision "$EXPECTED_SHA" \
+            --observer-path packages/ops-package-contract-bridge/PHASE4.md \
+            > phase4-bind.json
+          python3 tools/contract-632-phase4-bind.py verify --bundle "$root" > phase4-readback.json
+          cmp phase4-bind.json phase4-readback.json
+          jq -e '
+            .status == "PASS"
+            and .authority == false
+            and .adoption == false
+            and .releasePublished == false
+            and .remaining == 0
+            and .opsCandidate == env.EXPECTED_SHA
+            and .governanceRevision == env.GOVERNANCE_REVISION
+            and .receiptReplayed == true
+            and .comparatorReplayed == true
+            and .evidenceBound == true
+            and .sourceBytesVerified == 8
+          ' phase4-readback.json >/dev/null
+
+          forged="$RUNNER_TEMP/contract-632-phase4-forged"
+          mkdir -p "$forged"
+          cp "$root/phase4-evidence.json" "$forged/phase4-evidence.json"
+          cp "$root/run-scope.json" "$forged/run-scope.json"
+          python3 - "$forged" <<'PY'
+          import hashlib,json,pathlib,sys
+          root=pathlib.Path(sys.argv[1])
+          rows=[{'path':p.name,'sha256':'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(root.iterdir()) if p.is_file() and p.name!='bundle-manifest.json']
+          (root/'bundle-manifest.json').write_text(json.dumps(rows,sort_keys=True,separators=(',',':'))+'\n')
+          PY
+          if python3 tools/contract-632-phase4-bind.py verify --bundle "$forged" > forged-stdout.txt 2> forged-stderr.txt; then
+            echo 'evidence-only bundle unexpectedly passed' >&2
+            exit 1
+          fi
+
+          tampered="$RUNNER_TEMP/contract-632-phase4-tampered"
+          cp -R "$root" "$tampered"
+          printf '\n' >> "$tampered/sources/governance/selected-final-ci-rollout.v1.json"
+          python3 - "$tampered" <<'PY'
+          import hashlib,json,pathlib,sys
+          root=pathlib.Path(sys.argv[1]); target='sources/governance/selected-final-ci-rollout.v1.json'
+          rows=json.loads((root/'bundle-manifest.json').read_text())
+          for row in rows:
+              if row['path']==target: row['sha256']='sha256:'+hashlib.sha256((root/target).read_bytes()).hexdigest()
+          (root/'bundle-manifest.json').write_text(json.dumps(rows,sort_keys=True,separators=(',',':'))+'\n')
+          PY
+          if python3 tools/contract-632-phase4-bind.py verify --bundle "$tampered" > tampered-stdout.txt 2> tampered-stderr.txt; then
+            echo 'source-tampered evidence unexpectedly passed' >&2
+            exit 1
+          fi
+
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg commit "$EXPECTED_SHA" \
+            --arg tree "$tree" \
+            --arg governanceRevision "$GOVERNANCE_REVISION" \
+            --arg evidenceSha256 "$(sha256sum "$root/phase4-evidence.json" | cut -d' ' -f1)" \
+            --arg scopeSha256 "$(sha256sum "$root/run-scope.json" | cut -d' ' -f1)" \
+            --arg manifestSha256 "$(sha256sum "$root/bundle-manifest.json" | cut -d' ' -f1)" \
+            '{kind:"ops.contract632.phase4ArtifactProvenance.v2",status:"PASS",authority:false,adoption:false,releasePublished:false,repository:$repository,commit:$commit,tree:$tree,governanceRevision:$governanceRevision,evidenceSha256:("sha256:"+$evidenceSha256),scopeSha256:("sha256:"+$scopeSha256),manifestSha256:("sha256:"+$manifestSha256),forgedEvidenceRejected:true,sourceTamperRejected:true}' \
+            > phase4-provenance.json
+
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          roots=[pathlib.Path('contract-632-phase4-bundle'),pathlib.Path('phase4-build.json'),pathlib.Path('phase4-bind.json'),pathlib.Path('phase4-readback.json'),pathlib.Path('phase4-provenance.json'),pathlib.Path('forged-stdout.txt'),pathlib.Path('forged-stderr.txt'),pathlib.Path('tampered-stdout.txt'),pathlib.Path('tampered-stderr.txt')]
+          files=[]
+          for item in roots:
+              if item.is_dir(): files.extend(p for p in item.rglob('*') if p.is_file())
+              elif item.is_file(): files.append(item)
+          rows=[{'path':p.as_posix(),'sha256':'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(files)]
+          pathlib.Path('phase4-transport-manifest.json').write_text(json.dumps(rows,sort_keys=True,separators=(',',':'))+'\n')
+          PY
+          printf 'tree=%s\nevidence_sha256=%s\nscope_sha256=%s\nproof_manifest_sha256=%s\ntransport_manifest_sha256=%s\n' \
+            "$tree" \
+            "$(sha256sum "$root/phase4-evidence.json" | cut -d' ' -f1)" \
+            "$(sha256sum "$root/run-scope.json" | cut -d' ' -f1)" \
+            "$(sha256sum "$root/bundle-manifest.json" | cut -d' ' -f1)" \
+            "$(sha256sum phase4-transport-manifest.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
+        id: upload
         with:
           name: contract-632-phase4-${{ github.event.pull_request.head.sha }}
-          path: contract-632-phase4-bundle/
+          path: |
+            contract-632-phase4-bundle/
+            phase4-build.json
+            phase4-bind.json
+            phase4-readback.json
+            phase4-provenance.json
+            phase4-transport-manifest.json
+            forged-stdout.txt
+            forged-stderr.txt
+            tampered-stdout.txt
+            tampered-stderr.txt
           if-no-files-found: error
           retention-days: 90
+      - name: Emit exact artifact identity
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          SOURCE_TREE: ${{ steps.proof.outputs.tree }}
+          EVIDENCE_SHA256: ${{ steps.proof.outputs.evidence_sha256 }}
+          SCOPE_SHA256: ${{ steps.proof.outputs.scope_sha256 }}
+          PROOF_MANIFEST_SHA256: ${{ steps.proof.outputs.proof_manifest_sha256 }}
+          TRANSPORT_MANIFEST_SHA256: ${{ steps.proof.outputs.transport_manifest_sha256 }}
+        run: |
+          set -euo pipefail
+          test -n "$ARTIFACT_ID"
+          [[ "$ARTIFACT_DIGEST" =~ ^(sha256:)?[0-9a-f]{64}$ ]]
+          [[ "$SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
+          for value in "$EVIDENCE_SHA256" "$SCOPE_SHA256" "$PROOF_MANIFEST_SHA256" "$TRANSPORT_MANIFEST_SHA256"; do
+            [[ "$value" =~ ^[0-9a-f]{64}$ ]]
+          done
+          printf 'contract_632_phase4 artifact_id=%s artifact_digest=%s source_tree=%s evidence_sha256=%s scope_sha256=%s proof_manifest_sha256=%s transport_manifest_sha256=%s\n' \
+            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$EVIDENCE_SHA256" "$SCOPE_SHA256" "$PROOF_MANIFEST_SHA256" "$TRANSPORT_MANIFEST_SHA256"
