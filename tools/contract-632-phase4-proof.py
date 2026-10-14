@@ -86,6 +86,10 @@ def inventory_item(export: dict[str, Any]) -> dict[str, Any]:
     return {"source": export["source"], "rows_digest": digest(rows), "count": len(rows)}
 
 
+def refresh_inventory(packet: dict[str, Any], admission: dict[str, Any]) -> None:
+    admission["inventory"] = {name: inventory_item(packet[name]) for name in COLLECTIONS}
+
+
 def build(args: argparse.Namespace) -> dict[str, Any]:
     governance = args.governance_source.resolve()
     ops = args.ops_source.resolve()
@@ -176,9 +180,10 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "kind": "contractDiffAdmission.v1",
         "scope": {"id": "contract-632-phase4-ops-self", "authority": scope_authority, "epoch": EPOCH, "allow_empty": False, "grade": "source", "excluded_ids": []},
         "universe": [{"id": OBLIGATION_ID, "obligation_digest": required_contract["obligation_digest"], "profile": required_contract["profile"]}],
-        "inventory": {name: inventory_item(packet[name]) for name in COLLECTIONS},
+        "inventory": {},
         "evidence": {receipt_id: digest(receipt_row)},
     }
+    refresh_inventory(packet, admission)
     packet_path = out / "contract-diff-input.json"
     admission_path = out / "contract-diff-admission.json"
     write_json(packet_path, packet)
@@ -188,28 +193,27 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     write_json(out / "contract-diff-positive.json", positive)
     require(positive_code == 0 and positive.get("status") == "CLOSED" and positive.get("findings") == [], "positive-not-closed:" + canonical(positive).decode("utf-8"))
 
-    negative_results: dict[str, Any] = {}
     cases: dict[str, tuple[dict[str, Any], dict[str, Any], str]] = {}
-
     drift_packet = copy.deepcopy(packet)
     drift_packet["provided"]["rows"][0]["contract"]["target"]["resource"] = "repo-governance/proof"
     drift_admission = copy.deepcopy(admission)
-    drift_admission["inventory"]["provided"] = inventory_item(drift_packet["provided"])
+    refresh_inventory(drift_packet, drift_admission)
     cases["contract-drift"] = (drift_packet, drift_admission, "OPEN")
 
     missing_packet = copy.deepcopy(packet)
     missing_packet["observations"]["rows"] = []
     missing_admission = copy.deepcopy(admission)
-    missing_admission["inventory"]["observations"] = inventory_item(missing_packet["observations"])
+    refresh_inventory(missing_packet, missing_admission)
     cases["missing-observation"] = (missing_packet, missing_admission, "OPEN")
 
     stale_packet = copy.deepcopy(packet)
     stale_packet["observations"]["rows"][0]["attempt"] = "0" * 40
     stale_admission = copy.deepcopy(admission)
-    stale_admission["inventory"]["observations"] = inventory_item(stale_packet["observations"])
+    refresh_inventory(stale_packet, stale_admission)
     cases["wrong-candidate"] = (stale_packet, stale_admission, "OPEN")
     cases["missing-admission"] = (packet, {}, "UNKNOWN")
 
+    negative_results: dict[str, Any] = {}
     for name, (bad_packet, bad_admission, expected) in cases.items():
         bad_packet_path = out / f"negative-{name}-input.json"
         bad_admission_path = out / f"negative-{name}-admission.json"
@@ -265,7 +269,7 @@ def verify(bundle: Path) -> dict[str, Any]:
     require(evidence.get("claimCeiling") == CLAIM_CEILING and evidence.get("remaining") == 0, "claim-ceiling")
     require(evidence["comparator"]["positive"].get("status") == "CLOSED", "positive-status")
     expected_negatives = {"contract-drift": "OPEN", "missing-observation": "OPEN", "wrong-candidate": "OPEN", "missing-admission": "UNKNOWN"}
-    require({k: v.get("status") for k, v in evidence["comparator"]["negative"].items()} == expected_negatives, "negative-status")
+    require({key: value.get("status") for key, value in evidence["comparator"]["negative"].items()} == expected_negatives, "negative-status")
     actual = []
     for item in manifest:
         path = root / item["path"]
