@@ -231,6 +231,7 @@ function centralAssertions(claimSource, repository, candidateSha) {
       }));
     }
 
+    const packageRef = `${CENTRAL_SOURCE_PATH}#/packages/${index}`;
     const purposeRef = sourceRefForCentral(index, 'purpose', false);
     const mechanismRef = sourceRefForCentral(index, 'contributionMechanism', false);
     const inputRef = sourceRefForCentral(index, 'input', false);
@@ -259,13 +260,24 @@ function centralAssertions(claimSource, repository, candidateSha) {
       relation: 'derived_from',
       supports: [purposeRef, inputRef, outputRef],
     }));
+    packageAssertions.push(makeAssertion({
+      packageId: item.packageId,
+      field: 'placement',
+      value: packagePath,
+      sourceClass: 'derived_claim',
+      sourceRef: `derived:${item.packageId}:placement:v1`,
+      sourceFileDigest: fileDigest,
+      applicability: { repository, candidateSha, path: packagePath },
+      relation: 'derived_from',
+      supports: [packageRef],
+    }));
 
     assertions.push(...packageAssertions);
     packageRows.push({
       kind: 'ops.packageImplementationClaim.v2',
       packageId: item.packageId,
       sourceClass: source.sourceClass,
-      sourceRef: `${CENTRAL_SOURCE_PATH}#/packages/${index}`,
+      sourceRef: packageRef,
       sourceFileDigest: fileDigest,
       claimCeiling: source.claimCeiling,
       placement: packagePath,
