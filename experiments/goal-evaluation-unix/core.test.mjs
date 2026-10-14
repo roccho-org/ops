@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { plan, judge, report } from './core.mjs';
+import { plan, judge, report, unquotedGoalText } from './core.mjs';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const request = () => ({ goal: { ref: 'goal:original', content: 'Keep every material condition while shortening this explanation.' },
@@ -17,7 +17,9 @@ const question = (id = 'new.meaning-preservation', extra = {}) => ({ id, core: n
   basisRefs: ['goal:original', 'source:policy'], requiredRefs: ['source:policy', 'target:draft'], needs: [], ...extra });
 const proposal = (questions = [question()], missing = [], quoted = clauses()) => ({ clauses: quoted, questions, missing });
 const prepare = (candidate = proposal(), options = {}) => plan(request(), { propose: async () => candidate, ...options });
+const port = which => ({ id: 'independent-test-double', mode: 'test-double', which });
 const reply = async () => ({ label: 'unknown', model: 'independent-test-double' });
+const said = label => port(async () => ({ label, model: 'independent-test-double' }));
 const recorded = async (path, id) => (await readFile(new URL(path, import.meta.url), 'utf8'))
   .trim().split(/\r?\n/).map(JSON.parse).find(row => row.id === id);
 // Test-only reading of a recorded v1 plan under the v2 boundary: supplied refs stay refs, anything else is a need.
@@ -34,7 +36,7 @@ test('novel generated criterion and its quoted clauses reach model unchanged thr
     return proposal();
   } });
   let sent;
-  const out = await judge(clone(value), { which: async q => { sent = clone(q); return reply(); } });
+  const out = await judge(clone(value), port(async q => { sent = clone(q); return reply(); }));
   assert.equal(seenGoal, request().goal.content);
   assert.deepEqual(JSON.parse(sent.text), { ...request(), clauses: [clauses()[0], clauses()[2]] });
   assert.equal(sent.instructions, question().question);
@@ -85,7 +87,7 @@ test('an unsupplied observation cannot pose as a required ref; it stays a semant
   await assert.rejects(() => prepare(proposal([question('a', { requiredRefs: ['unobserved:inventory'] })])), /REQUIRED_REF_NOT_SUPPLIED/);
   const value = await prepare(proposal([question('missing', { needs: [need] }), question('available')]));
   let calls = 0;
-  const out = await judge(clone(value), { which: async () => { calls++; return reply(); } });
+  const out = await judge(clone(value), port(async () => { calls++; return reply(); }));
   assert.equal(calls, 1); assert.equal(out.judgments[0].status, 'INCOMPLETE');
   assert.deepEqual(out.judgments[0].missingNeeds, [need]); assert.equal(Object.hasOwn(out.judgments[0], 'missingRefs'), false);
   assert.equal(out.judgments[1].status, 'OBSERVED'); assert.ok(out.missing.some(row => row.need === 'missing'));
@@ -103,7 +105,7 @@ test('recorded v81: a free-text need was emitted as a missing ref; v2 keeps the 
   const goal = old.request.goal;
   const quoted = [{ id: 'g-trace', kind: 'obligation', ref: goal.ref, quote: '後で第三者が既存の記録だけから追跡できる' }];
   const value = await plan(old.request, { propose: async () => asV2(old, quoted, () => ['g-trace']) });
-  const out = await judge(clone(value), { which: async () => assert.fail('must not call model') });
+  const out = await judge(clone(value), port(async () => assert.fail('must not call model')));
   assert.equal(out.calls, 0); assert.equal(out.judgments[0].status, 'INCOMPLETE');
   assert.deepEqual(out.judgments[0].missingNeeds, old.questions[0].requires);
   const view = report(value, out);
@@ -116,7 +118,7 @@ test('recorded h36: supplied refs remain refs and presence is not reported as se
   const quoted = [{ id: 'g-trace', kind: 'obligation', ref: old.request.goal.ref, quote: '後で第三者が既存の記録だけから追跡できる' }];
   const value = await plan(old.request, { propose: async () => asV2(old, quoted, () => ['g-trace']) });
   assert.deepEqual(value.questions[0].needs, []);
-  const out = await judge(clone(value), { which: async () => ({ label: 'ok', model: 'independent-test-double' }) });
+  const out = await judge(clone(value), said('ok'));
   const view = report(value, out);
   assert.equal(out.calls, 1); assert.deepEqual(view.unassessed, []);
   assert.equal(view.clauses[0].assessment, 'JUDGED_UNVERIFIED');
@@ -132,31 +134,53 @@ test('recorded w42: the shortening clause with no question stays visibly unasses
     { id: 's-readback', kind: 'obligation', ref: source.ref, quote: '公開した後は実際の公開先を読み戻して結果を確認する。' },
     { id: 's-readonly', kind: 'exception', ref: source.ref, quote: 'ただし、内容を変更しない参照には承認を要しない。' }];
   const value = await plan(old.request, { cores, propose: async () => asV2(old, quoted, q => q.id === 'q1' ? ['g-keep', 's-readonly'] : ['s-readback']) });
-  const out = await judge(clone(value), { which: async () => ({ label: 'problem', model: 'independent-test-double' }) });
+  const out = await judge(clone(value), said('problem'));
   const view = report(value, out);
   assert.deepEqual(view.unassessed, [{ id: 'g-short', kind: 'obligation', quote: '短くして', reason: 'NO_QUESTION' }]);
   assert.equal(view.goalCoverage, 'NOT_CERTIFIED');
+});
+
+test('recorded w42: Goal text the planner never quoted stays visible without any semantic judgment', async () => {
+  const old = (await recorded('results/plan.jsonl', 'w42')).plan;
+  const goal = old.request.goal;
+  assert.deepEqual(unquotedGoalText(old.request, []), [{ start: 0, end: goal.content.length, text: goal.content }]);
+  const cores = JSON.parse(await readFile(new URL('cores.json', import.meta.url), 'utf8'));
+  // The planner drops the shortening clause entirely: no clause, so no UNASSESSED row can name it.
+  const quoted = [{ id: 'g-keep', kind: 'obligation', ref: goal.ref, quote: '元の判断を変えずに' }];
+  const value = await plan(old.request, { cores, propose: async () => asV2(old, quoted, () => ['g-keep']) });
+  const view = report(value, await judge(clone(value), said('problem')));
+  assert.deepEqual(view.unassessed, []);
+  assert.deepEqual(view.unquotedGoalText.map(span => span.text), ['この運用説明を短くして、', '使える形にしたい。']);
+  for (const span of view.unquotedGoalText) assert.equal(goal.content.slice(span.start, span.end), span.text);
+});
+
+test('unquoted Goal text ignores source quotes, whitespace and punctuation-only gaps', () => {
+  const input = request();
+  const spans = unquotedGoalText(input, [...clauses(), { id: 's', kind: 'obligation', ref: 'source:policy', quote: 'Approval' }]);
+  assert.deepEqual(spans.map(span => span.text), ['while']);
+  assert.deepEqual(unquotedGoalText(input, [{ id: 'all', kind: 'obligation', ref: 'goal:original', quote: input.goal.content }]), []);
 });
 
 test('exceptions and alternatives reach the judge with their obligation; unattached ones are reported', async () => {
   const quoted = [...clauses(), { id: 'c-retry', kind: 'alternative', ref: 'source:policy', quote: 'Approval and actual readback are required.' }];
   const value = await prepare(proposal([question()], [], quoted));
   let sent;
-  const out = await judge(clone(value), { which: async q => { sent = JSON.parse(q.text); return reply(); } });
+  const out = await judge(clone(value), port(async q => { sent = JSON.parse(q.text); return reply(); }));
   assert.deepEqual(sent.clauses.map(c => c.id), ['c-keep', 'c-readonly']);
   assert.deepEqual(report(value, out).unassessed.map(c => [c.id, c.kind, c.reason]),
     [['c-short', 'obligation', 'NO_QUESTION'], ['c-retry', 'alternative', 'NO_QUESTION']]);
 });
 
-test('report keeps the raw typed answer, unverified rationale, failures and consumer ownership explicit', async () => {
+test('report keeps the native three-label answer, port identity, unverified rationale and failures explicit', async () => {
   const value = await prepare(proposal([question('one'), question('two', { clauseIds: ['c-short'] })]));
   let n = 0;
-  const out = await judge(clone(value), { which: async () => {
+  const out = await judge(clone(value), port(async () => {
     if (n++) throw new Error('provider failure');
     return { label: 'problem', model: 'independent-test-double', rationale: 'Draft omits readback.' };
-  } });
+  }));
   const view = report(value, out);
-  assert.deepEqual(view.questions[0].result, { status: 'OBSERVED', answer: { type: 'choice', labels: ['problem', 'ok', 'unknown'], value: 'problem' },
+  assert.deepEqual(view.port, { id: 'independent-test-double', mode: 'test-double' });
+  assert.deepEqual(view.questions[0].result, { status: 'OBSERVED', answer: { type: 'native-three-label', labels: ['problem', 'ok', 'unknown'], value: 'problem' },
     model: 'independent-test-double', rationale: { text: 'Draft omits readback.', verified: false } });
   assert.deepEqual(view.questions[1].result, { status: 'EXECUTION_ERROR' });
   assert.deepEqual(view.unassessed.map(c => [c.id, c.reason]), [['c-short', 'QUESTIONS_NOT_JUDGED: EXECUTION_ERROR']]);
@@ -165,18 +189,43 @@ test('report keeps the raw typed answer, unverified rationale, failures and cons
   assert.throws(() => report(value, { ...out, authority: true }), /RESULT_PLAN_MISMATCH/);
 });
 
+test('a port must name itself and declare live or test-double before any call', async () => {
+  const value = await prepare();
+  for (const bad of [{ which: reply }, { id: 'p', which: reply }, { id: 'p', mode: 'replay', which: reply }, { id: ' ', mode: 'live', which: reply }]) {
+    await assert.rejects(() => judge(clone(value), bad), /INVALID_PORT/);
+  }
+});
+
+test('report refuses answers outside the asked labels and results bound to another Plan', async () => {
+  const value = await prepare(proposal([question('q1')]));
+  const out = await judge(clone(value), said('problem'));
+  const forged = clone(out); forged.judgments[0].label = 'banana';
+  assert.throws(() => report(value, forged), /RESULT_PLAN_MISMATCH/);
+  const otherGoal = request(); otherGoal.goal.content = 'Keep every material condition in a different Goal.';
+  const other = await plan(otherGoal, { propose: async () => proposal([question('q1')], [], clauses().filter(c => c.id !== 'c-short')) });
+  assert.equal(other.questions[0].id, out.judgments[0].id);
+  assert.throws(() => report(other, out), /RESULT_PLAN_MISMATCH/);
+  const tampered = clone(out); tampered.planDigest = '0'.repeat(64);
+  assert.throws(() => report(value, tampered), /RESULT_PLAN_MISMATCH/);
+  const needs = await prepare(proposal([question('q1', { needs: ['inventory'] })]));
+  const incomplete = await judge(clone(needs), port(reply));
+  const shifted = clone(incomplete); shifted.judgments[0] = { id: 'q1', status: 'OBSERVED', label: 'ok', model: 'm', rationale: null };
+  assert.throws(() => report(needs, shifted), /RESULT_PLAN_MISMATCH/);
+  assert.doesNotThrow(() => report(clone(value), clone(out)));
+});
+
 test('known match, new criterion and unresolved Need coexist without coverage certification', async () => {
   const core = { id: 'existing', question: 'Existing trusted question', criteria: clone(rubric) };
   const missing = [{ need: 'An additional Goal obligation', reason: 'Not yet represented by available queries' }];
   const value = await prepare(proposal([question('known', { core: core.id, question: core.question }), question('novel')], missing), { cores: [core] });
-  const out = await judge(clone(value), { which: reply });
+  const out = await judge(clone(value), port(reply));
   assert.equal(out.calls, 2); assert.deepEqual(out.missing, missing); assert.equal(out.goalCoverage, 'NOT_CERTIFIED');
   await assert.rejects(() => prepare(proposal([question('bad', { core: 'unknown-core' })]), { cores: [core] }));
 });
 
 test('empty question stream is zero calls and explicit unresolved Goal coverage', async () => {
   const value = await prepare(proposal([]));
-  const out = await judge(clone(value), { which: async () => assert.fail('must not call model') });
+  const out = await judge(clone(value), port(async () => assert.fail('must not call model')));
   assert.equal(out.calls, 0); assert.ok(out.missing.length); assert.equal(out.goalCoverage, 'NOT_CERTIFIED');
   assert.equal(report(value, out).unassessed.length, clauses().length);
 });
@@ -186,16 +235,16 @@ test('question, clause and byte ceilings are enforced before model invocation', 
   await assert.rejects(() => prepare(proposal(), { maxClauses: 2 }), /CLAUSE_LIMIT_OR_ID/);
   await assert.rejects(() => prepare(proposal(), { maxBytes: 20 }));
   const value = await prepare(proposal([question('one'), question('two')])); let calls = 0;
-  await assert.rejects(() => judge(clone(value), { which: async () => { calls++; return reply(); } }, { maxQuestions: 1 }));
+  await assert.rejects(() => judge(clone(value), port(async () => { calls++; return reply(); }), { maxQuestions: 1 }));
   assert.equal(calls, 0);
-  const limited = await judge(clone(value), { which: reply }, { maxCalls: 1 });
+  const limited = await judge(clone(value), port(reply), { maxCalls: 1 });
   assert.equal(limited.calls, 1); assert.equal(limited.judgments[1].status, 'NOT_RUN'); assert.ok(limited.missing.length);
 });
 
 test('model failure and invalid label retain execution failure, never semantic ok', async () => {
   const value = await prepare();
   for (const which of [async () => { throw new Error('provider failure'); }, async () => ({ label: 'invented', model: 'test' })]) {
-    const out = await judge(clone(value), { which });
+    const out = await judge(clone(value), port(which));
     assert.equal(out.calls, 1); assert.equal(out.judgments[0].status, 'EXECUTION_ERROR');
     assert.equal(Object.hasOwn(out.judgments[0], 'label'), false); assert.ok(out.missing.length);
   }
@@ -215,9 +264,9 @@ test('actual model question stays inside host byte ceiling after JSON escaping',
   const maxBytes = Buffer.byteLength(JSON.stringify(raw), 'utf8') + 10;
   const value = await plan(input, { propose: async () => candidate, maxBytes });
   let oversizedSent = false, sentBytes = null;
-  await judge(clone(value), { which: async q => {
+  await judge(clone(value), port(async q => {
     sentBytes = Buffer.byteLength(JSON.stringify(q), 'utf8'); oversizedSent = sentBytes > maxBytes; return reply();
-  } }, { maxBytes });
+  }), { maxBytes });
   assert.equal(oversizedSent, false, `actual model question ${sentBytes} bytes exceeds host ceiling ${maxBytes}`);
 });
 

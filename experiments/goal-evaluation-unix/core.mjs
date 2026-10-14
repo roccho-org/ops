@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { snapshotJson, exact } from '../../packages/jev-review/semlint-entry.mjs';
 
 const copy = value => JSON.parse(JSON.stringify(snapshotJson(value)));
@@ -11,6 +12,10 @@ const freeze = value => {
 const DEFAULTS = { maxQuestions: 4, maxClauses: 16, maxBytes: 28000, maxCalls: 4 };
 const KINDS = ['obligation', 'exception', 'alternative'];
 const LABELS = ['problem', 'ok', 'unknown'];
+const MODES = ['live', 'test-double'];
+// Native three-valued label from a ModelPort; deliberately not the Jev Choice primitive or a Noul value.
+const ANSWER_TYPE = 'native-three-label';
+const digest = value => createHash('sha256').update(JSON.stringify(value), 'utf8').digest('hex');
 function limits(options) {
   const value = { ...DEFAULTS, ...options };
   if (!exact(value, Object.keys(DEFAULTS)) || Object.values(value).some(x => !Number.isSafeInteger(x) || x < 1)) fail('INVALID_LIMITS');
@@ -84,7 +89,7 @@ export async function plan(request, { propose, cores = [], ...options }) {
 export async function judge(value, model, options = {}) {
   const input = copy(value), ceiling = limits(options);
   validate(input, ceiling); freeze(input);
-  if (!model || typeof model.which !== 'function') fail('INVALID_PORT');
+  if (!model || typeof model.which !== 'function' || !text(model.id) || !MODES.includes(model.mode)) fail('INVALID_PORT');
   const missing = copy(input.missing), judgments = [];
   let calls = 0;
   for (const q of input.questions) {
@@ -107,21 +112,53 @@ export async function judge(value, model, options = {}) {
       judgments.push({ id: q.id, status: 'OBSERVED', label: answer.label, model: answer.model, rationale: answer.rationale ?? null });
     } catch { judgments.push({ id: q.id, status: 'EXECUTION_ERROR' }); missing.push({ need: q.id, reason: 'Model operation failed or answer invalid' }); }
   }
-  return { schema: 'ops.goal-evaluation.judgments.v2', judgments, missing, calls, goalCoverage: 'NOT_CERTIFIED', authority: false };
+  // planDigest binds raw answers to the exact Plan (request, clauses, questions) they answered.
+  return { schema: 'ops.goal-evaluation.judgments.v2', planDigest: digest(input), port: { id: model.id, mode: model.mode },
+    judgments, missing, calls, goalCoverage: 'NOT_CERTIFIED', authority: false };
+}
+
+// Mechanical visibility only: Goal text not covered by any Goal clause quote, as maximal spans with a letter or digit.
+// Offsets are JavaScript string (UTF-16 code unit) indexes into goal.content. This judges no meaning.
+export function unquotedGoalText(request, clauses) {
+  const content = request.goal.content, covered = new Array(content.length).fill(false);
+  for (const c of clauses) if (c.ref === request.goal.ref) {
+    for (let at = content.indexOf(c.quote); at >= 0; at = content.indexOf(c.quote, at + 1)) covered.fill(true, at, at + c.quote.length);
+  }
+  const spans = [];
+  for (let start = 0; start < content.length;) {
+    if (covered[start]) { start++; continue; }
+    let end = start;
+    while (end < content.length && !covered[end]) end++;
+    const raw = content.slice(start, end), lead = raw.length - raw.trimStart().length, body = raw.trim();
+    if (/[\p{L}\p{N}]/u.test(body)) spans.push({ start: start + lead, end: start + lead + body.length, text: body });
+    start = end;
+  }
+  return spans;
+}
+function judgmentShape(j, q) {
+  if (j?.id !== q.id) return false;
+  if (q.needs.length) return j.status === 'INCOMPLETE' && exact(j, ['id', 'status', 'missingNeeds'])
+    && JSON.stringify(j.missingNeeds) === JSON.stringify(q.needs);
+  if (j.status === 'OBSERVED') return exact(j, ['id', 'status', 'label', 'model', 'rationale']) && Object.hasOwn(q.criteria, j.label)
+    && text(j.model) && (j.rationale === null || text(j.rationale));
+  return ['NOT_RUN', 'EXECUTION_ERROR'].includes(j.status) && exact(j, ['id', 'status']);
 }
 
 // Pure consumer view. It exposes what was and was not judged; it verifies no support and decides nothing.
 export function report(planValue, resultValue, options = {}) {
   const value = copy(planValue), result = copy(resultValue);
   validate(value, limits(options));
-  if (!exact(result, ['schema', 'judgments', 'missing', 'calls', 'goalCoverage', 'authority']) || result.schema !== 'ops.goal-evaluation.judgments.v2'
-    || !Array.isArray(result.judgments) || JSON.stringify(result.judgments.map(j => j.id)) !== JSON.stringify(value.questions.map(q => q.id))
+  if (!exact(result, ['schema', 'planDigest', 'port', 'judgments', 'missing', 'calls', 'goalCoverage', 'authority'])
+    || result.schema !== 'ops.goal-evaluation.judgments.v2' || result.planDigest !== digest(value)
+    || !exact(result.port, ['id', 'mode']) || !text(result.port.id) || !MODES.includes(result.port.mode)
+    || !Array.isArray(result.judgments) || result.judgments.length !== value.questions.length
+    || result.judgments.some((j, i) => !judgmentShape(j, value.questions[i]))
     || result.goalCoverage !== 'NOT_CERTIFIED' || result.authority !== false) fail('RESULT_PLAN_MISMATCH');
   const status = new Map(result.judgments.map(j => [j.id, j.status]));
   const questions = value.questions.map((q, i) => {
     const j = result.judgments[i];
     const outcome = j.status === 'OBSERVED'
-      ? { status: j.status, answer: { type: 'choice', labels: LABELS, value: j.label }, model: j.model,
+      ? { status: j.status, answer: { type: ANSWER_TYPE, labels: LABELS, value: j.label }, model: j.model,
         rationale: j.rationale === null ? null : { text: j.rationale, verified: false } }
       : { status: j.status, ...(j.missingNeeds ? { missingNeeds: j.missingNeeds } : {}) };
     return { id: q.id, core: q.core, question: q.question, criteria: q.criteria, clauseIds: q.clauseIds,
@@ -135,7 +172,8 @@ export function report(planValue, resultValue, options = {}) {
   });
   const nextObservations = [...new Set([...value.missing.map(row => row.need),
     ...result.judgments.flatMap(j => j.missingNeeds ?? [])])];
-  return { schema: 'ops.goal-evaluation.report.v1', goalRef: value.request.goal.ref, clauses,
+  return { schema: 'ops.goal-evaluation.report.v1', goalRef: value.request.goal.ref, planDigest: result.planDigest, port: result.port,
+    clauses, unquotedGoalText: unquotedGoalText(value.request, value.clauses),
     unassessed: clauses.filter(c => c.assessment === 'UNASSESSED').map(({ id, kind, quote, reason }) => ({ id, kind, quote, reason })),
     questions, missing: result.missing, nextObservations, nextDecision: 'CONSUMER_OWNED',
     goalCoverage: 'NOT_CERTIFIED', authority: false };
