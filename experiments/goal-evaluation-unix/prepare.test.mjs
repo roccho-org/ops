@@ -282,7 +282,7 @@ const APPROVED = { repository: REPO, number: NUMBER, principal: 'roccho-dev', co
   workflowPath: WORKFLOW_PATH, runRange: { first: 40, last: 60 }, runtimeSource: SHA };
 const planLine = (extra = {}) => '2026-10-15T00:00:01.0000000Z ' + JSON.stringify({ schema: 'ops.jev.issue-actions-receipt.v1', stage: 'plan',
   outcome: 'PLANNED', cause: null, claimed: true, providerCalls: 0, authority: false, commentId: EXPECTED.commandCommentId,
-  run: { id: RUN.id, number: RUN.number, attempt: 1, workflowId: RUN.workflowId }, ...extra });
+  run: { id: RUN.id, number: RUN.number, attempt: 1, workflowId: RUN.workflowId }, requestDigest: literal.requestDigest, ...extra });
 const planLog = (content = ['2026-10-15T00:00:00.0000000Z ##[group]Run plan', planLine(), '2026-10-15T00:00:02.0000000Z ##[endgroup]'].join('\n'), extra = {}) =>
   ({ ref: 'run-77-job-log', route: 'p-transported-job-log', observedAt: '2026-10-15T00:01:00.000Z', bytes: Buffer.byteLength(content), sha256: sha256(content),
     content, providerDigest: null, ...extra });
@@ -290,10 +290,10 @@ const commandJson = (extra = {}) => ({ id: EXPECTED.commandCommentId, user: { lo
   issue_url: `https://api.github.com/repos/${REPO}/issues/${NUMBER}`, ...extra });
 const runJson = (extra = {}) => ({ id: RUN.id, run_number: RUN.number, run_attempt: 1, workflow_id: RUN.workflowId, path: WORKFLOW_PATH,
   event: 'issue_comment', head_sha: RUN_HEAD, repository: { full_name: REPO }, ...extra });
-const originOf = async ({ command = commandJson(), run = runJson(), workflow = WORKFLOW, workflowSha = RUN_HEAD, log = planLog(), approved = APPROVED,
+const originOf = async ({ command = commandJson(), run = runJson(), workflow = WORKFLOW, workflowSha = RUN_HEAD, workflowUrl, log = planLog(), approved = APPROVED,
   posting = { id: EXPECTED.commandCommentId }, commandStatus = 200 } = {}) => {
   const urls = { command: `https://api.github.com/repos/${REPO}/issues/comments/${command.id}`, run: `https://api.github.com/repos/${REPO}/actions/runs/${run.id}`,
-    workflow: `https://raw.githubusercontent.com/${REPO}/${workflowSha}/${WORKFLOW_PATH}` };
+    workflow: workflowUrl ?? `https://raw.githubusercontent.com/${REPO}/${workflowSha}/${WORKFLOW_PATH}` };
   const r = reader({ [urls.command]: { status: commandStatus, text: JSON.stringify(command) }, [urls.run]: { status: 200, text: JSON.stringify(run) },
     [urls.workflow]: { status: 200, text: workflow } });
   const get = async (ref, url) => acquire({ ref, url }, r, () => '2026-10-15T00:01:00.000Z');
@@ -305,10 +305,33 @@ test('the old-literal origin binds command, run and runtime only through the exe
   const bound = await originOf();
   assert.equal(bound.status, 'BOUND');
   assert.deepEqual(bound.expected, EXPECTED);
-  assert.deepEqual(bound.origin, { runNumber: RUN.number, runHeadSha: RUN_HEAD, planLogSha256: planLog().sha256 });
+  assert.deepEqual(bound.origin, { runNumber: RUN.number, runHeadSha: RUN_HEAD, planLogSha256: planLog().sha256, planRequestDigest: literal.requestDigest });
   assert.match(bound.limits[0], /P-transported job log without a provider digest/);
   // The derived expectation is exactly what executorIdentitySnapshot needs; nothing is taken from the result itself.
-  assert.equal((await snapshotOf({}, bound.expected)).status, 'VERIFIED');
+  const subject = await snapshotOf({}, bound.expected);
+  assert.equal(subject.status, 'VERIFIED');
+  // R-A3: a caller can additionally tie the result to this plan through the shared request digest.
+  assert.equal(subject.origin.requestDigest, bound.origin.planRequestDigest);
+});
+
+test('the workflow must be the approved repository file at the run head, checked out from the approved repository (R-A1, R-A2)', async () => {
+  const path = `${RUN_HEAD}/${WORKFLOW_PATH}`;
+  for (const workflowUrl of [`https://raw.githubusercontent.com/attacker/ops/${path}`, `https://example.invalid/x/${path}`,
+    `https://raw.githubusercontent.com/${REPO}/${path}?token=x`, `https://raw.githubusercontent.com/${REPO}/main/${WORKFLOW_PATH}`]) {
+    const out = await originOf({ workflowUrl });
+    assert.deepEqual([out.status, out.cause], ['HOLD', 'WORKFLOW_NOT_AT_RUN_HEAD'], workflowUrl);
+  }
+  const foreign = WORKFLOW.replace(`repository: ${REPO}`, 'repository: attacker/ops');
+  assert.notEqual(foreign, WORKFLOW);
+  const unbound = WORKFLOW.replace(new RegExp(`^\\s*repository: ${REPO}\\s*\\n`, 'm'), '');
+  assert.notEqual(unbound, WORKFLOW);
+  const extra = WORKFLOW.replace('extra_nix_config: |', 'repository: attacker/ops\n          extra_nix_config: |');
+  assert.notEqual(extra, WORKFLOW);
+  for (const workflow of [foreign, unbound, extra]) {
+    const out = await originOf({ workflow });
+    assert.deepEqual([out.status, out.cause], ['HOLD', 'CHECKOUT_REPOSITORY_MISMATCH']);
+  }
+  assert.equal((await originOf({ log: planLog(planLine({ requestDigest: undefined })) })).cause, 'PLAN_RECEIPT_NOT_PLANNED');
 });
 
 test('missing, mismatched or self-declared origin evidence holds instead of binding (N-a)', async () => {

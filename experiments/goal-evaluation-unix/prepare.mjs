@@ -151,8 +151,25 @@ function planStageReceipt(log) {
     .filter(x => x?.schema === 'ops.jev.issue-actions-receipt.v1' && x.stage === 'plan');
   if (plans.length !== 1) return { cause: plans.length ? 'PLAN_RECEIPT_AMBIGUOUS' : 'PLAN_RECEIPT_MISSING' };
   const [p] = plans;
-  if (p.outcome !== 'PLANNED' || !positive(p.commentId) || !exact(p.run, ['id', 'number', 'attempt', 'workflowId'])) return { cause: 'PLAN_RECEIPT_NOT_PLANNED' };
+  if (p.outcome !== 'PLANNED' || !positive(p.commentId) || !exact(p.run, ['id', 'number', 'attempt', 'workflowId'])
+    || !/^[0-9a-f]{64}$/.test(p.requestDigest ?? '')) return { cause: 'PLAN_RECEIPT_NOT_PLANNED' };
   return { plan: p };
+}
+
+// Each step's `with:` block, as {repository, ref} (null when absent), read by indentation; nothing else is interpreted.
+function withBlocks(workflow) {
+  const lines = workflow.split(/\r?\n/), blocks = [];
+  for (let i = 0; i < lines.length; i++) {
+    const open = /^(\s*)with:\s*$/.exec(lines[i]);
+    if (!open) continue;
+    const block = { repository: null, ref: null };
+    for (let j = i + 1; j < lines.length && (!lines[j].trim() || /^\s*/.exec(lines[j])[0].length > open[1].length); j++) {
+      const kv = /^\s*(repository|ref):\s*(\S+)\s*$/.exec(lines[j]);
+      if (kv) block[kv[1]] = kv[2];
+    }
+    blocks.push(block);
+  }
+  return blocks;
 }
 
 // N-a: the expected old-literal origin is derived only when four observations agree: the approved posting response,
@@ -178,11 +195,19 @@ export function expectedOrigin({ approved, postingResponse, commandReceipt, runR
     || run.workflow_id !== plan.run.workflowId || run.workflow_id !== approved.workflowId || run.path !== approved.workflowPath
     || run.event !== 'issue_comment' || run.repository?.full_name !== approved.repository || !SHA1.test(run.head_sha ?? '')) return hold('RUN_MISMATCH');
   if (run.run_number < approved.runRange.first || run.run_number > approved.runRange.last) return hold('RUN_OUTSIDE_RANGE');
-  if (!workflowReceipt.url.includes(`/${run.head_sha}/`) || !workflowReceipt.url.endsWith(approved.workflowPath)) return hold('WORKFLOW_NOT_AT_RUN_HEAD');
-  const pins = [...workflowReceipt.content.matchAll(/^\s*(?:ref:\s*|runtime_source=)([0-9a-f]{40})\s*$/gm)].map(m => m[1]);
+  // The workflow bytes must come from exactly the approved repository, at the run's head_sha, at the approved path.
+  if (workflowReceipt.url !== `https://raw.githubusercontent.com/${approved.repository}/${run.head_sha}/${approved.workflowPath}`) return hold('WORKFLOW_NOT_AT_RUN_HEAD');
+  // The checkout pin counts only inside a with: block that checks out the approved repository; any other
+  // checkout repository, or a ref pin without one, is not the approved runtime.
+  const blocks = withBlocks(workflowReceipt.content);
+  if (blocks.some(b => b.repository !== null && b.repository !== approved.repository) || blocks.some(b => b.ref !== null && b.repository === null)) {
+    return hold('CHECKOUT_REPOSITORY_MISMATCH');
+  }
+  const pins = [...blocks.filter(b => b.ref !== null).map(b => b.ref),
+    ...[...workflowReceipt.content.matchAll(/^\s*runtime_source=(\S+)\s*$/gm)].map(m => m[1])];
   if (pins.length !== 2 || pins.some(pin => pin !== approved.runtimeSource)) return hold('RUNTIME_PIN_MISMATCH');
   return { status: 'BOUND', expected: { commandCommentId: postingResponse.id, runId: run.id, executionSource: approved.runtimeSource },
-    origin: { runNumber: run.run_number, runHeadSha: run.head_sha, planLogSha256: planLog.sha256 },
+    origin: { runNumber: run.run_number, runHeadSha: run.head_sha, planLogSha256: planLog.sha256, planRequestDigest: plan.requestDigest },
     limits: ['plan receipt bytes are a P-transported job log without a provider digest; they are only cross-checked here'] };
 }
 
