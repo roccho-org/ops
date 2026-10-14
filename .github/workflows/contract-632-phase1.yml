@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: contract-632-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   phase1-bundle:
     runs-on: ubuntu-24.04
