@@ -114,8 +114,12 @@ contract-632-phase3-bundle/
 ├── browser-receipt.json
 ├── browser-dom.html
 ├── browser.png
+├── closure-graph-receipt.json
+├── closure-browser-dom.html
+├── closure-browser.png
 ├── apps-cli-receipt.json
 ├── apps-cli-reduced.jsonl
+├── closure-graph/{index.html,latest.mmd}
 └── proof/
     ├── ui.contract-model-atlas.view.json
     ├── package-architecture.inventory.json
@@ -153,10 +157,17 @@ PurposeBoundaryClosed
   ∧ no compiler-context semantic edge
   ∧ no unsupported Package Purpose parent
 
+ClosureGraphClosed
+  = exact Mermaid source extracted from this file
+  ∧ existing viewer serves the same bytes
+  ∧ real browser renders SVG without syntax error
+  ∧ W → R/P → same-version both GO → PhaseClosed → Phase 4 is visible
+
 Phase3ReadyForReview
   = CandidateBoundaryClosed
   ∧ MappingClosed
   ∧ PurposeBoundaryClosed
+  ∧ ClosureGraphClosed
   ∧ actual UI validator PASS
   ∧ actual Apps reducer and file CLI PASS
   ∧ existing viewer served and read in a real browser
@@ -178,6 +189,7 @@ Phase3ReadyForReview
 | exact dependency provenance | edge sources contain target value | unrelated dependency source rejects |
 | exact Purpose provenance | label sources equal chosen purpose value | unrelated Purpose source rejects |
 | no invented hierarchy | Package Purpose parents empty when undeclared | compiler decision parent is absent |
+| renderable closure process | exact Mermaid source renders through existing viewer in real browser | syntax error, missing SVG, or missing closure labels fails |
 | semantic source parity | UI and Apps sets equal all Phase 2 assertions | digest/set mismatch rejects |
 | no invented closure effects | Fill/Receipt/Residual are zero | unsupported records reject |
 | deterministic replay | two builds byte-equal | output drift fails |
@@ -217,11 +229,19 @@ flowchart TB
   V -->|NO| FIX["W fixes Phase 3"]
   V -->|YES| B["existing viewer + browser readback"]
   B --> ART["content-addressed evidence bundle"]
-  ART --> R{"R same-version verdict"]
+  ART --> W["W result P3 vN"]
+  W --> R{"R same-version verdict"}
+  W --> P{"P same-version verdict"}
   R -->|BLOCK| FIX
-  R -->|GO| P{"P same-version verdict"]
   P -->|BLOCK| FIX
-  P -->|GO| CLOSED["PhaseClosed 3 vN"]
+  FIX --> W
+  R -->|GO| RG["R GO"]
+  P -->|GO| PG["P GO"]
+  RG --> BOTH{"same-version both GO?"}
+  PG --> BOTH
+  BOTH -->|NO| HOLD["remain Phase 3"]
+  BOTH -->|YES| CLOSED["PhaseClosed 3 vN"]
+  CLOSED --> P4["Phase 4 existing diff / Governance consumer"]
 ```
 
 ## Claim ceiling
