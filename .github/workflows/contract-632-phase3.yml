@@ -69,7 +69,7 @@ jobs:
           phase1_check="$(nix build --no-link --print-out-paths .#checks.x86_64-linux.ops-package-contract-bridge-phase1)"
 
           work="$RUNNER_TEMP/contract-632-phase3"
-          mkdir -p "$work/phase1" "$work/phase2"
+          mkdir -p "$work/phase1"
           cp -R "$phase1_check/run1/." "$work/phase1/"
           "$bridge/bin/ops-package-contract-bridge" verify-phase1 "$work/phase1" > "$work/phase1-readback.json"
 
