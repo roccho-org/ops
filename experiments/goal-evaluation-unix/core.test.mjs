@@ -214,6 +214,43 @@ test('report refuses answers outside the asked labels and results bound to anoth
   assert.doesNotThrow(() => report(clone(value), clone(out)));
 });
 
+test('report refuses undefined states, answers without a model and fabricated INCOMPLETE (R6 D-F)', async () => {
+  const value = await prepare(proposal([question('q1'), question('q2')]));
+  const out = await judge(clone(value), said('ok'));
+  const forge = (patch, i = 0) => { const r = clone(out); r.judgments[i] = { id: `q${i + 1}`, ...patch }; return r; };
+  for (const bad of [
+    forge({ status: 'PASS' }),
+    forge({ status: 'OBSERVED', label: 'ok' }),
+    forge({ status: 'OBSERVED', label: 'ok', model: '', rationale: null }),
+    forge({ status: 'OBSERVED', label: 'ok', model: 'm', rationale: '' }),
+    forge({ status: 'INCOMPLETE', missingNeeds: ['made up'] }),
+  ]) assert.throws(() => report(value, bad), /RESULT_PLAN_MISMATCH/);
+  const silent = clone(out); silent.judgments[0].rationale = null;
+  assert.equal(report(value, silent).questions[0].result.rationale, null);
+});
+
+test('report re-derives missing rows and call count from the Plan and judgments (R7)', async () => {
+  const missing = [{ need: 'Planned need', reason: 'Declared by the planner' }];
+  const value = await prepare(proposal([question('q1'), question('q2', { needs: ['inventory'] }), question('q3')], missing));
+  let n = 0;
+  const out = await judge(clone(value), port(async () => { if (n++) throw new Error('provider failure'); return reply(); }));
+  assert.deepEqual(out.missing.map(row => row.need), ['Planned need', 'q2', 'q3']); assert.equal(out.calls, 2);
+  assert.deepEqual(report(value, out).missing, out.missing);
+  const forged = [
+    r => { r.missing.push({ need: 'fake', reason: 'fake' }); },
+    r => { r.missing = r.missing.slice(1); },
+    r => { r.missing[1].reason = 'Call limit'; },
+    r => { r.missing[2].need = 'q1'; },
+    r => { r.missing = 'none'; },
+    r => { r.calls = 99; },
+    r => { r.calls = 1; },
+  ];
+  for (const mutate of forged) { const r = clone(out); mutate(r); assert.throws(() => report(value, r), /RESULT_PLAN_MISMATCH/); }
+  const limited = await judge(clone(value), port(reply), { maxCalls: 1 });
+  assert.deepEqual(limited.judgments.map(j => j.status), ['OBSERVED', 'INCOMPLETE', 'NOT_RUN']);
+  assert.doesNotThrow(() => report(value, limited));
+});
+
 test('known match, new criterion and unresolved Need coexist without coverage certification', async () => {
   const core = { id: 'existing', question: 'Existing trusted question', criteria: clone(rubric) };
   const missing = [{ need: 'An additional Goal obligation', reason: 'Not yet represented by available queries' }];
@@ -264,10 +301,12 @@ test('actual model question stays inside host byte ceiling after JSON escaping',
   const maxBytes = Buffer.byteLength(JSON.stringify(raw), 'utf8') + 10;
   const value = await plan(input, { propose: async () => candidate, maxBytes });
   let oversizedSent = false, sentBytes = null;
-  await judge(clone(value), port(async q => {
+  const out = await judge(clone(value), port(async q => {
     sentBytes = Buffer.byteLength(JSON.stringify(q), 'utf8'); oversizedSent = sentBytes > maxBytes; return reply();
   }), { maxBytes });
   assert.equal(oversizedSent, false, `actual model question ${sentBytes} bytes exceeds host ceiling ${maxBytes}`);
+  assert.deepEqual(out.missing.at(-1), { need: question().id, reason: 'Model question byte limit' });
+  assert.equal(report(value, out, { maxBytes }).questions[0].result.status, 'NOT_RUN');
 });
 
 test('automatic missing-coverage annotation also fits the emitted Plan byte ceiling', async () => {

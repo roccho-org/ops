@@ -16,6 +16,10 @@ const MODES = ['live', 'test-double'];
 // Native three-valued label from a ModelPort; deliberately not the Jev Choice primitive or a Noul value.
 const ANSWER_TYPE = 'native-three-label';
 const digest = value => createHash('sha256').update(JSON.stringify(value), 'utf8').digest('hex');
+// judge writes these missing reasons; report re-derives and checks them instead of trusting the result.
+const CALL_LIMIT = 'Call limit', BYTE_LIMIT = 'Model question byte limit', FAILED = 'Model operation failed or answer invalid';
+const notSupplied = q => 'Semantic observations not supplied: ' + q.needs.join('; ');
+const REASONS = { INCOMPLETE: q => [notSupplied(q)], NOT_RUN: () => [CALL_LIMIT, BYTE_LIMIT], EXECUTION_ERROR: () => [FAILED] };
 function limits(options) {
   const value = { ...DEFAULTS, ...options };
   if (!exact(value, Object.keys(DEFAULTS)) || Object.values(value).some(x => !Number.isSafeInteger(x) || x < 1)) fail('INVALID_LIMITS');
@@ -95,22 +99,22 @@ export async function judge(value, model, options = {}) {
   for (const q of input.questions) {
     if (q.needs.length) {
       judgments.push({ id: q.id, status: 'INCOMPLETE', missingNeeds: copy(q.needs) });
-      missing.push({ need: q.id, reason: 'Semantic observations not supplied: ' + q.needs.join('; ') });
+      missing.push({ need: q.id, reason: notSupplied(q) });
       continue;
     }
-    if (calls >= ceiling.maxCalls) { judgments.push({ id: q.id, status: 'NOT_RUN' }); missing.push({ need: q.id, reason: 'Call limit' }); continue; }
+    if (calls >= ceiling.maxCalls) { judgments.push({ id: q.id, status: 'NOT_RUN' }); missing.push({ need: q.id, reason: CALL_LIMIT }); continue; }
     // Exceptions and legitimate alternatives travel with the obligation they qualify.
     const clauses = input.clauses.filter(c => q.clauseIds.includes(c.id));
     const question = { text: JSON.stringify({ ...input.request, clauses }), instructions: q.question, criteria: copy(q.criteria) };
     if (Buffer.byteLength(JSON.stringify(question), 'utf8') > ceiling.maxBytes) {
-      judgments.push({ id: q.id, status: 'NOT_RUN' }); missing.push({ need: q.id, reason: 'Model question byte limit' }); continue;
+      judgments.push({ id: q.id, status: 'NOT_RUN' }); missing.push({ need: q.id, reason: BYTE_LIMIT }); continue;
     }
     calls++;
     try {
       const answer = await model.which(question);
       if (!answer || !Object.hasOwn(q.criteria, answer.label) || !text(answer.model)) fail('INVALID_ANSWER');
       judgments.push({ id: q.id, status: 'OBSERVED', label: answer.label, model: answer.model, rationale: answer.rationale ?? null });
-    } catch { judgments.push({ id: q.id, status: 'EXECUTION_ERROR' }); missing.push({ need: q.id, reason: 'Model operation failed or answer invalid' }); }
+    } catch { judgments.push({ id: q.id, status: 'EXECUTION_ERROR' }); missing.push({ need: q.id, reason: FAILED }); }
   }
   // planDigest binds raw answers to the exact Plan (request, clauses, questions) they answered.
   return { schema: 'ops.goal-evaluation.judgments.v2', planDigest: digest(input), port: { id: model.id, mode: model.mode },
@@ -143,6 +147,16 @@ function judgmentShape(j, q) {
     && text(j.model) && (j.rationale === null || text(j.rationale));
   return ['NOT_RUN', 'EXECUTION_ERROR'].includes(j.status) && exact(j, ['id', 'status']);
 }
+// missing = Plan missing, then one row per unjudged question in order; calls = model invocations actually made.
+function accountingMatches(value, result) {
+  if (!Array.isArray(result.missing)) return false;
+  const unjudged = result.judgments.map((j, i) => [j, value.questions[i]]).filter(([j]) => j.status !== 'OBSERVED');
+  const rows = result.missing.slice(value.missing.length);
+  return JSON.stringify(result.missing.slice(0, value.missing.length)) === JSON.stringify(value.missing)
+    && rows.length === unjudged.length
+    && rows.every((row, k) => { const [j, q] = unjudged[k]; return exact(row, ['need', 'reason']) && row.need === q.id && REASONS[j.status](q).includes(row.reason); })
+    && result.calls === result.judgments.filter(j => ['OBSERVED', 'EXECUTION_ERROR'].includes(j.status)).length;
+}
 
 // Pure consumer view. It exposes what was and was not judged; it verifies no support and decides nothing.
 export function report(planValue, resultValue, options = {}) {
@@ -152,7 +166,7 @@ export function report(planValue, resultValue, options = {}) {
     || result.schema !== 'ops.goal-evaluation.judgments.v2' || result.planDigest !== digest(value)
     || !exact(result.port, ['id', 'mode']) || !text(result.port.id) || !MODES.includes(result.port.mode)
     || !Array.isArray(result.judgments) || result.judgments.length !== value.questions.length
-    || result.judgments.some((j, i) => !judgmentShape(j, value.questions[i]))
+    || result.judgments.some((j, i) => !judgmentShape(j, value.questions[i])) || !accountingMatches(value, result)
     || result.goalCoverage !== 'NOT_CERTIFIED' || result.authority !== false) fail('RESULT_PLAN_MISMATCH');
   const status = new Map(result.judgments.map(j => [j.id, j.status]));
   const questions = value.questions.map((q, i) => {
