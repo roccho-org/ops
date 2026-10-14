@@ -3,7 +3,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { sha256File } from './verify.mjs';
-import { RELATIONS, clone, fail, sourceRows } from './phase3-input.mjs';
+import { RELATIONS, clone, context, fail, sourceRows } from './phase3-input.mjs';
 import { assertProjectionSourceIdentity, dependencyAssertions } from './phase3-projection.mjs';
 import { assertExactMappings, mappingRows } from './phase3-mapping.mjs';
 
@@ -107,8 +107,15 @@ export function destructiveProof({ input, consumers, projection, mappings }) {
   rejection(results, 'unrelated-purpose-source-attribution', () => mappingRows(models, acceptedView, unrelatedPurposeRows));
 
   rejection(results, 'field-relation-mapping-omission', () => assertExactMappings(mappings.slice(1), mappings));
+
+  const accepted = contexts.accepted.accepted;
+  const collisionCandidate = {
+    ...accepted,
+    role: 'candidate-collision',
+    rowId: `${accepted.rowId}:collision`,
+  };
   rejection(results, 'candidate-context-input-collision', () => {
-    if (projection.proof.contextInputs.accepted.digest !== projection.proof.contextInputs.candidateOverlay.digest) throw new Error('distinct input required');
+    context({ accepted, unadmitted: [collisionCandidate] });
   });
 
   return results;

@@ -35,15 +35,15 @@ The same projection entry consumes three distinct envelopes:
 ```text
 E0 = accepted AC1 only
 E1 = accepted AC1 + exact unadmitted BC1
-E2 = accepted AC1 + alternate exact unadmitted AC0 packet
+E2 = accepted AC1 + deterministic proof-mutated unadmitted BC1
 
 Digest(E0) != Digest(E1) != Digest(E2)
 Projection(E0) = Projection(E1) = Projection(E2)
 ```
 
-The alternate packet is an existing valid compiler packet, not an invented fixture. Selecting the unadmitted candidate as current is rejected before either consumer runs.
+E1 carries the exact compiler-produced BC1 packet. E2 is an explicit non-authoritative proof mutation derived from BC1 only to show that a changed unadmitted candidate still cannot change the accepted projection. E2 is not claimed to be an existing compiler output. Selecting the unadmitted candidate as current is rejected before either consumer runs.
 
-The verifier repeats this from copied packet bytes and selection data. `append-invariants.json` is evidence output, not trusted input.
+The verifier repeats this from copied packet bytes, selection data, and the deterministic proof mutation. `append-invariants.json` is evidence output, not trusted input.
 
 ## Semantic mapping
 
@@ -138,6 +138,7 @@ CandidateBoundaryClosed
   = three distinct envelope digests
   ∧ accepted projection bytes equal
   ∧ candidate misselection rejected
+  ∧ accepted/candidate identity collision rejected
   ∧ verifier recomputes from packet bytes
 
 MappingClosed
@@ -170,7 +171,8 @@ Phase3ReadyForReview
 | Requirement | Positive evidence | Safe failure |
 |---|---|---|
 | actual candidate path | E1 contains exact BC1 bytes and differs from E0 | candidate packet/digest mismatch rejects |
-| changed unadmitted candidate | E2 uses exact AC0 as alternate candidate | candidate changes accepted projection blocks |
+| changed unadmitted candidate | E2 uses deterministic proof mutation derived from BC1 | candidate changes accepted projection blocks |
+| no identity collision | accepted identity and candidate identity must differ | same packet/current identity rejects |
 | no self-admission | selected identity remains AC1 | selecting BC1 rejects |
 | exact field mapping | 1 mapping per Phase 2 assertion | one mapping omission rejects |
 | exact dependency provenance | edge sources contain target value | unrelated dependency source rejects |
@@ -184,16 +186,17 @@ Phase3ReadyForReview
 ## Destructive set
 
 ```text
-candidate misselection                 -> REJECTED
-unrelated dependency source            -> REJECTED
-unrelated Purpose source               -> REJECTED
-field/relation mapping omission        -> REJECTED
-cross-projection source digest mismatch-> REJECTED
-unknown relation                       -> REJECTED
-UI missing edge target                 -> REJECTED
-UI forbidden authority field           -> REJECTED
-Apps authority=true                    -> REJECTED
-Apps missing Purpose reference         -> REJECTED
+candidate misselection                  -> REJECTED
+candidate context identity collision    -> REJECTED
+unrelated dependency source             -> REJECTED
+unrelated Purpose source                -> REJECTED
+field/relation mapping omission         -> REJECTED
+cross-projection source digest mismatch -> REJECTED
+unknown relation                        -> REJECTED
+UI missing edge target                  -> REJECTED
+UI forbidden authority field            -> REJECTED
+Apps authority=true                     -> REJECTED
+Apps missing Purpose reference          -> REJECTED
 ```
 
 ## Closure process
@@ -201,9 +204,9 @@ Apps missing Purpose reference         -> REJECTED
 ```mermaid
 flowchart TB
   P2["PhaseClosed 2 v5"] --> S["exact Phase 2 semantic assertions"]
-  P1["AC0 / AC1 / BC1 + selector"] --> E["selection envelopes E0 / E1 / E2"]
-  E --> C{"AC1 remains selected?"}
-  C -->|NO| X["reject candidate self-admission"]
+  P1["AC0 / AC1 / BC1 + deterministic proof mutation"] --> E["selection envelopes E0 / E1 / E2"]
+  E --> C{"AC1 remains selected and identities are distinct?"}
+  C -->|NO| X["reject candidate self-admission or identity collision"]
   C -->|YES| UI["UI field + exact dependency projection"]
   C -->|YES| APPS["Apps Purpose + ideal + safe gaps"]
   S --> UI
@@ -214,9 +217,9 @@ flowchart TB
   V -->|NO| FIX["W fixes Phase 3"]
   V -->|YES| B["existing viewer + browser readback"]
   B --> ART["content-addressed evidence bundle"]
-  ART --> R{"R same-version verdict"}
+  ART --> R{"R same-version verdict"]
   R -->|BLOCK| FIX
-  R -->|GO| P{"P same-version verdict"}
+  R -->|GO| P{"P same-version verdict"]
   P -->|BLOCK| FIX
   P -->|GO| CLOSED["PhaseClosed 3 vN"]
 ```

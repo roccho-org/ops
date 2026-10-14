@@ -87,7 +87,7 @@ Phase 3 keeps three different meanings separate:
 
 ```text
 selection boundary
-  = AC1 remains selected while real BC1 or another unadmitted packet is present
+  = AC1 remains selected while exact BC1 or a deterministic proof-mutated BC1 candidate is present
 
 semantic source set
   = Phase 2 relation-valid Package field assertions only
@@ -117,10 +117,13 @@ All 11 Package fields are retained in both projections. Observation-to-claim DRI
 Candidate isolation is recomputed from copied AC0/AC1/BC1 packets and selection data:
 
 ```text
-Projection(AC1) = Projection(AC1 + BC1)
-Projection(AC1) = Projection(AC1 + alternate unadmitted AC0 packet)
+Projection(AC1) = Projection(AC1 + exact BC1)
+Projection(AC1) = Projection(AC1 + deterministic proof-mutated BC1)
 select(BC1 as current) = REJECTED
+reuse accepted packet/current identity as candidate = REJECTED
 ```
+
+The second candidate is a deterministic non-authoritative proof mutation derived from BC1. It proves changed unadmitted-candidate isolation and is not claimed to be an existing compiler output.
 
 A change from AC0 to AC1 changes only compiler-context UI locations. It does not rewrite Package Purpose semantics or Apps closure records.
 
@@ -161,6 +164,6 @@ ops-package-contract-bridge serve-dist --dir <dist> [--host 127.0.0.1] [--port 4
 
 `build-phase2-v5` reuses the bounded v4 local-source stage, normalizes all combined relations, excludes relation-invalid assertions from coverage, runs destructive controls, and produces a deterministic finite bundle. `verify-phase2-v5` reconstructs the same relation partition and rejects source, support, digest, coverage, authority, omission, or destructive-proof drift.
 
-`build-phase3` imports the exact pinned UI and Apps consumers, processes real accepted/candidate packet envelopes, produces separate semantic projections, derives field/relation mapping rows, invokes the existing package map, and emits a deterministic finite bundle. `verify-phase3` reconstructs the envelope and projections from copied packets, selection, assertions, and consumers; it rejects candidate misselection, overbroad provenance, mapping omission, projection drift, or artifact mutation instead of trusting stored booleans.
+`build-phase3` imports the exact pinned UI and Apps consumers, processes the exact accepted/BC1 envelope plus the deterministic proof-mutated candidate envelope, produces separate semantic projections, derives field/relation mapping rows, invokes the existing package map, and emits a deterministic finite bundle. `verify-phase3` reconstructs the envelopes and projections from copied packets, selection, assertions, and consumers; it rejects candidate misselection, accepted/candidate identity collision, overbroad provenance, mapping omission, projection drift, or artifact mutation instead of trusting stored booleans.
 
 The Phase 1/2 workflow and the Phase 3 workflow publish separate exact-head evidence. Superseded results remain reproducible from immutable commits and stored artifacts rather than parallel authority implementations.

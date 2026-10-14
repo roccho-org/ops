@@ -87,6 +87,9 @@ try {
   const destructive = JSON.parse(fs.readFileSync(path.join(run1, 'phase3-destructive-results.json'), 'utf8'));
   assert.ok(destructive.results.length >= 10);
   assert.ok(destructive.results.every(row => row.status === 'REJECTED' && row.error));
+  const collision = destructive.results.find(row => row.case === 'candidate-context-input-collision');
+  assert.ok(collision);
+  assert.match(collision.error, /candidate is not distinct from accepted/u);
 
   const tampered = path.join(run1, 'ui.contract-model-atlas.view.json');
   const original = fs.readFileSync(tampered);
