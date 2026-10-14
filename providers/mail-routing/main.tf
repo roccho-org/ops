@@ -125,9 +125,9 @@ variable "preflight_approved" {
 }
 
 resource "cloudflare_email_routing_dns" "zone" {
+  // The apex is selected by zone_id; name selects a subdomain, not the apex.
   count   = var.manage_dns ? 1 : 0
   zone_id = var.zone_id
-  name    = var.zone_name
 
   lifecycle {
     prevent_destroy = true

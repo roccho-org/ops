@@ -140,6 +140,26 @@ run "wrong_verified_destination" {
   expect_failures = [cloudflare_email_routing_rule.literal]
 }
 
+run "dns_apex_omits_subdomain_payload" {
+  command = plan
+  variables {
+    manage_dns         = true
+    manage_destination = false
+    manage_rule        = false
+    preflight_approved = true
+  }
+  assert {
+    condition = (
+      length(cloudflare_email_routing_dns.zone) == 1
+      && cloudflare_email_routing_dns.zone[0].name == null
+      && cloudflare_email_routing_dns.zone[0].zone_id == var.zone_id
+      && length(cloudflare_email_routing_address.gmail) == 0
+      && length(cloudflare_email_routing_rule.literal) == 0
+    )
+    error_message = "Apex DNS must use the selected zone only, without a subdomain name or unrelated creates."
+  }
+}
+
 run "verified_shared_reuse" {
   command = plan
   variables {
