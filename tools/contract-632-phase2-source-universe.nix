@@ -51,13 +51,15 @@ let
       file = root + "/${relativePath}";
       exists = builtins.pathExists file;
       body = if exists then builtins.readFile file else "";
-      jsonAttempt = if exists then builtins.tryEval (builtins.fromJSON body) else { success = false; value = null; };
-      sourceFormat = if !exists then "absent" else if jsonAttempt.success then "json" else "nix";
+      prefixLength = if builtins.stringLength body < 256 then builtins.stringLength body else 256;
+      compactPrefix = builtins.replaceStrings [ " " "\n" "\r" "\t" ] [ "" "" "" "" ] (builtins.substring 0 prefixLength body);
+      looksLikeJson = exists && builtins.stringLength compactPrefix >= 2 && builtins.substring 0 2 compactPrefix == "{\"";
+      sourceFormat = if !exists then "absent" else if looksLikeJson then "json" else "nix";
       attempted =
         if !exists then
           { success = false; value = null; }
-        else if jsonAttempt.success then
-          jsonAttempt
+        else if looksLikeJson then
+          { success = true; value = builtins.fromJSON body; }
         else
           builtins.tryEval (import file);
       valueType = if attempted.success then builtins.typeOf attempted.value else if exists then "evaluation_error" else "absent";
