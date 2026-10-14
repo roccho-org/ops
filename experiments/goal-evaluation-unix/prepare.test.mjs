@@ -183,7 +183,8 @@ test('needs, limits, missing obligations and unverified subjects are recorded, n
   const many = Array.from({ length: 8 }, (_, i) => question('q' + i, i === 0 ? { needs: ['destination log'] } : {}));
   const out = project(await goalPlan(many, GOAL, clauses, { maxQuestions: 8 }), subject, { maxQuestions: 8 });
   assert.equal(out.checks.length, 6);
-  assert.deepEqual(out.notProjected, [{ id: 'q0', reason: 'INCOMPLETE', needs: ['destination log'] }, { id: 'q7', reason: 'LIMIT' }]);
+  assert.deepEqual(out.notProjected, [{ id: 'q0', reason: 'INCOMPLETE', needs: ['destination log'], clauseIds: ['g-once'] },
+    { id: 'q7', reason: 'LIMIT', clauseIds: ['g-once'] }]);
   const onlyNeeds = project(await goalPlan([question('q1', { needs: ['destination log'] })]), subject);
   assert.deepEqual([onlyNeeds.status, onlyNeeds.cause, onlyNeeds.notProjected.length, Object.hasOwn(onlyNeeds, 'envelope')], ['HOLD', 'NOTHING_PROJECTED', 1, false]);
   const unclear = project(await goalPlan([], GOAL, []), subject);
@@ -215,4 +216,37 @@ test('a Japanese Goal stays local as ref and digest; CJK on the wire makes the w
     subjectRevision: literal.identity.subjectRevision.replace(sha256(BODY), sha256(jaBody)) })] });
   assert.equal(jaSubject.status, 'VERIFIED');
   assert.equal(project(await goalPlan(), jaSubject).status, 'UNSUPPORTED_CJK');
+});
+
+test('every outcome keeps unprojected clauses, off-wire qualifiers and unquoted Goal text (C6)', async () => {
+  const subject = await snapshotOf();
+  // A Japanese Goal: none of its text reaches the wire, so these local records are the only place it survives.
+  const goal = { ref: GOAL.ref, content: '通知は一度だけ届けること。Deliver each notification exactly once. Confirm the destination state. A dry run needs no delivery.' };
+  const g1 = { id: 'g1', kind: 'obligation', ref: GOAL.ref, quote: 'Deliver each notification exactly once' };
+  const g2 = { id: 'g2', kind: 'obligation', ref: GOAL.ref, quote: 'Confirm the destination state' };
+  const e1 = { id: 'e1', kind: 'exception', ref: GOAL.ref, quote: 'A dry run needs no delivery' };
+  const japanese = [{ start: 0, end: 13, text: '通知は一度だけ届けること。' }];
+
+  const onlyG1 = project(await goalPlan([question('q1', { clauseIds: ['g1'] })], goal, [g1, g2, e1]), subject);
+  assert.equal(onlyG1.status, 'ELIGIBLE'); assert.equal(onlyG1.goal.onWire, false);
+  assert.deepEqual(onlyG1.mapping.map(m => [m.id, m.clauses.map(c => c.id), m.offWireQualifiers]), [['q1', ['g1'], []]]);
+  assert.deepEqual(onlyG1.unprojectedClauses, [{ ...g2, reason: 'NO_QUESTION' }, { ...e1, reason: 'NO_QUESTION' }]);
+  assert.deepEqual(onlyG1.unquotedGoalText, japanese);
+
+  const value = await goalPlan([question('q1', { clauseIds: ['g1', 'e1'] }), question('q2', { clauseIds: ['g2'], needs: ['destination log'] })], goal, [g1, g2, e1]);
+  const out = project(value, subject);
+  assert.deepEqual(out.mapping[0].offWireQualifiers, [e1], 'the exception R must find reflected in the criteria text');
+  assert.equal(out.envelope.includes(e1.quote), false, 'qualifier text itself is not on the wire');
+  assert.deepEqual(out.notProjected, [{ id: 'q2', reason: 'INCOMPLETE', needs: ['destination log'], clauseIds: ['g2'] }]);
+  assert.deepEqual(out.unprojectedClauses, [{ ...g2, reason: 'NOT_PROJECTED: q2 INCOMPLETE' }]);
+
+  // HOLD outcomes keep the same records instead of dropping them.
+  const held = project(value, { status: 'HOLD', cause: 'REVISION_UNOBSERVED' });
+  assert.deepEqual([held.status, held.cause, held.unprojectedClauses, held.notProjected[0].clauseIds, held.unquotedGoalText],
+    ['HOLD', 'REVISION_UNOBSERVED', [{ ...g2, reason: 'NOT_PROJECTED: q2 INCOMPLETE' }], ['g2'], japanese]);
+  const nothing = project(await goalPlan([question('q1', { clauseIds: ['g1', 'e1'], needs: ['destination log'] })], goal, [g1, g2, e1]), subject);
+  assert.deepEqual([nothing.status, nothing.cause, nothing.unprojectedClauses.map(c => [c.id, c.reason])],
+    ['HOLD', 'NOTHING_PROJECTED', [['g1', 'NOT_PROJECTED: q1 INCOMPLETE'], ['g2', 'NO_QUESTION'], ['e1', 'NOT_PROJECTED: q1 INCOMPLETE']]]);
+  const unclear = project(await goalPlan([], goal, []), subject);
+  assert.deepEqual([unclear.status, unclear.cause, unclear.unquotedGoalText.map(s => s.text)], ['HOLD', 'NEED_CLARIFICATION', [goal.content]]);
 });

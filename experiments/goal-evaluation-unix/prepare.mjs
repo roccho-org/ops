@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { REQUEST_PREFIX, RESULT_PREFIX, COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { exact } from '../../packages/jev-review/semlint-entry.mjs';
-import { checkPlan } from './core.mjs';
+import { checkPlan, unquotedGoalText } from './core.mjs';
 
 const sha256 = text => createHash('sha256').update(text, 'utf8').digest('hex');
 const text = value => typeof value === 'string' && value.trim().length > 0;
@@ -98,20 +98,29 @@ function fidelityOf(record, envelopeSha256, ids) {
 // the wire carries only the subject and the English predicates; a CJK Goal is kept as ref and digest.
 export function project(planValue, subject, { fidelity, ...planLimits } = {}) {
   const value = checkPlan(planValue, planLimits);
-  if (!value.clauses.some(c => c.kind === 'obligation')) return hold('NEED_CLARIFICATION');
-  if (subject?.status !== 'VERIFIED' || !exact(subject.target, ['repository', 'number']) || !REPOSITORY.test(subject.target.repository)
-    || subject.target.number !== subject.snapshot?.number) return hold(subject?.cause ?? 'REVISION_UNOBSERVED');
   const checks = [], mapping = [], notProjected = [];
   for (const q of value.questions) {
-    if (q.needs.length) { notProjected.push({ id: q.id, reason: 'INCOMPLETE', needs: q.needs }); continue; }
-    if (checks.length === MAX_CHECKS) { notProjected.push({ id: q.id, reason: 'LIMIT' }); continue; }
+    if (q.needs.length) { notProjected.push({ id: q.id, reason: 'INCOMPLETE', needs: q.needs, clauseIds: q.clauseIds }); continue; }
+    if (checks.length === MAX_CHECKS) { notProjected.push({ id: q.id, reason: 'LIMIT', clauseIds: q.clauseIds }); continue; }
     checks.push({ id: q.id, axis: 'Aligned', concern: `Goal-derived question ${q.id}.`, requiredRoles: [], crossLinks: [],
       predicate: { question: problemQuestion(q), true: q.criteria.problem, false: q.criteria.ok } });
-    mapping.push({ id: q.id, originalQuestion: q.question, clauses: value.clauses.filter(c => q.clauseIds.includes(c.id)), true: 'problem', false: 'ok',
-      notLowered: { unknown: q.criteria.unknown } });
+    const clauses = value.clauses.filter(c => q.clauseIds.includes(c.id));
+    // Exceptions and legitimate alternatives are not on the wire; R checks that the criteria text reflects them.
+    mapping.push({ id: q.id, originalQuestion: q.question, clauses, offWireQualifiers: clauses.filter(c => c.kind !== 'obligation'),
+      true: 'problem', false: 'ok', notLowered: { unknown: q.criteria.unknown } });
   }
+  // Every outcome, HOLD included, keeps what the wire does not carry: clauses no check covers and unquoted Goal text.
+  const covered = new Set(mapping.flatMap(m => m.clauses.map(c => c.id)));
+  const unprojectedClauses = value.clauses.filter(c => !covered.has(c.id)).map(c => {
+    const asked = notProjected.filter(n => n.clauseIds.includes(c.id));
+    return { ...c, reason: asked.length ? 'NOT_PROJECTED: ' + asked.map(n => `${n.id} ${n.reason}`).join(', ') : 'NO_QUESTION' };
+  });
   const goal = value.request.goal;
-  const base = { checks, mapping, notProjected, goal: { ref: goal.ref, sha256: sha256(goal.content), onWire: !CJK.test(goal.content) } };
+  const base = { checks, mapping, notProjected, unprojectedClauses, unquotedGoalText: unquotedGoalText(value.request, value.clauses),
+    goal: { ref: goal.ref, sha256: sha256(goal.content), onWire: !CJK.test(goal.content) } };
+  if (!value.clauses.some(c => c.kind === 'obligation')) return hold('NEED_CLARIFICATION', base);
+  if (subject?.status !== 'VERIFIED' || !exact(subject.target, ['repository', 'number']) || !REPOSITORY.test(subject.target.repository)
+    || subject.target.number !== subject.snapshot?.number) return hold(subject?.cause ?? 'REVISION_UNOBSERVED', base);
   if (!checks.length) return hold('NOTHING_PROJECTED', base);
   const { snapshot, target } = subject;
   const input = { schema: 'ops.semlint.input.v14',
