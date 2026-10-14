@@ -177,19 +177,21 @@ function withBlocks(workflow) {
   return { blocks, checkouts };
 }
 
-// N-a: the expected old-literal origin is derived only when four observations agree: the approved posting response,
+// N-a: the expected old-literal origin is derived only when the observations agree: the approved posting response,
 // the public readback of that command comment, the public run metadata and the workflow file at the run's exact
-// head_sha, all tied to the executor's own plan receipt (commentId and run). Actor, time proximity or the final
-// result's self-identity are never used to bind a run to a command. The code certifies consistency only.
-export function expectedOrigin({ approved, postingResponse, commandReceipt, runReceipt, workflowReceipt, planLog }) {
-  if (!exact(approved, ['repository', 'number', 'principal', 'commandBody', 'workflowId', 'workflowPath', 'runRange', 'runtimeSource'])
+// head_sha, all tied to the executor's own plan receipt (commentId and run). The run's workflow must also be
+// byte-identical to the same path at the caller-approved activation commit, read the same way. Actor, time proximity
+// or the final result's self-identity are never used to bind a run to a command. The code certifies consistency only.
+export function expectedOrigin({ approved, postingResponse, commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt, planLog }) {
+  if (!exact(approved, ['repository', 'number', 'principal', 'commandBody', 'workflowId', 'workflowPath', 'runRange', 'runtimeSource', 'activationCommit'])
     || !REPOSITORY.test(approved.repository) || !positive(approved.number) || !text(approved.principal) || !text(approved.commandBody)
     || !positive(approved.workflowId) || !text(approved.workflowPath) || !exact(approved.runRange, ['first', 'last'])
-    || !positive(approved.runRange.first) || !(approved.runRange.last >= approved.runRange.first) || !SHA1.test(approved.runtimeSource)) return hold('APPROVED_ORIGIN_INVALID');
+    || !positive(approved.runRange.first) || !(approved.runRange.last >= approved.runRange.first) || !SHA1.test(approved.runtimeSource)
+    || !SHA1.test(approved.activationCommit)) return hold('APPROVED_ORIGIN_INVALID');
   if (!exact(postingResponse, ['id']) || !positive(postingResponse.id)) return hold('POSTING_RESPONSE_MISSING');
   const { plan, cause } = planStageReceipt(planLog);
   if (!plan) return hold(cause);
-  for (const receipt of [commandReceipt, runReceipt, workflowReceipt]) if (receipt?.status !== 'OK') return hold(inputCause(receipt));
+  for (const receipt of [commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt]) if (receipt?.status !== 'OK') return hold(inputCause(receipt));
   const cmd = okJson(commandReceipt), run = okJson(runReceipt);
   if (!cmd || !run) return hold('INPUT_UNREADABLE');
   if (cmd.id !== postingResponse.id || plan.commentId !== postingResponse.id) return hold('COMMAND_MISMATCH');
@@ -201,7 +203,15 @@ export function expectedOrigin({ approved, postingResponse, commandReceipt, runR
     || run.event !== 'issue_comment' || run.repository?.full_name !== approved.repository || !SHA1.test(run.head_sha ?? '')) return hold('RUN_MISMATCH');
   if (run.run_number < approved.runRange.first || run.run_number > approved.runRange.last) return hold('RUN_OUTSIDE_RANGE');
   // The workflow bytes must come from exactly the approved repository, at the run's head_sha, at the approved path.
-  if (workflowReceipt.url !== `https://raw.githubusercontent.com/${approved.repository}/${run.head_sha}/${approved.workflowPath}`) return hold('WORKFLOW_NOT_AT_RUN_HEAD');
+  const raw = commit => `https://raw.githubusercontent.com/${approved.repository}/${commit}/${approved.workflowPath}`;
+  if (workflowReceipt.url !== raw(run.head_sha)) return hold('WORKFLOW_NOT_AT_RUN_HEAD');
+  // R-A7: the run's workflow must be byte-identical to the workflow at the caller-approved activation commit. Text
+  // heuristics cannot see every way a later step could replace the pinned runtime (quoted or commented uses, other
+  // spellings, run: git checkout), so equality with the reviewed bytes is the guarantee; the checks below only add to it.
+  if (activationWorkflowReceipt.url !== raw(approved.activationCommit)) return hold('ACTIVATION_WORKFLOW_NOT_CANONICAL');
+  if (workflowReceipt.content !== activationWorkflowReceipt.content || workflowReceipt.sha256 !== activationWorkflowReceipt.sha256) {
+    return hold('WORKFLOW_DRIFT_FROM_ACTIVATION');
+  }
   // The checkout pin counts only inside a with: block that checks out the approved repository; any other
   // checkout repository, or a ref pin without one, is not the approved runtime.
   const { blocks, checkouts } = withBlocks(workflowReceipt.content);
@@ -216,8 +226,10 @@ export function expectedOrigin({ approved, postingResponse, commandReceipt, runR
     ...[...workflowReceipt.content.matchAll(/^\s*runtime_source=(\S+)\s*$/gm)].map(m => m[1])];
   if (pins.length !== 2 || pins.some(pin => pin !== approved.runtimeSource)) return hold('RUNTIME_PIN_MISMATCH');
   return { status: 'BOUND', expected: { commandCommentId: postingResponse.id, runId: run.id, executionSource: approved.runtimeSource },
-    origin: { runNumber: run.run_number, runHeadSha: run.head_sha, planLogSha256: planLog.sha256, planRequestDigest: plan.requestDigest },
-    limits: ['plan receipt bytes are a P-transported job log without a provider digest; they are only cross-checked here'] };
+    origin: { runNumber: run.run_number, runHeadSha: run.head_sha, activationCommit: approved.activationCommit, workflowSha256: workflowReceipt.sha256,
+      planLogSha256: planLog.sha256, planRequestDigest: plan.requestDigest },
+    limits: ['plan receipt bytes are a P-transported job log without a provider digest; they are only cross-checked here',
+      'the activation commit is a caller-approved fact from the phase contract; this code does not review the activation workflow itself'] };
 }
 
 const FIDELITY_MARKER = '<!-- semlint-fidelity-v1 -->';

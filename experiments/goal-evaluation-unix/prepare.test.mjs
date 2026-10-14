@@ -278,8 +278,9 @@ test('the Plan missing list survives every projection outcome, including the aut
 const RUN_HEAD = 'c'.repeat(40), WORKFLOW_PATH = '.github/workflows/jev-issue-comment.yml';
 // The repository's own workflow text, with its two runtime pins pointed at the synthetic runtime source SHA.
 const WORKFLOW = repoFile(WORKFLOW_PATH).replaceAll(/(ref:\s*|runtime_source=)[0-9a-f]{40}/g, `$1${SHA}`);
+const ACTIVATION = 'f'.repeat(40);
 const APPROVED = { repository: REPO, number: NUMBER, principal: 'roccho-dev', commandBody: '/jev-evaluate', workflowId: RUN.workflowId,
-  workflowPath: WORKFLOW_PATH, runRange: { first: 40, last: 60 }, runtimeSource: SHA };
+  workflowPath: WORKFLOW_PATH, runRange: { first: 40, last: 60 }, runtimeSource: SHA, activationCommit: ACTIVATION };
 const planLine = (extra = {}) => '2026-10-15T00:00:01.0000000Z ' + JSON.stringify({ schema: 'ops.jev.issue-actions-receipt.v1', stage: 'plan',
   outcome: 'PLANNED', cause: null, claimed: true, providerCalls: 0, authority: false, commentId: EXPECTED.commandCommentId,
   run: { id: RUN.id, number: RUN.number, attempt: 1, workflowId: RUN.workflowId }, requestDigest: literal.requestDigest, ...extra });
@@ -290,23 +291,28 @@ const commandJson = (extra = {}) => ({ id: EXPECTED.commandCommentId, user: { lo
   issue_url: `https://api.github.com/repos/${REPO}/issues/${NUMBER}`, ...extra });
 const runJson = (extra = {}) => ({ id: RUN.id, run_number: RUN.number, run_attempt: 1, workflow_id: RUN.workflowId, path: WORKFLOW_PATH,
   event: 'issue_comment', head_sha: RUN_HEAD, repository: { full_name: REPO }, ...extra });
+// By default the approved activation commit carries the same workflow bytes as the run's head_sha.
 const originOf = async ({ command = commandJson(), run = runJson(), workflow = WORKFLOW, workflowSha = RUN_HEAD, workflowUrl, log = planLog(), approved = APPROVED,
-  posting = { id: EXPECTED.commandCommentId }, commandStatus = 200 } = {}) => {
+  posting = { id: EXPECTED.commandCommentId }, commandStatus = 200, activationWorkflow = workflow, activationUrl, activationStatus = 200 } = {}) => {
   const urls = { command: `https://api.github.com/repos/${REPO}/issues/comments/${command.id}`, run: `https://api.github.com/repos/${REPO}/actions/runs/${run.id}`,
-    workflow: workflowUrl ?? `https://raw.githubusercontent.com/${REPO}/${workflowSha}/${WORKFLOW_PATH}` };
+    workflow: workflowUrl ?? `https://raw.githubusercontent.com/${REPO}/${workflowSha}/${WORKFLOW_PATH}`,
+    activation: activationUrl ?? `https://raw.githubusercontent.com/${REPO}/${ACTIVATION}/${WORKFLOW_PATH}` };
   const r = reader({ [urls.command]: { status: commandStatus, text: JSON.stringify(command) }, [urls.run]: { status: 200, text: JSON.stringify(run) },
-    [urls.workflow]: { status: 200, text: workflow } });
+    [urls.workflow]: { status: 200, text: workflow }, [urls.activation]: { status: activationStatus, text: activationWorkflow } });
   const get = async (ref, url) => acquire({ ref, url }, r, () => '2026-10-15T00:01:00.000Z');
   return expectedOrigin({ approved, postingResponse: posting, commandReceipt: await get('command', urls.command),
-    runReceipt: await get('run', urls.run), workflowReceipt: await get('workflow', urls.workflow), planLog: log });
+    runReceipt: await get('run', urls.run), workflowReceipt: await get('workflow', urls.workflow),
+    activationWorkflowReceipt: await get('activation-workflow', urls.activation), planLog: log });
 };
 
 test('the old-literal origin binds command, run and runtime only through the executor plan receipt and independent reads (N-a)', async () => {
   const bound = await originOf();
   assert.equal(bound.status, 'BOUND');
   assert.deepEqual(bound.expected, EXPECTED);
-  assert.deepEqual(bound.origin, { runNumber: RUN.number, runHeadSha: RUN_HEAD, planLogSha256: planLog().sha256, planRequestDigest: literal.requestDigest });
+  assert.deepEqual(bound.origin, { runNumber: RUN.number, runHeadSha: RUN_HEAD, activationCommit: ACTIVATION, workflowSha256: sha256(WORKFLOW),
+    planLogSha256: planLog().sha256, planRequestDigest: literal.requestDigest });
   assert.match(bound.limits[0], /P-transported job log without a provider digest/);
+  assert.match(bound.limits[1], /caller-approved fact/);
   // The derived expectation is exactly what executorIdentitySnapshot needs; nothing is taken from the result itself.
   const subject = await snapshotOf({}, bound.expected);
   assert.equal(subject.status, 'VERIFIED');
@@ -352,6 +358,41 @@ test('the pinned checkout must be the only checkout step in the workflow (R-A6)'
     assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'expected')], ['HOLD', 'CHECKOUT_STEP_MISMATCH', false], name);
   }
   assert.equal((await originOf()).status, 'BOUND', 'the unmodified repository workflow still binds');
+});
+
+test('the run workflow must be byte-identical to the approved activation workflow, so step spellings cannot evade it (R-A7)', async () => {
+  const checkout = /^(\s*)- uses: (actions\/checkout@\S+)\s*$/m.exec(WORKFLOW);
+  const [, indent, action] = checkout;
+  // R's probes: one step appended at the end of the job, after every existing step.
+  const append = step => WORKFLOW.replace(/\s*$/, '') + `\n\n${indent}${step}\n`;
+  const variants = {
+    doubleQuoted: append(`- uses: "${action}"`),
+    singleQuoted: append(`- uses: '${action}'`),
+    trailingComment: append(`- uses: ${action} # x`),
+    otherCase: append('- uses: Actions/Checkout@v4'),
+    runCheckout: append('- run: git fetch origin proposals && git checkout FETCH_HEAD'),
+    crlfOnly: WORKFLOW.replace(/\n/g, '\r\n'),
+  };
+  for (const [name, workflow] of Object.entries(variants)) {
+    assert.notEqual(workflow, WORKFLOW, name);
+    const out = await originOf({ workflow, activationWorkflow: WORKFLOW });
+    assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'expected')], ['HOLD', 'WORKFLOW_DRIFT_FROM_ACTIVATION', false], name);
+  }
+  // The activation side must itself be a complete, canonical, approved read; nothing is taken from the run or result.
+  const activationCases = [
+    [{ activationStatus: 404 }, 'INPUT_NOT_FOUND'],
+    [{ activationStatus: 403 }, 'INPUT_UNKNOWN'],
+    [{ activationUrl: `https://raw.githubusercontent.com/attacker/ops/${ACTIVATION}/${WORKFLOW_PATH}` }, 'ACTIVATION_WORKFLOW_NOT_CANONICAL'],
+    [{ activationUrl: `https://raw.githubusercontent.com/${REPO}/${RUN_HEAD}/${WORKFLOW_PATH}` }, 'ACTIVATION_WORKFLOW_NOT_CANONICAL'],
+    [{ approved: { ...APPROVED, activationCommit: undefined } }, 'APPROVED_ORIGIN_INVALID'],
+    [{ approved: { ...APPROVED, activationCommit: 'proposals' } }, 'APPROVED_ORIGIN_INVALID'],
+    [{ approved: (({ activationCommit, ...rest }) => rest)(APPROVED) }, 'APPROVED_ORIGIN_INVALID'],
+  ];
+  for (const [options, cause] of activationCases) {
+    const out = await originOf(options);
+    assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'expected')], ['HOLD', cause, false], cause);
+  }
+  assert.equal((await originOf({ activationWorkflow: WORKFLOW })).status, 'BOUND', 'identical bytes at run head and activation bind');
 });
 
 test('missing, mismatched or self-declared origin evidence holds instead of binding (N-a)', async () => {
