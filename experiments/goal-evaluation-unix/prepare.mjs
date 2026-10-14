@@ -135,3 +135,81 @@ export function project(planValue, subject, { fidelity, ...planLimits } = {}) {
   return { status: 'ELIGIBLE', emittable: subject.readerDeclaredLive === true && review.allFaithful, ...base, envelope, envelopeSha256,
     fidelity: review, postingAuthorized: false };
 }
+
+const SHA1 = /^[0-9a-f]{40}$/;
+const okJson = receipt => receipt?.status === 'OK' ? parse(receipt.content) : undefined;
+const inputCause = receipt => 'INPUT_' + (receipt?.status ?? 'MISSING');
+
+// The plan-stage receipt the existing executor prints to its job log (one JSON object per line, after the runner's
+// timestamp). Logs are not publicly readable and carry no provider digest, so these bytes are a P transport that
+// is only checked for internal digest consistency here; they never stand alone as proof.
+function planStageReceipt(log) {
+  if (!exact(log, ['ref', 'route', 'observedAt', 'bytes', 'sha256', 'content', 'providerDigest']) || log.route !== 'p-transported-job-log'
+    || log.providerDigest !== null || typeof log.content !== 'string' || log.sha256 !== sha256(log.content)
+    || log.bytes !== Buffer.byteLength(log.content, 'utf8')) return { cause: 'PLAN_LOG_RECEIPT_INVALID' };
+  const plans = log.content.split(/\r?\n/).map(line => parse(line.slice(Math.max(line.indexOf('{'), 0))))
+    .filter(x => x?.schema === 'ops.jev.issue-actions-receipt.v1' && x.stage === 'plan');
+  if (plans.length !== 1) return { cause: plans.length ? 'PLAN_RECEIPT_AMBIGUOUS' : 'PLAN_RECEIPT_MISSING' };
+  const [p] = plans;
+  if (p.outcome !== 'PLANNED' || !positive(p.commentId) || !exact(p.run, ['id', 'number', 'attempt', 'workflowId'])) return { cause: 'PLAN_RECEIPT_NOT_PLANNED' };
+  return { plan: p };
+}
+
+// N-a: the expected old-literal origin is derived only when four observations agree: the approved posting response,
+// the public readback of that command comment, the public run metadata and the workflow file at the run's exact
+// head_sha, all tied to the executor's own plan receipt (commentId and run). Actor, time proximity or the final
+// result's self-identity are never used to bind a run to a command. The code certifies consistency only.
+export function expectedOrigin({ approved, postingResponse, commandReceipt, runReceipt, workflowReceipt, planLog }) {
+  if (!exact(approved, ['repository', 'number', 'principal', 'commandBody', 'workflowId', 'workflowPath', 'runRange', 'runtimeSource'])
+    || !REPOSITORY.test(approved.repository) || !positive(approved.number) || !text(approved.principal) || !text(approved.commandBody)
+    || !positive(approved.workflowId) || !text(approved.workflowPath) || !exact(approved.runRange, ['first', 'last'])
+    || !positive(approved.runRange.first) || !(approved.runRange.last >= approved.runRange.first) || !SHA1.test(approved.runtimeSource)) return hold('APPROVED_ORIGIN_INVALID');
+  if (!exact(postingResponse, ['id']) || !positive(postingResponse.id)) return hold('POSTING_RESPONSE_MISSING');
+  const { plan, cause } = planStageReceipt(planLog);
+  if (!plan) return hold(cause);
+  for (const receipt of [commandReceipt, runReceipt, workflowReceipt]) if (receipt?.status !== 'OK') return hold(inputCause(receipt));
+  const cmd = okJson(commandReceipt), run = okJson(runReceipt);
+  if (!cmd || !run) return hold('INPUT_UNREADABLE');
+  if (cmd.id !== postingResponse.id || plan.commentId !== postingResponse.id) return hold('COMMAND_MISMATCH');
+  if (cmd.user?.login !== approved.principal) return hold('PRINCIPAL_MISMATCH');
+  if (cmd.body !== approved.commandBody) return hold('COMMAND_BODY_MISMATCH');
+  if (typeof cmd.issue_url !== 'string' || !cmd.issue_url.endsWith(`/repos/${approved.repository}/issues/${approved.number}`)) return hold('TARGET_MISMATCH');
+  if (run.id !== plan.run.id || run.run_number !== plan.run.number || run.run_attempt !== plan.run.attempt || run.run_attempt !== 1
+    || run.workflow_id !== plan.run.workflowId || run.workflow_id !== approved.workflowId || run.path !== approved.workflowPath
+    || run.event !== 'issue_comment' || run.repository?.full_name !== approved.repository || !SHA1.test(run.head_sha ?? '')) return hold('RUN_MISMATCH');
+  if (run.run_number < approved.runRange.first || run.run_number > approved.runRange.last) return hold('RUN_OUTSIDE_RANGE');
+  if (!workflowReceipt.url.includes(`/${run.head_sha}/`) || !workflowReceipt.url.endsWith(approved.workflowPath)) return hold('WORKFLOW_NOT_AT_RUN_HEAD');
+  const pins = [...workflowReceipt.content.matchAll(/^\s*(?:ref:\s*|runtime_source=)([0-9a-f]{40})\s*$/gm)].map(m => m[1]);
+  if (pins.length !== 2 || pins.some(pin => pin !== approved.runtimeSource)) return hold('RUNTIME_PIN_MISMATCH');
+  return { status: 'BOUND', expected: { commandCommentId: postingResponse.id, runId: run.id, executionSource: approved.runtimeSource },
+    origin: { runNumber: run.run_number, runHeadSha: run.head_sha, planLogSha256: planLog.sha256 },
+    limits: ['plan receipt bytes are a P-transported job log without a provider digest; they are only cross-checked here'] };
+}
+
+const FIDELITY_MARKER = '<!-- semlint-fidelity-v1 -->';
+
+// N-e: a fidelity record is taken only from the approved review ID on the approved PR, from one marked, closed JSON
+// block that names the exact envelope digest and every projected check. The GitHub author is a shared account, so the
+// R origin stays a caller-declared reference here; actual R identity is checked by the live-phase R readback.
+export function fidelityFromReview({ approved, reviewReceipt, envelopeSha256, checkIds }) {
+  if (!exact(approved, ['repository', 'number', 'reviewId', 'rOrigin']) || !REPOSITORY.test(approved.repository) || !positive(approved.number)
+    || !positive(approved.reviewId) || !exact(approved.rOrigin, ['session', 'goRef']) || !text(approved.rOrigin.session) || !text(approved.rOrigin.goRef)) {
+    return hold('APPROVED_REVIEW_INVALID');
+  }
+  if (!/^[0-9a-f]{64}$/.test(envelopeSha256 ?? '') || !Array.isArray(checkIds) || !checkIds.length || new Set(checkIds).size !== checkIds.length) return hold('PROJECTION_INVALID');
+  if (reviewReceipt?.status !== 'OK') return hold(inputCause(reviewReceipt));
+  const review = okJson(reviewReceipt);
+  if (review?.id !== approved.reviewId || typeof review.pull_request_url !== 'string'
+    || !review.pull_request_url.endsWith(`/repos/${approved.repository}/pulls/${approved.number}`) || typeof review.body !== 'string') return hold('REVIEW_MISMATCH');
+  const blocks = review.body.split(FIDELITY_MARKER);
+  if (blocks.length !== 2) return hold(blocks.length > 2 ? 'FIDELITY_MARKER_DUPLICATE' : 'FIDELITY_MARKER_MISSING');
+  const fenced = /^\s*```json\n([\s\S]*?)\n```/.exec(blocks[1]), value = fenced && parse(fenced[1]);
+  if (!exact(value, ['schema', 'envelopeSha256', 'verdicts']) || value.schema !== 'ops.goal-evaluation.fidelity.v1') return hold('FIDELITY_BLOCK_INVALID');
+  if (value.envelopeSha256 !== envelopeSha256) return hold('FIDELITY_DIGEST_MISMATCH');
+  if (!exact(value.verdicts, checkIds) || checkIds.some(id => !VERDICTS.includes(value.verdicts[id]))) return hold('FIDELITY_CHECKS_MISMATCH');
+  return { status: 'RECORDED',
+    record: { reviewRef: `https://github.com/${approved.repository}/pull/${approved.number}#pullrequestreview-${approved.reviewId}`,
+      envelopeSha256, verdicts: { ...value.verdicts } },
+    rOriginDeclared: { ...approved.rOrigin },
+    limits: ['shared GitHub author; R origin is a caller-declared reference until the live R readback'] };
+}
