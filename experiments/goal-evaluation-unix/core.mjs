@@ -8,7 +8,9 @@ const freeze = value => {
   if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
   return value;
 };
-const DEFAULTS = { maxQuestions: 4, maxBytes: 28000, maxCalls: 4 };
+const DEFAULTS = { maxQuestions: 4, maxClauses: 16, maxBytes: 28000, maxCalls: 4 };
+const KINDS = ['obligation', 'exception', 'alternative'];
+const LABELS = ['problem', 'ok', 'unknown'];
 function limits(options) {
   const value = { ...DEFAULTS, ...options };
   if (!exact(value, Object.keys(DEFAULTS)) || Object.values(value).some(x => !Number.isSafeInteger(x) || x < 1)) fail('INVALID_LIMITS');
@@ -21,18 +23,33 @@ function requestShape(request) {
     || !unique([request.goal.ref, ...request.observations.map(row => row.ref)])) fail('INVALID_REQUEST');
 }
 function criteriaShape(criteria) {
-  if (!exact(criteria, ['problem', 'ok', 'unknown']) || !Object.values(criteria).every(text)) fail('INVALID_CRITERIA');
+  if (!exact(criteria, LABELS) || !Object.values(criteria).every(text)) fail('INVALID_CRITERIA');
+}
+// A clause is an exact quote from the Goal or a supplied source. The quote check is mechanical provenance,
+// not proof that the clause was read correctly, is complete, or is satisfied.
+function clauseShape(clause, contents) {
+  if (!exact(clause, ['id', 'kind', 'ref', 'quote']) || !text(clause.id) || !KINDS.includes(clause.kind)
+    || !contents.has(clause.ref) || !text(clause.quote)) fail('INVALID_CLAUSE');
+  if (!contents.get(clause.ref).includes(clause.quote)) fail('CLAUSE_QUOTE_NOT_FOUND');
 }
 function validate(plan, ceiling) {
-  if (!exact(plan, ['schema', 'request', 'questions', 'missing']) || plan.schema !== 'ops.goal-evaluation.plan.v1') fail('INVALID_PLAN');
+  if (!exact(plan, ['schema', 'request', 'clauses', 'questions', 'missing']) || plan.schema !== 'ops.goal-evaluation.plan.v2') fail('INVALID_PLAN');
   requestShape(plan.request);
-  const refs = [plan.request.goal.ref, ...plan.request.observations.map(row => row.ref)];
+  const contents = new Map([plan.request.goal, ...plan.request.observations].map(row => [row.ref, row.content]));
+  const observed = new Set(plan.request.observations.map(row => row.ref));
+  if (!Array.isArray(plan.clauses) || plan.clauses.length > ceiling.maxClauses || !unique(plan.clauses.map(c => c.id))) fail('CLAUSE_LIMIT_OR_ID');
+  for (const clause of plan.clauses) clauseShape(clause, contents);
+  const kinds = new Map(plan.clauses.map(c => [c.id, c.kind]));
   if (!Array.isArray(plan.questions) || plan.questions.length > ceiling.maxQuestions || !unique(plan.questions.map(q => q.id))) fail('QUESTION_LIMIT_OR_ID');
   for (const q of plan.questions) {
-    if (!exact(q, ['id', 'core', 'question', 'criteria', 'basisRefs', 'requires']) || !text(q.id) || !text(q.question)
+    if (!exact(q, ['id', 'core', 'question', 'criteria', 'clauseIds', 'basisRefs', 'requiredRefs', 'needs']) || !text(q.id) || !text(q.question)
       || !(q.core === null || text(q.core)) || !Array.isArray(q.basisRefs) || !unique(q.basisRefs)
-      || !q.basisRefs.includes(plan.request.goal.ref) || q.basisRefs.some(ref => !refs.includes(ref))
-      || !Array.isArray(q.requires) || !q.requires.every(text) || !unique(q.requires)) fail('INVALID_QUESTION');
+      || !q.basisRefs.includes(plan.request.goal.ref) || q.basisRefs.some(ref => !contents.has(ref))
+      || !Array.isArray(q.clauseIds) || !unique(q.clauseIds) || q.clauseIds.some(id => !kinds.has(id))
+      || !q.clauseIds.some(id => kinds.get(id) === 'obligation')
+      || !Array.isArray(q.needs) || !q.needs.every(text) || !unique(q.needs)) fail('INVALID_QUESTION');
+    // requiredRefs name supplied observations only. An unsupplied observation is a semantic need, never a ref.
+    if (!Array.isArray(q.requiredRefs) || !unique(q.requiredRefs) || q.requiredRefs.some(ref => !observed.has(ref))) fail('REQUIRED_REF_NOT_SUPPLIED');
     criteriaShape(q.criteria);
   }
   if (!Array.isArray(plan.missing) || plan.missing.some(row => !exact(row, ['need', 'reason']) || !Object.values(row).every(text))) fail('INVALID_MISSING');
@@ -48,15 +65,15 @@ export async function plan(request, { propose, cores = [], ...options }) {
     if (!exact(core, ['id', 'question', 'criteria']) || !text(core.id) || !text(core.question)) fail('INVALID_CORE');
     criteriaShape(core.criteria);
   }
-  const prompt = freeze(copy({ ...input, cores: catalog, maxQuestions: ceiling.maxQuestions }));
+  const prompt = freeze(copy({ ...input, cores: catalog, maxQuestions: ceiling.maxQuestions, maxClauses: ceiling.maxClauses }));
   if (Buffer.byteLength(JSON.stringify(prompt), 'utf8') > ceiling.maxBytes) fail('BYTE_LIMIT');
   const candidate = copy(await propose(prompt));
-  if (!exact(candidate, ['questions', 'missing'])) fail('INVALID_PROPOSAL');
-  const value = { schema: 'ops.goal-evaluation.plan.v1', request: input, ...candidate };
+  if (!exact(candidate, ['clauses', 'questions', 'missing'])) fail('INVALID_PROPOSAL');
+  const value = { schema: 'ops.goal-evaluation.plan.v2', request: input, ...candidate };
   validate(value, ceiling);
   for (const q of value.questions) if (q.core !== null) {
     const core = catalog.find(core => core.id === q.core);
-    if (!core || q.question !== core.question || ['problem', 'ok', 'unknown'].some(key => q.criteria[key] !== core.criteria[key])) fail('CORE_MISMATCH');
+    if (!core || q.question !== core.question || LABELS.some(key => q.criteria[key] !== core.criteria[key])) fail('CORE_MISMATCH');
   }
   if (!value.questions.length && !value.missing.length) value.missing.push({ need: 'Goal coverage', reason: 'No questions or independent evidence of non-applicability supplied.' });
   validate(value, ceiling);
@@ -68,18 +85,18 @@ export async function judge(value, model, options = {}) {
   const input = copy(value), ceiling = limits(options);
   validate(input, ceiling); freeze(input);
   if (!model || typeof model.which !== 'function') fail('INVALID_PORT');
-  const present = new Set(input.request.observations.map(row => row.ref));
   const missing = copy(input.missing), judgments = [];
   let calls = 0;
   for (const q of input.questions) {
-    const unavailable = q.requires.filter(ref => !present.has(ref));
-    if (unavailable.length) {
-      judgments.push({ id: q.id, status: 'INCOMPLETE', missingRefs: unavailable });
-      missing.push({ need: q.id, reason: 'Required observations missing: ' + unavailable.join(', ') });
+    if (q.needs.length) {
+      judgments.push({ id: q.id, status: 'INCOMPLETE', missingNeeds: copy(q.needs) });
+      missing.push({ need: q.id, reason: 'Semantic observations not supplied: ' + q.needs.join('; ') });
       continue;
     }
     if (calls >= ceiling.maxCalls) { judgments.push({ id: q.id, status: 'NOT_RUN' }); missing.push({ need: q.id, reason: 'Call limit' }); continue; }
-    const question = { text: JSON.stringify(input.request), instructions: q.question, criteria: copy(q.criteria) };
+    // Exceptions and legitimate alternatives travel with the obligation they qualify.
+    const clauses = input.clauses.filter(c => q.clauseIds.includes(c.id));
+    const question = { text: JSON.stringify({ ...input.request, clauses }), instructions: q.question, criteria: copy(q.criteria) };
     if (Buffer.byteLength(JSON.stringify(question), 'utf8') > ceiling.maxBytes) {
       judgments.push({ id: q.id, status: 'NOT_RUN' }); missing.push({ need: q.id, reason: 'Model question byte limit' }); continue;
     }
@@ -90,5 +107,36 @@ export async function judge(value, model, options = {}) {
       judgments.push({ id: q.id, status: 'OBSERVED', label: answer.label, model: answer.model, rationale: answer.rationale ?? null });
     } catch { judgments.push({ id: q.id, status: 'EXECUTION_ERROR' }); missing.push({ need: q.id, reason: 'Model operation failed or answer invalid' }); }
   }
-  return { schema: 'ops.goal-evaluation.judgments.v1', judgments, missing, calls, goalCoverage: 'NOT_CERTIFIED', authority: false };
+  return { schema: 'ops.goal-evaluation.judgments.v2', judgments, missing, calls, goalCoverage: 'NOT_CERTIFIED', authority: false };
+}
+
+// Pure consumer view. It exposes what was and was not judged; it verifies no support and decides nothing.
+export function report(planValue, resultValue, options = {}) {
+  const value = copy(planValue), result = copy(resultValue);
+  validate(value, limits(options));
+  if (!exact(result, ['schema', 'judgments', 'missing', 'calls', 'goalCoverage', 'authority']) || result.schema !== 'ops.goal-evaluation.judgments.v2'
+    || !Array.isArray(result.judgments) || JSON.stringify(result.judgments.map(j => j.id)) !== JSON.stringify(value.questions.map(q => q.id))
+    || result.goalCoverage !== 'NOT_CERTIFIED' || result.authority !== false) fail('RESULT_PLAN_MISMATCH');
+  const status = new Map(result.judgments.map(j => [j.id, j.status]));
+  const questions = value.questions.map((q, i) => {
+    const j = result.judgments[i];
+    const outcome = j.status === 'OBSERVED'
+      ? { status: j.status, answer: { type: 'choice', labels: LABELS, value: j.label }, model: j.model,
+        rationale: j.rationale === null ? null : { text: j.rationale, verified: false } }
+      : { status: j.status, ...(j.missingNeeds ? { missingNeeds: j.missingNeeds } : {}) };
+    return { id: q.id, core: q.core, question: q.question, criteria: q.criteria, clauseIds: q.clauseIds,
+      requiredRefs: q.requiredRefs.map(ref => ({ ref, supplied: true, support: 'NOT_VERIFIED' })), needs: q.needs, result: outcome };
+  });
+  const clauses = value.clauses.map(c => {
+    const asked = value.questions.filter(q => q.clauseIds.includes(c.id)).map(q => q.id);
+    const judged = asked.filter(id => status.get(id) === 'OBSERVED');
+    return { ...c, questions: asked, assessment: judged.length ? 'JUDGED_UNVERIFIED' : 'UNASSESSED',
+      ...(judged.length ? {} : { reason: asked.length ? 'QUESTIONS_NOT_JUDGED: ' + asked.map(id => status.get(id)).join(', ') : 'NO_QUESTION' }) };
+  });
+  const nextObservations = [...new Set([...value.missing.map(row => row.need),
+    ...result.judgments.flatMap(j => j.missingNeeds ?? [])])];
+  return { schema: 'ops.goal-evaluation.report.v1', goalRef: value.request.goal.ref, clauses,
+    unassessed: clauses.filter(c => c.assessment === 'UNASSESSED').map(({ id, kind, quote, reason }) => ({ id, kind, quote, reason })),
+    questions, missing: result.missing, nextObservations, nextDecision: 'CONSUMER_OWNED',
+    goalCoverage: 'NOT_CERTIFIED', authority: false };
 }

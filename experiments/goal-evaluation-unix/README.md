@@ -11,6 +11,16 @@ flowchart LR
 
 The engine is `core.mjs`: two exported functions, no service, registry, DSL, credential handling or case-ID/Goal-family branches. It reuses the existing JSON snapshot validator. The proof adapter uses the existing draft #528 Choice ModelPort and an already-authenticated native Claude CLI; it is not a live Jev/owner-entry proof.
 
+## Plan v2 and the consumer report
+
+Plan v2 (`ops.goal-evaluation.plan.v2`) adds three boundaries that the recorded v1 runs could not express:
+
+- `clauses` are exact quotes from the Goal or a supplied source, typed `obligation`, `exception` or `alternative`. Every question names at least one obligation and carries the exceptions/alternatives that qualify it to the judge. The quote check is mechanical provenance only; it does not prove the clause list is complete or correctly read.
+- `requiredRefs` may name only supplied observations. A necessary observation that was not supplied is a `needs` entry and makes that question `INCOMPLETE` before any call. In recorded v1 confirmation case v81 the free-text need was emitted as a `missingRefs` entry; its INCOMPLETE outcome matched the held expectation and is preserved, not reclassified as a false negative.
+- `report(plan, judgments)` is a pure consumer view: every clause is `JUDGED_UNVERIFIED` or `UNASSESSED` with a reason, raw answers keep their type and value, rationales stay `verified: false`, supplied refs stay `support: NOT_VERIFIED`, and the next decision stays `CONSUMER_OWNED`. In recorded baseline w42 the Goal's shortening clause had no question; v2 lists it as unassessed instead of leaving it implicit behind `NOT_CERTIFIED`.
+
+The v2 changes are checked by `core.test.mjs` with test doubles and zero provider calls. The recorded `results/**` are v1 artifacts produced at their recorded sources and are not rerun or rewritten; `verify.mjs` still verifies them unchanged. No v2 plan has been produced by a live model yet, so v2 question quality, F1 method overconstraint and F2 overlap remain unproven.
+
 ## Fixed evidence and retained failures
 
 The independent fixture author fixed Goal/observation inputs and expectations before seeing each trial's outputs. The native model receives only Goal/observations/catalog or the frozen question and observations, never the expectation files. Each CLI invocation uses a separate session with tools, automatic project/memory context and session persistence disabled. `run.mjs plan` and `run.mjs judge` are separate processes communicating through ordinary JSONL.

@@ -1,20 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { plan, judge } from './core.mjs';
+import { readFile } from 'node:fs/promises';
+import { plan, judge, report } from './core.mjs';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const request = () => ({ goal: { ref: 'goal:original', content: 'Keep every material condition while shortening this explanation.' },
   observations: [{ ref: 'source:policy', content: 'Approval and actual readback are required. Read-only references need no approval.' },
     { ref: 'target:draft', content: 'Approval is required.' }] });
 const rubric = { problem: 'A material original condition was lost.', ok: 'All original conditions and legitimate exceptions remain.', unknown: 'Available observations cannot establish preservation.' };
+const clauses = () => [
+  { id: 'c-keep', kind: 'obligation', ref: 'goal:original', quote: 'Keep every material condition' },
+  { id: 'c-short', kind: 'obligation', ref: 'goal:original', quote: 'shortening this explanation' },
+  { id: 'c-readonly', kind: 'exception', ref: 'source:policy', quote: 'Read-only references need no approval.' }];
 const question = (id = 'new.meaning-preservation', extra = {}) => ({ id, core: null,
-  question: 'Did shortening lose any material condition or exception?', criteria: clone(rubric),
-  basisRefs: ['goal:original', 'source:policy'], requires: ['source:policy', 'target:draft'], ...extra });
-const proposal = (questions = [question()], missing = []) => ({ questions, missing });
+  question: 'Did shortening lose any material condition or exception?', criteria: clone(rubric), clauseIds: ['c-keep', 'c-readonly'],
+  basisRefs: ['goal:original', 'source:policy'], requiredRefs: ['source:policy', 'target:draft'], needs: [], ...extra });
+const proposal = (questions = [question()], missing = [], quoted = clauses()) => ({ clauses: quoted, questions, missing });
 const prepare = (candidate = proposal(), options = {}) => plan(request(), { propose: async () => candidate, ...options });
 const reply = async () => ({ label: 'unknown', model: 'independent-test-double' });
+const recorded = async (path, id) => (await readFile(new URL(path, import.meta.url), 'utf8'))
+  .trim().split(/\r?\n/).map(JSON.parse).find(row => row.id === id);
+// Test-only reading of a recorded v1 plan under the v2 boundary: supplied refs stay refs, anything else is a need.
+const asV2 = (old, quoted, clauseIds) => {
+  const supplied = new Set(old.request.observations.map(row => row.ref));
+  return { clauses: quoted, missing: old.missing, questions: old.questions.map(({ requires, ...q }) => ({ ...q, clauseIds: clauseIds(q),
+    requiredRefs: requires.filter(ref => supplied.has(ref)), needs: requires.filter(ref => !supplied.has(ref)) })) };
+};
 
-test('novel generated criterion reaches model unchanged through independent JSON roundtrip', async () => {
+test('novel generated criterion and its quoted clauses reach model unchanged through independent JSON roundtrip', async () => {
   let seenGoal;
   const value = await plan(request(), { propose: async payload => {
     seenGoal = payload.goal.content; assert.deepEqual(payload.cores, []);
@@ -23,7 +36,7 @@ test('novel generated criterion reaches model unchanged through independent JSON
   let sent;
   const out = await judge(clone(value), { which: async q => { sent = clone(q); return reply(); } });
   assert.equal(seenGoal, request().goal.content);
-  assert.deepEqual(JSON.parse(sent.text), request());
+  assert.deepEqual(JSON.parse(sent.text), { ...request(), clauses: [clauses()[0], clauses()[2]] });
   assert.equal(sent.instructions, question().question);
   assert.deepEqual(sent.criteria, rubric);
   assert.equal(out.judgments[0].label, 'unknown');
@@ -37,10 +50,11 @@ test('request and proposal are snapshotted, deeply frozen and isolated from call
   } });
   input.goal.content = 'Changed goal'; input.observations[0].content = 'Changed source';
   release(); const value = await pending;
-  candidate.questions[0].criteria.problem = 'Changed criterion';
+  candidate.questions[0].criteria.problem = 'Changed criterion'; candidate.clauses[0].quote = 'Changed quote';
   assert.equal(captured.goal.content, request().goal.content);
   assert.deepEqual(value.request, request()); assert.deepEqual(value.questions[0].criteria, rubric);
-  assert.ok(Object.isFrozen(value.request.observations[0])); assert.ok(Object.isFrozen(value.questions[0].criteria));
+  assert.deepEqual(value.clauses, clauses());
+  assert.ok(Object.isFrozen(value.request.observations[0])); assert.ok(Object.isFrozen(value.clauses[0]));
 });
 
 test('generated authority, goal, budget, expected labels and invalid provenance are refused', async () => {
@@ -49,6 +63,106 @@ test('generated authority, goal, budget, expected labels and invalid provenance 
   }
   await assert.rejects(() => prepare(proposal([question('a', { basisRefs: ['source:policy'] })])));
   await assert.rejects(() => prepare(proposal([question('a', { basisRefs: ['goal:original', 'unobserved:source'] })])));
+});
+
+test('clause quotes are exact provenance from the Goal or a supplied source', async () => {
+  const bad = patch => proposal([question()], [], [{ ...clauses()[0], ...patch }, ...clauses().slice(1)]);
+  await assert.rejects(() => prepare(bad({ quote: 'Keep every condition' })), /CLAUSE_QUOTE_NOT_FOUND/);
+  await assert.rejects(() => prepare(bad({ ref: 'unobserved:source' })), /INVALID_CLAUSE/);
+  await assert.rejects(() => prepare(bad({ kind: 'preference' })), /INVALID_CLAUSE/);
+  await assert.rejects(() => prepare(proposal([question()], [], [...clauses(), clauses()[0]])), /CLAUSE_LIMIT_OR_ID/);
+});
+
+test('every question serves at least one quoted obligation', async () => {
+  await assert.rejects(() => prepare(proposal([question('a', { clauseIds: ['c-readonly'] })])), /INVALID_QUESTION/);
+  await assert.rejects(() => prepare(proposal([question('a', { clauseIds: [] })])), /INVALID_QUESTION/);
+  await assert.rejects(() => prepare(proposal([question('a', { clauseIds: ['c-keep', 'c-missing'] })])), /INVALID_QUESTION/);
+});
+
+test('an unsupplied observation cannot pose as a required ref; it stays a semantic need', async () => {
+  const need = 'Result, check and finish records for work-K9';
+  await assert.rejects(() => prepare(proposal([question('a', { requiredRefs: [need] })])), /REQUIRED_REF_NOT_SUPPLIED/);
+  await assert.rejects(() => prepare(proposal([question('a', { requiredRefs: ['unobserved:inventory'] })])), /REQUIRED_REF_NOT_SUPPLIED/);
+  const value = await prepare(proposal([question('missing', { needs: [need] }), question('available')]));
+  let calls = 0;
+  const out = await judge(clone(value), { which: async () => { calls++; return reply(); } });
+  assert.equal(calls, 1); assert.equal(out.judgments[0].status, 'INCOMPLETE');
+  assert.deepEqual(out.judgments[0].missingNeeds, [need]); assert.equal(Object.hasOwn(out.judgments[0], 'missingRefs'), false);
+  assert.equal(out.judgments[1].status, 'OBSERVED'); assert.ok(out.missing.some(row => row.need === 'missing'));
+  const view = report(value, out);
+  assert.deepEqual(view.nextObservations, [need]);
+  assert.deepEqual(view.questions[1].requiredRefs.map(row => row.support), ['NOT_VERIFIED', 'NOT_VERIFIED']);
+});
+
+test('recorded v81: a free-text need was emitted as a missing ref; v2 keeps the expected INCOMPLETE as a need', async () => {
+  const old = (await recorded('results/confirmation/plan.jsonl', 'v81')).plan;
+  const prior = (await recorded('results/confirmation/judge.jsonl', 'v81')).result;
+  const supplied = old.request.observations.map(row => row.ref);
+  assert.equal(supplied.includes(old.questions[0].requires[0]), false);
+  assert.deepEqual(prior.judgments[0].missingRefs, old.questions[0].requires);
+  const goal = old.request.goal;
+  const quoted = [{ id: 'g-trace', kind: 'obligation', ref: goal.ref, quote: '後で第三者が既存の記録だけから追跡できる' }];
+  const value = await plan(old.request, { propose: async () => asV2(old, quoted, () => ['g-trace']) });
+  const out = await judge(clone(value), { which: async () => assert.fail('must not call model') });
+  assert.equal(out.calls, 0); assert.equal(out.judgments[0].status, 'INCOMPLETE');
+  assert.deepEqual(out.judgments[0].missingNeeds, old.questions[0].requires);
+  const view = report(value, out);
+  assert.deepEqual(view.unassessed.map(c => [c.id, c.reason]), [['g-trace', 'QUESTIONS_NOT_JUDGED: INCOMPLETE']]);
+  assert.ok(view.nextObservations.includes(old.questions[0].requires[0]));
+});
+
+test('recorded h36: supplied refs remain refs and presence is not reported as semantic support', async () => {
+  const old = (await recorded('results/confirmation/plan.jsonl', 'h36')).plan;
+  const quoted = [{ id: 'g-trace', kind: 'obligation', ref: old.request.goal.ref, quote: '後で第三者が既存の記録だけから追跡できる' }];
+  const value = await plan(old.request, { propose: async () => asV2(old, quoted, () => ['g-trace']) });
+  assert.deepEqual(value.questions[0].needs, []);
+  const out = await judge(clone(value), { which: async () => ({ label: 'ok', model: 'independent-test-double' }) });
+  const view = report(value, out);
+  assert.equal(out.calls, 1); assert.deepEqual(view.unassessed, []);
+  assert.equal(view.clauses[0].assessment, 'JUDGED_UNVERIFIED');
+  assert.ok(view.questions[0].requiredRefs.every(row => row.supplied && row.support === 'NOT_VERIFIED'));
+});
+
+test('recorded w42: the shortening clause with no question stays visibly unassessed', async () => {
+  const old = (await recorded('results/plan.jsonl', 'w42')).plan;
+  const cores = JSON.parse(await readFile(new URL('cores.json', import.meta.url), 'utf8'));
+  const source = old.request.observations.find(row => row.ref === 'fixture:policy-source@1');
+  const quoted = [{ id: 'g-short', kind: 'obligation', ref: old.request.goal.ref, quote: '短くして' },
+    { id: 'g-keep', kind: 'obligation', ref: old.request.goal.ref, quote: '元の判断を変えずに' },
+    { id: 's-readback', kind: 'obligation', ref: source.ref, quote: '公開した後は実際の公開先を読み戻して結果を確認する。' },
+    { id: 's-readonly', kind: 'exception', ref: source.ref, quote: 'ただし、内容を変更しない参照には承認を要しない。' }];
+  const value = await plan(old.request, { cores, propose: async () => asV2(old, quoted, q => q.id === 'q1' ? ['g-keep', 's-readonly'] : ['s-readback']) });
+  const out = await judge(clone(value), { which: async () => ({ label: 'problem', model: 'independent-test-double' }) });
+  const view = report(value, out);
+  assert.deepEqual(view.unassessed, [{ id: 'g-short', kind: 'obligation', quote: '短くして', reason: 'NO_QUESTION' }]);
+  assert.equal(view.goalCoverage, 'NOT_CERTIFIED');
+});
+
+test('exceptions and alternatives reach the judge with their obligation; unattached ones are reported', async () => {
+  const quoted = [...clauses(), { id: 'c-retry', kind: 'alternative', ref: 'source:policy', quote: 'Approval and actual readback are required.' }];
+  const value = await prepare(proposal([question()], [], quoted));
+  let sent;
+  const out = await judge(clone(value), { which: async q => { sent = JSON.parse(q.text); return reply(); } });
+  assert.deepEqual(sent.clauses.map(c => c.id), ['c-keep', 'c-readonly']);
+  assert.deepEqual(report(value, out).unassessed.map(c => [c.id, c.kind, c.reason]),
+    [['c-short', 'obligation', 'NO_QUESTION'], ['c-retry', 'alternative', 'NO_QUESTION']]);
+});
+
+test('report keeps the raw typed answer, unverified rationale, failures and consumer ownership explicit', async () => {
+  const value = await prepare(proposal([question('one'), question('two', { clauseIds: ['c-short'] })]));
+  let n = 0;
+  const out = await judge(clone(value), { which: async () => {
+    if (n++) throw new Error('provider failure');
+    return { label: 'problem', model: 'independent-test-double', rationale: 'Draft omits readback.' };
+  } });
+  const view = report(value, out);
+  assert.deepEqual(view.questions[0].result, { status: 'OBSERVED', answer: { type: 'choice', labels: ['problem', 'ok', 'unknown'], value: 'problem' },
+    model: 'independent-test-double', rationale: { text: 'Draft omits readback.', verified: false } });
+  assert.deepEqual(view.questions[1].result, { status: 'EXECUTION_ERROR' });
+  assert.deepEqual(view.unassessed.map(c => [c.id, c.reason]), [['c-short', 'QUESTIONS_NOT_JUDGED: EXECUTION_ERROR']]);
+  assert.equal(view.nextDecision, 'CONSUMER_OWNED'); assert.equal(view.authority, false);
+  assert.throws(() => report(value, { ...out, judgments: out.judgments.slice(1) }), /RESULT_PLAN_MISMATCH/);
+  assert.throws(() => report(value, { ...out, authority: true }), /RESULT_PLAN_MISMATCH/);
 });
 
 test('known match, new criterion and unresolved Need coexist without coverage certification', async () => {
@@ -60,23 +174,16 @@ test('known match, new criterion and unresolved Need coexist without coverage ce
   await assert.rejects(() => prepare(proposal([question('bad', { core: 'unknown-core' })]), { cores: [core] }));
 });
 
-test('missing context preserves other observations and refuses only the missing query', async () => {
-  const value = await prepare(proposal([question('missing', { requires: ['unobserved:inventory'] }), question('available')]));
-  let calls = 0;
-  const out = await judge(clone(value), { which: async () => { calls++; return reply(); } });
-  assert.equal(calls, 1); assert.equal(out.judgments[0].status, 'INCOMPLETE');
-  assert.deepEqual(out.judgments[0].missingRefs, ['unobserved:inventory']);
-  assert.equal(out.judgments[1].status, 'OBSERVED'); assert.ok(out.missing.some(row => row.need === 'missing'));
-});
-
 test('empty question stream is zero calls and explicit unresolved Goal coverage', async () => {
   const value = await prepare(proposal([]));
   const out = await judge(clone(value), { which: async () => assert.fail('must not call model') });
   assert.equal(out.calls, 0); assert.ok(out.missing.length); assert.equal(out.goalCoverage, 'NOT_CERTIFIED');
+  assert.equal(report(value, out).unassessed.length, clauses().length);
 });
 
-test('question and byte ceilings are enforced before model invocation', async () => {
+test('question, clause and byte ceilings are enforced before model invocation', async () => {
   await assert.rejects(() => prepare(proposal([question('one'), question('two')]), { maxQuestions: 1 }));
+  await assert.rejects(() => prepare(proposal(), { maxClauses: 2 }), /CLAUSE_LIMIT_OR_ID/);
   await assert.rejects(() => prepare(proposal(), { maxBytes: 20 }));
   const value = await prepare(proposal([question('one'), question('two')])); let calls = 0;
   await assert.rejects(() => judge(clone(value), { which: async () => { calls++; return reply(); } }, { maxQuestions: 1 }));
@@ -102,9 +209,9 @@ test('trusted criteria value equality is independent of JSON key order', async (
 });
 
 test('actual model question stays inside host byte ceiling after JSON escaping', async () => {
-  const input = request(); input.observations[0].content = '\\'.repeat(1000);
+  const input = request(); input.observations[0].content = '\\'.repeat(1000) + input.observations[0].content;
   const candidate = proposal();
-  const raw = { schema: 'ops.goal-evaluation.plan.v1', request: input, ...candidate };
+  const raw = { schema: 'ops.goal-evaluation.plan.v2', request: input, ...candidate };
   const maxBytes = Buffer.byteLength(JSON.stringify(raw), 'utf8') + 10;
   const value = await plan(input, { propose: async () => candidate, maxBytes });
   let oversizedSent = false, sentBytes = null;
@@ -116,7 +223,7 @@ test('actual model question stays inside host byte ceiling after JSON escaping',
 
 test('automatic missing-coverage annotation also fits the emitted Plan byte ceiling', async () => {
   const input = request(), candidate = proposal([]);
-  const raw = { schema: 'ops.goal-evaluation.plan.v1', request: input, ...candidate };
+  const raw = { schema: 'ops.goal-evaluation.plan.v2', request: input, ...candidate };
   const maxBytes = Buffer.byteLength(JSON.stringify(raw), 'utf8') + 10;
   let value;
   try {
