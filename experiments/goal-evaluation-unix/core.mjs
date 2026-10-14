@@ -65,6 +65,13 @@ function validate(plan, ceiling) {
   if (Buffer.byteLength(JSON.stringify(plan), 'utf8') > ceiling.maxBytes) fail('BYTE_LIMIT');
 }
 
+// Same Plan rules for other caller-local consumers of a JSON-roundtripped Plan; returns a frozen copy.
+export function checkPlan(value, options = {}) {
+  const input = copy(value);
+  validate(input, limits(options));
+  return freeze(input);
+}
+
 // Core/template metadata is ordinary caller-owned data; propose sees the original Goal, not only the catalog.
 export async function plan(request, { propose, cores = [], ...options }) {
   const input = copy(request), catalog = copy(cores), ceiling = limits(options);
