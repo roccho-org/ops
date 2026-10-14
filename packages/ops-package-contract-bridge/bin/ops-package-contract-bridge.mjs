@@ -5,6 +5,10 @@ import {
   verifyPhase2Bundle,
 } from '../src/phase2.mjs';
 import {
+  buildPhase2V3Bundle,
+  verifyPhase2V3Bundle,
+} from '../src/phase2-universe.mjs';
+import {
   stableJson,
   verifyPhase1Bundle,
 } from '../src/verify.mjs';
@@ -15,6 +19,8 @@ function usage() {
     '  ops-package-contract-bridge verify-phase1 BUNDLE_DIR',
     '  ops-package-contract-bridge build-phase2 --ops-source DIR --ops-candidate-sha SHA --out DIR [--repository OWNER/REPO]',
     '  ops-package-contract-bridge verify-phase2 BUNDLE_DIR',
+    '  ops-package-contract-bridge build-phase2-v3 --ops-source DIR --ops-candidate-sha SHA --local-source-universe FILE --out DIR [--repository OWNER/REPO]',
+    '  ops-package-contract-bridge verify-phase2-v3 BUNDLE_DIR',
     '',
   ].join('\n'));
 }
@@ -33,32 +39,50 @@ function flags(args) {
   return values;
 }
 
+function parseBuildFlags(args, v3 = false) {
+  const values = flags(args);
+  const allowed = new Set([
+    '--ops-source', '--ops-candidate-sha', '--out', '--repository',
+    ...(v3 ? ['--local-source-universe'] : []),
+  ]);
+  for (const key of Object.keys(values)) {
+    if (!allowed.has(key)) throw new Error(`unknown argument: ${key}`);
+  }
+  const required = ['--ops-source', '--ops-candidate-sha', '--out', ...(v3 ? ['--local-source-universe'] : [])];
+  for (const key of required) {
+    if (!values[key]) throw new Error(`missing argument: ${key}`);
+  }
+  return values;
+}
+
 try {
   const [command, ...args] = process.argv.slice(2);
-  if (command === 'verify-phase1' || command === 'verify-phase2') {
+  if (['verify-phase1', 'verify-phase2', 'verify-phase2-v3'].includes(command)) {
     if (args.length !== 1) {
       usage();
       process.exit(2);
     }
     const result = command === 'verify-phase1'
       ? verifyPhase1Bundle(args[0])
-      : verifyPhase2Bundle(args[0]);
+      : command === 'verify-phase2'
+        ? verifyPhase2Bundle(args[0])
+        : verifyPhase2V3Bundle(args[0]);
     process.stdout.write(`${stableJson(result)}\n`);
-  } else if (command === 'build-phase2') {
-    const values = flags(args);
-    const allowed = new Set(['--ops-source', '--ops-candidate-sha', '--out', '--repository']);
-    for (const key of Object.keys(values)) {
-      if (!allowed.has(key)) throw new Error(`unknown argument: ${key}`);
-    }
-    for (const required of ['--ops-source', '--ops-candidate-sha', '--out']) {
-      if (!values[required]) throw new Error(`missing argument: ${required}`);
-    }
-    const result = buildPhase2Bundle({
+  } else if (command === 'build-phase2' || command === 'build-phase2-v3') {
+    const v3 = command === 'build-phase2-v3';
+    const values = parseBuildFlags(args, v3);
+    const common = {
       opsSource: values['--ops-source'],
       opsCandidateSha: values['--ops-candidate-sha'],
       outDir: values['--out'],
       repository: values['--repository'] ?? 'roccho-org/ops',
-    });
+    };
+    const result = v3
+      ? buildPhase2V3Bundle({
+        ...common,
+        localSourceUniverseFile: values['--local-source-universe'],
+      })
+      : buildPhase2Bundle(common);
     process.stdout.write(`${stableJson(result)}\n`);
   } else {
     usage();
