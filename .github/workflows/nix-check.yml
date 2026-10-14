@@ -18,6 +18,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
           fetch-depth: 0
+      - name: Test noninteractive Pi probe without credentials
+        run: python3 -I -m unittest discover -s verification/pi-cli -p 'test_*.py' -v
       - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
