@@ -145,13 +145,14 @@ meta.description = "literal text";
 
 A literal description becomes a source-bound `purpose` assertion. An explicit but unsupported or unreadable description becomes a source-universe finding and blocks readiness. Lambdas with no supported explicit metadata remain classified but do not invent meaning.
 
-## Actual tree
+## Current implementation tree
 
 ```text
 roccho-org/ops
 ├── .github/workflows/
-│   ├── contract-632-phase1.yml
-│   └── contract-632-phase2-v4.yml
+│   └── contract-632-phase1.yml
+│       ├── phase1-bundle
+│       └── phase2-v4-bundle
 ├── tools/
 │   ├── contract-632-phase1-proof.py
 │   ├── contract-632-phase1-proof-core.py
@@ -159,6 +160,7 @@ roccho-org/ops
 └── packages/ops-package-contract-bridge/
     ├── README.md
     ├── PHASE2.md
+    ├── default.nix
     ├── contract/
     │   └── phase2-package-claims.v1.json
     ├── bin/
@@ -166,14 +168,14 @@ roccho-org/ops
     ├── src/
     │   ├── verify.mjs
     │   ├── phase2.mjs
-    │   ├── phase2-universe.mjs
     │   └── phase2-v4.mjs
     └── tests/
         ├── e2e.mjs
         ├── phase2.mjs
-        ├── phase2-universe.mjs
         └── phase2-v4.mjs
 ```
+
+There is one current source-universe implementation and one current Phase 2 workflow job. Superseded v3 behavior remains in immutable Git history and its exact artifact instead of a second live implementation.
 
 Generated finite evidence:
 
@@ -218,7 +220,7 @@ flowchart TB
     R["derived claims + exact supports"]
   end
 
-  subgraph CHECK["Existing bridge analysis"]
+  subgraph CHECK["Single current bridge"]
     X["resolve refs and supports"]
     J["source-bound join"]
     U["UNKNOWN / omission"]
