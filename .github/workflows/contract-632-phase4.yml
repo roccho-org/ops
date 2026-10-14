@@ -1,0 +1,65 @@
+name: contract-632-phase4
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/contract-632-phase4.yml'
+      - 'tools/contract-632-phase4-proof.py'
+      - 'packages/ops-package-contract-bridge/PHASE4.md'
+      - 'governance/final-ci-claim.v1.json'
+      - 'tools/check-final-ci-consumer.py'
+      - 'packages/contract-diff/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contract-632-phase4-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ops-self-diff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/governance
+          ref: 5b26984eb59e4c03f9d0fe34891fea5e4a436a16
+          path: _external/governance
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Build and verify Phase 4 candidate evidence
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+          GOVERNANCE_REVISION: 5b26984eb59e4c03f9d0fe34891fea5e4a436a16
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          test "$(git -C _external/governance rev-parse HEAD)" = "$GOVERNANCE_REVISION"
+          root=contract-632-phase4-bundle
+          python3 tools/contract-632-phase4-proof.py build \
+            --governance-source _external/governance \
+            --governance-revision "$GOVERNANCE_REVISION" \
+            --ops-source . \
+            --ops-candidate "$EXPECTED_SHA" \
+            --observer-root . \
+            --observer-repository roccho-org/ops \
+            --observer-revision "$EXPECTED_SHA" \
+            --observer-path .github/workflows/contract-632-phase4.yml \
+            --contract-diff packages/contract-diff/bin/contract-diff.py \
+            --out "$root" > phase4-build.json
+          python3 tools/contract-632-phase4-proof.py verify --bundle "$root" > phase4-readback.json
+          jq -e '.status == "PASS" and .authority == false and .adoption == false and .remaining == 0' phase4-readback.json >/dev/null
+          cp phase4-build.json phase4-readback.json "$root/"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contract-632-phase4-${{ github.event.pull_request.head.sha }}
+          path: contract-632-phase4-bundle/
+          if-no-files-found: error
+          retention-days: 90
