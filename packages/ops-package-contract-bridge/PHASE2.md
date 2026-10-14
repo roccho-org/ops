@@ -1,16 +1,16 @@
-# Phase 2 — package purpose and source-universe coverage
+# Phase 2 — exact source-relation coverage
 
-Phase 2 records why every direct `packages/*` directory exists without promoting repository text into organization authority.
+Phase 2 records why each direct `packages/*` directory exists while preserving the difference between repository text and accepted organization meaning.
 
-It preserves five different facts:
+It keeps these facts separate:
 
 1. central repository claims;
 2. package-local implementation claims;
 3. registry observations;
-4. explicit derived claims with supporting refs;
-5. accepted organization meaning, when supplied by an external authority source.
+4. explicit derived claims and their exact supports;
+5. externally supplied accepted organization meaning.
 
-No repository claim selects Current, creates `required`, changes a Gate, or performs admission.
+No repository claim selects Current, creates `required`, changes a Gate, performs admission, or authorizes operation.
 
 ## Boundary
 
@@ -19,21 +19,27 @@ DefaultNixUniverse
   = { packages/<p>/default.nix | p ∈ directDirs(packages) }
 
 DiscoveredLocalSource(p)
-  = Nix-evaluated attrset or raw-JSON attrset at default.nix
-  + exact source bytes and file digest
+  = absent
+  | Nix attrset
+  | raw JSON attrset
+  | Nix lambda
+  | evaluation error
 
-Assertions(p,f)
-  = central claims
-  + package-local claims discovered independently from the assertion parser
-  + build/packages.jsonl observations
-  + explicit derived claims
-  + accepted assertions when externally supplied
+DirectAssertion(a)
+  = a.sourceRef resolves to an actual supported source statement
+  ∧ a.sourceFileDigest binds the source file
+  ∧ a.sourceDigest binds the canonical assertion
+  ∧ a.supports = []
 
-Coverage(p,f) = every source-bound assertion for package p and field f
+DerivedAssertion(a)
+  = a.sourceRef starts with derived:
+  ∧ a.relation = derived_from
+  ∧ every support resolves to a direct assertion
+  ∧ every support carries matching file and assertion digests
 
 Complete(p)
   = every mandatory field has a substantive digest-bound assertion
-  ∧ every discovered explicit local source is represented
+  ∧ every discovered supported local source is represented
 
 Phase2ReadyForReview
   = dom(Coverage) = directDirs(packages)
@@ -42,9 +48,10 @@ Phase2ReadyForReview
   ∧ accepted CONFLICT = 0
   ∧ local-source omission = 0
   ∧ source-universe finding = 0
+  ∧ source-relation finding = 0
 ```
 
-`DRIFT` is preserved evidence. The bridge never selects a winner.
+`DRIFT` is evidence, not a selected winner.
 
 ```text
 Phase2ReadyForReview != PhaseClosed
@@ -71,68 +78,80 @@ lifecycle
 
 ## Independent source universe
 
-The source universe is produced by Nix before the JavaScript collector runs:
+Nix produces the mother set before the assertion collector runs:
 
 ```text
 tools/contract-632-phase2-source-universe.nix
   direct package directories
   └─ default.nix
      ├─ absent
-     ├─ Nix attrset
-     ├─ Nix lambda
+     ├─ ordinary Nix attrset
      ├─ raw JSON attrset
+     ├─ Nix lambda
      └─ evaluation error
 ```
 
-The collector cannot define its own mother set. A known semantic source that cannot be evaluated or normalized becomes `UNKNOWN`; it cannot disappear from the result.
+The collector cannot define its own mother set. A known source that cannot be evaluated or normalized becomes `UNKNOWN`; it cannot disappear from the result.
 
-Raw JSON stored with a `.nix` suffix is detected by its byte prefix and decoded as JSON. Other files are evaluated as Nix. The exact source file is copied into the evidence bundle and digest-bound.
+Raw JSON stored with a `.nix` suffix is classified before parsing. Other present files are evaluated as Nix. Exact source files are copied into the evidence bundle and digest-bound.
 
-## Source binding
+## Exact source relations
 
-Every assertion contains:
-
-```text
-value
-sourceClass
-sourceRef
-sourceFileDigest
-sourceDigest
-digestKind
-applicability(repository, candidateSha, path)
-claimCeiling
-relation
-supports
-explicitNone
-```
-
-Examples:
+Direct assertions use only real source paths:
 
 ```text
-central claim
-  → contract/phase2-package-claims.v1.json#/packages/<n>/<field>
+ordinary or raw-JSON attrset
+  → packages/<id>/default.nix#nix.attr.<actual.path>
 
-Nix attrset claim
-  → packages/<id>/default.nix#nix.attr.<field>
-
-legacy metadata claim
-  → packages/<id>/default.nix#ops.packageImplementationMetadata.v1[<n>].<field>
+bounded lambda metadata
+  → packages/<id>/default.nix#nix.lambda.meta.description
 
 registry observation
   → build/packages.jsonl#L<n>
-
-derived claim
-  → derived:<packageId>:<field>:v1 + supports[]
 ```
 
-A generated coverage row is never accepted as its own source.
+Composite values never use invented paths such as `a+b`.
+
+When two direct attrs contribute to the same semantic field, they remain separate assertions:
+
+```text
+checkPackageContract.evidence
+checkPackageContract.guarantees
+
+productScopePurposeContribution.contribution
+productScopePurposeContribution.ultimatePurpose
+```
+
+A future combined assertion must be explicit:
+
+```text
+sourceRef = derived:<package>:<field>:<version>
+relation  = derived_from
+supports  = [
+  { sourceRef, sourceFileDigest, sourceDigest },
+  ...
+]
+```
+
+The verifier resolves every direct ref against the copied source bytes and every derived support against a direct assertion. Nonexistent refs, absent supports and digest mismatches are rejected.
+
+## Bounded lambda metadata
+
+Phase 2 does not attempt general Nix-code or comment understanding. For lambda-form `default.nix`, it currently recognizes one standard explicit claim:
+
+```text
+meta.description = "literal text";
+```
+
+A literal description becomes a source-bound `purpose` assertion. An explicit but unsupported or unreadable description becomes a source-universe finding and blocks readiness. Lambdas with no supported explicit metadata remain classified but do not invent meaning.
 
 ## Actual tree
 
 ```text
 roccho-org/ops
 ├── .github/workflows/
-│   └── contract-632-phase1.yml
+│   ├── contract-632-phase1.yml
+│   └── contract-632-phase2-v4.yml
 ├── tools/
 │   ├── contract-632-phase1-proof.py
 │   ├── contract-632-phase1-proof-core.py
@@ -147,37 +166,40 @@ roccho-org/ops
     ├── src/
     │   ├── verify.mjs
     │   ├── phase2.mjs
-    │   └── phase2-universe.mjs
+    │   ├── phase2-universe.mjs
+    │   └── phase2-v4.mjs
     └── tests/
         ├── e2e.mjs
         ├── phase2.mjs
-        └── phase2-universe.mjs
+        ├── phase2-universe.mjs
+        └── phase2-v4.mjs
 ```
 
 Generated finite evidence:
 
 ```text
-phase2-proof/
-├── base-v2/
-│   ├── direct-packages.json
-│   ├── source-assertions.jsonl
-│   ├── local-source-index.json
-│   ├── drift-findings.json
-│   └── ...
-├── local-source-universe.json
-├── local-source-files/packages/<id>/default.nix
-├── local-source-index-v3.json
-├── local-source-assertions-v3.jsonl
-├── source-universe-findings.json
-├── combined-source-assertions.jsonl
-├── combined-package-field-coverage.jsonl
-├── combined-unknown-checkpoints.json
-├── combined-conflict-findings.json
-├── combined-drift-findings.json
-├── combined-local-source-omissions.json
-├── phase2-v3-destructive-results.json
-├── phase2-v3-receipt.json
-└── phase2-v3-verification.json
+contract-632-phase2-v4-bundle/
+├── bundle-manifest.json
+├── provenance.json
+├── unit-receipt.json
+├── workflow-readback.json
+└── proof/
+    ├── base-v2/...
+    ├── local-source-universe.json
+    ├── local-source-files/packages/<id>/default.nix
+    ├── local-source-index-v4.json
+    ├── local-source-assertions-v4.jsonl
+    ├── source-universe-findings-v4.json
+    ├── source-relation-findings.json
+    ├── combined-source-assertions.jsonl
+    ├── combined-package-field-coverage.jsonl
+    ├── combined-unknown-checkpoints.json
+    ├── combined-conflict-findings.json
+    ├── combined-drift-findings.json
+    ├── combined-local-source-omissions.json
+    ├── phase2-v4-destructive-results.json
+    ├── phase2-v4-receipt.json
+    └── phase2-v4-verification.json
 ```
 
 ## Data flow
@@ -185,38 +207,38 @@ phase2-proof/
 ```mermaid
 flowchart TB
   subgraph DISCOVERY["Independent discovery"]
-    D["direct packages"]
-    N["Nix evaluation of every default.nix"]
-    S["exact source files + digests"]
-    D --> N --> S
+    D["direct packages"] --> N["classify every default.nix"]
+    N --> S["exact source files + digests"]
   end
 
-  subgraph CLAIMS["Non-authoritative assertions"]
+  subgraph ASSERTIONS["Non-authoritative assertions"]
     C["central claims"]
-    L["package-local claims"]
+    L["exact local claims"]
     G["registry observations"]
-    R["derived claims + supports"]
+    R["derived claims + exact supports"]
   end
 
   subgraph CHECK["Existing bridge analysis"]
+    X["resolve refs and supports"]
     J["source-bound join"]
     U["UNKNOWN / omission"]
     F["visible DRIFT"]
-    X["accepted-only CONFLICT"]
+    K["accepted-only CONFLICT"]
   end
 
   S --> L
+  L --> X
+  R --> X
+  X --> J
   C --> J
-  L --> J
   G --> J
-  R --> J
   J --> U
   J --> F
-  J --> X
+  J --> K
 
   U --> A["content-addressed artifact"]
   F --> A
-  X --> A
+  K --> A
   A --> JR{"R judgment"}
   JR -->|BLOCK| W["W correction in Phase 2"]
   JR -->|GO| JP{"P judgment"}
@@ -228,24 +250,24 @@ flowchart TB
 
 | Requirement | Positive evidence | Safe failure |
 |---|---|---|
-| Mother set independent from parser | all direct packages have a source-universe record | missing universe record rejects |
-| All local file formats classified | absent/Nix attrset/Nix lambda/raw JSON are explicit | unreadable known semantic source becomes `UNKNOWN` |
-| Exact source binding | source ref, file digest, assertion digest and applicability are separate | source byte mutation or wrong digest rejects |
-| Local claims retained | every discovered semantic attr has an emitted assertion | discovered attr without normalization becomes `UNKNOWN` |
-| Legacy attrset support | billing and functional-core metadata are recovered from actual Nix attrs | parser omission cannot silently pass |
-| Raw JSON support | raw JSON `default.nix` is classified and collected | raw JSON is not imported as Nix |
-| Claim differences visible | implementation differences remain `DRIFT` | no winner is silently selected |
+| Independent mother set | every direct package has a universe record | missing record rejects |
+| Local forms classified | absent, attrset, raw JSON, lambda and error are explicit | unreadable known source becomes `UNKNOWN` |
+| Direct refs are real | each attr path or lambda metadata path resolves | nonexistent or composite ref rejects |
+| Composite meaning is explicit | direct attrs stay separate or derived claim names every support | missing support rejects |
+| Supports are identity-bound | support carries source-file and assertion digests | support digest mismatch rejects |
+| Lambda metadata retained | literal `meta.description` becomes purpose | omission blocks readiness |
+| Claim differences visible | implementation differences remain `DRIFT` | no winner is selected silently |
 | Accepted conflict bounded | only incompatible accepted assertions conflict | implementation drift is not mislabeled |
 | Authority ceiling | all receipts have `authority=false` | repository claim cannot create `required` |
-| Deterministic replay | source universe and proof bundle reproduce byte-for-byte | output drift fails comparison |
-| Artifact integrity | copied source files and generated evidence are digest-bound | one-byte mutation rejects |
+| Deterministic replay | source universe and bundle reproduce byte-for-byte | output drift fails comparison |
+| Artifact integrity | copied sources and generated evidence are digest-bound | one-byte mutation rejects |
 
 ## Claim ceiling
 
 ```text
 REPOSITORY_LOCAL_SOURCE_DISCOVERY_NOT_ORGANIZATION_MEANING
 REPOSITORY_LOCAL_CLAIM_NOT_ORGANIZATION_REQUIREMENT
-PACKAGE_SOURCE_UNIVERSE_CLOSED_NOT_ORGANIZATION_ADMISSION
+PACKAGE_EXACT_SOURCE_RELATIONS_CLOSED_NOT_ORGANIZATION_ADMISSION
 ```
 
-`UNKNOWN=0` means every mandatory field has a source and every discovered local source is represented. It does not mean claims agree, that every package is required, or that Phase 2 is independently closed.
+`UNKNOWN=0` means each mandatory field has a source and every supported explicit local source is represented. It does not mean claims agree, every package is required, Phase 2 is independently closed, or any operational change is authorized.
