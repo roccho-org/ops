@@ -1,41 +1,56 @@
-# Phase 2 — package purpose and provenance coverage
+# Phase 2 — package purpose and source-universe coverage
 
-Phase 2 records why every direct `packages/*` directory exists while preserving the difference between:
+Phase 2 records why every direct `packages/*` directory exists without promoting repository text into organization authority.
 
-- a central repository claim;
-- a package-local implementation claim;
-- a repository observation such as `build/packages.jsonl`;
-- a derived package-specific explanation;
-- accepted organization meaning;
-- an unresolved value.
+It preserves five different facts:
 
-Nothing in this phase promotes a repository claim into organization authority.
+1. central repository claims;
+2. package-local implementation claims;
+3. registry observations;
+4. explicit derived claims with supporting refs;
+5. accepted organization meaning, when supplied by an external authority source.
+
+No repository claim selects Current, creates `required`, changes a Gate, or performs admission.
 
 ## Boundary
 
 ```text
+DefaultNixUniverse
+  = { packages/<p>/default.nix | p ∈ directDirs(packages) }
+
+DiscoveredLocalSource(p)
+  = Nix-evaluated attrset or raw-JSON attrset at default.nix
+  + exact source bytes and file digest
+
 Assertions(p,f)
   = central claims
-  + package-local metadata claims
-  + registry observations
-  + explicitly marked derived claims
-  + accepted assertions when supplied
+  + package-local claims discovered independently from the assertion parser
+  + build/packages.jsonl observations
+  + explicit derived claims
+  + accepted assertions when externally supplied
 
 Coverage(p,f) = every source-bound assertion for package p and field f
 
 Complete(p)
-  = every mandatory field has at least one substantive, digest-bound assertion
-  ∧ every explicit package-local source is collected
+  = every mandatory field has a substantive digest-bound assertion
+  ∧ every discovered explicit local source is represented
 
 Phase2ReadyForReview
   = dom(Coverage) = directDirs(packages)
-  ∧ unknown = 0
-  ∧ accepted conflict = 0
-  ∧ package-local omission = 0
+  ∧ DefaultNixUniverse is completely classified
+  ∧ UNKNOWN = 0
+  ∧ accepted CONFLICT = 0
+  ∧ local-source omission = 0
+  ∧ source-universe finding = 0
+```
 
-DRIFT is visible evidence, not an automatically selected winner.
-Phase2ReadyForReview != PhaseClosed.
-Phase2ReadyForReview != organization requirement or admission.
+`DRIFT` is preserved evidence. The bridge never selects a winner.
+
+```text
+Phase2ReadyForReview != PhaseClosed
+Phase2ReadyForReview != organization requirement
+Phase2ReadyForReview != organization admission
+Phase2ReadyForReview != operational adoption
 ```
 
 Mandatory fields:
@@ -53,6 +68,25 @@ dependency
 requiredEvidence
 lifecycle
 ```
+
+## Independent source universe
+
+The source universe is produced by Nix before the JavaScript collector runs:
+
+```text
+tools/contract-632-phase2-source-universe.nix
+  direct package directories
+  └─ default.nix
+     ├─ absent
+     ├─ Nix attrset
+     ├─ Nix lambda
+     ├─ raw JSON attrset
+     └─ evaluation error
+```
+
+The collector cannot define its own mother set. A known semantic source that cannot be evaluated or normalized becomes `UNKNOWN`; it cannot disappear from the result.
+
+Raw JSON stored with a `.nix` suffix is detected by its byte prefix and decoded as JSON. Other files are evaluated as Nix. The exact source file is copied into the evidence bundle and digest-bound.
 
 ## Source binding
 
@@ -72,131 +106,120 @@ supports
 explicitNone
 ```
 
-`sourceRef` and `applicability.path` are separate:
-
-- central claim fields point to an exact JSON Pointer in `contract/phase2-package-claims.v1.json`;
-- registry observations point to an exact `build/packages.jsonl#L<n>` line;
-- package-local metadata points to the exact `default.nix#ops.packageImplementationMetadata.v1[...]` field;
-- derived responsibility/non-responsibility records list their supporting source refs;
-- `sourceFileDigest` binds the containing source bytes;
-- `sourceDigest` binds the canonical assertion.
-
-A generated coverage row is never used as its own source.
-
-## Package-specific role and non-role
-
-The common responsibility and authority ceiling remain visible at `packages/*`.
-
-Each package also receives package-specific derived assertions:
+Examples:
 
 ```text
-responsibility
-  = purpose + contributionMechanism
+central claim
+  → contract/phase2-package-claims.v1.json#/packages/<n>/<field>
 
-mustNotOwn
-  = upstream input ownership
-  + downstream output-consumer ownership
-  + package implementation boundary
+Nix attrset claim
+  → packages/<id>/default.nix#nix.attr.<field>
+
+legacy metadata claim
+  → packages/<id>/default.nix#ops.packageImplementationMetadata.v1[<n>].<field>
+
+registry observation
+  → build/packages.jsonl#L<n>
+
+derived claim
+  → derived:<packageId>:<field>:v1 + supports[]
 ```
 
-These rows are marked `derived_claim`; they are not presented as accepted meaning or package-local text. When package-local metadata provides a more specific responsibility or forbidden responsibility, both assertions remain visible.
-
-## Package-local collection
-
-The bridge collects explicit local sources without choosing a semantic winner:
-
-```text
-packages/<id>/default.nix
-  └─ ops.packageImplementationMetadata.v1
-     ├─ mission -> purpose
-     ├─ responsibility -> responsibility
-     ├─ forbiddenResponsibility -> mustNotOwn
-     ├─ primaryTarget -> placement
-     ├─ requiredOutputs -> output
-     └─ requiredChecks -> requiredEvidence
-
-build/packages.jsonl
-  ├─ entry -> placement observation
-  └─ deps -> dependency observation
-```
-
-If a source exists but its mapped assertion is omitted, Phase 2 returns `UNKNOWN` and records `local-source-omissions.json`.
+A generated coverage row is never accepted as its own source.
 
 ## Actual tree
 
 ```text
-packages/ops-package-contract-bridge/
-├── README.md
-├── PHASE2.md
-├── contract/
-│   └── phase2-package-claims.v1.json
-├── bin/
-│   └── ops-package-contract-bridge.mjs
-├── src/
-│   ├── verify.mjs
-│   └── phase2.mjs
-└── tests/
-    ├── e2e.mjs
-    └── phase2.mjs
+roccho-org/ops
+├── .github/workflows/
+│   └── contract-632-phase1.yml
+├── tools/
+│   ├── contract-632-phase1-proof.py
+│   ├── contract-632-phase1-proof-core.py
+│   └── contract-632-phase2-source-universe.nix
+└── packages/ops-package-contract-bridge/
+    ├── README.md
+    ├── PHASE2.md
+    ├── contract/
+    │   └── phase2-package-claims.v1.json
+    ├── bin/
+    │   └── ops-package-contract-bridge.mjs
+    ├── src/
+    │   ├── verify.mjs
+    │   ├── phase2.mjs
+    │   └── phase2-universe.mjs
+    └── tests/
+        ├── e2e.mjs
+        ├── phase2.mjs
+        └── phase2-universe.mjs
 ```
 
-Generated evidence:
+Generated finite evidence:
 
 ```text
 phase2-proof/
-├── direct-packages.json
-├── claim-source.json
-├── registry-source.jsonl
-├── implementation-claims.jsonl
-├── source-assertions.jsonl
-├── local-source-index.json
-├── package-field-coverage.jsonl
-├── unknown-checkpoints.json
-├── conflict-findings.json
-├── drift-findings.json
-├── local-source-omissions.json
-├── phase2-destructive-results.json
-├── phase2-receipt.json
-└── phase2-verification.json
+├── base-v2/
+│   ├── direct-packages.json
+│   ├── source-assertions.jsonl
+│   ├── local-source-index.json
+│   ├── drift-findings.json
+│   └── ...
+├── local-source-universe.json
+├── local-source-files/packages/<id>/default.nix
+├── local-source-index-v3.json
+├── local-source-assertions-v3.jsonl
+├── source-universe-findings.json
+├── combined-source-assertions.jsonl
+├── combined-package-field-coverage.jsonl
+├── combined-unknown-checkpoints.json
+├── combined-conflict-findings.json
+├── combined-drift-findings.json
+├── combined-local-source-omissions.json
+├── phase2-v3-destructive-results.json
+├── phase2-v3-receipt.json
+└── phase2-v3-verification.json
 ```
 
-## Responsibility graph
+## Data flow
 
 ```mermaid
 flowchart TB
-  subgraph SOURCE["Exact sources"]
-    C["central claim fields"]
-    L["package-local metadata"]
-    G["build registry observations"]
+  subgraph DISCOVERY["Independent discovery"]
+    D["direct packages"]
+    N["Nix evaluation of every default.nix"]
+    S["exact source files + digests"]
+    D --> N --> S
   end
 
-  subgraph BRIDGE["Non-authoritative bridge"]
-    B["field assertions + exact provenance"]
+  subgraph CLAIMS["Non-authoritative assertions"]
+    C["central claims"]
+    L["package-local claims"]
+    G["registry observations"]
+    R["derived claims + supports"]
+  end
+
+  subgraph CHECK["Existing bridge analysis"]
+    J["source-bound join"]
     U["UNKNOWN / omission"]
-    D["DRIFT candidates"]
-    X["accepted-only conflicts"]
+    F["visible DRIFT"]
+    X["accepted-only CONFLICT"]
   end
 
-  subgraph EVIDENCE["Finite evidence"]
-    V["coverage JSONL"]
-    R["receipt + verification"]
-    A["content-addressed artifact"]
-  end
+  S --> L
+  C --> J
+  L --> J
+  G --> J
+  R --> J
+  J --> U
+  J --> F
+  J --> X
 
-  C --> B
-  L --> B
-  G --> B
-  B --> U
-  B --> D
-  B --> X
-  U --> V
-  D --> V
-  X --> V
-  V --> R --> A
-
-  A --> JR{"R independent judgment"}
+  U --> A["content-addressed artifact"]
+  F --> A
+  X --> A
+  A --> JR{"R judgment"}
   JR -->|BLOCK| W["W correction in Phase 2"]
-  JR -->|GO| JP{"P boundary judgment"}
+  JR -->|GO| JP{"P judgment"}
   JP -->|BLOCK| W
   JP -->|GO| CLOSED["PhaseClosed(2,vN)"]
 ```
@@ -205,28 +228,24 @@ flowchart TB
 
 | Requirement | Positive evidence | Safe failure |
 |---|---|---|
-| Direct package coverage | exact package set and 11 fields each | missing or extra package stops |
-| Exact source binding | ref, source-file digest and canonical assertion digest | wrong ref with stale digest or wrong digest rejects |
-| Local claims retained | explicit metadata and registry rows appear in source index | local source omission becomes `UNKNOWN` |
-| Package-specific role | derived package assertion plus local explicit claim when present | common text alone is not the only assertion |
-| Claim differences visible | different implementation claims emit `DRIFT` | no winner is silently selected |
-| Accepted conflict bounded | only incompatible accepted assertions with overlapping applicability conflict | implementation drift is not mislabeled as organization conflict |
-| No authority escalation | `authority=false`, no required promotion | repository claim cannot create `required` |
-| Deterministic replay | two runs are byte-identical | output drift fails `diff -r` |
-| Artifact integrity | all evidence files are receipt-bound | one-byte artifact mutation rejects |
+| Mother set independent from parser | all direct packages have a source-universe record | missing universe record rejects |
+| All local file formats classified | absent/Nix attrset/Nix lambda/raw JSON are explicit | unreadable known semantic source becomes `UNKNOWN` |
+| Exact source binding | source ref, file digest, assertion digest and applicability are separate | source byte mutation or wrong digest rejects |
+| Local claims retained | every discovered semantic attr has an emitted assertion | discovered attr without normalization becomes `UNKNOWN` |
+| Legacy attrset support | billing and functional-core metadata are recovered from actual Nix attrs | parser omission cannot silently pass |
+| Raw JSON support | raw JSON `default.nix` is classified and collected | raw JSON is not imported as Nix |
+| Claim differences visible | implementation differences remain `DRIFT` | no winner is silently selected |
+| Accepted conflict bounded | only incompatible accepted assertions conflict | implementation drift is not mislabeled |
+| Authority ceiling | all receipts have `authority=false` | repository claim cannot create `required` |
+| Deterministic replay | source universe and proof bundle reproduce byte-for-byte | output drift fails comparison |
+| Artifact integrity | copied source files and generated evidence are digest-bound | one-byte mutation rejects |
 
-## UNKNOWN checkpoint
-
-A missing field or omitted local source is returned with:
+## Claim ceiling
 
 ```text
-packageId
-field
-searchedExactRefs
-observedClaims
-whyNoneCanBePromoted
-requiredAuthorityDecision
-resumeInput
+REPOSITORY_LOCAL_SOURCE_DISCOVERY_NOT_ORGANIZATION_MEANING
+REPOSITORY_LOCAL_CLAIM_NOT_ORGANIZATION_REQUIREMENT
+PACKAGE_SOURCE_UNIVERSE_CLOSED_NOT_ORGANIZATION_ADMISSION
 ```
 
-`UNKNOWN=0` means that all mandatory fields have at least one exact source-bound assertion and all detected explicit local sources were collected. It does not mean all claims agree, nor that the organization requires the package. Differences remain in `drift-findings.json`.
+`UNKNOWN=0` means every mandatory field has a source and every discovered local source is represented. It does not mean claims agree, that every package is required, or that Phase 2 is independently closed.
