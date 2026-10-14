@@ -1,56 +1,82 @@
-# Phase 3 — one source identity, two actual consumers
+# Phase 3 — exact selection boundary and two semantic consumers
 
-Phase 3 projects the already closed Phase 2 evidence into two different existing consumer contracts without creating a second authority:
-
-1. `ui.contractModelAtlas.view.v1`, validated by the pinned UI core-port consumer and rendered through the existing Ops `package-architecture-map` viewer;
-2. `atlas.purpose-closure/1`, consumed by the pinned Apps `reduceClosure` implementation and its file CLI.
-
-The consumers do not share one schema. They share only the exact source-identity set and digest.
+Phase 3 projects closed Phase 2 Package evidence into two existing consumer contracts while keeping compiler selection context outside Package Purpose semantics.
 
 ## Boundary
 
 ```text
-AcceptedSource
-  = Phase1.accepted current
-  + Phase2.relation-valid assertions
+SelectionEvidence
+  = exact Phase 1 selection + AC0 + AC1 + BC1 packets
 
-ProjectionSourceIdentity(a)
-  = sourceRef + assertion digest
+SemanticEvidence
+  = Phase 2 relation-valid Package field assertions
+
+CompilerContext
+  = selected AC1 identity shown in UI only
 
 UiProjection
-  = UiProjector(AcceptedSource)
-  |> ui.assertContractModelAtlasView
-  |> package-architecture-map
-  |> existing static viewer
-  |> Ops serve-dist
-  |> real browser readback
+  = exact field mapping
+  + exact dependency-target provenance
+  + compiler context without semantic package edges
 
 AppsProjection
-  = AppsProjector(AcceptedSource, Phase2 DRIFT)
-  |> apps.reduceClosure
-  |> apps/reduce.mjs file consumer
-
-SameSource
-  = sourceSet(UiProjection) = sourceSet(AppsProjection)
-  ∧ digest(sourceSet(UiProjection)) = digest(sourceSet(AppsProjection))
+  = source-supported Package Purpose labels
+  + no invented Purpose parent
+  + aggregate ideals preserving all 11 fields
+  + safe observation/declaration gaps
 ```
 
-`SharedAtlasUI` evidence is a separate non-authoritative snapshot document. It is not claimed as the UI view contract, Apps closure contract, runtime state, or authority.
+The three sets are not merged. Phase 1 packet identities prove selection. Phase 2 assertion identities support Package fields and relations. Compiler classification is not treated as a Package parent Purpose.
 
-## Projection rules
+## Candidate isolation
 
-| Source meaning | UI view | Apps Purpose Closure |
-|---|---|---|
-| accepted decision | decision element | root `purpose` |
-| Package purpose / all 11 fields | package element with `contractFields` | package `purpose` + canonical aggregate `ideal` |
-| Package dependency | edge or external-dependency diagnostic | retained in aggregate `ideal` |
-| implementation observation vs declaration DRIFT | visible diagnostic | `current` + `ideal` + `gap` |
-| claim-to-claim DRIFT | visible diagnostic | explicitly unprojected because no authoritative current/ideal direction |
-| explicit work | no row unless present | `fill`; not invented |
-| explicit result | no row unless present | `receipt`; not invented |
-| explicit residual | no row unless present | `residual`; not invented |
+The same projection entry consumes three distinct envelopes:
 
-All 11 Phase 2 fields remain in both projections. Unsupported DRIFT direction is counted and explained rather than hidden.
+```text
+E0 = accepted AC1 only
+E1 = accepted AC1 + exact unadmitted BC1
+E2 = accepted AC1 + alternate exact unadmitted AC0 packet
+
+Digest(E0) != Digest(E1) != Digest(E2)
+Projection(E0) = Projection(E1) = Projection(E2)
+```
+
+The alternate packet is an existing valid compiler packet, not an invented fixture. Selecting the unadmitted candidate as current is rejected before either consumer runs.
+
+The verifier repeats this from copied packet bytes and selection data. `append-invariants.json` is evidence output, not trusted input.
+
+## Semantic mapping
+
+Every Phase 2 assertion has one exact base mapping to both projections:
+
+```text
+assertion(package, field, relation, value, source)
+  -> UI package.contractFields[field][index]
+  -> Apps ideal:package:<package>.value[field][index]
+```
+
+Additional mappings are allowed only when the source supports that exact meaning:
+
+```text
+Purpose label
+  <- only purpose assertions whose value equals the chosen label
+
+Dependency edge A -> B
+  <- only dependency assertions whose value actually contains B
+```
+
+`projection-mapping.jsonl` records the field/relation-specific mapping. `mapping-coverage.json` is derived from those rows and actual projections. It is not populated with a fixed empty list.
+
+## Purpose boundary
+
+Package Purpose nodes have no parent unless the source declares one. The bounded compiler choice `extend_existing` remains a UI context and is not emitted as an Apps Purpose.
+
+```text
+PackagePurpose.parents = []  when no source parent exists
+CompilerContext -/-> PackagePurpose
+```
+
+Changing AC0 to AC1 changes only compiler-context UI paths. The Apps semantic projection remains unchanged because the compiler experiment did not rewrite Package purpose evidence.
 
 ## Completed tree
 
@@ -63,8 +89,7 @@ roccho-org/ops
     ├── PHASE2.md
     ├── PHASE3.md
     ├── README.md
-    ├── bin/
-    │   └── ops-package-contract-bridge.mjs
+    ├── bin/ops-package-contract-bridge.mjs
     ├── src/
     │   ├── phase2.mjs
     │   ├── phase2-v4.mjs
@@ -80,7 +105,7 @@ roccho-org/ops
         └── phase3.mjs
 ```
 
-Finite evidence:
+Finite Phase 3 evidence includes:
 
 ```text
 contract-632-phase3-bundle/
@@ -91,15 +116,12 @@ contract-632-phase3-bundle/
 ├── browser.png
 ├── apps-cli-receipt.json
 ├── apps-cli-reduced.jsonl
-├── served-latest.mmd
 └── proof/
     ├── ui.contract-model-atlas.view.json
-    ├── ui.contract-model-atlas.data-row.json
-    ├── ui-consumer-receipt.json
     ├── package-architecture.inventory.json
     ├── apps.atlas-purpose-closure.input.jsonl
     ├── apps.atlas-purpose-closure.reduced.jsonl
-    ├── shared-atlas-ui-snapshots.jsonl
+    ├── projection-mapping.jsonl
     ├── mapping-coverage.json
     ├── append-invariants.json
     ├── phase3-destructive-results.json
@@ -112,74 +134,91 @@ contract-632-phase3-bundle/
 ## Completion equation
 
 ```text
+CandidateBoundaryClosed
+  = three distinct envelope digests
+  ∧ accepted projection bytes equal
+  ∧ candidate misselection rejected
+  ∧ verifier recomputes from packet bytes
+
+MappingClosed
+  = every Phase 2 assertion mapped to UI field and Apps ideal field
+  ∧ every dependency edge source declares that exact target
+  ∧ every Purpose label source supports that exact label
+  ∧ unmapped Package fields = 0
+  ∧ unexpected source attribution = 0
+
+PurposeBoundaryClosed
+  = no compiler decision Purpose
+  ∧ no compiler-context semantic edge
+  ∧ no unsupported Package Purpose parent
+
 Phase3ReadyForReview
-  = PhaseClosed(1,v2)
-  ∧ PhaseClosed(2,v5)
-  ∧ UI actual validator PASS
-  ∧ Apps actual reducer PASS
-  ∧ Apps file CLI output = in-process reducer output
-  ∧ SameSource
-  ∧ all mandatory fields mapped
-  ∧ unadmitted candidate leaves accepted projections unchanged
-  ∧ accepted source change changes corresponding projection locations
-  ∧ Fill = Receipt = Residual = 0 unless explicit records exist
-  ∧ existing viewer served by Ops serve-dist
-  ∧ real browser renders SVG and reads exact accepted decision/package labels
+  = CandidateBoundaryClosed
+  ∧ MappingClosed
+  ∧ PurposeBoundaryClosed
+  ∧ actual UI validator PASS
+  ∧ actual Apps reducer and file CLI PASS
+  ∧ existing viewer served and read in a real browser
+  ∧ deterministic bundle
   ∧ authority = false
 ```
 
-`Phase3ReadyForReview != PhaseClosed`. R and P must judge the same head/run/artifact.
+`Phase3ReadyForReview != PhaseClosed`. R and P must judge the same exact head, run, and artifact.
 
 ## Validation matrix
 
 | Requirement | Positive evidence | Safe failure |
 |---|---|---|
-| distinct consumer contracts | UI validator and Apps reducer both execute | schema substitution rejects |
-| same source identity | exact set and digest equality | one digest mutation rejects |
-| complete UI projection | 60 Package elements retain all 11 fields | missing target or authority field rejects |
-| complete Apps input | purposes, aggregate ideals, observation/claim gaps form a closed DAG | missing purpose ref or authority=true rejects |
-| no invented closure effects | `fill=receipt=residual=0` | explicit counts must match source rows |
-| unadmitted candidate isolation | accepted UI/Apps bytes unchanged | any change blocks |
-| accepted change visibility | decision paths and Apps bytes change | no corresponding change blocks |
-| unknown relation | Phase 2 relation allow-list | unknown relation rejects |
-| actual file consumer | Apps `reduce.mjs` output byte-equals projection output | mismatch rejects |
-| actual viewer | existing package map and viewer | inventory/ref errors reject |
-| actual Ops serve/browser | localhost serve + browser DOM/screenshot receipt | no SVG/source label rejects |
-| deterministic replay | two bundle generations byte-equal | any output drift fails |
-| artifact integrity | manifest binds all files | one-byte mutation rejects |
+| actual candidate path | E1 contains exact BC1 bytes and differs from E0 | candidate packet/digest mismatch rejects |
+| changed unadmitted candidate | E2 uses exact AC0 as alternate candidate | candidate changes accepted projection blocks |
+| no self-admission | selected identity remains AC1 | selecting BC1 rejects |
+| exact field mapping | 1 mapping per Phase 2 assertion | one mapping omission rejects |
+| exact dependency provenance | edge sources contain target value | unrelated dependency source rejects |
+| exact Purpose provenance | label sources equal chosen purpose value | unrelated Purpose source rejects |
+| no invented hierarchy | Package Purpose parents empty when undeclared | compiler decision parent is absent |
+| semantic source parity | UI and Apps sets equal all Phase 2 assertions | digest/set mismatch rejects |
+| no invented closure effects | Fill/Receipt/Residual are zero | unsupported records reject |
+| deterministic replay | two builds byte-equal | output drift fails |
+| artifact integrity | manifest binds every file | one-byte mutation rejects |
+
+## Destructive set
+
+```text
+candidate misselection                 -> REJECTED
+unrelated dependency source            -> REJECTED
+unrelated Purpose source               -> REJECTED
+field/relation mapping omission        -> REJECTED
+cross-projection source digest mismatch-> REJECTED
+unknown relation                       -> REJECTED
+UI missing edge target                 -> REJECTED
+UI forbidden authority field           -> REJECTED
+Apps authority=true                    -> REJECTED
+Apps missing Purpose reference         -> REJECTED
+```
 
 ## Closure process
 
 ```mermaid
 flowchart TB
-  P2["PhaseClosed 2 v5"] --> SRC["same accepted source identity"]
-
-  subgraph UI["UI consumer"]
-    UV["ui.contractModelAtlas.view.v1"] --> UC["actual UI validator"]
-    UC --> MAP["existing package-architecture-map"]
-    MAP --> SERVE["Ops serve-dist"]
-    SERVE --> BROWSER["real browser readback"]
-  end
-
-  subgraph APPS["Apps consumer"]
-    AI["atlas.purpose-closure/1"] --> AR["actual reduceClosure"]
-    AR --> CLI["actual reduce.mjs file consumer"]
-  end
-
-  SRC --> UV
-  SRC --> AI
-  UV --> SAME{"same source set + digest?"}
-  AI --> SAME
-  SAME -->|NO| FIX["W fixes Phase 3"]
-  SAME -->|YES| ART["content-addressed evidence bundle"]
-  BROWSER --> ART
-  CLI --> ART
+  P2["PhaseClosed 2 v5"] --> S["exact Phase 2 semantic assertions"]
+  P1["AC0 / AC1 / BC1 + selector"] --> E["selection envelopes E0 / E1 / E2"]
+  E --> C{"AC1 remains selected?"}
+  C -->|NO| X["reject candidate self-admission"]
+  C -->|YES| UI["UI field + exact dependency projection"]
+  C -->|YES| APPS["Apps Purpose + ideal + safe gaps"]
+  S --> UI
+  S --> APPS
+  UI --> M["derive projection-mapping.jsonl"]
+  APPS --> M
+  M --> V{"exact mapping and source parity?"}
+  V -->|NO| FIX["W fixes Phase 3"]
+  V -->|YES| B["existing viewer + browser readback"]
+  B --> ART["content-addressed evidence bundle"]
   ART --> R{"R same-version verdict"}
   R -->|BLOCK| FIX
   R -->|GO| P{"P same-version verdict"}
   P -->|BLOCK| FIX
   P -->|GO| CLOSED["PhaseClosed 3 vN"]
-  CLOSED --> P4["Phase 4 self-diff + existing final consumer"]
 ```
 
 ## Claim ceiling
@@ -188,4 +227,4 @@ flowchart TB
 PACKAGE_PROJECTIONS_CONSUMED_NOT_ORGANIZATION_ADMISSION
 ```
 
-This phase does not select accepted Current, resolve DRIFT winners, change Gate scope, migrate Apps, merge the PR, publish a Gov Release, or adopt operational state.
+This phase does not resolve Package claim winners, infer missing Purpose ancestry, change Governance Gate scope, transfer Apps ownership, start Phase 4, merge the PR, publish a Gov Release, or adopt operational state.

@@ -83,22 +83,46 @@ See [`PHASE2.md`](./PHASE2.md) for the dirtree, equations, validation matrix, an
 
 ## Phase 3 current path
 
-Phase 3 consumes the same accepted source identity through two different existing contracts:
+Phase 3 keeps three different meanings separate:
+
+```text
+selection boundary
+  = AC1 remains selected while real BC1 or another unadmitted packet is present
+
+semantic source set
+  = Phase 2 relation-valid Package field assertions only
+
+compiler context
+  = UI context only; it is not an Apps Purpose parent
+```
+
+The same semantic source set is projected through two different existing contracts:
 
 ```text
 Phase 2 relation-valid evidence
 ├─ ui.contractModelAtlas.view.v1
-│  └─ actual UI validator
-│     └─ existing package-architecture-map viewer
-│        └─ serve-dist + real browser readback
+│  ├─ exact field rows
+│  ├─ dependency edges with target-specific sources only
+│  └─ actual UI validator → existing package map/viewer → browser readback
 └─ atlas.purpose-closure/1
-   └─ actual Apps reduceClosure
-      └─ actual Apps file CLI
+   ├─ Package Purpose nodes with source-supported labels and no invented parent
+   ├─ aggregate Package ideals preserving all 11 fields
+   └─ actual Apps reducer + file CLI
 ```
 
-The UI and Apps schemas remain separate. Their source-identity sets and digests must be equal. All 11 Package fields are retained in both projections. Observation-to-claim DRIFT becomes Apps `current` / `ideal` / `gap`; claim-to-claim DRIFT remains visible in UI diagnostics because no authoritative direction exists. Fill, Receipt, and Residual are never invented.
+The UI and Apps schemas remain separate. Their **semantic** source-identity sets and digests must equal the Phase 2 assertion set. Phase 1 packet identities are bound separately in the append proof and never padded into field, edge, or Purpose provenance.
 
-An unadmitted candidate must leave accepted projections byte-identical. An accepted source change must change the corresponding decision locations in both projections.
+All 11 Package fields are retained in both projections. Observation-to-claim DRIFT becomes Apps `current` / `ideal` / `gap`; claim-to-claim DRIFT remains visible in UI diagnostics because no authoritative direction exists. Fill, Receipt, and Residual are never invented.
+
+Candidate isolation is recomputed from copied AC0/AC1/BC1 packets and selection data:
+
+```text
+Projection(AC1) = Projection(AC1 + BC1)
+Projection(AC1) = Projection(AC1 + alternate unadmitted AC0 packet)
+select(BC1 as current) = REJECTED
+```
+
+A change from AC0 to AC1 changes only compiler-context UI locations. It does not rewrite Package Purpose semantics or Apps closure records.
 
 ```text
 phase 3 ceiling = PACKAGE_PROJECTIONS_CONSUMED_NOT_ORGANIZATION_ADMISSION
@@ -137,6 +161,6 @@ ops-package-contract-bridge serve-dist --dir <dist> [--host 127.0.0.1] [--port 4
 
 `build-phase2-v5` reuses the bounded v4 local-source stage, normalizes all combined relations, excludes relation-invalid assertions from coverage, runs destructive controls, and produces a deterministic finite bundle. `verify-phase2-v5` reconstructs the same relation partition and rejects source, support, digest, coverage, authority, omission, or destructive-proof drift.
 
-`build-phase3` imports the exact pinned UI and Apps consumers, produces their separate projections, invokes the existing package map, proves append invariants, and emits a deterministic finite bundle. `verify-phase3` replays the copied consumers and rejects projection, source-identity, mapping, append-boundary, or artifact drift. The Phase 3 workflow additionally runs the actual Apps file consumer and the existing viewer in a real browser through `serve-dist`.
+`build-phase3` imports the exact pinned UI and Apps consumers, processes real accepted/candidate packet envelopes, produces separate semantic projections, derives field/relation mapping rows, invokes the existing package map, and emits a deterministic finite bundle. `verify-phase3` reconstructs the envelope and projections from copied packets, selection, assertions, and consumers; it rejects candidate misselection, overbroad provenance, mapping omission, projection drift, or artifact mutation instead of trusting stored booleans.
 
 The Phase 1/2 workflow and the Phase 3 workflow publish separate exact-head evidence. Superseded results remain reproducible from immutable commits and stored artifacts rather than parallel authority implementations.
