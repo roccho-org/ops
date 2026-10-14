@@ -40,14 +40,18 @@ try {
     opsCandidateSha: candidateSha,
     outDir: run2,
   });
+
   assert.equal(first.status, 'PASS');
   assert.equal(first.phaseClosed, false);
   assert.equal(first.authority, false);
   assert.equal(first.packageCount, directPackageDirs(repoRoot).length);
   assert.equal(first.unknownCount, 0);
   assert.equal(first.conflictCount, 0);
+  assert.equal(first.localSourceOmissionCount, 0);
   assert.equal(first.packageCount * 11, first.fieldCount);
-  assert.equal(first.sharedResponsibilityConflict, false);
+  assert.equal(first.driftVisibilityControl, true);
+  assert.ok(first.assertionCount > first.fieldCount);
+  assert.ok(first.localSourceCount > 0);
 
   const firstFiles = files(run1);
   assert.deepEqual(firstFiles, files(run2));
@@ -59,21 +63,35 @@ try {
     );
   }
 
-  const claims = fs.readFileSync(path.join(run1, 'implementation-claims.jsonl'), 'utf8')
+  const assertions = fs.readFileSync(path.join(run1, 'source-assertions.jsonl'), 'utf8')
     .trim().split(/\n/u).map(JSON.parse);
-  assert.equal(claims.some((row) => row.packageId === 'ops-package-contract-bridge'), true);
-  assert.equal(claims.every((row) => row.sourceClass === 'implementation_claim'), true);
-  assert.equal(claims.every((row) => row.position !== 'required'), true);
+  assert.equal(assertions.some((row) => row.packageId === 'ops-package-contract-bridge'), true);
+  assert.equal(assertions.every((row) => /^[0-9a-f]{64}$/u.test(row.sourceDigest)), true);
+  assert.equal(assertions.every((row) => /^[0-9a-f]{64}$/u.test(row.sourceFileDigest)), true);
+  assert.equal(assertions.every((row) => row.applicability?.path), true);
+  assert.equal(assertions.some((row) => row.sourceRef.includes('#/packages/')), true);
+  assert.equal(assertions.some((row) => row.sourceRef.includes('default.nix#ops.packageImplementationMetadata.v1')), true);
+  assert.equal(assertions.some((row) => row.sourceRef.startsWith('build/packages.jsonl#L')), true);
+  assert.equal(assertions.some((row) => row.sourceClass === 'derived_claim' && row.field === 'responsibility'), true);
+  assert.equal(assertions.some((row) => row.field === 'position' && row.value === 'required'), false);
 
-  fs.appendFileSync(path.join(run1, 'package-field-coverage.jsonl'), ' ');
+  const drifts = JSON.parse(fs.readFileSync(path.join(run1, 'drift-findings.json'), 'utf8'));
+  assert.equal(Array.isArray(drifts.findings), true);
+  const omissions = JSON.parse(fs.readFileSync(path.join(run1, 'local-source-omissions.json'), 'utf8'));
+  assert.deepEqual(omissions.findings, []);
+
+  fs.appendFileSync(path.join(run1, 'source-assertions.jsonl'), ' ');
   assert.throws(() => verifyPhase2Bundle(run1), /artifact digest mismatch/u);
 
   process.stdout.write(`${JSON.stringify({
-    kind: 'ops.packageContractBridge.phase2UnitReceipt.v1',
+    kind: 'ops.packageContractBridge.phase2UnitReceipt.v2',
     status: 'PASS',
     authority: false,
     packageCount: first.packageCount,
     fieldCount: first.fieldCount,
+    assertionCount: first.assertionCount,
+    localSourceCount: first.localSourceCount,
+    driftCount: first.driftCount,
     destructiveSafe: first.destructiveSafe,
   })}\n`);
 } finally {
