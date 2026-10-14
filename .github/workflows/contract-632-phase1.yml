@@ -6,6 +6,7 @@ on:
       - '.github/workflows/contract-632-phase1.yml'
       - 'governance/contract-632-phase1-selector.v1.json'
       - 'tools/contract-632-phase1-proof.py'
+      - 'tools/contract-632-phase2-source-universe.nix'
       - 'packages/ops-package-contract-bridge/**'
       - 'flake.nix'
       - 'flake.lock'
@@ -113,7 +114,7 @@ jobs:
 
   phase2-bundle:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -136,15 +137,22 @@ jobs:
 
           work="$RUNNER_TEMP/contract-632-phase2"
           mkdir -p "$work"
-          node packages/ops-package-contract-bridge/tests/phase2.mjs > "$work/unit-receipt.json"
+          nix eval --json --file tools/contract-632-phase2-source-universe.nix > "$work/source-universe-1.json"
+          nix eval --json --file tools/contract-632-phase2-source-universe.nix > "$work/source-universe-2.json"
+          cmp "$work/source-universe-1.json" "$work/source-universe-2.json"
+          node packages/ops-package-contract-bridge/tests/phase2-universe.mjs \
+            "$work/source-universe-1.json" > "$work/unit-receipt.json"
           jq -e '.status == "PASS" and .authority == false' "$work/unit-receipt.json" >/dev/null
-          "$bridge/bin/ops-package-contract-bridge" build-phase2 \
+
+          "$bridge/bin/ops-package-contract-bridge" build-phase2-v3 \
             --ops-source "$PWD" \
             --ops-candidate-sha "$EXPECTED_SHA" \
+            --local-source-universe "$work/source-universe-1.json" \
             --out "$work/run1" > "$work/run1-build.json"
-          "$bridge/bin/ops-package-contract-bridge" build-phase2 \
+          "$bridge/bin/ops-package-contract-bridge" build-phase2-v3 \
             --ops-source "$PWD" \
             --ops-candidate-sha "$EXPECTED_SHA" \
+            --local-source-universe "$work/source-universe-1.json" \
             --out "$work/run2" > "$work/run2-build.json"
           diff -r "$work/run1" "$work/run2"
           cmp "$work/run1-build.json" "$work/run2-build.json"
@@ -153,7 +161,7 @@ jobs:
           mkdir -p "$root/proof"
           cp "$work/unit-receipt.json" "$root/unit-receipt.json"
           cp -R "$work/run1/." "$root/proof/"
-          "$bridge/bin/ops-package-contract-bridge" verify-phase2 "$root/proof" > "$root/workflow-readback.json"
+          "$bridge/bin/ops-package-contract-bridge" verify-phase2-v3 "$root/proof" > "$root/workflow-readback.json"
 
           jq -n \
             --arg repository "$GITHUB_REPOSITORY" \
@@ -164,14 +172,14 @@ jobs:
             --arg runAttempt "$GITHUB_RUN_ATTEMPT" \
             --arg nodeVersion "$(node --version)" \
             --arg unitReceiptSha256 "$(sha256sum "$root/unit-receipt.json" | cut -d' ' -f1)" \
-            --arg claimSourceSha256 "$(sha256sum packages/ops-package-contract-bridge/contract/phase2-package-claims.v1.json | cut -d' ' -f1)" \
-            --arg proofReceiptSha256 "$(sha256sum "$root/proof/phase2-receipt.json" | cut -d' ' -f1)" \
-            --arg proofVerificationSha256 "$(sha256sum "$root/proof/phase2-verification.json" | cut -d' ' -f1)" \
+            --arg localSourceUniverseSha256 "$(sha256sum "$root/proof/local-source-universe.json" | cut -d' ' -f1)" \
+            --arg proofReceiptSha256 "$(sha256sum "$root/proof/phase2-v3-receipt.json" | cut -d' ' -f1)" \
+            --arg proofVerificationSha256 "$(sha256sum "$root/proof/phase2-v3-verification.json" | cut -d' ' -f1)" \
             --arg workflowReadbackSha256 "$(sha256sum "$root/workflow-readback.json" | cut -d' ' -f1)" \
             '{
-              schema: "ops.contract632.phase2ArtifactProvenance.v1",
+              schema: "ops.contract632.phase2ArtifactProvenance.v3",
               authority: false,
-              claim: "PACKAGE_PURPOSE_COVERAGE_PROVEN_NOT_ORGANIZATION_ADMISSION",
+              claim: "PACKAGE_SOURCE_UNIVERSE_CLOSED_NOT_ORGANIZATION_ADMISSION",
               producer: {
                 repository: $repository,
                 workflowRef: $workflowRef,
@@ -181,7 +189,7 @@ jobs:
               source: {
                 commit: $commit,
                 tree: $tree,
-                claimSourceSha256: $claimSourceSha256
+                localSourceUniverseSha256: $localSourceUniverseSha256
               },
               testRuntime: {
                 nodeVersion: $nodeVersion,
@@ -201,10 +209,19 @@ jobs:
           mv "$manifest" "$root/bundle-manifest.json"
           manifest_digest="$(sha256sum "$root/bundle-manifest.json" | cut -d' ' -f1)"
           package_count="$(jq -r '.packageCount' "$root/workflow-readback.json")"
-          field_count="$(jq -r '.fieldCount' "$root/workflow-readback.json")"
-          printf 'tree=%s\nmanifest_sha256=%s\npackage_count=%s\nfield_count=%s\n' \
-            "$tree" "$manifest_digest" "$package_count" "$field_count" >> "$GITHUB_OUTPUT"
-          jq -e '.status == "PASS" and .phaseClosed == false and .authority == false and .unknownCount == 0 and .conflictCount == 0' \
+          semantic_source_count="$(jq -r '.semanticSourceCount' "$root/workflow-readback.json")"
+          assertion_count="$(jq -r '.combinedAssertionCount' "$root/workflow-readback.json")"
+          printf 'tree=%s\nmanifest_sha256=%s\npackage_count=%s\nsemantic_source_count=%s\nassertion_count=%s\n' \
+            "$tree" "$manifest_digest" "$package_count" "$semantic_source_count" "$assertion_count" >> "$GITHUB_OUTPUT"
+          jq -e '.status == "PASS"
+            and .phaseClosed == false
+            and .authority == false
+            and .unknownCount == 0
+            and .conflictCount == 0
+            and .omissionCount == 0
+            and .sourceUniverseFindingCount == 0
+            and .billingLocalAssertionCount > 0
+            and .functionalCoreLocalAssertionCount > 0' \
             "$root/workflow-readback.json" >/dev/null
       - name: Upload exact Phase 2 bundle
         id: upload
@@ -222,7 +239,8 @@ jobs:
           SOURCE_TREE: ${{ steps.bundle.outputs.tree }}
           MANIFEST_SHA256: ${{ steps.bundle.outputs.manifest_sha256 }}
           PACKAGE_COUNT: ${{ steps.bundle.outputs.package_count }}
-          FIELD_COUNT: ${{ steps.bundle.outputs.field_count }}
+          SEMANTIC_SOURCE_COUNT: ${{ steps.bundle.outputs.semantic_source_count }}
+          ASSERTION_COUNT: ${{ steps.bundle.outputs.assertion_count }}
         run: |
           set -euo pipefail
           test -n "$ARTIFACT_ID"
@@ -231,7 +249,7 @@ jobs:
           [[ "$SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
           [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
           [[ "$PACKAGE_COUNT" =~ ^[1-9][0-9]*$ ]]
-          [[ "$FIELD_COUNT" =~ ^[1-9][0-9]*$ ]]
-          test "$FIELD_COUNT" -eq $((PACKAGE_COUNT * 11))
-          printf 'contract_632_phase2 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s packages=%s fields=%s\n' \
-            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256" "$PACKAGE_COUNT" "$FIELD_COUNT"
+          [[ "$SEMANTIC_SOURCE_COUNT" =~ ^[1-9][0-9]*$ ]]
+          [[ "$ASSERTION_COUNT" =~ ^[1-9][0-9]*$ ]]
+          printf 'contract_632_phase2 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s packages=%s semantic_sources=%s assertions=%s\n' \
+            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256" "$PACKAGE_COUNT" "$SEMANTIC_SOURCE_COUNT" "$ASSERTION_COUNT"
