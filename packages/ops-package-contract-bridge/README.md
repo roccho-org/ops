@@ -1,6 +1,6 @@
 # ops-package-contract-bridge
 
-A thin, non-authoritative bridge for ADRS #632. It binds exact sources, repository claims, observations, source relations, and receipts without compiling organization meaning.
+A thin, non-authoritative bridge for ADRS #632. It binds exact sources, repository claims, observations, source relations, consumer projections, and receipts without compiling organization meaning.
 
 ```text
 AcceptedCurrentPacket = existing Governance compiler(accepted source, policy, admitted input)
@@ -81,6 +81,31 @@ phase 2 v5 ceiling  = PACKAGE_COMBINED_SOURCE_RELATIONS_CLOSED_NOT_ORGANIZATION_
 
 See [`PHASE2.md`](./PHASE2.md) for the dirtree, equations, validation matrix, and closure graph.
 
+## Phase 3 current path
+
+Phase 3 consumes the same accepted source identity through two different existing contracts:
+
+```text
+Phase 2 relation-valid evidence
+├─ ui.contractModelAtlas.view.v1
+│  └─ actual UI validator
+│     └─ existing package-architecture-map viewer
+│        └─ serve-dist + real browser readback
+└─ atlas.purpose-closure/1
+   └─ actual Apps reduceClosure
+      └─ actual Apps file CLI
+```
+
+The UI and Apps schemas remain separate. Their source-identity sets and digests must be equal. All 11 Package fields are retained in both projections. Observation-to-claim DRIFT becomes Apps `current` / `ideal` / `gap`; claim-to-claim DRIFT remains visible in UI diagnostics because no authoritative direction exists. Fill, Receipt, and Residual are never invented.
+
+An unadmitted candidate must leave accepted projections byte-identical. An accepted source change must change the corresponding decision locations in both projections.
+
+```text
+phase 3 ceiling = PACKAGE_PROJECTIONS_CONSUMED_NOT_ORGANIZATION_ADMISSION
+```
+
+See [`PHASE3.md`](./PHASE3.md) for the completed tree, equations, validation matrix, and closure process graph.
+
 ## Use
 
 ```text
@@ -93,8 +118,25 @@ ops-package-contract-bridge build-phase2-v5 \
   --out <output directory>
 
 ops-package-contract-bridge verify-phase2-v5 <bundle-dir>
+
+ops-package-contract-bridge build-phase3 \
+  --phase1-bundle <dir> \
+  --phase2-bundle <dir> \
+  --ui-source <pinned ui checkout> \
+  --apps-source <pinned apps checkout> \
+  --ui-revision <sha> \
+  --apps-revision <sha> \
+  --package-map-command <file> \
+  --package-map-viewer <file> \
+  --ops-candidate-sha <sha> \
+  --out <dir>
+
+ops-package-contract-bridge verify-phase3 <bundle-dir>
+ops-package-contract-bridge serve-dist --dir <dist> [--host 127.0.0.1] [--port 4173]
 ```
 
 `build-phase2-v5` reuses the bounded v4 local-source stage, normalizes all combined relations, excludes relation-invalid assertions from coverage, runs destructive controls, and produces a deterministic finite bundle. `verify-phase2-v5` reconstructs the same relation partition and rejects source, support, digest, coverage, authority, omission, or destructive-proof drift.
 
-The single workflow `.github/workflows/contract-632-phase1.yml` runs the Phase 1 regression and the current Phase 2 v5 proof. Superseded results remain reproducible from immutable commits and stored artifacts rather than parallel live implementations.
+`build-phase3` imports the exact pinned UI and Apps consumers, produces their separate projections, invokes the existing package map, proves append invariants, and emits a deterministic finite bundle. `verify-phase3` replays the copied consumers and rejects projection, source-identity, mapping, append-boundary, or artifact drift. The Phase 3 workflow additionally runs the actual Apps file consumer and the existing viewer in a real browser through `serve-dist`.
+
+The Phase 1/2 workflow and the Phase 3 workflow publish separate exact-head evidence. Superseded results remain reproducible from immutable commits and stored artifacts rather than parallel authority implementations.
