@@ -156,20 +156,25 @@ function planStageReceipt(log) {
   return { plan: p };
 }
 
-// Each step's `with:` block, as {repository, ref} (null when absent), read by indentation; nothing else is interpreted.
+// Each step's `with:` block, as {uses, repository, ref} (null when absent), read by indentation, plus the number of
+// `actions/checkout` steps. Nothing else is interpreted.
 function withBlocks(workflow) {
   const lines = workflow.split(/\r?\n/), blocks = [];
+  let uses = null, checkouts = 0;
   for (let i = 0; i < lines.length; i++) {
+    if (/^\s*-\s/.test(lines[i])) uses = null;
+    const step = /^\s*(?:-\s+)?uses:\s*(\S+)\s*$/.exec(lines[i]);
+    if (step) { uses = step[1]; if (uses.startsWith('actions/checkout@')) checkouts++; }
     const open = /^(\s*)with:\s*$/.exec(lines[i]);
     if (!open) continue;
-    const block = { repository: null, ref: null };
+    const block = { uses, repository: null, ref: null };
     for (let j = i + 1; j < lines.length && (!lines[j].trim() || /^\s*/.exec(lines[j])[0].length > open[1].length); j++) {
       const kv = /^\s*(repository|ref):\s*(\S+)\s*$/.exec(lines[j]);
       if (kv) block[kv[1]] = kv[2];
     }
     blocks.push(block);
   }
-  return blocks;
+  return { blocks, checkouts };
 }
 
 // N-a: the expected old-literal origin is derived only when four observations agree: the approved posting response,
@@ -199,10 +204,14 @@ export function expectedOrigin({ approved, postingResponse, commandReceipt, runR
   if (workflowReceipt.url !== `https://raw.githubusercontent.com/${approved.repository}/${run.head_sha}/${approved.workflowPath}`) return hold('WORKFLOW_NOT_AT_RUN_HEAD');
   // The checkout pin counts only inside a with: block that checks out the approved repository; any other
   // checkout repository, or a ref pin without one, is not the approved runtime.
-  const blocks = withBlocks(workflowReceipt.content);
+  const { blocks, checkouts } = withBlocks(workflowReceipt.content);
   if (blocks.some(b => b.repository !== null && b.repository !== approved.repository) || blocks.some(b => b.ref !== null && b.repository === null)) {
     return hold('CHECKOUT_REPOSITORY_MISMATCH');
   }
+  // Exactly one checkout step, and it is the pinned one: any further checkout (with or without with:, any path)
+  // could replace the pinned runtime bytes in the workspace with a mutable ref.
+  const pinned = blocks.filter(b => b.ref !== null);
+  if (checkouts !== 1 || pinned.length !== 1 || !pinned[0].uses?.startsWith('actions/checkout@')) return hold('CHECKOUT_STEP_MISMATCH');
   const pins = [...blocks.filter(b => b.ref !== null).map(b => b.ref),
     ...[...workflowReceipt.content.matchAll(/^\s*runtime_source=(\S+)\s*$/gm)].map(m => m[1])];
   if (pins.length !== 2 || pins.some(pin => pin !== approved.runtimeSource)) return hold('RUNTIME_PIN_MISMATCH');

@@ -334,6 +334,26 @@ test('the workflow must be the approved repository file at the run head, checked
   assert.equal((await originOf({ log: planLog(planLine({ requestDigest: undefined })) })).cause, 'PLAN_RECEIPT_NOT_PLANNED');
 });
 
+test('the pinned checkout must be the only checkout step in the workflow (R-A6)', async () => {
+  const checkout = /^(\s*)- uses: (actions\/checkout@\S+)\s*$/m.exec(WORKFLOW);
+  assert.ok(checkout, 'the repository workflow has a checkout step');
+  const [, indent, action] = checkout;
+  // Insert one more step right after the pinned checkout's with: block.
+  const after = text => WORKFLOW.replace(/persist-credentials: false\r?\n/, m => m + text);
+  const variants = {
+    bareCheckout: after(`\n${indent}- uses: ${action}\n`),
+    checkoutToOtherPath: after(`\n${indent}- uses: ${action}\n${indent}  with:\n${indent}    path: other\n`),
+    secondPinnedCheckout: after(`\n${indent}- uses: ${action}\n${indent}  with:\n${indent}    repository: ${REPO}\n${indent}    ref: ${SHA}\n${indent}    path: copy\n`),
+    pinOnNonCheckoutStep: WORKFLOW.replace(`- uses: ${action}`, '- uses: other/fetch@v1'),
+  };
+  for (const [name, workflow] of Object.entries(variants)) {
+    assert.notEqual(workflow, WORKFLOW, name);
+    const out = await originOf({ workflow });
+    assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'expected')], ['HOLD', 'CHECKOUT_STEP_MISMATCH', false], name);
+  }
+  assert.equal((await originOf()).status, 'BOUND', 'the unmodified repository workflow still binds');
+});
+
 test('missing, mismatched or self-declared origin evidence holds instead of binding (N-a)', async () => {
   const other = planLine({ commentId: 4243 });
   const cases = [
