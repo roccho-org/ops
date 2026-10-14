@@ -5,10 +5,6 @@ import {
   verifyPhase2Bundle,
 } from '../src/phase2.mjs';
 import {
-  buildPhase2V3Bundle,
-  verifyPhase2V3Bundle,
-} from '../src/phase2-universe.mjs';
-import {
   buildPhase2V4Bundle,
   verifyPhase2V4Bundle,
 } from '../src/phase2-v4.mjs';
@@ -23,8 +19,6 @@ function usage() {
     '  ops-package-contract-bridge verify-phase1 BUNDLE_DIR',
     '  ops-package-contract-bridge build-phase2 --ops-source DIR --ops-candidate-sha SHA --out DIR [--repository OWNER/REPO]',
     '  ops-package-contract-bridge verify-phase2 BUNDLE_DIR',
-    '  ops-package-contract-bridge build-phase2-v3 --ops-source DIR --ops-candidate-sha SHA --local-source-universe FILE --out DIR [--repository OWNER/REPO]',
-    '  ops-package-contract-bridge verify-phase2-v3 BUNDLE_DIR',
     '  ops-package-contract-bridge build-phase2-v4 --ops-source DIR --ops-candidate-sha SHA --local-source-universe FILE --out DIR [--repository OWNER/REPO]',
     '  ops-package-contract-bridge verify-phase2-v4 BUNDLE_DIR',
     '',
@@ -63,7 +57,7 @@ function parseBuildFlags(args, sourceUniverse = false) {
 
 try {
   const [command, ...args] = process.argv.slice(2);
-  if (['verify-phase1', 'verify-phase2', 'verify-phase2-v3', 'verify-phase2-v4'].includes(command)) {
+  if (['verify-phase1', 'verify-phase2', 'verify-phase2-v4'].includes(command)) {
     if (args.length !== 1) {
       usage();
       process.exit(2);
@@ -72,12 +66,10 @@ try {
       ? verifyPhase1Bundle(args[0])
       : command === 'verify-phase2'
         ? verifyPhase2Bundle(args[0])
-        : command === 'verify-phase2-v3'
-          ? verifyPhase2V3Bundle(args[0])
-          : verifyPhase2V4Bundle(args[0]);
+        : verifyPhase2V4Bundle(args[0]);
     process.stdout.write(`${stableJson(result)}\n`);
-  } else if (['build-phase2', 'build-phase2-v3', 'build-phase2-v4'].includes(command)) {
-    const sourceUniverse = command !== 'build-phase2';
+  } else if (command === 'build-phase2' || command === 'build-phase2-v4') {
+    const sourceUniverse = command === 'build-phase2-v4';
     const values = parseBuildFlags(args, sourceUniverse);
     const common = {
       opsSource: values['--ops-source'],
@@ -85,17 +77,12 @@ try {
       outDir: values['--out'],
       repository: values['--repository'] ?? 'roccho-org/ops',
     };
-    const result = command === 'build-phase2-v3'
-      ? buildPhase2V3Bundle({
+    const result = sourceUniverse
+      ? buildPhase2V4Bundle({
         ...common,
         localSourceUniverseFile: values['--local-source-universe'],
       })
-      : command === 'build-phase2-v4'
-        ? buildPhase2V4Bundle({
-          ...common,
-          localSourceUniverseFile: values['--local-source-universe'],
-        })
-        : buildPhase2Bundle(common);
+      : buildPhase2Bundle(common);
     process.stdout.write(`${stableJson(result)}\n`);
   } else {
     usage();
