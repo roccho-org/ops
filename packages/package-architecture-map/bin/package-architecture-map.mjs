@@ -329,10 +329,10 @@ function main() {
   const indexExists = fs.existsSync(path.join(outDir, "index.html"));
   const manifest = {
     kind: "packageArchitectureMap.result.v1",
-    source: String(inventoryPath),
-    latest: path.join(outDir, "latest.mmd"),
-    named: path.join(mapsDir, `${values.name}.mmd`),
-    viewer: indexExists ? path.join(outDir, "index.html") : null,
+    source: path.basename(inventoryPath),
+    latest: "latest.mmd",
+    named: path.join("maps", `${values.name}.mmd`),
+    viewer: indexExists ? "index.html" : null,
     authority: "inventory-json",
     generatedIsAuthority: false,
   };
