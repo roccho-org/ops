@@ -36,7 +36,7 @@ function captureBlock(input) {
   let selectedText;
   try { selectedText = decoder.decode(selected); }
   catch { invalid(); }
-  if (!selectedText.length || encoder.encode(selectedText).length !== selected.length) invalid();
+  if (!selectedText.trim() || encoder.encode(selectedText).length !== selected.length) invalid();
   return {raw, selected, metadata: {ref: block.ref, revision: block.revision,
     evaluationSpan: {startByte, endByte}, text: selectedText}};
 }

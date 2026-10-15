@@ -236,7 +236,8 @@ A block is one inline original snapshot, with a half-open UTF-8 byte span.
 `startByte` and `endByte` must be safe integers on character boundaries with
 `0 <= startByte < endByte <= UTF8length(content)`. Whole content uses
 `[0, UTF8length(content)]`. Text is not normalized, reconstructed or truncated.
-Lone-surrogate replacement is refused, and leading U+FEFF is preserved.
+Lone-surrogate replacement and blank selected fragments (including whitespace
+or U+FEFF alone) are refused. Valid text, including leading U+FEFF, is preserved.
 Block order is retained and selected fragments are joined with exactly two LF
 characters.
 
