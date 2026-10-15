@@ -1,0 +1,11 @@
+[
+  {
+    "id": "preserve-decision-meaning@1",
+    "question": "Does the proposed shorter description preserve the decisions required by the source, including its conditions, responsibilities and legitimate exceptions?",
+    "criteria": {
+      "problem": "A condition, responsibility or exception necessary to preserve the source's decisions is omitted, changed or contradicted.",
+      "ok": "All source decisions, necessary conditions, responsibilities and exceptions are preserved; wording may be shorter or different.",
+      "unknown": "The source or proposed description is missing or ambiguous enough that decision preservation cannot be established."
+    }
+  }
+]
