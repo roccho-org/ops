@@ -110,11 +110,24 @@ function fidelityOf(record, envelopeSha256, ids, rendering) {
 
 // Faithful binary projection of obligation-bound questions without needs. Goal and clause text stay local:
 // the wire carries only the subject and the English predicates; a CJK Goal is kept as ref and digest.
-export function project(planValue, subject, { fidelity, englishAuxiliary, ...planLimits } = {}) {
+// `subjectRef` is the caller's declaration of which plan observation is the subject text. Nothing is inferred from
+// ref names or URLs: without it, no observation counts as carried.
+export function project(planValue, subject, { fidelity, englishAuxiliary, subjectRef, ...planLimits } = {}) {
   const value = checkPlan(planValue, planLimits);
+  const observations = new Map(value.request.observations.map(row => [row.ref, row.content]));
+  // The Goal ref is never an observation ref, so it cannot be declared as the subject either.
+  if (subjectRef !== undefined && (typeof subjectRef !== 'string' || !observations.has(subjectRef))) throw new Error('INVALID_SUBJECT_REF');
   const checks = [], mapping = [], notProjected = [];
   for (const q of value.questions) {
     if (q.needs.length) { notProjected.push({ id: q.id, reason: 'INCOMPLETE', needs: q.needs, clauseIds: q.clauseIds }); continue; }
+    // The wire carries no observation other than the subject text, so a question requiring any other supplied
+    // observation would be judged without it. It stays for a Program, the local judge or a direct route instead.
+    // Only requiredRefs are gated; basisRefs and clause sources are not a carriage declaration.
+    const notCarried = q.requiredRefs.filter(ref => ref !== subjectRef);
+    if (notCarried.length) {
+      notProjected.push({ id: q.id, reason: 'REQUIRED_CONTEXT_NOT_CARRIED', requiredRefs: q.requiredRefs, notCarried, clauseIds: q.clauseIds });
+      continue;
+    }
     if (checks.length === MAX_CHECKS) { notProjected.push({ id: q.id, reason: 'LIMIT', clauseIds: q.clauseIds }); continue; }
     checks.push({ id: q.id, axis: 'Aligned', concern: `Goal-derived question ${q.id}.`, requiredRoles: [], crossLinks: [],
       predicate: { question: problemQuestion(q), true: q.criteria.problem, false: q.criteria.ok } });
@@ -140,6 +153,9 @@ export function project(planValue, subject, { fidelity, englishAuxiliary, ...pla
   if (subject?.status !== 'VERIFIED' || !exact(subject.target, ['repository', 'number']) || !REPOSITORY.test(subject.target.repository)
     || subject.target.number !== subject.snapshot?.number) return hold(subject?.cause ?? 'REVISION_UNOBSERVED', base);
   const { snapshot, target } = subject;
+  // A declared subject observation must be the evaluated text byte for byte. Otherwise the plan's clauses and questions
+  // describe other text, so the whole case holds, even when no remaining check names the observation.
+  if (subjectRef !== undefined && observations.get(subjectRef) !== snapshot.body) return hold('SUBJECT_OBSERVATION_MISMATCH', base);
   const subjectUnit = unit({ kind: 'log-entry', ref: `https://github.com/${target.repository}/pull/${target.number}`, revision: subjectRevision(snapshot), scope: SCOPE }, snapshot.body);
   // A supplied English rendering of the subject only, bound to the whole observed body. Core v14 auxiliary() requires it
   // to be null exactly when the selected text has no CJK, so an English body takes none.

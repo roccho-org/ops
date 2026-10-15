@@ -7,7 +7,11 @@ import { RESULT_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subject
 import { semlint } from '../../packages/jev-review/semlint.mjs';
 import { planIssueCommand, PULL_REQUEST_QUERY, COMMENT_QUERY } from '../../packages/jev-review/issue-executor.mjs';
 import { plan } from './core.mjs';
-import { acquire, executorIdentitySnapshot, project, expectedOrigin, fidelityFromReview, refusalOrigin, refusalIdentitySnapshot } from './prepare.mjs';
+import { acquire, executorIdentitySnapshot, project as projectPlan, expectedOrigin, fidelityFromReview, refusalOrigin, refusalIdentitySnapshot } from './prepare.mjs';
+
+// Every fixture plan here supplies the evaluated subject text as the observation 'target' and declares it, as a caller
+// must. Tests of the declaration itself call projectPlan directly.
+const project = (value, subject, options = {}) => projectPlan(value, subject, { subjectRef: 'target', ...options });
 
 const sha256 = value => createHash('sha256').update(value, 'utf8').digest('hex');
 const repoFile = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
@@ -50,8 +54,9 @@ const clauses = [{ id: 'g-once', kind: 'obligation', ref: GOAL.ref, quote: 'Deli
 // Fixture questions are phrased in the ok direction ("satisfy") on purpose: the projection must not invert them.
 const question = (id, extra = {}) => ({ id, core: null, question: `Does the change satisfy obligation ${id}?`, criteria: rubric(), clauseIds: ['g-once'],
   basisRefs: [GOAL.ref, 'target'], requiredRefs: ['target'], needs: [], ...extra });
-const goalPlan = async (questions = [question('q1'), question('q2', { clauseIds: ['g-confirm'] })], goal = GOAL, quoted = clauses, options = {}) =>
-  plan({ goal, observations: [{ ref: 'target', content: BODY }] }, { propose: async () => ({ clauses: quoted, questions, missing: [] }), ...options });
+// `body` is the subject text the plan was built on; it must be the text later evaluated.
+const goalPlan = async (questions = [question('q1'), question('q2', { clauseIds: ['g-confirm'] })], goal = GOAL, quoted = clauses, options = {}, body = BODY) =>
+  plan({ goal, observations: [{ ref: 'target', content: body }] }, { propose: async () => ({ clauses: quoted, questions, missing: [] }), ...options });
 const faithful = out => ({ reviewRef: 'test:r-fidelity-record', envelopeSha256: out.envelopeSha256,
   verdicts: Object.fromEntries(out.checks.map(c => [c.id, 'FAITHFUL'])) });
 
@@ -217,7 +222,7 @@ test('a plan with no Core check concludes NOTHING_PROJECTED before any subject v
   assert.deepEqual([project(await goalPlan([], GOAL, []), undefined).cause], ['NEED_CLARIFICATION']);
   const projectable = await goalPlan();
   assert.deepEqual([project(projectable, undefined).cause, project(projectable, { status: 'HOLD', cause: 'INPUT_UNKNOWN' }).cause], ['REVISION_UNOBSERVED', 'INPUT_UNKNOWN']);
-  assert.equal(project(projectable, cjkSubject).status, 'UNSUPPORTED_CJK');
+  assert.equal(project(await goalPlan(undefined, GOAL, clauses, {}, cjkSubject.snapshot.body), cjkSubject).status, 'UNSUPPORTED_CJK');
 });
 
 test('a Japanese Goal stays local as ref and digest; CJK on the wire makes the whole case unsupported (C1)', async () => {
@@ -242,7 +247,7 @@ test('a Japanese Goal stays local as ref and digest; CJK on the wire makes the w
   const jaSubject = await snapshotOf({ body: jaBody, comments: [resultComment({ ...literal.identity,
     subjectRevision: literal.identity.subjectRevision.replace(sha256(BODY), sha256(jaBody)) })] });
   assert.equal(jaSubject.status, 'VERIFIED');
-  assert.equal(project(await goalPlan(), jaSubject).status, 'UNSUPPORTED_CJK');
+  assert.equal(project(await goalPlan(undefined, GOAL, clauses, {}, jaBody), jaSubject).status, 'UNSUPPORTED_CJK');
 });
 
 test('every outcome keeps unprojected clauses, off-wire qualifiers and unquoted Goal text (C6)', async () => {
@@ -528,6 +533,8 @@ const refusedOf = (options = {}) => originOf({ log: refusalLog(), bind: refusalO
 const refusalSnapshotOf = async ({ origin, body = JA_BODY, mode, prPage, target = TARGET } = {}) =>
   refusalIdentitySnapshot({ origin: origin ?? await refusedOf(), pullRequestReceipt: (await receipts({ body, mode, prPage })).pullRequestReceipt, target });
 const AUX = { text: 'Adds a retry for the delivery job.', sourceSha256: sha256(JA_BODY) };
+// A plan built on the JA subject text, with the same Goal, clauses, questions, criteria and needs as goalPlan.
+const jaGoalPlan = (questions, goal, quoted) => goalPlan(questions, goal, quoted, {}, JA_BODY);
 const wireInput = out => JSON.parse(out.envelope.slice(out.envelope.indexOf('\n') + 1)).cases[0].input;
 // Core v14 itself, given a model port that never answers: reaching the port means Core admitted the input.
 const coreAccepts = async input => { let asked = 0;
@@ -641,7 +648,7 @@ test('the refusal snapshot binds node, body and target to the public PR; drift, 
 });
 
 test('a supplied English rendering projects a CJK subject only, bound to the whole body, and keeps every local record (C1)', async () => {
-  const subject = await refusalSnapshotOf(), value = await goalPlan();
+  const subject = await refusalSnapshotOf(), value = await jaGoalPlan();
   assert.equal(project(value, subject).status, 'UNSUPPORTED_CJK', 'without a rendering a CJK subject stays unsupported');
   const out = project(value, subject, { englishAuxiliary: AUX });
   assert.equal(out.status, 'ELIGIBLE');
@@ -651,18 +658,18 @@ test('a supplied English rendering projects a CJK subject only, bound to the who
     evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(JA_BODY) }, englishAuxiliary: AUX });
   assert.deepEqual(input.context.map(c => [c.role, c.englishAuxiliary]), [['goal', null]]);
   assert.equal(await coreAccepts(input), true, 'Core v14 admits the rendered subject');
-  // Everything the wire does not carry is the same as for an English subject.
-  const english = project(value, await snapshotOf());
+  // Everything the wire does not carry is the same as for an English subject planned the same way on its own text.
+  const english = project(await goalPlan(), await snapshotOf());
   for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(out[key], english[key], key);
   assert.deepEqual([out.emittable, out.postingAuthorized], [false, false]);
   // A Japanese Goal stays local as ref and digest with its unquoted span, also beside a rendered subject.
   const ja = { ref: GOAL.ref, content: '通知は一度だけ届けること。Deliver each notification exactly once.' };
-  const jaGoal = project(await goalPlan([question('q1')], ja, [clauses[0]]), subject, { englishAuxiliary: AUX });
+  const jaGoal = project(await jaGoalPlan([question('q1')], ja, [clauses[0]]), subject, { englishAuxiliary: AUX });
   assert.deepEqual([jaGoal.status, jaGoal.goal.onWire, wireInput(jaGoal).context, jaGoal.unquotedGoalText.map(s => s.text)], ['ELIGIBLE', false, [], ['通知は一度だけ届けること。']]);
 });
 
 test('an invalid or unneeded rendering holds with every record; CJK elsewhere still refuses; the order is unchanged (C1, R3)', async () => {
-  const subject = await refusalSnapshotOf(), value = await goalPlan(), ok = project(value, subject, { englishAuxiliary: AUX });
+  const subject = await refusalSnapshotOf(), value = await jaGoalPlan(), ok = project(value, subject, { englishAuxiliary: AUX });
   for (const englishAuxiliary of [null, {}, { text: AUX.text }, { ...AUX, text: ' ' }, { ...AUX, text: '再送を追加する。' }, { ...AUX, sourceSha256: sha256(BODY) },
     { ...AUX, sourceSha256: AUX.sourceSha256.toUpperCase() }, { ...AUX, note: 'x' }, AUX.text]) {
     const out = project(value, subject, { englishAuxiliary });
@@ -671,14 +678,14 @@ test('an invalid or unneeded rendering holds with every record; CJK elsewhere st
   }
   // An English body takes no rendering. That is Core v14's rule, shown here by Core itself: it refuses an auxiliary on a
   // unit whose selected text has no CJK and requires one on a unit whose selected text has CJK.
-  const englishSubject = await snapshotOf(), bound = { text: 'Adds a retry.', sourceSha256: sha256(BODY) };
-  const unneeded = project(value, englishSubject, { englishAuxiliary: bound });
+  const englishSubject = await snapshotOf(), englishValue = await goalPlan(), bound = { text: 'Adds a retry.', sourceSha256: sha256(BODY) };
+  const unneeded = project(englishValue, englishSubject, { englishAuxiliary: bound });
   assert.deepEqual([unneeded.status, unneeded.cause, Object.hasOwn(unneeded, 'envelope'), unneeded.unprojectedClauses], ['HOLD', 'RENDERING_NOT_NEEDED', false, ok.unprojectedClauses]);
-  const plain = wireInput(project(value, englishSubject)), rendered = wireInput(ok);
+  const plain = wireInput(project(englishValue, englishSubject)), rendered = wireInput(ok);
   assert.deepEqual([await coreAccepts(plain), await coreAccepts({ ...plain, subject: { ...plain.subject, englishAuxiliary: bound } }),
     await coreAccepts({ ...rendered, subject: { ...rendered.subject, englishAuxiliary: null } })], [true, false, false]);
   // CJK outside the original subject content still makes the case unsupported.
-  for (const other of [await goalPlan([question('q1', { question: '一度だけ届くか？' })]), await goalPlan([question('q1', { criteria: { ...rubric(), problem: '二回届く。' } })])]) {
+  for (const other of [await jaGoalPlan([question('q1', { question: '一度だけ届くか？' })]), await jaGoalPlan([question('q1', { criteria: { ...rubric(), problem: '二回届く。' } })])]) {
     const refused = project(other, subject, { englishAuxiliary: AUX });
     assert.deepEqual([refused.status, refused.emittable, Object.hasOwn(refused, 'envelope')], ['UNSUPPORTED_CJK', false, false]);
   }
@@ -691,7 +698,7 @@ test('an invalid or unneeded rendering holds with every record; CJK elsewhere st
 });
 
 test('with a rendering, emitting also needs R\'s separate renderingVerdict FAITHFUL in a v2 record; without one, v2 is refused (C1)', async () => {
-  const live = await refusalSnapshotOf({ origin: await refusedOf({ mode: 'live' }), mode: 'live' }), value = await goalPlan();
+  const live = await refusalSnapshotOf({ origin: await refusedOf({ mode: 'live' }), mode: 'live' }), value = await jaGoalPlan();
   const unreviewed = project(value, live, { englishAuxiliary: AUX }), ids = unreviewed.checks.map(c => c.id);
   assert.deepEqual([unreviewed.emittable, unreviewed.fidelity], [false, { verdicts: { q1: 'UNREVIEWED', q2: 'UNREVIEWED' }, renderingVerdict: 'UNREVIEWED', allFaithful: false }]);
   const all = Object.fromEntries(ids.map(id => [id, 'FAITHFUL']));
@@ -706,9 +713,9 @@ test('with a rendering, emitting also needs R\'s separate renderingVerdict FAITH
     assert.throws(() => project(value, live, { englishAuxiliary: AUX, fidelity: bad }), /FIDELITY_RECORD_MISMATCH/);
   }
   // Without a rendering the v1 record is unchanged and a renderingVerdict is refused.
-  const plainLive = await snapshotOf({ mode: 'live' }), plain = project(value, plainLive);
-  assert.throws(() => project(value, plainLive, { fidelity: { ...faithful(plain), renderingVerdict: 'FAITHFUL' } }), /FIDELITY_RECORD_MISMATCH/);
-  assert.equal(project(value, plainLive, { fidelity: faithful(plain) }).emittable, true);
+  const plainLive = await snapshotOf({ mode: 'live' }), plainValue = await goalPlan(), plain = project(plainValue, plainLive);
+  assert.throws(() => project(plainValue, plainLive, { fidelity: { ...faithful(plain), renderingVerdict: 'FAITHFUL' } }), /FIDELITY_RECORD_MISMATCH/);
+  assert.equal(project(plainValue, plainLive, { fidelity: faithful(plain) }).emittable, true);
   // From the approved review: the v2 block only when a rendering is required, the v1 block only when it is not.
   const read = async (body, rendering) => fidelityFromReview({ approved: APPROVED_REVIEW, reviewReceipt: await reviewOf(reviewJson(body)),
     envelopeSha256: unreviewed.envelopeSha256, checkIds: ids, rendering });
@@ -737,7 +744,7 @@ test('with a rendering, emitting also needs R\'s separate renderingVerdict FAITH
 
 test('a check named subject.englishAuxiliary stays a check: rendering and check verdicts cannot collide (C1)', async () => {
   const live = await refusalSnapshotOf({ origin: await refusedOf({ mode: 'live' }), mode: 'live' });
-  const value = await goalPlan([question('subject.englishAuxiliary'), question('q2', { clauseIds: ['g-confirm'] })]);
+  const value = await jaGoalPlan([question('subject.englishAuxiliary'), question('q2', { clauseIds: ['g-confirm'] })]);
   const out = project(value, live, { englishAuxiliary: AUX });
   assert.deepEqual([out.checks.map(c => c.id), out.fidelity.verdicts], [['subject.englishAuxiliary', 'q2'], { 'subject.englishAuxiliary': 'UNREVIEWED', q2: 'UNREVIEWED' }]);
   const record = (check, renderingVerdict) => ({ reviewRef: 'test:r', envelopeSha256: out.envelopeSha256,
@@ -786,7 +793,7 @@ test('the real L2 refusal receipt reaches the caller and the real L1 provided ad
   assert.deepEqual([origin.status, origin.kind, origin.planObservation], ['BOUND', 'literal-cjk-refusal', planned.receipt.observed], origin.cause);
   const subject = await refusalSnapshotOf({ origin });
   assert.deepEqual([subject.status, subject.snapshot], ['VERIFIED', JA_ISSUE], subject.cause);
-  const value = await goalPlan(), out = project(value, subject, { englishAuxiliary: AUX }), english = project(value, await snapshotOf());
+  const value = await jaGoalPlan(), out = project(value, subject, { englishAuxiliary: AUX }), english = project(await goalPlan(), await snapshotOf());
   assert.equal(out.status, 'ELIGIBLE');
   const input = wireInput(out);
   assert.deepEqual([input.subject.content, input.subject.revision, input.subject.evaluationSpan, input.subject.englishAuxiliary],
@@ -806,4 +813,117 @@ test('the real L2 refusal receipt reaches the caller and the real L1 provided ad
   tampered.cases[0].input.subject.englishAuxiliary.sourceSha256 = '0'.repeat(64);
   const tamperedEnvelope = out.envelope.slice(0, out.envelope.indexOf('\n') + 1) + JSON.stringify(tampered);
   assert.equal((await admitIssueCommand(admissionInput(tamperedEnvelope, JA_ISSUE, 4302), SETTINGS)).status, 'NOT_ADMITTED');
+});
+
+// Declared-support carriage. The wire carries the subject text and, when CJK-free, the Goal; no other observation.
+// These are the plans of the witness recorded on unmodified M da100ed3 (W 5541128091, summary 038a0dd1). M's project()
+// had no subjectRef; the M hashes below were captured with that old call and are the byte oracle for unaffected plans.
+const K1 = 'Runbook K1: a delivery counts as confirmed only after the destination API returns the stored record id.';
+const W_RUBRIC = { problem: 'The target misses the obligation.', ok: 'The target meets the obligation.', unknown: 'The text cannot establish it.' };
+const G1 = { id: 'g1', kind: 'obligation', ref: GOAL.ref, quote: 'Deliver each notification exactly once' };
+const wq = (id, requiredRefs, extra = {}) => ({ id, core: null, question: `Does the change satisfy obligation ${id}?`, criteria: W_RUBRIC,
+  clauseIds: ['g1'], basisRefs: [GOAL.ref, ...requiredRefs], requiredRefs, needs: [], ...extra });
+const witnessPlan = (questions, { goal = GOAL, quoted = [G1], ...options } = {}) =>
+  plan({ goal, observations: [{ ref: 'target', content: BODY }, { ref: 'k1', content: K1 }] }, { propose: async () => ({ clauses: quoted, questions, missing: [] }), ...options });
+const WITNESS_SUBJECT = { status: 'VERIFIED', target: TARGET, readerDeclaredLive: false,
+  snapshot: { number: NUMBER, nodeId: NODE, body: BODY, lastEditedAt: null, includesCreatedEdit: false, userContentEditsTotal: 0 } };
+const outputSha256 = out => sha256(JSON.stringify(out));
+const M_OUTPUTS = {
+  noRef: { output: 'fa01d53859a1452c3cf323499cd8ab58b3f58ac3d7c486009fe0945bd23ca5af', envelope: '7882593108809afadaaa543f1a10f77ef79955ac564bc68f1dabc008fb8cc1ab' },
+  subjectOnly: { output: '4317440903a67223e4b77af92ff57f91caef8d70f2309e30ea93b5bdffd9679a', envelope: '9ce093591df11158002d6634f1d761afac0943ee113f93f2cae8aca9c9ec78a3' },
+  allNeeds: { output: '1b41ca9dc13af08e8820d8067fa8cd9297b3e774816d747c45aca9583e0d094a' },
+  // The old bug: these outputs put K-dependent checks on the wire without K.
+  mixed: { output: '71f21e2ec9e0c714d24e4f81646c892c0d787e1e8a7d88779a9c71486fe9441c', envelope: '7796bcd47b09a00a6dec6c6b49dbec13d143bd287d342e640578e218b0d0acfa' },
+  allK: { output: 'a699ee22f0355691d2efe778dafaab9420dcfb3ecf232fe1a82c52ee25b7b63b', envelope: '9285a73ca16d9f1e67253a6a4a5394ac9180d6b24eeb5cbf92882def16d685ff' },
+};
+const withheld = (id, requiredRefs, notCarried, clauseIds = ['g1']) => ({ id, reason: 'REQUIRED_CONTEXT_NOT_CARRIED', requiredRefs, notCarried, clauseIds });
+
+test('plans that need only the subject text keep the bytes recorded on unmodified M (declared-support controls)', async () => {
+  const noRef = await witnessPlan([wq('q0', [])]), subjectOnly = await witnessPlan([wq('qS', ['target'])]);
+  const allNeeds = await witnessPlan([wq('qN', ['target'], { needs: ['destination API record id'] })]);
+  for (const options of [{}, { subjectRef: 'target' }]) {
+    const out = projectPlan(noRef, WITNESS_SUBJECT, options);
+    assert.deepEqual([outputSha256(out), out.envelopeSha256], [M_OUTPUTS.noRef.output, M_OUTPUTS.noRef.envelope], JSON.stringify(options));
+    for (const subject of [WITNESS_SUBJECT, undefined]) assert.equal(outputSha256(projectPlan(allNeeds, subject, options)), M_OUTPUTS.allNeeds.output);
+  }
+  const declared = projectPlan(subjectOnly, WITNESS_SUBJECT, { subjectRef: 'target' });
+  assert.deepEqual([outputSha256(declared), declared.envelopeSha256], [M_OUTPUTS.subjectOnly.output, M_OUTPUTS.subjectOnly.envelope]);
+  // Migration: without the declaration nothing is known to be carried, so the same plan is withheld (fails closed).
+  const undeclared = projectPlan(subjectOnly, undefined);
+  assert.deepEqual([undeclared.status, undeclared.cause, undeclared.checks, undeclared.notProjected],
+    ['HOLD', 'NOTHING_PROJECTED', [], [withheld('qS', ['target'], ['target'])]]);
+});
+
+test('a question requiring an observation the wire does not carry is withheld, never projected without it (declared-support gate)', async () => {
+  // The M witness, now inverted: qK required k1, and M put it on the wire without k1.
+  const mixed = projectPlan(await witnessPlan([wq('qS', ['target']), wq('qK', ['target', 'k1'])]), WITNESS_SUBJECT, { subjectRef: 'target' });
+  assert.deepEqual([mixed.status, mixed.checks.map(c => c.id), mixed.mapping.map(m => m.id), mixed.notProjected, mixed.unprojectedClauses],
+    ['ELIGIBLE', ['qS'], ['qS'], [withheld('qK', ['target', 'k1'], ['k1'])], []]);
+  assert.equal(mixed.envelope.includes(K1), false);
+  // A partial projection: only the subject-only check reaches the wire, so its envelope is exactly the subject-only one.
+  assert.equal(mixed.envelopeSha256, M_OUTPUTS.subjectOnly.envelope);
+  assert.notEqual(outputSha256(mixed), M_OUTPUTS.mixed.output);
+  // All-K concludes Core0 without a subject, so no paid result or command is needed to learn that nothing is carried.
+  const allK = await witnessPlan([wq('qK', ['target', 'k1']), wq('qKonly', ['k1'])]);
+  const early = projectPlan(allK, undefined, { subjectRef: 'target' });
+  assert.deepEqual([early.status, early.cause, early.checks, early.notProjected, Object.hasOwn(early, 'envelope')],
+    ['HOLD', 'NOTHING_PROJECTED', [], [withheld('qK', ['target', 'k1'], ['k1']), withheld('qKonly', ['k1'], ['k1'])], false]);
+  assert.deepEqual(projectPlan(allK, WITNESS_SUBJECT, { subjectRef: 'target' }), early, 'the subject is not inspected');
+  assert.notEqual(outputSha256(early), M_OUTPUTS.allK.output);
+  // Every local record survives: a clause only a withheld question covered is reported with that reason.
+  const g2 = { id: 'g2', kind: 'obligation', ref: GOAL.ref, quote: 'confirm the actual destination state after delivery' };
+  const split = projectPlan(await witnessPlan([wq('qS', ['target']), wq('qK', ['k1'], { clauseIds: ['g2'] })], { quoted: [G1, g2] }), WITNESS_SUBJECT, { subjectRef: 'target' });
+  assert.deepEqual([split.status, split.unprojectedClauses, split.unquotedGoalText.map(s => s.text), split.missing, split.goal],
+    ['ELIGIBLE', [{ ...g2, reason: 'NOT_PROJECTED: qK REQUIRED_CONTEXT_NOT_CARRIED' }], ['and'], [], { ref: GOAL.ref, sha256: sha256(GOAL.content), onWire: true }]);
+  // A CJK Goal keeps its own carriage rule (local ref and digest only) and the gate is the same.
+  const jaGoal = { ref: 'test:goal-ja@1', content: '各通知を一度だけ配信し、配信後に宛先の実際の状態を確認する。' };
+  const cjk = projectPlan(await witnessPlan([wq('qS', ['target'], { basisRefs: [jaGoal.ref, 'target'] }), wq('qK', ['target', 'k1'], { basisRefs: [jaGoal.ref, 'target', 'k1'] })],
+    { goal: jaGoal, quoted: [{ ...G1, ref: jaGoal.ref, quote: '各通知を一度だけ配信し' }] }), WITNESS_SUBJECT, { subjectRef: 'target' });
+  assert.deepEqual([cjk.status, cjk.checks.map(c => c.id), cjk.notProjected, cjk.goal.onWire, wireInput(cjk).context],
+    ['ELIGIBLE', ['qS'], [withheld('qK', ['target', 'k1'], ['k1'])], false, []]);
+});
+
+test('needs come first, then the carriage gate, then the six-check limit; basisRefs are not a carriage declaration', async () => {
+  const qs = Array.from({ length: 7 }, (_, i) => wq('qS' + i, ['target']));
+  const out = projectPlan(await witnessPlan([wq('qK', ['k1']), ...qs], { maxQuestions: 8 }), WITNESS_SUBJECT, { subjectRef: 'target', maxQuestions: 8 });
+  assert.deepEqual([out.checks.length, out.notProjected], [6, [withheld('qK', ['k1'], ['k1']), { id: 'qS6', reason: 'LIMIT', clauseIds: ['g1'] }]],
+    'a withheld question does not use one of the six slots');
+  const sixThenK = projectPlan(await witnessPlan([...qs.slice(0, 6), wq('qK', ['k1'])], { maxQuestions: 8 }), WITNESS_SUBJECT, { subjectRef: 'target', maxQuestions: 8 });
+  assert.deepEqual([sixThenK.checks.length, sixThenK.notProjected], [6, [withheld('qK', ['k1'], ['k1'])]], 'after six checks a K question is still withheld, not LIMIT');
+  const needy = projectPlan(await witnessPlan([wq('qK', ['k1'], { needs: ['owner sign-off'] }), wq('qS', ['target'])]), WITNESS_SUBJECT, { subjectRef: 'target' });
+  assert.deepEqual(needy.notProjected, [{ id: 'qK', reason: 'INCOMPLETE', needs: ['owner sign-off'], clauseIds: ['g1'] }]);
+  // Only requiredRefs are gated: K named only as a basis is not detected (a planner and R fidelity responsibility).
+  const basisOnly = projectPlan(await witnessPlan([wq('qS', ['target'], { basisRefs: [GOAL.ref, 'target', 'k1'] })]), WITNESS_SUBJECT, { subjectRef: 'target' });
+  assert.deepEqual([basisOnly.status, basisOnly.checks.map(c => c.id), basisOnly.notProjected], ['ELIGIBLE', ['qS'], []]);
+});
+
+test('the subject declaration is checked before any question or subject and binds the whole case to the evaluated text', async () => {
+  const subjectOnly = await witnessPlan([wq('qS', ['target'])]), noRef = await witnessPlan([wq('q0', [])]);
+  const needsOnly = await witnessPlan([wq('qN', ['target'], { needs: ['destination API record id'] })]);
+  for (const subjectRef of [1, null, '', [], {}, GOAL.ref, 'missing', 'TARGET']) {
+    for (const value of [subjectOnly, needsOnly]) assert.throws(() => projectPlan(value, undefined, { subjectRef }), /INVALID_SUBJECT_REF/, JSON.stringify(subjectRef));
+  }
+  // An invalid plan still fails as before, before the declaration is read.
+  assert.throws(() => projectPlan({ schema: 'x' }, undefined, { subjectRef: 1 }), /INVALID_PLAN/);
+  // A false declaration holds the whole case before any rendering or CJK check, also when no check requires it.
+  const qKonly = await witnessPlan([wq('qKonly', ['k1'])]);
+  for (const [value, subjectRef] of [[qKonly, 'k1'], [noRef, 'k1'], [subjectOnly, 'k1']]) {
+    const pre = projectPlan(value, undefined, { subjectRef });
+    const out = projectPlan(value, WITNESS_SUBJECT, { subjectRef });
+    assert.deepEqual([out.status, out.cause, out.emittable, Object.hasOwn(out, 'envelope')],
+      value === subjectOnly ? ['HOLD', 'NOTHING_PROJECTED', false, false] : ['HOLD', 'SUBJECT_OBSERVATION_MISMATCH', false, false], subjectRef);
+    for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(out[key], pre[key], key);
+  }
+  // Text drift between the plan and the verified snapshot holds the same way; no trim, normalisation or partial match.
+  for (const body of [BODY + ' Edited.', BODY + ' ', BODY.slice(0, -1)]) {
+    const drifted = { ...WITNESS_SUBJECT, snapshot: { ...WITNESS_SUBJECT.snapshot, body } };
+    assert.equal(projectPlan(subjectOnly, drifted, { subjectRef: 'target' }).cause, 'SUBJECT_OBSERVATION_MISMATCH', JSON.stringify(body));
+  }
+  // The original C1 pair (a plan built on the English BODY, evaluated against JA_BODY) is kept as the negative it is.
+  const subject = await refusalSnapshotOf(), english = await goalPlan(), faithfulOut = project(await jaGoalPlan(), subject, { englishAuxiliary: AUX });
+  for (const options of [{}, { englishAuxiliary: AUX }, { englishAuxiliary: {} }]) {
+    const out = project(english, subject, options);
+    assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'envelope')], ['HOLD', 'SUBJECT_OBSERVATION_MISMATCH', false], JSON.stringify(options));
+    for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(out[key], faithfulOut[key], key);
+  }
 });
