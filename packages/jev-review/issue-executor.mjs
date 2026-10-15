@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { validateActionsConfig, selectActionsTarget, admitIssueCommand, selectRunRange, deriveIssuePrior, nextIssueEffect,
-  composeResultComment, verifyResultReadback } from './github-comment.mjs';
+  composeResultComment, verifyResultReadback, subjectRevision } from './github-comment.mjs';
 
 // GitHub-hosted Actions adapter for one trusted literal command (ops#483). `plan` and `post` run without the Jev
 // key; between them the workflow's single key-bearing step runs only the fixed semlint-entry.mjs on plan.json.
@@ -150,7 +150,14 @@ export async function planIssueCommand(ctx, configValue, deps) {
     run: { id: run.id, number: run.number, attempt: run.attempt, workflowId: run.workflowId, path: run.path },
     issue: seen.issue, command: seen.command, context, ...(targetKind === 'pull-request' ? { targetKind } : {}) };
   const request = await admitIssueCommand(admission, config);
-  if (request.status !== 'ADMITTED') return end('NONE', request.cause);
+  if (request.status !== 'ADMITTED') {
+    // Only the granted-literal CJK refusal carries an observation, and it is kept only when it is exactly this run's
+    // snapshot (node ID and 5-part revision). It is printed in the receipt/state, never claimed, posted or sent.
+    const o = request.observed;
+    const exactObservation = request.cause === 'UNSUPPORTED_CJK' && o !== null && typeof o === 'object' && Object.keys(o).length === 2
+      && o.issueNodeId === seen.issue.nodeId && o.subjectRevision === subjectRevision(seen.issue);
+    return end('NONE', request.cause, exactObservation ? { observed: { issueNodeId: o.issueNodeId, subjectRevision: o.subjectRevision } } : {});
+  }
   if (seen.claims === null) return end('NONE', 'CLAIMS_INCOMPLETE');
   // Only EXECUTOR_LOGIN's reaction is a claim; known other logins are ignored, unattributable ones held.
   const prior = deriveIssuePrior(request, { claims: seen.claims, results: [] }, EXECUTOR_LOGIN);
