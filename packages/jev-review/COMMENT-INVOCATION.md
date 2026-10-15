@@ -1,5 +1,33 @@
 # Issue invocation contract
 
+## English subject rendering on the provided grant (v15, dormant)
+
+Under `semlint-goal-quality-implementation-20261015-v15` (phase
+`audited_subject_auxiliary_runtime_code_only`), a provided request to a target that
+holds the existing `providedRequestTargets` grant, from a trusted caller, may carry
+one Core v14 `englishAuxiliary` `{text, sourceSha256}` on its subject. Admission
+accepts it only when the subject is the whole observed body at the observed revision
+(same span, revision and SHA256 as the runtime snapshot, checked before claim),
+`sourceSha256` is that body's SHA256 and the English text is non-empty. CJK may
+appear only in the original `subject.content`, which Core keeps as the source of
+record and does not send to the model; the English, criteria, refs, scope and
+context stay CJK-free, and context auxiliaries stay `null`. Configuration, schemas,
+ranges, limits, the workflow and `ISSUE-EVALUATION.md` are unchanged.
+
+The runtime checks bytes and shape only. It cannot verify that the English is a
+faithful rendering, and the shared GitHub author of a request cannot prove that an
+independent fidelity audit happened. Fidelity stays with the trusted requester's
+owner route, its independent fidelity record and the posting decision; this is a
+limit, not a semantic certification.
+
+Webhook comments, literal commands and targets without a provided grant keep the
+`AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE` refusal. A literal command on a target
+that holds a provided grant is refused before claim when its input contains CJK
+(`UNSUPPORTED_CJK`), so original Japanese text is never evaluated unrendered on that
+route. Literal behavior of Ops483, envs52 and PR511, which hold no provided grant,
+is unchanged. This source is dormant: both callers still pin runtime
+`305b5321ebc4d41d5c143cc002b82af71f140b8e`. Live calls in this source: 0.
+
 ## Target-bound PR536 runtime source (v12 S-b, dormant)
 
 Under `semlint-goal-quality-implementation-20261015-v12` (phase `target_bound_runtime`),
@@ -665,11 +693,13 @@ Catalog-v1 per-case semantic results and Issue request/result envelopes retain t
 Comment composition binds the exact result edition and projection recorded by `preparePlan` for each case.
 Only semlint `result.v1` and `result.v14` compose; an Issue request whose cases would produce any other
 edition is refused at admission (`RESULT_EDITION_NOT_COMPOSABLE`) before any provider call.
-A comment carries no reviewed translation, so an Issue request with any v14 case whose subject or context
-has a non-null `englishAuxiliary` is also refused at admission (`AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE`),
+The runtime cannot verify a translation. An Issue request with any v14 case whose context has a non-null
+`englishAuxiliary`, or whose subject has one outside a granted provided request (webhook comments, literal
+commands, targets without a provided grant), is refused at admission (`AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE`),
 checked on the admitted plan snapshot before claim, owner launch, provider call or comment. Such inputs run only
-through the owner route with a separately reviewed translation. A composed v14 result is attributed raw model
-output under the same claim ceiling, not a quality result.
+through the owner route with a separately reviewed translation. A granted provided request may carry a subject
+rendering as described in the v15 section above. A composed v14 result is attributed raw model output under the
+same claim ceiling, not a quality result.
 
 `runPlan` counts actual invocations of the supplied owner callback. The canonical per-case
 callback counter separately counts its invocation wrapper (which may reject on deadline

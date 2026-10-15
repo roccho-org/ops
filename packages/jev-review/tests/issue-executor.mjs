@@ -887,6 +887,69 @@ await check('provided-v14-closed-request-refusals-before-claim', async () => {
   assert.equal(result.post.outcome, 'NONE'); assert.deepEqual(effects(fixture), zero);
 });
 
+// A granted provided request may carry one English rendering of the whole observed CJK body. The runtime checks bytes
+// only (synthetic fixture text here); fidelity stays with the trusted requester. Everything else keeps its refusal.
+await check('provided-v14-granted-subject-auxiliary', async () => {
+  const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
+  const JA = '受信記録だけで完了を確認し、自動起床とは呼ばない。';
+  const EN = 'Confirm completion from the delivery receipt alone, and do not call it autonomous wake.';
+  const cjkWorld = () => { const fixture = prWorld(); fixture.issue.body = JA; return fixture; };
+  const rendered = (fixture) => { const payload = providedPayload(fixture);
+    payload.cases[0].input.subject.englishAuxiliary = { text: EN, sourceSha256: hash(fixture.issue.body) }; return payload; };
+  {
+    const fixture = cjkWorld(), payload = rendered(fixture); let sent = null;
+    fixture.hooks.fetch = (url, init) => { sent = init.body; return new Response(JSON.stringify({ model: JEV_MODEL,
+      answers: Object.fromEntries(Object.keys(JSON.parse(init.body).questions).map((k) => [k, { type: 'noul', noul: 0.4 }])) }), { status: 200 }); };
+    const result = await fullRun(fixture, fixture.addComment({ body: providedBody(payload) }), { cfg: providedConfig() });
+    assert.deepEqual(outcome(result), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(fixture), { claim: 1, fetch: 1, post: 1 });
+    assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases));
+    assert.equal(CJK.test(sent), false); assert.ok(sent.includes(EN)); // the original stays the source of record, not the wire
+    const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
+    assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION); assert.equal(envelope.result.cases[0].result.schema, 'ops.semlint.result.v14');
+  }
+  for (const [world_, alter, cause] of [
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary.sourceSha256 = '0'.repeat(64); }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary.text = EN + ' 自動'; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary.text = ' '; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary.review = 'self-declared'; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.context[0].englishAuxiliary = { text: 'x', sourceSha256: p.cases[0].input.context[0].sha256 }; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.checks[0].predicate.question = '判断してください'; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.ref += ' 日本'; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.evaluationSpan.endByte -= 3; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary = null; }, 'INVALID_REQUEST_OR_ADMISSION'],
+    [prWorld, () => {}, 'INVALID_REQUEST_OR_ADMISSION'], // an English body with a rendering is refused by Core
+  ]) {
+    const fixture = world_(), payload = rendered(fixture); alter(payload);
+    const result = await fullRun(fixture, fixture.addComment({ body: providedBody(payload) }), { cfg: providedConfig() });
+    assert.deepEqual(outcome(result), ['NONE', cause]); assert.deepEqual(effects(fixture), zero);
+  }
+  {
+    // The body changed after the rendering was bound: the observed snapshot no longer matches, before any claim.
+    const fixture = cjkWorld(), payload = rendered(fixture); fixture.issue.body = JA + '追記';
+    const result = await fullRun(fixture, fixture.addComment({ body: providedBody(payload) }), { cfg: providedConfig() });
+    assert.deepEqual(outcome(result), ['NONE', 'INVALID_PROVIDED_REQUEST']); assert.deepEqual(effects(fixture), zero);
+  }
+  {
+    // Not granted: the provided route itself is refused; the literal route of a non-granted target is unchanged.
+    const fixture = cjkWorld();
+    const refused = await fullRun(fixture, fixture.addComment({ body: providedBody(rendered(fixture)) }), { cfg: prConfig() });
+    assert.deepEqual(outcome(refused), ['NONE', 'PROVIDED_REQUEST_NOT_AUTHORIZED']); assert.deepEqual(effects(fixture), zero);
+    const legacy = cjkWorld();
+    assert.deepEqual(outcome(await fullRun(legacy, legacy.addComment(), { cfg: prConfig() })), ['APPENDED', 'READBACK_EXACT']);
+    const issue = world(); issue.issue.body = JA;
+    assert.deepEqual(outcome(await fullRun(issue, issue.addComment(), { cfg: providedConfig() })), ['APPENDED', 'READBACK_EXACT']);
+  }
+  {
+    // A literal command on a granted target with CJK input is refused before claim, owner, provider or comment.
+    const fixture = cjkWorld(), command = fixture.addComment(), run = fixture.newRun();
+    const planned = await planIssueCommand(ctxFor(fixture, command, run), providedConfig(), fixture.deps);
+    assert.deepEqual([planned.receipt.outcome, planned.receipt.cause], ['NONE', 'UNSUPPORTED_CJK']); assert.equal(planned.plan, undefined);
+    assert.deepEqual(effects(fixture), zero);
+    const english = prWorld();
+    assert.deepEqual(outcome(await fullRun(english, english.addComment(), { cfg: providedConfig() })), ['APPENDED', 'READBACK_EXACT']);
+  }
+});
+
 await check('provided-v14-snapshot-drift-and-unknown', async () => {
   for (const afterCall of [false, true]) {
     const fixture = prWorld(), command = fixture.addComment({ body: providedBody(providedPayload(fixture)) });

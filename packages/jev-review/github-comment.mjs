@@ -11,6 +11,7 @@ const text = (x) => typeof x === 'string' && x.trim().length > 0;
 const reject = (cause) => ({ status: 'NOT_ADMITTED', cause, authority: false });
 const requests = new WeakSet();
 const nonnegative = (x) => Number.isFinite(x) && x >= 0;
+const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
 // Semlint result editions the comment composer binds exactly (v1 and the v14 bundle); all others are refused at admission.
 const COMPOSABLE_RESULTS = Object.freeze(['ops.semlint.result.v1', 'ops.semlint.result.v14']);
 // Exactly two closed receipt shapes: v2 (unchanged) and v3 (adds one per-case outer clock).
@@ -89,13 +90,16 @@ async function prepareIssueRequest(body, limits, validatePayload = null) {
 }
 
 // Shared result-size admission and registration of an admitted request, for every admission path.
-function finishRequest(prepared, identityOf) {
+// subjectAuxiliary is true only for a provided request already matched to the granted target's observed snapshot.
+function finishRequest(prepared, identityOf, subjectAuxiliary = false) {
   // Only result editions this composer binds exactly may be admitted; anything else is refused before any paid call.
   if (prepared.expected.some((x) => !COMPOSABLE_RESULTS.includes(x.resultSchema))) return reject('RESULT_EDITION_NOT_COMPOSABLE');
-  // A comment carries no audited translation: any v14 English auxiliary needs the frozen owner route.
+  // The runtime cannot verify an English rendering. Outside a granted provided request, any v14 English auxiliary
+  // needs the frozen owner route; context auxiliaries are never accepted from a comment.
   // Checked on the Core-admitted snapshot, before identity, claim, owner, provider or comment.
   if (prepared.plan.cases.some(({ input }) => input.schema === 'ops.semlint.input.v14'
-    && [input.subject, ...input.context].some((row) => row.englishAuxiliary !== null))) return reject('AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE');
+    && ((!subjectAuxiliary && input.subject.englishAuxiliary !== null)
+      || input.context.some((row) => row.englishAuxiliary !== null)))) return reject('AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE');
   const identity = Object.freeze(identityOf(prepared.planDigest));
   const request = Object.freeze({ status: 'ADMITTED', identity, requestDigest: digest(identity), prepared, authority: false });
   // Known repeated record/identity strings plus a conservative scalar/accounting reserve per case.
@@ -260,18 +264,23 @@ export function subjectRevision(issue) {
 export const COMMAND_OBSERVATION = 'ACTIONS_TRUSTED_LITERAL_COMMAND';
 export const PROVIDED_COMMAND_OBSERVATION = 'ACTIONS_TRUSTED_PROVIDED_REQUEST';
 
+// The subject may carry one English rendering of the whole observed body ({text, sourceSha256}, CJK-free). The runtime
+// checks bytes only; fidelity of the rendering stays with the trusted requester's owner route and posting decision.
+// CJK may appear only in the original subject content; every other field, including the English, stays CJK-free.
 function providedPayloadMatches(payload, input, revision) {
   if (!Array.isArray(payload.cases) || payload.cases.length !== 1) return false;
   const value = payload.cases[0]?.input, subject = value?.subject;
+  const aux = subject?.englishAuxiliary;
+  if (!(aux === null || exact(aux, ['text', 'sourceSha256']) && text(aux.text) && aux.sourceSha256 === sha256(input.issue.body))) return false;
+  const { content, ...outsideOriginal } = subject;
   return value?.schema === 'ops.semlint.input.v14' && subject?.kind === 'log-entry'
     && subject.ref === `https://github.com/${input.repository}/pull/${input.issue.number}`
     && subject.revision === revision && subject.scope === 'entire body of the approved pull request at the observed revision'
-    && subject.content === input.issue.body && subject.sha256 === sha256(input.issue.body)
+    && content === input.issue.body && subject.sha256 === sha256(input.issue.body)
     && subject.evaluationSpan?.startByte === 0 && subject.evaluationSpan.endByte === Buffer.byteLength(input.issue.body, 'utf8')
-    && subject.englishAuxiliary === null && Array.isArray(value.context)
-    && value.context.every((row) => row?.englishAuxiliary === null)
+    && Array.isArray(value.context) && value.context.every((row) => row?.englishAuxiliary === null)
     && Array.isArray(value.checks) && value.checks.length > 0 && value.checks.length <= 6
-    && !/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(JSON.stringify(value));
+    && !CJK.test(JSON.stringify({ ...value, subject: outsideOriginal }));
 }
 
 export async function admitIssueCommand(inputValue, configValue) {
@@ -298,8 +307,9 @@ export async function admitIssueCommand(inputValue, configValue) {
   if (!config.trustedCallers.includes(command.author)) return reject('COMMAND_NOT_AUTHORIZED');
   const provided = input.eventBody.startsWith(REQUEST_PREFIX);
   if (input.eventBody !== '/jev-evaluate' && !provided) return reject('NOT_A_REQUEST');
-  if (provided && (!pullRequest || !config.providedRequestTargets?.some((grant) =>
-    grant.repository === input.repository && grant.pullRequest === issue.number))) return reject('PROVIDED_REQUEST_NOT_AUTHORIZED');
+  const granted = pullRequest && config.providedRequestTargets?.some((grant) =>
+    grant.repository === input.repository && grant.pullRequest === issue.number) === true;
+  if (provided && !granted) return reject('PROVIDED_REQUEST_NOT_AUTHORIZED');
   if (command.body !== input.eventBody) return reject('COMMAND_DRIFT');
   if (command.lastEditedAt !== null || command.includesCreatedEdit || command.userContentEditsTotal !== 0) return reject('EDITED');
   const selected = selectRunRange(config, { ...input.run, repository: input.repository }, { kind: targetKind, number: issue.number });
@@ -318,17 +328,22 @@ export async function admitIssueCommand(inputValue, configValue) {
     if (parsed.cause) return reject(parsed.cause);
     prepared = parsed.prepared;
     if (prepared.expected[0].sendable !== prepared.plan.cases[0].input.checks.length) return reject('PROVIDED_CONTEXT_INCOMPLETE');
-  } else try {
-    prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: [{ id: targetKind, input: semlintInput }] },
-      { ...config.limits, maxCalls: selected.callsPerRun });
-  } catch { return reject('INVALID_REQUEST_OR_ADMISSION'); }
+  } else {
+    // A literal v1 request sends the original text unrendered; on a target granted the provided route, CJK input
+    // is refused here rather than evaluated unsupported. Legacy literal targets keep their behavior.
+    if (granted && CJK.test(JSON.stringify(semlintInput))) return reject('UNSUPPORTED_CJK');
+    try {
+      prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: [{ id: targetKind, input: semlintInput }] },
+        { ...config.limits, maxCalls: selected.callsPerRun });
+    } catch { return reject('INVALID_REQUEST_OR_ADMISSION'); }
+  }
   return finishRequest(prepared, (planDigest) => ({
     repository: input.repository, issue: issue.number, issueNodeId: issue.nodeId, subjectRevision: revision,
     ...(pullRequest ? { targetKind } : {}),
     commentId: command.databaseId, nodeId: command.nodeId, author: command.author, bodyDigest: digest(command.body),
     observation: provided ? PROVIDED_COMMAND_OBSERVATION : COMMAND_OBSERVATION, executionSource: input.sha, configDigest: digest(config),
     run: { id: input.run.id, number: input.run.number, attempt: input.run.attempt, workflowId: input.run.workflowId },
-    planDigest }));
+    planDigest }), provided);
 }
 
 // Pure prior derivation from provider-native state only: claim reactions of the source-constant kind on the
