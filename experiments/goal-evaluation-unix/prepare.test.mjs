@@ -606,6 +606,12 @@ test('only the exact closed refusal receipt binds; echoes, digests, claims and r
 
 test('the refusal snapshot binds node, body and target to the public PR; drift, malformed revisions and mixed origins hold (C1, R4)', async () => {
   const refused = await refusedOf();
+  // R4 first and alone: a refusal-shaped origin of any other kind carries the approved target and a valid observation,
+  // so only the kind check refuses it (R N1).
+  for (const kind of [undefined, 'old-literal-result']) {
+    const got = await refusalSnapshotOf({ origin: { ...refused, kind } });
+    assert.deepEqual([got.status, got.cause, Object.hasOwn(got, 'snapshot')], ['HOLD', 'ORIGIN_KIND_MISMATCH', false], String(kind));
+  }
   const withObserved = observed => ({ ...refused, planObservation: { ...OBSERVED, ...observed } });
   const otherNode = { status: 200, text: JSON.stringify({ number: NUMBER, node_id: 'PR_other', body: JA_BODY, base: { repo: { full_name: REPO } } }) };
   const cases = [
@@ -619,9 +625,8 @@ test('the refusal snapshot binds node, body and target to the public PR; drift, 
     [{ target: { repository: REPO, number: 511 } }, 'TARGET_MISMATCH'],
     [{ origin: { ...refused, target: { repository: 'roccho-org/envs', number: NUMBER } } }, 'TARGET_MISMATCH'],
     [{ prPage: { status: 403, text: '' } }, 'INPUT_UNKNOWN'],
-    // R4: an old-literal or held origin is not a refusal origin.
+    // R4: an old-literal or held origin is not a refusal origin either.
     [{ origin: await originOf() }, 'ORIGIN_KIND_MISMATCH'],
-    [{ origin: { ...refused, kind: undefined } }, 'ORIGIN_KIND_MISMATCH'],
     [{ origin: await refusedOf({ commandStatus: 403 }) }, 'ORIGIN_KIND_MISMATCH'],
   ];
   for (const [options, cause] of cases) {
@@ -714,6 +719,9 @@ test('with a rendering, emitting also needs R\'s separate renderingVerdict FAITH
     [fidelityBody(unreviewed.envelopeSha256, all), true, 'FIDELITY_BLOCK_INVALID'],
     [fidelityV2Body(unreviewed.envelopeSha256, all, 'FAITHFUL'), false, 'FIDELITY_BLOCK_INVALID'],
     [fidelityV2Body(unreviewed.envelopeSha256, all, undefined), true, 'FIDELITY_BLOCK_INVALID'],
+    // The schema label decides even when the key set alone would match the other shape (R B1).
+    [fidelityV2Body(unreviewed.envelopeSha256, all, 'FAITHFUL', { schema: 'ops.goal-evaluation.fidelity.v1' }), true, 'FIDELITY_BLOCK_INVALID'],
+    [fidelityV2Body(unreviewed.envelopeSha256, all, undefined), false, 'FIDELITY_BLOCK_INVALID'],
     [fidelityV2Body(unreviewed.envelopeSha256, all, 'FAITHFUL', { englishSha256: sha256(AUX.text) }), true, 'FIDELITY_BLOCK_INVALID'],
     [fidelityV2Body(unreviewed.envelopeSha256, all, 'PASS'), true, 'FIDELITY_RENDERING_INVALID'],
     [fidelityV2Body('0'.repeat(64), all, 'FAITHFUL'), true, 'FIDELITY_DIGEST_MISMATCH'],
