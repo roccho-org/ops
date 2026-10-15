@@ -28,6 +28,28 @@ route. Literal behavior of Ops483, envs52 and PR511, which hold no provided gran
 is unchanged. This source is dormant: both callers still pin runtime
 `305b5321ebc4d41d5c143cc002b82af71f140b8e`. Live calls in this source: 0.
 
+That refusal now keeps the subject identity of its own admission snapshot (v18,
+dormant). Only this branch adds an optional
+`observed: {issueNodeId, subjectRevision}` to the `NOT_ADMITTED` result: the node ID
+and the exact 5-part revision (node, body SHA256, `lastEditedAt` or `unedited`,
+edit count, `includesCreatedEdit`), with no body text and no second read. It is
+reached only after the target, caller, request kind, grant, command drift/edit and
+range gates. The executor copies it into its `NONE` plan receipt and `state.json`
+only when it equals the executor's own snapshot (`subjectRevision(seen.issue)`); the
+existing post step echoes that same plan observation with `stage: post`, which is a
+copy and not a new observation. No claim, owner run, provider call or comment
+happens, so `requestDigest` stays absent. Every other refusal, `PLANNED` receipts,
+result comments and legacy shapes are unchanged; the receipt schema id stays
+`ops.jev.issue-actions-receipt.v1`.
+
+`observed` identifies which subject state was refused. It does not say the body is
+CJK (CJK anywhere in the input refuses), and it is not execution-origin proof,
+fidelity, an evaluation, a permission or semantic truth. It appears only in the
+non-public job log and state, so a caller can receive it only as a P-transported
+log with `providerDigest: null`; no caller consumes it yet (the existing caller
+accepts only `PLANNED` with a `requestDigest`). It stays dormant until a separately
+scoped activation and command GO.
+
 ## Target-bound PR536 runtime source (v12 S-b, dormant)
 
 Under `semlint-goal-quality-implementation-20261015-v12` (phase `target_bound_runtime`),

@@ -922,6 +922,7 @@ await check('provided-v14-granted-subject-auxiliary', async () => {
     const fixture = world_(), payload = rendered(fixture); alter(payload);
     const result = await fullRun(fixture, fixture.addComment({ body: providedBody(payload) }), { cfg: providedConfig() });
     assert.deepEqual(outcome(result), ['NONE', cause]); assert.deepEqual(effects(fixture), zero);
+    assert.equal(Object.hasOwn(result.plan, 'observed') || Object.hasOwn(result.post, 'observed'), false, cause);
   }
   {
     // The body changed after the rendering was bound: the observed snapshot no longer matches, before any claim.
@@ -940,13 +941,46 @@ await check('provided-v14-granted-subject-auxiliary', async () => {
     assert.deepEqual(outcome(await fullRun(issue, issue.addComment(), { cfg: providedConfig() })), ['APPENDED', 'READBACK_EXACT']);
   }
   {
-    // A literal command on a granted target with CJK input is refused before claim, owner, provider or comment.
-    const fixture = cjkWorld(), command = fixture.addComment(), run = fixture.newRun();
-    const planned = await planIssueCommand(ctxFor(fixture, command, run), providedConfig(), fixture.deps);
-    assert.deepEqual([planned.receipt.outcome, planned.receipt.cause], ['NONE', 'UNSUPPORTED_CJK']); assert.equal(planned.plan, undefined);
-    assert.deepEqual(effects(fixture), zero);
-    const english = prWorld();
-    assert.deepEqual(outcome(await fullRun(english, english.addComment(), { cfg: providedConfig() })), ['APPENDED', 'READBACK_EXACT']);
+    // A literal command on a granted target with CJK input is refused before claim, owner, provider or comment. The
+    // NONE receipt and state keep the executor's own snapshot identity (node ID and exact 5-part revision, no body
+    // text); the existing post echo copies that same plan observation and reads nothing again.
+    const snap = (f) => ({ number: f.issue.number, nodeId: f.issue.id, body: f.issue.body, lastEditedAt: f.issue.lastEditedAt,
+      includesCreatedEdit: f.issue.includesCreatedEdit, userContentEditsTotal: f.issue.edits });
+    const refusedPlan = async (fixture) => {
+      const command = fixture.addComment(), run = fixture.newRun();
+      const planned = await planIssueCommand(ctxFor(fixture, command, run), providedConfig(), fixture.deps);
+      assert.deepEqual(planned.receipt, { schema: 'ops.jev.issue-actions-receipt.v1', stage: 'plan', outcome: 'NONE', cause: 'UNSUPPORTED_CJK',
+        claimed: false, providerCalls: 0, authority: false, commentId: command.databaseId,
+        run: { id: run.id, number: run.run_number, attempt: 1, workflowId: WF },
+        observed: { issueNodeId: fixture.issue.id, subjectRevision: subjectRevision(snap(fixture)) } });
+      assert.deepEqual(planned.state, planned.receipt); assert.equal(planned.plan, undefined);
+      assert.equal(JSON.stringify(planned).includes(fixture.issue.body), false);
+      const reads = { ...fixture.calls };
+      const post = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), null, providedConfig(), fixture.deps);
+      assert.deepEqual(post.receipt, { ...planned.receipt, stage: 'post' }); assert.deepEqual(fixture.calls, reads);
+      assert.deepEqual(effects(fixture), zero); assert.equal(fixture.posted.length, 0);
+      return planned.receipt.observed.subjectRevision;
+    };
+    const revisions = [];
+    for (const edit of [{}, { lastEditedAt: '2026-10-15T01:00:00Z', edits: 1 }, { includesCreatedEdit: true },
+      { lastEditedAt: '2026-10-15T02:00:00Z', edits: 2 }]) {
+      const fixture = cjkWorld(); Object.assign(fixture.issue, edit); revisions.push(await refusedPlan(fixture));
+    }
+    assert.equal(new Set(revisions).size, 4); assert.equal(new Set(revisions.map((r) => r.split('|')[1])).size, 1);
+    // CJK only in a context file with an English body: still refused; the observation names the English subject.
+    const contextual = prWorld(), readFile = contextual.deps.readFile;
+    contextual.deps.readFile = (p) => (p === CONTEXT[0].path ? '日本語の契約' : readFile(p));
+    await refusedPlan(contextual);
+    // Every other NONE refusal, PLANNED and result comments carry no observation.
+    const edited = cjkWorld(), editedRun = await fullRun(edited, edited.addComment({ lastEditedAt: '2026-10-15T01:00:00Z', edits: 1 }), { cfg: providedConfig() });
+    assert.deepEqual(outcome(editedRun), ['NONE', 'EDITED']);
+    const outside = cjkWorld(), outsideRun = await fullRun(outside, outside.addComment(), { run: outside.newRun({ run_number: 50 }), cfg: providedConfig() });
+    assert.deepEqual(outcome(outsideRun), ['NONE', 'NO_RANGE']);
+    for (const r of [editedRun, outsideRun]) assert.equal(Object.hasOwn(r.plan, 'observed') || Object.hasOwn(r.post, 'observed'), false);
+    const english = prWorld(), englishRun = await fullRun(english, english.addComment(), { cfg: providedConfig() });
+    assert.deepEqual(outcome(englishRun), ['APPENDED', 'READBACK_EXACT']);
+    assert.equal(englishRun.plan.outcome, 'PLANNED'); assert.equal(Object.hasOwn(englishRun.plan, 'observed'), false);
+    assert.equal(english.posted.some((c) => c.body.includes('observed')), false);
   }
 });
 
