@@ -3,9 +3,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { RESULT_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION } from '../../packages/jev-review/github-comment.mjs';
+import { RESULT_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
+import { semlint } from '../../packages/jev-review/semlint.mjs';
 import { plan } from './core.mjs';
-import { acquire, executorIdentitySnapshot, project, expectedOrigin, fidelityFromReview } from './prepare.mjs';
+import { acquire, executorIdentitySnapshot, project, expectedOrigin, fidelityFromReview, refusalOrigin, refusalIdentitySnapshot } from './prepare.mjs';
 
 const sha256 = value => createHash('sha256').update(value, 'utf8').digest('hex');
 const repoFile = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
@@ -318,14 +319,15 @@ const runJson = (extra = {}) => ({ id: RUN.id, run_number: RUN.number, run_attem
   event: 'issue_comment', head_sha: RUN_HEAD, repository: { full_name: REPO }, ...extra });
 // By default the approved activation commit carries the same workflow bytes as the run's head_sha.
 const originOf = async ({ command = commandJson(), run = runJson(), workflow = WORKFLOW, workflowSha = RUN_HEAD, workflowUrl, log = planLog(), approved = APPROVED,
-  posting = { id: EXPECTED.commandCommentId }, commandStatus = 200, activationWorkflow = workflow, activationUrl, activationStatus = 200 } = {}) => {
+  posting = { id: EXPECTED.commandCommentId }, commandStatus = 200, activationWorkflow = workflow, activationUrl, activationStatus = 200,
+  bind = expectedOrigin, mode } = {}) => {
   const urls = { command: `https://api.github.com/repos/${REPO}/issues/comments/${command.id}`, run: `https://api.github.com/repos/${REPO}/actions/runs/${run.id}`,
     workflow: workflowUrl ?? `https://raw.githubusercontent.com/${REPO}/${workflowSha}/${WORKFLOW_PATH}`,
     activation: activationUrl ?? `https://raw.githubusercontent.com/${REPO}/${ACTIVATION}/${WORKFLOW_PATH}` };
   const r = reader({ [urls.command]: { status: commandStatus, text: JSON.stringify(command) }, [urls.run]: { status: 200, text: JSON.stringify(run) },
-    [urls.workflow]: { status: 200, text: workflow }, [urls.activation]: { status: activationStatus, text: activationWorkflow } });
+    [urls.workflow]: { status: 200, text: workflow }, [urls.activation]: { status: activationStatus, text: activationWorkflow } }, mode);
   const get = async (ref, url) => acquire({ ref, url }, r, () => '2026-10-15T00:01:00.000Z');
-  return expectedOrigin({ approved, postingResponse: posting, commandReceipt: await get('command', urls.command),
+  return bind({ approved, postingResponse: posting, commandReceipt: await get('command', urls.command),
     runReceipt: await get('run', urls.run), workflowReceipt: await get('workflow', urls.workflow),
     activationWorkflowReceipt: await get('activation-workflow', urls.activation), planLog: log });
 };
@@ -509,4 +511,236 @@ test('wrong, unmarked, duplicated, mismatched or label-only reviews hold; the sh
   const other = fidelityFromReview({ approved: APPROVED_REVIEW, reviewReceipt: await reviewOf({ ...good, user: { login: 'someone-else' } }), envelopeSha256: digest, checkIds: ids });
   assert.equal(other.status, 'RECORDED');
   assert.equal(fidelityFromReview({ approved: APPROVED_REVIEW, reviewReceipt: await reviewOf(good), envelopeSha256: 'x', checkIds: ids }).cause, 'PROJECTION_INVALID');
+});
+
+// C1 fixtures: a hand-written plan receipt in the shape the #547 executor prints for a literal CJK refusal (with its own
+// subject observation), followed by its post-stage echo. Default proposals ships no such producer, so these tests prove
+// this caller's parsing and bindings only, not a composed producer/consumer run, a rendering or an effect.
+const JA_BODY = '配信ジョブに再送を追加する。Adds a retry for the delivery job.';
+const JA_ISSUE = issue(JA_BODY);
+const OBSERVED = { issueNodeId: NODE, subjectRevision: subjectRevision(JA_ISSUE) };
+const refusalLine = (extra = {}, stage = 'plan') => '2026-10-15T00:00:01.0000000Z ' + JSON.stringify({ schema: 'ops.jev.issue-actions-receipt.v1', stage,
+  outcome: 'NONE', cause: 'UNSUPPORTED_CJK', claimed: false, providerCalls: 0, authority: false, commentId: EXPECTED.commandCommentId,
+  run: { id: RUN.id, number: RUN.number, attempt: 1, workflowId: RUN.workflowId }, observed: OBSERVED, ...extra });
+const refusalLog = (lines = [refusalLine(), refusalLine({}, 'post')]) => planLog(['2026-10-15T00:00:00.0000000Z ##[group]Run plan', ...lines].join('\n'));
+const refusedOf = (options = {}) => originOf({ log: refusalLog(), bind: refusalOrigin, ...options });
+const refusalSnapshotOf = async ({ origin, body = JA_BODY, mode, prPage, target = TARGET } = {}) =>
+  refusalIdentitySnapshot({ origin: origin ?? await refusedOf(), pullRequestReceipt: (await receipts({ body, mode, prPage })).pullRequestReceipt, target });
+const AUX = { text: 'Adds a retry for the delivery job.', sourceSha256: sha256(JA_BODY) };
+const wireInput = out => JSON.parse(out.envelope.slice(out.envelope.indexOf('\n') + 1)).cases[0].input;
+// Core v14 itself, given a model port that never answers: reaching the port means Core admitted the input.
+const coreAccepts = async input => { let asked = 0;
+  await semlint(input, async () => { asked++; throw new Error('NOT_ANSWERED'); }).catch(() => {});
+  return asked > 0; };
+const fidelityV2Body = (digest, verdicts, renderingVerdict, extra = {}) => 'R fidelity review.\n<!-- semlint-fidelity-v1 -->\n```json\n'
+  + JSON.stringify({ schema: 'ops.goal-evaluation.fidelity.v2', envelopeSha256: digest, verdicts, renderingVerdict, ...extra }) + '\n```\n';
+
+test('a literal CJK refusal binds through the same receipts and yields the executor-observed snapshot (C1)', async () => {
+  const refused = await refusedOf();
+  assert.equal(refused.status, 'BOUND', refused.cause);
+  assert.deepEqual([refused.kind, refused.target, refused.planObservation, refused.readerDeclaredLive], ['literal-cjk-refusal', TARGET, OBSERVED, false]);
+  assert.deepEqual(refused.origin, { commandCommentId: EXPECTED.commandCommentId, runId: RUN.id, runNumber: RUN.number, runHeadSha: RUN_HEAD,
+    executionSource: SHA, activationCommit: ACTIVATION, workflowSha256: sha256(WORKFLOW), planLogSha256: refusalLog().sha256 });
+  for (const key of ['expected', 'planRequestDigest', 'requestDigest']) assert.equal(Object.hasOwn(refused, key) || Object.hasOwn(refused.origin, key), false, key);
+  assert.deepEqual(refused.limits.slice(0, 2), (await originOf()).limits);
+  assert.match(refused.limits[2], /not a later read/);
+  assert.match(refused.limits[3], /does not show that the body is CJK/);
+  const subject = await refusalSnapshotOf({ origin: refused });
+  assert.equal(subject.status, 'VERIFIED', subject.cause);
+  assert.deepEqual([subject.target, subject.snapshot, subject.readerDeclaredLive], [TARGET, JA_ISSUE, false]);
+  assert.deepEqual(subject.origin, { kind: 'literal-cjk-refusal', ...refused.origin });
+  // The edit signals are the observation's own, never guessed: another observed edit state yields exactly that state.
+  const unedited = issue(JA_BODY, { lastEditedAt: null, includesCreatedEdit: true, userContentEditsTotal: 0 });
+  const other = await refusalSnapshotOf({ origin: { ...refused, planObservation: { issueNodeId: NODE, subjectRevision: subjectRevision(unedited) } } });
+  assert.deepEqual([other.status, other.snapshot], ['VERIFIED', unedited]);
+  // readerDeclaredLive repeats the public reader-port declarations on both sides only; the job log is never counted as live.
+  const live = await refusedOf({ mode: 'live' });
+  assert.equal(live.readerDeclaredLive, true);
+  assert.deepEqual([(await refusalSnapshotOf({ origin: live, mode: 'live' })).readerDeclaredLive, (await refusalSnapshotOf({ origin: live })).readerDeclaredLive,
+    (await refusalSnapshotOf({ origin: refused, mode: 'live' })).readerDeclaredLive], [true, false, false]);
+  assert.deepEqual([refusalLog().route, refusalLog().providerDigest], ['p-transported-job-log', null]);
+});
+
+test('only the exact closed refusal receipt binds; echoes, digests, claims and receipts without an observation hold (C1)', async () => {
+  const cases = [
+    [{ log: refusalLog([refusalLine({}, 'post')]) }, 'PLAN_RECEIPT_MISSING'],
+    [{ log: refusalLog([refusalLine(), refusalLine()]) }, 'PLAN_RECEIPT_AMBIGUOUS'],
+    [{ log: refusalLog([refusalLine({ requestDigest: literal.requestDigest })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ claimResponse: { status: 201 } })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ observed: undefined })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ observed: { ...OBSERVED, body: JA_BODY } })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ observed: { ...OBSERVED, issueNodeId: '' } })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ outcome: 'PLANNED' })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ cause: 'NO_RANGE' })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ claimed: true })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ providerCalls: 1 })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ authority: true })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: refusalLog([refusalLine({ run: { id: RUN.id, number: RUN.number, attempt: 1, workflowId: RUN.workflowId, path: WORKFLOW_PATH } })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: planLog() }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    [{ log: { ...refusalLog(), sha256: '0'.repeat(64) } }, 'PLAN_LOG_RECEIPT_INVALID'],
+    [{ log: { ...refusalLog(), providerDigest: 'sha256:' + '0'.repeat(64) } }, 'PLAN_LOG_RECEIPT_INVALID'],
+    // The same N-a bindings as the old-literal origin, through the shared helper.
+    [{ posting: { id: 4243 } }, 'COMMAND_MISMATCH'],
+    [{ log: refusalLog([refusalLine({ commentId: 4243 })]) }, 'COMMAND_MISMATCH'],
+    [{ command: commandJson({ user: { login: 'someone-else' } }) }, 'PRINCIPAL_MISMATCH'],
+    [{ command: commandJson({ body: '/jev-evaluate\n{}' }) }, 'COMMAND_BODY_MISMATCH'],
+    [{ command: commandJson({ issue_url: `https://api.github.com/repos/${REPO}/issues/511` }) }, 'TARGET_MISMATCH'],
+    [{ run: runJson({ id: 78 }) }, 'RUN_MISMATCH'],
+    [{ run: runJson({ run_attempt: 2 }), log: refusalLog([refusalLine({ run: { id: RUN.id, number: RUN.number, attempt: 2, workflowId: RUN.workflowId } })]) }, 'RUN_MISMATCH'],
+    [{ run: runJson({ path: '.github/workflows/other.yml' }) }, 'RUN_MISMATCH'],
+    [{ approved: { ...APPROVED, runRange: { first: 60, last: 70 } } }, 'RUN_OUTSIDE_RANGE'],
+    [{ workflowSha: 'd'.repeat(40) }, 'WORKFLOW_NOT_AT_RUN_HEAD'],
+    [{ workflow: WORKFLOW.replace(/\n/g, '\r\n'), activationWorkflow: WORKFLOW }, 'WORKFLOW_DRIFT_FROM_ACTIVATION'],
+    [{ workflow: WORKFLOW.replace(SHA, 'e'.repeat(40)) }, 'RUNTIME_PIN_MISMATCH'],
+    [{ commandStatus: 403 }, 'INPUT_UNKNOWN'],
+    // A provided request is never the origin of a literal refusal, even when its own readback is consistent.
+    [{ approved: { ...APPROVED, commandBody: '/jev-evaluate\n{}' }, command: commandJson({ body: '/jev-evaluate\n{}' }) }, 'COMMAND_NOT_LITERAL'],
+  ];
+  for (const [options, cause] of cases) {
+    const out = await refusedOf(options);
+    assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'planObservation')], ['HOLD', cause, false], cause);
+  }
+  // The old-literal origin keeps accepting only PLANNED receipts.
+  assert.equal((await originOf({ log: refusalLog() })).cause, 'PLAN_RECEIPT_NOT_PLANNED');
+});
+
+test('the refusal snapshot binds node, body and target to the public PR; drift, malformed revisions and mixed origins hold (C1, R4)', async () => {
+  const refused = await refusedOf();
+  // R4 first and alone: a refusal-shaped origin of any other kind carries the approved target and a valid observation,
+  // so only the kind check refuses it (R N1).
+  for (const kind of [undefined, 'old-literal-result']) {
+    const got = await refusalSnapshotOf({ origin: { ...refused, kind } });
+    assert.deepEqual([got.status, got.cause, Object.hasOwn(got, 'snapshot')], ['HOLD', 'ORIGIN_KIND_MISMATCH', false], String(kind));
+  }
+  const withObserved = observed => ({ ...refused, planObservation: { ...OBSERVED, ...observed } });
+  const otherNode = { status: 200, text: JSON.stringify({ number: NUMBER, node_id: 'PR_other', body: JA_BODY, base: { repo: { full_name: REPO } } }) };
+  const cases = [
+    [{ body: JA_BODY + ' Edited after the refusal.' }, 'SUBJECT_DRIFT'],
+    [{ prPage: otherNode }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    [{ origin: withObserved({ issueNodeId: 'PR_other' }) }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    [{ origin: withObserved({ subjectRevision: OBSERVED.subjectRevision.replace(NODE, 'PR_other') }) }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    [{ origin: withObserved({ subjectRevision: OBSERVED.subjectRevision.replace('|2|', '|two|') }) }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    [{ origin: withObserved({ subjectRevision: OBSERVED.subjectRevision + '|x' }) }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    [{ origin: withObserved({ subjectRevision: 1 }) }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    [{ target: { repository: REPO, number: 511 } }, 'TARGET_MISMATCH'],
+    [{ origin: { ...refused, target: { repository: 'roccho-org/envs', number: NUMBER } } }, 'TARGET_MISMATCH'],
+    [{ prPage: { status: 403, text: '' } }, 'INPUT_UNKNOWN'],
+    // R4: an old-literal or held origin is not a refusal origin either.
+    [{ origin: await originOf() }, 'ORIGIN_KIND_MISMATCH'],
+    [{ origin: await refusedOf({ commandStatus: 403 }) }, 'ORIGIN_KIND_MISMATCH'],
+  ];
+  for (const [options, cause] of cases) {
+    const got = await refusalSnapshotOf(options);
+    assert.deepEqual([got.status, got.cause, Object.hasOwn(got, 'snapshot')], ['HOLD', cause, false], cause);
+  }
+  // R4, the other way: the result path takes no refusal origin in place of its expected command, run and runtime.
+  for (const expected of [refused.expected, refused.origin, refused]) {
+    assert.equal(executorIdentitySnapshot({ ...(await receipts()), target: TARGET, expected }).cause, 'EXPECTED_ORIGIN_MISSING');
+  }
+});
+
+test('a supplied English rendering projects a CJK subject only, bound to the whole body, and keeps every local record (C1)', async () => {
+  const subject = await refusalSnapshotOf(), value = await goalPlan();
+  assert.equal(project(value, subject).status, 'UNSUPPORTED_CJK', 'without a rendering a CJK subject stays unsupported');
+  const out = project(value, subject, { englishAuxiliary: AUX });
+  assert.equal(out.status, 'ELIGIBLE');
+  const input = wireInput(out);
+  assert.deepEqual(input.subject, { kind: 'log-entry', ref: `https://github.com/${REPO}/pull/${NUMBER}`, revision: OBSERVED.subjectRevision,
+    scope: 'entire body of the approved pull request at the observed revision', content: JA_BODY, sha256: sha256(JA_BODY),
+    evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(JA_BODY) }, englishAuxiliary: AUX });
+  assert.deepEqual(input.context.map(c => [c.role, c.englishAuxiliary]), [['goal', null]]);
+  assert.equal(await coreAccepts(input), true, 'Core v14 admits the rendered subject');
+  // Everything the wire does not carry is the same as for an English subject.
+  const english = project(value, await snapshotOf());
+  for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(out[key], english[key], key);
+  assert.deepEqual([out.emittable, out.postingAuthorized], [false, false]);
+  // A Japanese Goal stays local as ref and digest with its unquoted span, also beside a rendered subject.
+  const ja = { ref: GOAL.ref, content: '通知は一度だけ届けること。Deliver each notification exactly once.' };
+  const jaGoal = project(await goalPlan([question('q1')], ja, [clauses[0]]), subject, { englishAuxiliary: AUX });
+  assert.deepEqual([jaGoal.status, jaGoal.goal.onWire, wireInput(jaGoal).context, jaGoal.unquotedGoalText.map(s => s.text)], ['ELIGIBLE', false, [], ['通知は一度だけ届けること。']]);
+});
+
+test('an invalid or unneeded rendering holds with every record; CJK elsewhere still refuses; the order is unchanged (C1, R3)', async () => {
+  const subject = await refusalSnapshotOf(), value = await goalPlan(), ok = project(value, subject, { englishAuxiliary: AUX });
+  for (const englishAuxiliary of [null, {}, { text: AUX.text }, { ...AUX, text: ' ' }, { ...AUX, text: '再送を追加する。' }, { ...AUX, sourceSha256: sha256(BODY) },
+    { ...AUX, sourceSha256: AUX.sourceSha256.toUpperCase() }, { ...AUX, note: 'x' }, AUX.text]) {
+    const out = project(value, subject, { englishAuxiliary });
+    assert.deepEqual([out.status, out.cause, out.emittable, Object.hasOwn(out, 'envelope')], ['HOLD', 'AUXILIARY_INVALID', false, false], JSON.stringify(englishAuxiliary));
+    for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(out[key], ok[key], key);
+  }
+  // An English body takes no rendering. That is Core v14's rule, shown here by Core itself: it refuses an auxiliary on a
+  // unit whose selected text has no CJK and requires one on a unit whose selected text has CJK.
+  const englishSubject = await snapshotOf(), bound = { text: 'Adds a retry.', sourceSha256: sha256(BODY) };
+  const unneeded = project(value, englishSubject, { englishAuxiliary: bound });
+  assert.deepEqual([unneeded.status, unneeded.cause, Object.hasOwn(unneeded, 'envelope'), unneeded.unprojectedClauses], ['HOLD', 'RENDERING_NOT_NEEDED', false, ok.unprojectedClauses]);
+  const plain = wireInput(project(value, englishSubject)), rendered = wireInput(ok);
+  assert.deepEqual([await coreAccepts(plain), await coreAccepts({ ...plain, subject: { ...plain.subject, englishAuxiliary: bound } }),
+    await coreAccepts({ ...rendered, subject: { ...rendered.subject, englishAuxiliary: null } })], [true, false, false]);
+  // CJK outside the original subject content still makes the case unsupported.
+  for (const other of [await goalPlan([question('q1', { question: '一度だけ届くか？' })]), await goalPlan([question('q1', { criteria: { ...rubric(), problem: '二回届く。' } })])]) {
+    const refused = project(other, subject, { englishAuxiliary: AUX });
+    assert.deepEqual([refused.status, refused.emittable, Object.hasOwn(refused, 'envelope')], ['UNSUPPORTED_CJK', false, false]);
+  }
+  // No obligation, then no Core check, conclude before any subject or rendering is inspected; a check still waits for the subject.
+  for (const englishAuxiliary of [AUX, null, 'anything']) {
+    assert.equal(project(await goalPlan([], GOAL, []), undefined, { englishAuxiliary }).cause, 'NEED_CLARIFICATION');
+    assert.equal(project(await goalPlan([question('q1', { needs: ['destination log'] })]), undefined, { englishAuxiliary }).cause, 'NOTHING_PROJECTED');
+    assert.equal(project(value, { status: 'HOLD', cause: 'INPUT_UNKNOWN' }, { englishAuxiliary }).cause, 'INPUT_UNKNOWN');
+  }
+});
+
+test('with a rendering, emitting also needs R\'s separate renderingVerdict FAITHFUL in a v2 record; without one, v2 is refused (C1)', async () => {
+  const live = await refusalSnapshotOf({ origin: await refusedOf({ mode: 'live' }), mode: 'live' }), value = await goalPlan();
+  const unreviewed = project(value, live, { englishAuxiliary: AUX }), ids = unreviewed.checks.map(c => c.id);
+  assert.deepEqual([unreviewed.emittable, unreviewed.fidelity], [false, { verdicts: { q1: 'UNREVIEWED', q2: 'UNREVIEWED' }, renderingVerdict: 'UNREVIEWED', allFaithful: false }]);
+  const all = Object.fromEntries(ids.map(id => [id, 'FAITHFUL']));
+  const record = { reviewRef: 'test:r-fidelity-record', envelopeSha256: unreviewed.envelopeSha256, verdicts: all, renderingVerdict: 'FAITHFUL' };
+  const emitted = project(value, live, { englishAuxiliary: AUX, fidelity: record });
+  assert.deepEqual([emitted.emittable, emitted.postingAuthorized, emitted.fidelity.renderingVerdict], [true, false, 'FAITHFUL']);
+  for (const renderingVerdict of ['UNFAITHFUL', 'UNKNOWN']) assert.equal(project(value, live, { englishAuxiliary: AUX, fidelity: { ...record, renderingVerdict } }).emittable, false);
+  assert.equal(project(value, live, { englishAuxiliary: AUX, fidelity: { ...record, verdicts: { ...all, q2: 'UNKNOWN' } } }).emittable, false);
+  assert.equal(project(value, await refusalSnapshotOf(), { englishAuxiliary: AUX, fidelity: record }).emittable, false, 'test-double readers stay non-emittable');
+  const { renderingVerdict, ...checkOnly } = record;
+  for (const bad of [checkOnly, { ...record, renderingVerdict: 'PASS' }, { ...record, envelopeSha256: '0'.repeat(64) }]) {
+    assert.throws(() => project(value, live, { englishAuxiliary: AUX, fidelity: bad }), /FIDELITY_RECORD_MISMATCH/);
+  }
+  // Without a rendering the v1 record is unchanged and a renderingVerdict is refused.
+  const plainLive = await snapshotOf({ mode: 'live' }), plain = project(value, plainLive);
+  assert.throws(() => project(value, plainLive, { fidelity: { ...faithful(plain), renderingVerdict: 'FAITHFUL' } }), /FIDELITY_RECORD_MISMATCH/);
+  assert.equal(project(value, plainLive, { fidelity: faithful(plain) }).emittable, true);
+  // From the approved review: the v2 block only when a rendering is required, the v1 block only when it is not.
+  const read = async (body, rendering) => fidelityFromReview({ approved: APPROVED_REVIEW, reviewReceipt: await reviewOf(reviewJson(body)),
+    envelopeSha256: unreviewed.envelopeSha256, checkIds: ids, rendering });
+  const got = await read(fidelityV2Body(unreviewed.envelopeSha256, all, 'FAITHFUL'), true);
+  assert.equal(got.status, 'RECORDED');
+  assert.deepEqual(got.record, { reviewRef: `https://github.com/${REPO}/pull/539#pullrequestreview-7001`, envelopeSha256: unreviewed.envelopeSha256, verdicts: all, renderingVerdict: 'FAITHFUL' });
+  assert.equal(project(value, live, { englishAuxiliary: AUX, fidelity: got.record }).emittable, true);
+  const cases = [
+    [fidelityBody(unreviewed.envelopeSha256, all), true, 'FIDELITY_BLOCK_INVALID'],
+    [fidelityV2Body(unreviewed.envelopeSha256, all, 'FAITHFUL'), false, 'FIDELITY_BLOCK_INVALID'],
+    [fidelityV2Body(unreviewed.envelopeSha256, all, undefined), true, 'FIDELITY_BLOCK_INVALID'],
+    // The schema label decides even when the key set alone would match the other shape (R B1).
+    [fidelityV2Body(unreviewed.envelopeSha256, all, 'FAITHFUL', { schema: 'ops.goal-evaluation.fidelity.v1' }), true, 'FIDELITY_BLOCK_INVALID'],
+    [fidelityV2Body(unreviewed.envelopeSha256, all, undefined), false, 'FIDELITY_BLOCK_INVALID'],
+    [fidelityV2Body(unreviewed.envelopeSha256, all, 'FAITHFUL', { englishSha256: sha256(AUX.text) }), true, 'FIDELITY_BLOCK_INVALID'],
+    [fidelityV2Body(unreviewed.envelopeSha256, all, 'PASS'), true, 'FIDELITY_RENDERING_INVALID'],
+    [fidelityV2Body('0'.repeat(64), all, 'FAITHFUL'), true, 'FIDELITY_DIGEST_MISMATCH'],
+    [fidelityV2Body(unreviewed.envelopeSha256, { ...all, 'subject.englishAuxiliary': 'FAITHFUL' }, 'FAITHFUL'), true, 'FIDELITY_CHECKS_MISMATCH'],
+    [fidelityV2Body(unreviewed.envelopeSha256, all, 'FAITHFUL'), 'yes', 'PROJECTION_INVALID'],
+  ];
+  for (const [body, rendering, cause] of cases) {
+    const out = await read(body, rendering);
+    assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'record')], ['HOLD', cause, false], cause);
+  }
+});
+
+test('a check named subject.englishAuxiliary stays a check: rendering and check verdicts cannot collide (C1)', async () => {
+  const live = await refusalSnapshotOf({ origin: await refusedOf({ mode: 'live' }), mode: 'live' });
+  const value = await goalPlan([question('subject.englishAuxiliary'), question('q2', { clauseIds: ['g-confirm'] })]);
+  const out = project(value, live, { englishAuxiliary: AUX });
+  assert.deepEqual([out.checks.map(c => c.id), out.fidelity.verdicts], [['subject.englishAuxiliary', 'q2'], { 'subject.englishAuxiliary': 'UNREVIEWED', q2: 'UNREVIEWED' }]);
+  const record = (check, renderingVerdict) => ({ reviewRef: 'test:r', envelopeSha256: out.envelopeSha256,
+    verdicts: { 'subject.englishAuxiliary': check, q2: 'FAITHFUL' }, renderingVerdict });
+  assert.deepEqual([['FAITHFUL', 'UNKNOWN'], ['UNKNOWN', 'FAITHFUL'], ['FAITHFUL', 'FAITHFUL']]
+    .map(([check, rendering]) => project(value, live, { englishAuxiliary: AUX, fidelity: record(check, rendering) }).emittable), [false, false, true]);
 });

@@ -1,5 +1,6 @@
-// Caller-local real-input preparation: acquisition receipts, executor-identity subject snapshot and a faithful
-// v14 provided-request projection. No client, auth, model, posting or Core change; readers are caller-owned ports.
+// Caller-local real-input preparation: acquisition receipts, an executor-identity or literal-CJK-refusal subject snapshot
+// and a faithful v14 provided-request projection, optionally with a supplied English subject rendering. No client, auth,
+// model, renderer, posting or Core change; readers are caller-owned ports.
 import { createHash } from 'node:crypto';
 import { REQUEST_PREFIX, RESULT_PREFIX, COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
@@ -15,6 +16,8 @@ const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const SCOPE = 'entire body of the approved pull request at the observed revision';
 const MAX_CHECKS = 6;
 const VERDICTS = ['FAITHFUL', 'UNFAITHFUL', 'UNKNOWN'];
+const LITERAL_COMMAND = '/jev-evaluate';
+const REFUSAL_KIND = 'literal-cjk-refusal';
 
 // One receipt per acquisition. Only HTTP 200 with non-empty text is OK; 404 is NOT_FOUND; anything else,
 // including 403/429/5xx, a thrown reader or an empty body, is UNKNOWN. A list read is OK only when the reader
@@ -44,6 +47,21 @@ export function pullRequestFrom(receipt, { repository, number }) {
   return { status: 'OK', pullRequest: { number, nodeId: pr.node_id, body: pr.body } };
 }
 
+// The executor's 5-part subjectRevision: node | sha256:<body> | lastEditedAt or unedited | edit count | includesCreatedEdit.
+// Node and body come only from the public PR; only the edit signals are taken from the revision, which must round-trip.
+function snapshotFromRevision(revision, pullRequest, number) {
+  const parts = revision.split('|');
+  if (parts.length !== 5 || parts[0] !== pullRequest.nodeId) return { cause: 'EXECUTOR_IDENTITY_MISMATCH' };
+  if (parts[1] !== 'sha256:' + sha256(pullRequest.body)) return { cause: 'SUBJECT_DRIFT' };
+  if (!(parts[2] === 'unedited' || Number.isFinite(Date.parse(parts[2]))) || !/^(0|[1-9][0-9]*)$/.test(parts[3]) || !['true', 'false'].includes(parts[4])) {
+    return { cause: 'EXECUTOR_IDENTITY_MISMATCH' };
+  }
+  const snapshot = { number, nodeId: pullRequest.nodeId, body: pullRequest.body, lastEditedAt: parts[2] === 'unedited' ? null : parts[2],
+    includesCreatedEdit: parts[4] === 'true', userContentEditsTotal: Number(parts[3]) };
+  if (subjectRevision(snapshot) !== revision) return { cause: 'EXECUTOR_IDENTITY_MISMATCH' };
+  return { snapshot };
+}
+
 // N1: the subject snapshot comes only from the existing executor's admitted old-literal result for the caller's
 // own expected command/run/runtime. Author, marker, closed envelope, identity and body digest are all checked.
 // readerDeclaredLive repeats the caller's reader declaration; it is not evidence that an actual read happened.
@@ -65,15 +83,8 @@ export function executorIdentitySnapshot({ commentsReceipt, pullRequestReceipt, 
     || envelope.authority !== false || id?.repository !== target.repository || id.issue !== target.number || id.targetKind !== 'pull-request'
     || id.observation !== COMMAND_OBSERVATION || id.run?.id !== expected.runId || id.executionSource !== expected.executionSource
     || id.issueNodeId !== pullRequest.nodeId || typeof id.subjectRevision !== 'string') return hold('EXECUTOR_IDENTITY_MISMATCH');
-  const parts = id.subjectRevision.split('|');
-  if (parts.length !== 5 || parts[0] !== pullRequest.nodeId) return hold('EXECUTOR_IDENTITY_MISMATCH');
-  if (parts[1] !== 'sha256:' + sha256(pullRequest.body)) return hold('SUBJECT_DRIFT');
-  if (!(parts[2] === 'unedited' || Number.isFinite(Date.parse(parts[2]))) || !/^(0|[1-9][0-9]*)$/.test(parts[3]) || !['true', 'false'].includes(parts[4])) {
-    return hold('EXECUTOR_IDENTITY_MISMATCH');
-  }
-  const snapshot = { number: target.number, nodeId: pullRequest.nodeId, body: pullRequest.body, lastEditedAt: parts[2] === 'unedited' ? null : parts[2],
-    includesCreatedEdit: parts[4] === 'true', userContentEditsTotal: Number(parts[3]) };
-  if (subjectRevision(snapshot) !== id.subjectRevision) return hold('EXECUTOR_IDENTITY_MISMATCH');
+  const { snapshot, cause } = snapshotFromRevision(id.subjectRevision, pullRequest, target.number);
+  if (!snapshot) return hold(cause);
   return { status: 'VERIFIED', target: { ...target }, snapshot,
     readerDeclaredLive: [commentsReceipt, pullRequestReceipt].every(r => r.reader.mode === 'live'),
     origin: { resultCommentId: comment.id, requestDigest: envelope.requestDigest, runId: expected.runId, commandCommentId: expected.commandCommentId } };
@@ -86,17 +97,20 @@ const unit = (fields, content) => ({ ...fields, content, sha256: sha256(content)
 // a question phrased in the ok direction. The plan's own question is quoted, not reworded.
 const problemQuestion = q => `Does the problem criterion hold for this target, rather than the ok criterion? Original question: ${q.question}`;
 
-// Fidelity is R's record about exact envelope bytes, supplied from outside; this code never assigns a verdict.
-function fidelityOf(record, envelopeSha256, ids) {
-  if (record === undefined) return { verdicts: Object.fromEntries(ids.map(id => [id, 'UNREVIEWED'])), allFaithful: false };
-  if (!exact(record, ['reviewRef', 'envelopeSha256', 'verdicts']) || !text(record.reviewRef) || record.envelopeSha256 !== envelopeSha256
-    || !exact(record.verdicts, ids) || ids.some(id => !VERDICTS.includes(record.verdicts[id]))) throw new Error('FIDELITY_RECORD_MISMATCH');
-  return { reviewRef: record.reviewRef, verdicts: { ...record.verdicts }, allFaithful: ids.every(id => record.verdicts[id] === 'FAITHFUL') };
+// Fidelity is R's record about exact envelope bytes, supplied from outside; this code never assigns a verdict. With a
+// subject rendering the record also carries R's renderingVerdict, separate from the check verdicts.
+function fidelityOf(record, envelopeSha256, ids, rendering) {
+  if (record === undefined) return { verdicts: Object.fromEntries(ids.map(id => [id, 'UNREVIEWED'])), ...(rendering ? { renderingVerdict: 'UNREVIEWED' } : {}), allFaithful: false };
+  if (!exact(record, ['reviewRef', 'envelopeSha256', 'verdicts', ...(rendering ? ['renderingVerdict'] : [])]) || !text(record.reviewRef)
+    || record.envelopeSha256 !== envelopeSha256 || !exact(record.verdicts, ids) || ids.some(id => !VERDICTS.includes(record.verdicts[id]))
+    || (rendering && !VERDICTS.includes(record.renderingVerdict))) throw new Error('FIDELITY_RECORD_MISMATCH');
+  return { reviewRef: record.reviewRef, verdicts: { ...record.verdicts }, ...(rendering ? { renderingVerdict: record.renderingVerdict } : {}),
+    allFaithful: ids.every(id => record.verdicts[id] === 'FAITHFUL') && (!rendering || record.renderingVerdict === 'FAITHFUL') };
 }
 
 // Faithful binary projection of obligation-bound questions without needs. Goal and clause text stay local:
 // the wire carries only the subject and the English predicates; a CJK Goal is kept as ref and digest.
-export function project(planValue, subject, { fidelity, ...planLimits } = {}) {
+export function project(planValue, subject, { fidelity, englishAuxiliary, ...planLimits } = {}) {
   const value = checkPlan(planValue, planLimits);
   const checks = [], mapping = [], notProjected = [];
   for (const q of value.questions) {
@@ -126,14 +140,24 @@ export function project(planValue, subject, { fidelity, ...planLimits } = {}) {
   if (subject?.status !== 'VERIFIED' || !exact(subject.target, ['repository', 'number']) || !REPOSITORY.test(subject.target.repository)
     || subject.target.number !== subject.snapshot?.number) return hold(subject?.cause ?? 'REVISION_UNOBSERVED', base);
   const { snapshot, target } = subject;
-  const input = { schema: 'ops.semlint.input.v14',
-    subject: unit({ kind: 'log-entry', ref: `https://github.com/${target.repository}/pull/${target.number}`, revision: subjectRevision(snapshot), scope: SCOPE }, snapshot.body),
+  const subjectUnit = unit({ kind: 'log-entry', ref: `https://github.com/${target.repository}/pull/${target.number}`, revision: subjectRevision(snapshot), scope: SCOPE }, snapshot.body);
+  // A supplied English rendering of the subject only, bound to the whole observed body. Core v14 auxiliary() requires it
+  // to be null exactly when the selected text has no CJK, so an English body takes none.
+  const rendering = englishAuxiliary !== undefined;
+  if (rendering) {
+    if (!exact(englishAuxiliary, ['text', 'sourceSha256']) || !text(englishAuxiliary.text) || CJK.test(englishAuxiliary.text)
+      || englishAuxiliary.sourceSha256 !== subjectUnit.sha256) return hold('AUXILIARY_INVALID', base);
+    if (!CJK.test(snapshot.body)) return hold('RENDERING_NOT_NEEDED', base);
+    subjectUnit.englishAuxiliary = { text: englishAuxiliary.text, sourceSha256: englishAuxiliary.sourceSha256 };
+  }
+  const input = { schema: 'ops.semlint.input.v14', subject: subjectUnit,
     context: base.goal.onWire ? [unit({ role: 'goal', ref: goal.ref, revision: 'sha256:' + base.goal.sha256 }, goal.content)] : [],
     checks };
-  if (CJK.test(JSON.stringify(input))) return { status: 'UNSUPPORTED_CJK', emittable: false, ...base };
+  // Without a rendering any CJK makes the case unsupported; with one, CJK may remain only in the original subject content.
+  if (CJK.test(JSON.stringify(rendering ? { ...input, subject: { ...subjectUnit, content: '' } } : input))) return { status: 'UNSUPPORTED_CJK', emittable: false, ...base };
   const envelope = REQUEST_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-request.v1', cases: [{ id: 'pull-request', input }] });
   const envelopeSha256 = sha256(envelope);
-  const review = fidelityOf(fidelity, envelopeSha256, checks.map(c => c.id));
+  const review = fidelityOf(fidelity, envelopeSha256, checks.map(c => c.id), rendering);
   return { status: 'ELIGIBLE', emittable: subject.readerDeclaredLive === true && review.allFaithful, ...base, envelope, envelopeSha256,
     fidelity: review, postingAuthorized: false };
 }
@@ -144,8 +168,11 @@ const inputCause = receipt => 'INPUT_' + (receipt?.status ?? 'MISSING');
 
 // The plan-stage receipt the existing executor prints to its job log (one JSON object per line, after the runner's
 // timestamp). Logs are not publicly readable and carry no provider digest, so these bytes are a P transport that
-// is only checked for internal digest consistency here; they never stand alone as proof.
-function planStageReceipt(log) {
+// is only checked for internal digest consistency here; they never stand alone as proof. `accept` is PLANNED for the
+// old-literal result path, or REFUSED_CJK for the executor's literal CJK refusal in its exact closed shape: no claim, no
+// provider call, no request digest, and the executor's own subject observation. A post-stage echo is never a plan receipt.
+const REFUSAL_RECEIPT_KEYS = ['schema', 'stage', 'outcome', 'cause', 'claimed', 'providerCalls', 'authority', 'commentId', 'run', 'observed'];
+function planStageReceipt(log, accept) {
   if (!exact(log, ['ref', 'route', 'observedAt', 'bytes', 'sha256', 'content', 'providerDigest']) || log.route !== 'p-transported-job-log'
     || log.providerDigest !== null || typeof log.content !== 'string' || log.sha256 !== sha256(log.content)
     || log.bytes !== Buffer.byteLength(log.content, 'utf8')) return { cause: 'PLAN_LOG_RECEIPT_INVALID' };
@@ -153,6 +180,14 @@ function planStageReceipt(log) {
     .filter(x => x?.schema === 'ops.jev.issue-actions-receipt.v1' && x.stage === 'plan');
   if (plans.length !== 1) return { cause: plans.length ? 'PLAN_RECEIPT_AMBIGUOUS' : 'PLAN_RECEIPT_MISSING' };
   const [p] = plans;
+  if (accept === 'REFUSED_CJK') {
+    if (!exact(p, REFUSAL_RECEIPT_KEYS) || p.outcome !== 'NONE' || p.cause !== 'UNSUPPORTED_CJK' || p.claimed !== false || p.providerCalls !== 0
+      || p.authority !== false || !positive(p.commentId) || !exact(p.run, ['id', 'number', 'attempt', 'workflowId'])
+      || !exact(p.observed, ['issueNodeId', 'subjectRevision']) || !text(p.observed.issueNodeId) || !text(p.observed.subjectRevision)) {
+      return { cause: 'PLAN_RECEIPT_NOT_REFUSED_CJK' };
+    }
+    return { plan: p };
+  }
   if (p.outcome !== 'PLANNED' || !positive(p.commentId) || !exact(p.run, ['id', 'number', 'attempt', 'workflowId'])
     || !/^[0-9a-f]{64}$/.test(p.requestDigest ?? '')) return { cause: 'PLAN_RECEIPT_NOT_PLANNED' };
   return { plan: p };
@@ -184,14 +219,15 @@ function withBlocks(workflow) {
 // head_sha, all tied to the executor's own plan receipt (commentId and run). The run's workflow must also be
 // byte-identical to the same path at the caller-approved activation commit, read the same way. Actor, time proximity
 // or the final result's self-identity are never used to bind a run to a command. The code certifies consistency only.
-export function expectedOrigin({ approved, postingResponse, commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt, planLog }) {
+// Shared by expectedOrigin and refusalOrigin; only the accepted plan receipt differs.
+function bindRun({ approved, postingResponse, commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt, planLog }, accept) {
   if (!exact(approved, ['repository', 'number', 'principal', 'commandBody', 'workflowId', 'workflowPath', 'runRange', 'runtimeSource', 'activationCommit'])
     || !REPOSITORY.test(approved.repository) || !positive(approved.number) || !text(approved.principal) || !text(approved.commandBody)
     || !positive(approved.workflowId) || !text(approved.workflowPath) || !exact(approved.runRange, ['first', 'last'])
     || !positive(approved.runRange.first) || !(approved.runRange.last >= approved.runRange.first) || !SHA1.test(approved.runtimeSource)
     || !SHA1.test(approved.activationCommit)) return hold('APPROVED_ORIGIN_INVALID');
   if (!exact(postingResponse, ['id']) || !positive(postingResponse.id)) return hold('POSTING_RESPONSE_MISSING');
-  const { plan, cause } = planStageReceipt(planLog);
+  const { plan, cause } = planStageReceipt(planLog, accept);
   if (!plan) return hold(cause);
   for (const receipt of [commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt]) if (receipt?.status !== 'OK') return hold(inputCause(receipt));
   const cmd = okJson(commandReceipt), run = okJson(runReceipt);
@@ -227,11 +263,57 @@ export function expectedOrigin({ approved, postingResponse, commandReceipt, runR
   const pins = [...blocks.filter(b => b.ref !== null).map(b => b.ref),
     ...[...workflowReceipt.content.matchAll(/^\s*runtime_source=(\S+)\s*$/gm)].map(m => m[1])];
   if (pins.length !== 2 || pins.some(pin => pin !== approved.runtimeSource)) return hold('RUNTIME_PIN_MISMATCH');
+  return { plan, run };
+}
+
+const ORIGIN_LIMITS = ['plan receipt bytes are a P-transported job log without a provider digest; they are only cross-checked here',
+  'the activation commit is a caller-approved fact from the phase contract; this code does not review the activation workflow itself'];
+
+export function expectedOrigin(args) {
+  const bound = bindRun(args, 'PLANNED');
+  if (!bound.plan) return bound;
+  const { plan, run } = bound, { approved, postingResponse, workflowReceipt, planLog } = args;
   return { status: 'BOUND', expected: { commandCommentId: postingResponse.id, runId: run.id, executionSource: approved.runtimeSource },
     origin: { runNumber: run.run_number, runHeadSha: run.head_sha, activationCommit: approved.activationCommit, workflowSha256: workflowReceipt.sha256,
       planLogSha256: planLog.sha256, planRequestDigest: plan.requestDigest },
-    limits: ['plan receipt bytes are a P-transported job log without a provider digest; they are only cross-checked here',
-      'the activation commit is a caller-approved fact from the phase contract; this code does not review the activation workflow itself'] };
+    limits: [...ORIGIN_LIMITS] };
+}
+
+// C1: the origin of a literal CJK refusal. The executor refused before any claim or result comment, so the only record
+// of the subject state it observed is its plan receipt's `observed`. The same N-a bindings apply and the approved command
+// must be the literal one. The result is a distinct kind with no request digest and no `expected`, so it cannot stand in
+// for expectedOrigin, and refusalIdentitySnapshot accepts nothing else.
+export function refusalOrigin(args) {
+  const bound = bindRun(args, 'REFUSED_CJK');
+  if (!bound.plan) return bound;
+  const { plan, run } = bound, { approved, postingResponse, commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt, planLog } = args;
+  if (approved.commandBody !== LITERAL_COMMAND) return hold('COMMAND_NOT_LITERAL');
+  return { status: 'BOUND', kind: REFUSAL_KIND, target: { repository: approved.repository, number: approved.number },
+    planObservation: { issueNodeId: plan.observed.issueNodeId, subjectRevision: plan.observed.subjectRevision },
+    // Repeats the caller's reader-port declarations for the public reads only; the job log has no reader and stays weak.
+    readerDeclaredLive: [commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt].every(r => r.reader.mode === 'live'),
+    origin: { commandCommentId: postingResponse.id, runId: run.id, runNumber: run.run_number, runHeadSha: run.head_sha,
+      executionSource: approved.runtimeSource, activationCommit: approved.activationCommit, workflowSha256: workflowReceipt.sha256, planLogSha256: planLog.sha256 },
+    limits: [...ORIGIN_LIMITS,
+      'the observation is the executor\'s subject state when it refused, not a later read: a public read cannot see an edit that restores the same body, and only a later provided admission recomputes the revision',
+      'a refusal does not show that the body is CJK; that the activated runtime prints this receipt is a phase fact this code cannot certify'] };
+}
+
+// N1 for a literal CJK refusal: node and body come only from the public PR, the edit signals only from the refusal's
+// observation, through the same revision parser as the result path. Node equality is required three ways.
+export function refusalIdentitySnapshot({ origin, pullRequestReceipt, target }) {
+  if (!exact(target, ['repository', 'number']) || !REPOSITORY.test(target.repository) || !positive(target.number)) return hold('TARGET_INVALID');
+  if (origin?.status !== 'BOUND' || origin.kind !== REFUSAL_KIND) return hold('ORIGIN_KIND_MISMATCH');
+  if (origin.target?.repository !== target.repository || origin.target.number !== target.number) return hold('TARGET_MISMATCH');
+  const pr = pullRequestFrom(pullRequestReceipt, target);
+  if (pr.status !== 'OK') return pr;
+  const { pullRequest } = pr, observed = origin.planObservation;
+  if (observed?.issueNodeId !== pullRequest.nodeId || typeof observed.subjectRevision !== 'string') return hold('EXECUTOR_IDENTITY_MISMATCH');
+  const { snapshot, cause } = snapshotFromRevision(observed.subjectRevision, pullRequest, target.number);
+  if (!snapshot) return hold(cause);
+  return { status: 'VERIFIED', target: { ...target }, snapshot,
+    readerDeclaredLive: origin.readerDeclaredLive === true && pullRequestReceipt.reader.mode === 'live',
+    origin: { kind: REFUSAL_KIND, ...origin.origin } };
 }
 
 const FIDELITY_MARKER = '<!-- semlint-fidelity-v1 -->';
@@ -239,12 +321,15 @@ const FIDELITY_MARKER = '<!-- semlint-fidelity-v1 -->';
 // N-e: a fidelity record is taken only from the approved review ID on the approved PR, from one marked, closed JSON
 // block that names the exact envelope digest and every projected check. The GitHub author is a shared account, so the
 // R origin stays a caller-declared reference here; actual R identity is checked by the live-phase R readback.
-export function fidelityFromReview({ approved, reviewReceipt, envelopeSha256, checkIds }) {
+// `rendering: true` (the projection carries a subject englishAuxiliary) requires the v2 block under the same marker, which
+// adds only R's renderingVerdict; envelopeSha256 already binds the original body, its span and digest and the English text.
+export function fidelityFromReview({ approved, reviewReceipt, envelopeSha256, checkIds, rendering = false }) {
   if (!exact(approved, ['repository', 'number', 'reviewId', 'rOrigin']) || !REPOSITORY.test(approved.repository) || !positive(approved.number)
     || !positive(approved.reviewId) || !exact(approved.rOrigin, ['session', 'goRef']) || !text(approved.rOrigin.session) || !text(approved.rOrigin.goRef)) {
     return hold('APPROVED_REVIEW_INVALID');
   }
-  if (!/^[0-9a-f]{64}$/.test(envelopeSha256 ?? '') || !Array.isArray(checkIds) || !checkIds.length || new Set(checkIds).size !== checkIds.length) return hold('PROJECTION_INVALID');
+  if (!/^[0-9a-f]{64}$/.test(envelopeSha256 ?? '') || !Array.isArray(checkIds) || !checkIds.length || new Set(checkIds).size !== checkIds.length
+    || typeof rendering !== 'boolean') return hold('PROJECTION_INVALID');
   if (reviewReceipt?.status !== 'OK') return hold(inputCause(reviewReceipt));
   const review = okJson(reviewReceipt);
   if (review?.id !== approved.reviewId || typeof review.pull_request_url !== 'string'
@@ -252,12 +337,14 @@ export function fidelityFromReview({ approved, reviewReceipt, envelopeSha256, ch
   const blocks = review.body.split(FIDELITY_MARKER);
   if (blocks.length !== 2) return hold(blocks.length > 2 ? 'FIDELITY_MARKER_DUPLICATE' : 'FIDELITY_MARKER_MISSING');
   const fenced = /^\s*```json\n([\s\S]*?)\n```/.exec(blocks[1]), value = fenced && parse(fenced[1]);
-  if (!exact(value, ['schema', 'envelopeSha256', 'verdicts']) || value.schema !== 'ops.goal-evaluation.fidelity.v1') return hold('FIDELITY_BLOCK_INVALID');
+  if (!exact(value, ['schema', 'envelopeSha256', 'verdicts', ...(rendering ? ['renderingVerdict'] : [])])
+    || value.schema !== (rendering ? 'ops.goal-evaluation.fidelity.v2' : 'ops.goal-evaluation.fidelity.v1')) return hold('FIDELITY_BLOCK_INVALID');
   if (value.envelopeSha256 !== envelopeSha256) return hold('FIDELITY_DIGEST_MISMATCH');
   if (!exact(value.verdicts, checkIds) || checkIds.some(id => !VERDICTS.includes(value.verdicts[id]))) return hold('FIDELITY_CHECKS_MISMATCH');
+  if (rendering && !VERDICTS.includes(value.renderingVerdict)) return hold('FIDELITY_RENDERING_INVALID');
   return { status: 'RECORDED',
     record: { reviewRef: `https://github.com/${approved.repository}/pull/${approved.number}#pullrequestreview-${approved.reviewId}`,
-      envelopeSha256, verdicts: { ...value.verdicts } },
+      envelopeSha256, verdicts: { ...value.verdicts }, ...(rendering ? { renderingVerdict: value.renderingVerdict } : {}) },
     rOriginDeclared: { ...approved.rOrigin },
     limits: ['shared GitHub author; R origin is a caller-declared reference until the live R readback'] };
 }
