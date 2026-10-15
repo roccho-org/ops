@@ -193,6 +193,31 @@ test('needs, limits, missing obligations and unverified subjects are recorded, n
   assert.deepEqual([unverified.status, unverified.emittable, Object.hasOwn(unverified, 'envelope')], ['HOLD', false, false]);
 });
 
+test('a plan with no Core check concludes NOTHING_PROJECTED before any subject verification, keeping every record', async () => {
+  const needsOnly = await goalPlan([question('q1', { needs: ['destination log'] })]);
+  const verified = project(needsOnly, await snapshotOf());
+  assert.deepEqual([verified.status, verified.cause, verified.emittable, verified.checks, verified.notProjected],
+    ['HOLD', 'NOTHING_PROJECTED', false, [], [{ id: 'q1', reason: 'INCOMPLETE', needs: ['destination log'], clauseIds: ['g-once'] }]]);
+  for (const key of ['envelope', 'envelopeSha256', 'target', 'fidelity', 'snapshot']) assert.equal(Object.hasOwn(verified, key), false, key);
+  // No subject, a held subject, a label-only claim or a CJK subject: none is awaited or inspected when nothing reaches the wire.
+  const cjkSubject = { status: 'VERIFIED', target: TARGET, snapshot: issue('再送を追加する。'), readerDeclaredLive: true };
+  for (const subject of [undefined, { status: 'HOLD', cause: 'REVISION_UNOBSERVED' },
+    { status: 'VERIFIED_BY_LABEL', target: TARGET, snapshot: issue(), readerDeclaredLive: true }, cjkSubject]) {
+    assert.deepEqual(project(needsOnly, subject), verified, subject?.status ?? 'no subject');
+  }
+  // A Japanese Goal is concluded the same way and stays local: ref, digest and its unquoted span.
+  const ja = { ref: GOAL.ref, content: '通知は一度だけ届けること。Deliver each notification exactly once.' };
+  const jaNeeds = project(await goalPlan([question('q1', { needs: ['destination log'] })], ja, [clauses[0]]), undefined);
+  assert.deepEqual([jaNeeds.status, jaNeeds.cause, jaNeeds.goal, jaNeeds.unquotedGoalText.map(s => s.text)],
+    ['HOLD', 'NOTHING_PROJECTED', { ref: GOAL.ref, sha256: sha256(ja.content), onWire: false }, ['通知は一度だけ届けること。']]);
+  // Order otherwise unchanged: no obligation is still NEED_CLARIFICATION, a projectable plan still waits for the
+  // verified subject, and a CJK subject still makes a projectable case UNSUPPORTED_CJK.
+  assert.deepEqual([project(await goalPlan([], GOAL, []), undefined).cause], ['NEED_CLARIFICATION']);
+  const projectable = await goalPlan();
+  assert.deepEqual([project(projectable, undefined).cause, project(projectable, { status: 'HOLD', cause: 'INPUT_UNKNOWN' }).cause], ['REVISION_UNOBSERVED', 'INPUT_UNKNOWN']);
+  assert.equal(project(projectable, cjkSubject).status, 'UNSUPPORTED_CJK');
+});
+
 test('a Japanese Goal stays local as ref and digest; CJK on the wire makes the whole case unsupported (C1)', async () => {
   const subject = await snapshotOf();
   const ja = { ref: GOAL.ref, content: '通知は一度だけ届けること。Deliver each notification exactly once.' };
