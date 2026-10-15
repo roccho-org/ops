@@ -538,6 +538,26 @@ for (const program of [entry, compatibility]) {
     const legacyResult = await admitIssueCommand(input, shipped);
     assert.equal(legacyResult.status, 'ADMITTED', legacyResult.cause); assert.equal(Object.hasOwn(legacyResult, 'observed'), false);
   }
+  // Origin-subject split on the shipped settings plus a fixture grant (the shipped file has no subject and no real Apps
+  // Issue is read). The origin ops#483 keeps the top-level triple; the CJK subject is evaluated unrendered and named in
+  // identity.subject. Without a grant the identity has no subject key and the triple is the evaluated revision.
+  const granted = JSON.parse(JSON.stringify(shipped));
+  granted.targets.find((t) => t.repository === OPS && t.issue === 483).subject = { repository: 'fixture-user/apps', repositoryId: '321', kind: 'issue', number: 94 };
+  granted.runRanges.push({ repository: OPS, workflowId: 377399991, path: WFP, first: 900, last: 900, reservedCallsPerRun: 1, target: { issue: 483 } });
+  const originIssue = subject({ number: 483, nodeId: 'I_fixture483', body: EN });
+  const apps = { repository: 'fixture-user/apps', repositoryId: '321', isPrivate: false, ...subject({ number: 94, nodeId: 'I_fixture94' }) };
+  const split = await admitIssueCommand({ ...legacy(OPS, 483, 377399991, 'issue'), issue: originIssue, subject: apps,
+    run: { id: 77, number: 900, attempt: 1, workflowId: 377399991, path: WFP } }, granted);
+  assert.equal(split.status, 'ADMITTED', split.cause);
+  const evaluated = split.prepared.plan.cases[0].input.subject;
+  assert.deepEqual([split.identity.issue, split.identity.issueNodeId, split.identity.subjectRevision], [483, 'I_fixture483', subjectRevision(originIssue)]);
+  assert.deepEqual(split.identity.subject, { repository: 'fixture-user/apps', repositoryId: '321', kind: 'issue', number: 94,
+    nodeId: 'I_fixture94', revision: subjectRevision(apps) });
+  assert.notEqual(split.identity.subjectRevision, split.identity.subject.revision);
+  assert.deepEqual([evaluated.ref, evaluated.revision, evaluated.content], ['https://github.com/fixture-user/apps/issues/94', split.identity.subject.revision, JA]);
+  const plain = await admitIssueCommand(legacy(OPS, 483, 377399991, 'issue'), shipped);
+  assert.equal(Object.hasOwn(plain.identity, 'subject'), false);
+  assert.equal(plain.identity.subjectRevision, plain.prepared.plan.cases[0].input.subject.revision);
 }
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
   githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,
