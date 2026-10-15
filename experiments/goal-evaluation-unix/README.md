@@ -56,7 +56,7 @@ Current limits: this module records and projects only. It never runs a Program, 
 ## A CJK subject: refusal snapshot and supplied rendering (C1)
 
 - Why: three pieces are involved, and only one is on this base.
-  - Core v14, on this base, already accepts a producer-supplied `englishAuxiliary` for a CJK unit. But this base's GitHub provided-path admission refuses any auxiliary (`AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE`), and its executor has no CJK refusal for a literal `/jev-evaluate`.
+  - Core v14, on this base, already accepts a producer-supplied `englishAuxiliary` for a CJK unit. But this base's GitHub provided-path payload check refuses any auxiliary or any CJK with `INVALID_PROVIDED_REQUEST` (the later shared guard `AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE` is not reached first), and its executor has no CJK refusal for a literal `/jev-evaluate`.
   - #542 (L1, not on this base) refuses a granted target's literal command whose input contains CJK (`UNSUPPORTED_CJK`) before any claim, so no result comment carries the edit signals; it also admits a subject rendering on the provided path.
   - #547 (L2, not on this base) prints the edit signals in that refusal's plan receipt as `observed: {issueNodeId, subjectRevision}`.
 
