@@ -330,8 +330,12 @@ export async function admitIssueCommand(inputValue, configValue) {
     if (prepared.expected[0].sendable !== prepared.plan.cases[0].input.checks.length) return reject('PROVIDED_CONTEXT_INCOMPLETE');
   } else {
     // A literal v1 request sends the original text unrendered; on a target granted the provided route, CJK input
-    // is refused here rather than evaluated unsupported. Legacy literal targets keep their behavior.
-    if (granted && CJK.test(JSON.stringify(semlintInput))) return reject('UNSUPPORTED_CJK');
+    // is refused here rather than evaluated unsupported. Legacy literal targets keep their behavior. The refusal
+    // keeps this admission snapshot's subject identity (node ID and exact revision, no body text). CJK anywhere in
+    // the input refuses, so the observation names the subject; it does not say the body itself is CJK.
+    if (granted && CJK.test(JSON.stringify(semlintInput))) {
+      return { ...reject('UNSUPPORTED_CJK'), observed: { issueNodeId: issue.nodeId, subjectRevision: revision } };
+    }
     try {
       prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: [{ id: targetKind, input: semlintInput }] },
         { ...config.limits, maxCalls: selected.callsPerRun });
