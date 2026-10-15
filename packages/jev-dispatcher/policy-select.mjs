@@ -8,26 +8,30 @@ import { DatabaseSync } from 'node:sqlite';
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const ownFile = fileURLToPath(import.meta.url);
 const fail = (message) => { throw new Error(message); };
+// POSIX keeps its existing prefix rule; Windows adds only a forward-slash drive path without . or .. segments.
+const windowsAbsolute = /^[A-Za-z]:\/(?:[^/\\\0]+\/)*[^/\\\0]+$/;
+const absoluteGitBin = (path) => path.startsWith('/') ||
+  (windowsAbsolute.test(path) && !path.slice(3).split('/').some((part) => part === '.' || part === '..'));
 
 function argsOf(argv) {
   const out = { authority: Object.create(null) };
   for (let i = 0; i < argv.length; i += 2) {
     const key = argv[i];
     const value = argv[i + 1];
-    if (!key?.startsWith('--') || !value) fail('usage: policy-select --repo PATH --commit SHA --r-id ID [--authority NAME=PATH]');
+    if (!key?.startsWith('--') || !value) fail('usage: policy-select --repo PATH --commit SHA --r-id ID [--sql-source agents|entry] [--authority NAME=PATH]');
     if (key === '--authority') {
       const split = value.indexOf('=');
       if (split < 1) fail('bad authority mapping');
       if (Object.hasOwn(out.authority, value.slice(0, split))) fail('duplicate authority mapping');
       out.authority[value.slice(0, split)] = value.slice(split + 1);
-    } else if (['--repo', '--commit', '--r-id', '--format', '--git-bin'].includes(key)) {
+    } else if (['--repo', '--commit', '--r-id', '--format', '--git-bin', '--sql-source'].includes(key)) {
       if (out[key.slice(2)]) fail('duplicate argument: ' + key);
       out[key.slice(2)] = value;
     } else fail('unknown argument: ' + key);
   }
   if (!out.repo || !out.commit || !out['r-id']) fail('repo, commit and r-id are required');
   if (out.format && !['compact', 'selected'].includes(out.format)) fail('format must be compact or selected');
-  if (!out['git-bin'] || !out['git-bin'].startsWith('/')) fail('absolute git-bin is required');
+  if (!out['git-bin'] || !absoluteGitBin(out['git-bin'])) fail('absolute git-bin is required');
   if (!/^[0-9a-f]{40}$/.test(out.commit)) fail('commit must be a full SHA-1 object id');
   return out;
 }
@@ -101,14 +105,33 @@ export function validateRows(lines) {
   return rows;
 }
 
-export function select({ repo, commit, 'r-id': rid, authority = {}, 'git-bin': gitBin }) {
+export const ENTRY_PATH = 'policy/entry.md';
+
+// Chooses the one SQL block to run. `agents` (the default) reads AGENTS.md alone, as before.
+// `entry` is an explicit opt-in: AGENTS.md has no SQL and exactly one literal link to
+// policy/entry.md, which readEntry returns from the same commit and which holds exactly one SQL block.
+export function sqlSourceOf(mode = 'agents', agentsText, readEntry) {
+  const blocks = (text) => [...text.matchAll(/\x60\x60\x60sql\s*\n([\s\S]*?)\n\x60\x60\x60/g)].map((match) => match[1]);
+  const own = blocks(agentsText);
+  if (mode === 'agents') {
+    if (own.length !== 1) fail('expected one AGENTS SQL block');
+    return { sql: own[0] };
+  }
+  if (mode !== 'entry') fail('sql-source must be agents or entry');
+  if (own.length) fail('entry source requires AGENTS without SQL');
+  if (agentsText.split('](' + ENTRY_PATH + ')').length !== 2) fail('entry source requires one AGENTS link to ' + ENTRY_PATH);
+  const entry = readEntry(ENTRY_PATH);
+  const sqls = blocks(entry.text);
+  if (sqls.length !== 1) fail('expected one entry SQL block');
+  return { sql: sqls[0], entry };
+}
+
+export function select({ repo, commit, 'r-id': rid, authority = {}, 'git-bin': gitBin, 'sql-source': sqlSource }) {
   if (git(gitBin, repo, 'cat-file', '-t', commit).toString('utf8').trim() !== 'commit') fail('not a commit');
   const tree = git(gitBin, repo, 'rev-parse', commit + '^{tree}').toString('utf8').trim();
   const agents = exactBlob(gitBin, repo, commit, 'AGENTS.md');
   const control = exactBlob(gitBin, repo, commit, 'policy/control.jsonl');
-  const blocks = [...agents.text.matchAll(/\x60\x60\x60sql\s*\n([\s\S]*?)\n\x60\x60\x60/g)];
-  if (blocks.length !== 1) fail('expected one AGENTS SQL block');
-  const sql = blocks[0][1];
+  const { sql, entry } = sqlSourceOf(sqlSource, agents.text, (path) => exactBlob(gitBin, repo, commit, path));
   const lines = numberedLines(control.text);
   const rows = validateRows(lines);
   const target = rows.get(rid);
@@ -152,6 +175,7 @@ export function select({ repo, commit, 'r-id': rid, authority = {}, 'git-bin': g
       anchor_count: sqlAnchorCount,
       runtime: { node: process.version, sqlite: db.prepare('SELECT sqlite_version() AS version').get().version, script_sha256: hash(readFileSync(ownFile)) },
       agents: { oid: agents.oid, sha256: agents.sha256 },
+      ...(entry ? { entry: { path: entry.path, oid: entry.oid, sha256: entry.sha256 } } : {}),
       control: { oid: control.oid, sha256: control.sha256 },
       sql_sha256: hash(sql), selected, requires,
     };

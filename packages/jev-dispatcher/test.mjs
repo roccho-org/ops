@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, symlinkSync, unlinkSync } from 'node:fs';
-import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { numberedLines, safePath, select, validateRows } from './policy-select.mjs';
+import { ENTRY_PATH, numberedLines, safePath, select, sqlSourceOf, validateRows } from './policy-select.mjs';
 
 const cli = fileURLToPath(new URL('./policy-select.mjs', import.meta.url));
 const root = { op: 'document', id: '/root', rel: null, schema: 3, state: 'active' };
@@ -44,6 +44,66 @@ test('rejects unsafe requires paths', () => {
     assert.throws(() => safePath(path), /unsafe requires path/);
 });
 
+// Placeholder fence bodies: these cases exercise only which block is chosen and are never run as a policy query.
+const fence = (body) => '\x60\x60\x60sql\n' + body + '\n\x60\x60\x60\n';
+const linkText = 'Read [policy/entry.md](policy/entry.md) in full.\n';
+const legacyAgents = '# entry\n' + fence('LEGACY');
+const entryPort = (text) => {
+  const reads = [];
+  return { reads, read: (path) => { reads.push(path); return { path, oid: 'e'.repeat(40), sha256: 'f'.repeat(64), text }; } };
+};
+
+test('SQL source keeps AGENTS by default and follows policy/entry.md only on explicit entry', () => {
+  for (const mode of [undefined, 'agents']) {
+    const port = entryPort(fence('ENTRY'));
+    assert.deepEqual(sqlSourceOf(mode, legacyAgents, port.read), { sql: 'LEGACY' });
+    assert.throws(() => sqlSourceOf(mode, linkText, port.read), /expected one AGENTS SQL block/);
+    assert.deepEqual(port.reads, []);
+  }
+  const port = entryPort('\x60\x60\x60mermaid\nflowchart LR\n\x60\x60\x60\n' + fence('ENTRY'));
+  const chosen = sqlSourceOf('entry', linkText, port.read);
+  assert.equal(chosen.sql, 'ENTRY');
+  assert.equal(chosen.entry.oid, 'e'.repeat(40));
+  assert.deepEqual(port.reads, [ENTRY_PATH]);
+});
+
+for (const [name, mode, agents, entryText, error] of [
+  ['an unknown mode', 'auto', linkText, fence('ENTRY'), /sql-source must be agents or entry/],
+  ['entry against legacy AGENTS SQL', 'entry', legacyAgents, fence('ENTRY'), /AGENTS without SQL/],
+  ['both forms', 'entry', linkText + fence('LEGACY'), fence('ENTRY'), /AGENTS without SQL/],
+  ['two AGENTS SQL blocks by default', undefined, legacyAgents + fence('SECOND'), fence('ENTRY'), /expected one AGENTS SQL block/],
+  ['an unrecognized delegation', 'entry', 'Read [policy/other.md](policy/other.md).\n', fence('ENTRY'), /one AGENTS link/],
+  ['a non-literal delegation', 'entry', 'Read [entry](./policy/entry.md).\n', fence('ENTRY'), /one AGENTS link/],
+  ['a repeated delegation', 'entry', linkText + linkText, fence('ENTRY'), /one AGENTS link/],
+  ['an entry without SQL', 'entry', linkText, 'no query here\n', /expected one entry SQL block/],
+  ['an entry with two SQL blocks', 'entry', linkText, fence('ENTRY') + fence('SECOND'), /expected one entry SQL block/],
+]) {
+  test('SQL source rejects ' + name, () => assert.throws(() => sqlSourceOf(mode, agents, entryPort(entryText).read), error));
+}
+
+test('SQL source has no fallback when policy/entry.md cannot be read', () => {
+  assert.throws(() => sqlSourceOf('entry', linkText, () => { throw new Error('Git exact-object read failed: rev-parse'); }),
+    /Git exact-object read failed/);
+});
+
+// argsOf checks git-bin before the commit format, so an invalid commit shows that the path passed without running Git.
+const gitBinCheck = (path) => spawnSync(process.execPath, [cli, '--repo', 'unused', '--commit', 'not-a-sha',
+  '--r-id', 'r', '--git-bin', path], { encoding: 'utf8' });
+test('git-bin keeps the POSIX prefix rule and adds only forward-slash Windows drive paths', () => {
+  // `/x` and `//x` pass by the existing prefix rule; on Windows that is not a host-absolute guarantee.
+  for (const path of ['/usr/bin/git', '/x', '//srv/share/git', 'C:/Users/u/git/cmd/git.exe', 'c:/git.exe']) {
+    const p = gitBinCheck(path);
+    assert.equal(p.status, 1, path);
+    assert.match(p.stderr, /commit must be a full SHA-1 object id/, path);
+  }
+  for (const path of ['git', './git', 'C:git', 'C:/', 'C:\\git\\git.exe', 'C:/git\\git.exe', '\\\\srv\\share\\git.exe',
+    '\\\\?\\C:\\git.exe', 'C:/git/../git.exe', 'C:/git/./git.exe', 'C:/git//git.exe']) {
+    const p = gitBinCheck(path);
+    assert.equal(p.status, 1, path);
+    assert.match(p.stderr, /absolute git-bin is required/, path);
+  }
+});
+
 const repo = process.env.ADRS_REPO || '/work/repos/adrs-canonical';
 const gitBin = process.env.GIT_BIN || '/root/.nix-profile/bin/git';
 const commit = 'e88fa93a1c7051334ebdb9b9f25b781926ba42d9';
@@ -73,6 +133,76 @@ test('pinned ADRS AGENTS SQL and exact blob identities', { skip: !existsSync(rep
   ]);
   assert.throws(() => select({ repo, commit, 'r-id': '71bd57d0-e795-4a5e-846c-999d3073afa7',
     'git-bin': gitBin, authority: {} }), /R anchor/);
+  assert.equal(Object.hasOwn(result, 'entry'), false);
+  assert.throws(() => select({ repo, commit, 'r-id': 'b27e547c-14b7-47b9-a72e-7d5fdcdd724c',
+    'git-bin': gitBin, 'sql-source': 'entry' }), /AGENTS without SQL/);
+});
+
+// Host-only like the pinned case above: these need ADRS_REPO and GIT_BIN, which the CI check does not have.
+const canonical = '896851b2e21451d2f5d4999f6687a6be387a747c';
+const actualR = 'cfaf506a-cc48-41d8-b6cb-74178a7d100a';
+const entrySql = '921b097ee714ed10501628a687d3b59b6130c4862dae436d2a751ee6778e7925';
+test('explicit entry source selects the delegated canonical policy with entry provenance', { skip: !existsSync(repo) }, () => {
+  const result = select({ repo, commit: canonical, 'r-id': actualR, 'git-bin': gitBin, 'sql-source': 'entry' });
+  assert.equal(result.row_count, 315);
+  assert.equal(result.anchor_count, 1);
+  assert.equal(result.agents.oid, '66229397f1a8c7cbb1f51678c33015d8d674afee');
+  assert.deepEqual(result.entry, { path: ENTRY_PATH, oid: '970f5fb2d86fb7cf2cf51b7007e9604e543f5a20',
+    sha256: 'aa3b7fabb7f445b3abf2b1f78c110f45a831ffbdfd444758bac879b91320c438' });
+  assert.equal(result.control.oid, '3f6ee5f2c9fa37026c083c5a091e7712d6f8c5df');
+  // The delegated SQL is byte-identical to the one the pinned AGENTS commit carried.
+  assert.equal(result.sql_sha256, entrySql);
+  assert.deepEqual(result.selected.map((x) => [x.line_no, x.id, x.body_sha256]), [
+    [1, '/root', 'b48bd509e81ebd918fd604207f08c2eba0a957a80fcb6eb24399804d85529529'],
+    [313, actualR, '90bbdaf426d13bf97cc628ad5abf6b6e877e968c86bc8fc2dd6e6e1baeea6caf'],
+    [314, '8716997d-990b-4f0c-9f9b-94f12f4be978', 'eccaae3286a59ff54a0c0f302046f1a4c973c4ffe00f52cbceeda6f0229a6693'],
+    [315, 'sys1.goal-evaluation.quality.v1', '0a66f3c54e1b13fdf4f6567a5d4d399a49f9e838ef202b88bbdcb8d65eb14848'],
+  ]);
+  assert.deepEqual(result.requires.map((x) => [x.path, x.oid]), [
+    ['policy/organization.md', '50c30368202ef5aaaec7505b329ebaa0b8895470'],
+    ['policy/execution.md', '185d1c12eec70e5e984eba06b7eb677667ebc8c7'],
+    ['decisions/semlint-goal-quality-implementation-scope-261014.jsonl', 'ef5a7221ba994b3e634270dcedfc71ee4d55ff9f'],
+  ]);
+  // The default, which the unchanged dispatcher uses, still refuses the delegation.
+  assert.throws(() => select({ repo, commit: canonical, 'r-id': actualR, 'git-bin': gitBin }),
+    /expected one AGENTS SQL block/);
+});
+
+const fixtureGit = (dir, ...args) => {
+  const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
+  const p = spawnSync(gitBin, ['-C', dir, '-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid', ...args],
+    { encoding: 'utf8', env: { ...env, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' } });
+  assert.equal(p.status, 0, p.stderr);
+  return p.stdout.trim();
+};
+test('entry provenance comes from the selected commit, not the working tree or another commit', { skip: !existsSync(repo) }, () => {
+  const agents = fixtureGit(repo, 'show', canonical + ':AGENTS.md') + '\n';
+  const first = fixtureGit(repo, 'show', canonical + ':' + ENTRY_PATH) + '\n';
+  const second = first + '\nFixture revision outside the SQL block.\n';
+  const dir = mkdtempSync(join(tmpdir(), 'jev-select-entry-'));
+  try {
+    mkdirSync(join(dir, 'policy'));
+    fixtureGit(dir, 'init', '-q');
+    writeFileSync(join(dir, 'AGENTS.md'), agents);
+    writeFileSync(join(dir, 'policy', 'control.jsonl'), base.map((row) => JSON.stringify(row)).join('\n') + '\n');
+    const commits = [];
+    for (const text of [first, second]) {
+      writeFileSync(join(dir, ENTRY_PATH), text);
+      fixtureGit(dir, 'add', '-A');
+      fixtureGit(dir, 'commit', '-q', '-m', 'fixture');
+      commits.push([fixtureGit(dir, 'rev-parse', 'HEAD'), text]);
+    }
+    writeFileSync(join(dir, ENTRY_PATH), first + '\nUncommitted working tree edit.\n');
+    const oids = commits.map(([id, text]) => {
+      const result = select({ repo: dir, commit: id, 'r-id': 'r', 'git-bin': gitBin, 'sql-source': 'entry' });
+      assert.deepEqual(result.entry, { path: ENTRY_PATH, oid: fixtureGit(dir, 'rev-parse', id + ':' + ENTRY_PATH),
+        sha256: createHash('sha256').update(text).digest('hex') });
+      assert.equal(result.sql_sha256, entrySql);
+      assert.deepEqual(result.selected.map((x) => x.id), ['/root', 'r', 'w', 'detail']);
+      return result.entry.oid;
+    });
+    assert.notEqual(oids[0], oids[1]);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
 
