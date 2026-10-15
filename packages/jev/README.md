@@ -123,3 +123,168 @@ no Nix build and compares a re-download byte-for-byte; existing assets are never
 overwritten. This is unsigned, shared-principal review/provenance evidence,
 not a provider signature or host immutability guarantee. A PR build is not
 formal supply. Old artifacts/real receipts do not transfer to a new identity.
+
+
+## One-question multiple selection
+
+The source package exports `judgeMultiSelect` from `jev/multi-select`. It accepts
+one state, one question stem, a nonempty map of candidate IDs to nonempty string
+descriptions, explicit thresholds, and the existing bound provider:
+
+```js
+import {judgeMultiSelect} from "jev/multi-select";
+
+const result = await judgeMultiSelect({
+  provider, // the target's existing bindJev capability
+  request: {
+    state: "Mode alpha emits text. Mode beta emits numbers.",
+    question: "Which conditional output behaviors are explicitly stated?",
+    choices: {
+      alpha_text: "Mode alpha emits text.",
+      beta_numbers: "Mode beta emits numbers.",
+      alpha_numbers: "Mode alpha emits numbers.",
+      beta_text: "Mode beta emits text.",
+    },
+  },
+  thresholds: {reject: 0.2, accept: 0.8},
+});
+```
+
+This is a composition of independent [Noul questions](https://docs.typesafe.ai/primitives/noul),
+one per candidate, sent in one POST against the same state. It uses the existing
+transport's ten-second deadline and cancellation, without retries. The request
+uses the existing `jev-latest` default; the resolved response model is retained.
+It is separate from single-option Choice and the named-choice Worker artifact.
+
+Question and candidate text are preserved verbatim, including conditions.
+Candidate IDs are opaque metadata, mapped to neutral wire question IDs and
+returned safely even for IDs such as `__proto__`. Output IDs are sorted by
+JavaScript string comparison. State accepts JSON strings, objects and arrays,
+with nesting depth at most 64;
+non-JSON values, cycles, accessors and implicit `toJSON` conversions are refused.
+Empty text remains representable; its applicability and sufficiency belong to
+the caller. Structured candidate descriptions are outside this adapter.
+
+A successful result has:
+
+```text
+{
+  observation: "OBSERVED",
+  status: "COMPLETE" | "REVIEW",
+  model,
+  scores: {candidate_id: raw_noul},
+  selected: [...],
+  notSelected: [...],
+  undecided: [...]
+}
+```
+
+For finite thresholds `0 <= reject < accept <= 1`, a score at or above
+`accept` is selected, at or below `reject` is not selected, and a score
+strictly between them is undecided. These are score classifications. A low
+score does not prove logical negation or source absence. Threshold quality is
+not calibrated by this package.
+
+`OBSERVED` means every candidate's valid score and the nonempty resolved
+model were received. `COMPLETE` means no candidate remains undecided;
+`REVIEW` preserves successful observations needing a decision. Neither means
+semantic correctness. An empty selected set is `COMPLETE` only when every
+candidate is classified as not selected. All candidates may be selected.
+Exclusivity and cardinality constraints are caller policy.
+
+Invalid input throws the existing `JevError("input_invalid")`; unavailable
+binding throws `auth_missing`. Missing, extra or malformed decoded answers,
+out-of-range scores and a missing model throw `JevContractError` for the
+whole observation. Existing typed transport errors retain their identity.
+Failures never return a successful empty set or partial selection. The caller
+records ERROR, UNKNOWN or NOT_RUN as appropriate; this adapter does not invent
+those source or execution states. The existing transport parses with
+`response.json()`: duplicate raw JSON keys cannot be recovered or detected
+here. Exact decoded keys and candidate mapping are checked.
+
+Keep different collections in independent states. For C collections with N
+candidates each, calling this function once per collection makes C POSTs and
+asks C × N Noul questions. It does not combine collections into shared context
+or imply C internal model evaluations. JSONL loading, looping over all cases,
+block extraction and comparison relations remain caller concerns.
+
+Offline tests use synthetic responses to verify transport count, mapping,
+thresholds, retained uncertainty and failure handling. Decoder order tests do
+not establish model order invariance. This addition has no live quality,
+latency, token-cost or savings measurement.
+
+
+## JSONL cases and exact raw blocks
+
+`jev/cases` exports `prepareCases(jsonlText)` and
+`runCases(prepared, {provider, maxCalls, signal?})`. Preparation is asynchronous
+only for computed SHA-256 hashes; all nonempty lines are parsed, validated and
+snapshotted before the first hash await. One line is one case:
+
+```json
+{"id":"output-modes","collections":[{"id":"reference","blocks":[{"ref":"reference.txt","revision":"fixture-1","content":"Mode alpha emits text.","evaluationSpan":{"startByte":0,"endByte":22}}]},{"id":"candidate","blocks":[{"ref":"candidate.txt","revision":"fixture-1","content":"Mode alpha emits text.","evaluationSpan":{"startByte":0,"endByte":22}}]}],"question":"Which output behavior is stated?","choices":{"alpha_text":"Mode alpha emits text.","alpha_numbers":"Mode alpha emits numbers."},"thresholds":{"reject":0.2,"accept":0.8}}
+```
+
+Case IDs are unique across all lines. Each case has at least two uniquely named
+collections, each containing at least one block. Its one question stem and
+candidate map apply to every collection; use another JSONL object for another
+question. Unknown fields, malformed lines, duplicate case/collection IDs and
+invalid or empty definitions are refused before any provider call. JSON parsing
+does not detect duplicate raw object keys; ID checks apply to decoded values.
+
+A block is one inline original snapshot, with a half-open UTF-8 byte span.
+`startByte` and `endByte` must be safe integers on character boundaries with
+`0 <= startByte < endByte <= UTF8length(content)`. Whole content uses
+`[0, UTF8length(content)]`. Text is not normalized, reconstructed or truncated.
+Lone-surrogate replacement and blank selected fragments (including whitespace
+or U+FEFF alone) are refused. Valid text, including leading U+FEFF, is preserved.
+Block order is retained and selected fragments are joined with exactly two LF
+characters.
+
+The immutable, identity-branded prepared object contains `plannedCalls` and
+`preview`: every logical case/collection slot with its exact state, question,
+choices, thresholds and block provenance, selected text, spans, raw-content
+SHA-256 and selected-text SHA-256. The runner consumes that same captured
+preview. A serialized copy or caller-constructed object cannot replace it.
+`prepareMultiSelect(request, thresholds)` is the shared pure input planner
+used by both the API and case preparation; it makes no provider call.
+
+```js
+import {prepareCases, runCases} from "jev/cases";
+const prepared = await prepareCases(jsonlText);
+const dry = await runCases(prepared, {maxCalls: 0}); // every slot remains NOT_RUN
+const report = await runCases(prepared, {provider, maxCalls: 2});
+```
+
+`maxCalls` is an explicit nonnegative safe integer, with no implicit execution
+budget. Slots run sequentially, one API invocation per case/collection, with no
+hidden deduplication or retry and no combination of collection states.
+`admittedCalls` counts API invocations admitted by this runner, including a
+local binding failure; it does not measure HTTP requests, model evaluations or
+billing. All slots are returned, including the remainder after a budget stop,
+failure or cancellation.
+
+Each slot has `execution` OBSERVED, ERROR, UNKNOWN or NOT_RUN, an `answer`
+(the complete API result only for OBSERVED), and a closed `cause`.
+HTTP errors, invalid response JSON, missing authentication and invalid decoded
+answers are ERROR. Timeout, cancellation and network failures are UNKNOWN;
+unrecognized failures use a generic closed cause, without raw exception text.
+ERROR does not prove zero remote work or zero cost. The first failure stops
+execution and preserves remaining slots as NOT_RUN. Cancellation before the
+first invocation admits no calls. A changed resolved model retains that
+slot's observed answer but stops the run as incomplete.
+
+The outer `status` is COMPLETE only when all slots were observed, none remains
+undecided, and no stop occurred; REVIEW means all were observed but at least
+one needs a decision; otherwise it is INCOMPLETE. `stop` records a closed code
+and logical slot. Low scores and empty selections never become source absence,
+unrun evidence or an equality/coverage verdict.
+
+Ref/revision declarations and computed hashes bind supplied bytes; they do not
+authenticate a Git source or prove semantic context completeness. Producers
+resolve Git, AST, CST or marker selections into snapshots before this API.
+Those resolvers, implicit helper discovery, filesystem access and legacy
+comparison relations are outside this package path. JSONL definitions and
+returned results are separate; no registry, database, cache or evidence store
+is created. The full path is exercised with offline synthetic fixtures only,
+not a live quality, cost, latency, usability or resolver benchmark.
