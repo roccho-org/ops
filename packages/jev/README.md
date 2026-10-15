@@ -137,13 +137,13 @@ import {judgeMultiSelect} from "jev/multi-select";
 const result = await judgeMultiSelect({
   provider, // the target's existing bindJev capability
   request: {
-    state: "DEV requires MFA. STG requires an assumed role.",
-    question: "Which conditional authentication requirements are explicitly stated?",
+    state: "Mode alpha emits text. Mode beta emits numbers.",
+    question: "Which conditional output behaviors are explicitly stated?",
     choices: {
-      dev_mfa: "DEV requires MFA.",
-      stg_role: "STG requires an assumed role.",
-      dev_role: "DEV requires an assumed role.",
-      stg_mfa: "STG requires MFA.",
+      alpha_text: "Mode alpha emits text.",
+      beta_numbers: "Mode beta emits numbers.",
+      alpha_numbers: "Mode alpha emits numbers.",
+      beta_text: "Mode beta emits text.",
     },
   },
   thresholds: {reject: 0.2, accept: 0.8},
