@@ -1,0 +1,12 @@
+{
+  "cliInvocations": 2,
+  "reportedCostUsd": 0.051068199999999994,
+  "costUnknownCalls": 0,
+  "nativeHttpCalls": null,
+  "invoiceCost": null,
+  "validStructuredResponses": 2,
+  "models": [
+    "claude-opus-5-5"
+  ],
+  "outputs": 2
+}
