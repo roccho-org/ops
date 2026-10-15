@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { RESULT_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { semlint } from '../../packages/jev-review/semlint.mjs';
+import { planIssueCommand, PULL_REQUEST_QUERY, COMMENT_QUERY } from '../../packages/jev-review/issue-executor.mjs';
 import { plan } from './core.mjs';
 import { acquire, executorIdentitySnapshot, project, expectedOrigin, fidelityFromReview, refusalOrigin, refusalIdentitySnapshot } from './prepare.mjs';
 
@@ -514,8 +515,8 @@ test('wrong, unmarked, duplicated, mismatched or label-only reviews hold; the sh
 });
 
 // C1 fixtures: a hand-written plan receipt in the shape the #547 executor prints for a literal CJK refusal (with its own
-// subject observation), followed by its post-stage echo. Default proposals ships no such producer, so these tests prove
-// this caller's parsing and bindings only, not a composed producer/consumer run, a rendering or an effect.
+// subject observation), followed by its post-stage echo. These tests pin this caller's parsing and bindings, including
+// shapes the producer never prints; the composition test at the end feeds the caller the producer's actual receipt.
 const JA_BODY = '配信ジョブに再送を追加する。Adds a retry for the delivery job.';
 const JA_ISSUE = issue(JA_BODY);
 const OBSERVED = { issueNodeId: NODE, subjectRevision: subjectRevision(JA_ISSUE) };
@@ -743,4 +744,66 @@ test('a check named subject.englishAuxiliary stays a check: rendering and check 
     verdicts: { 'subject.englishAuxiliary': check, q2: 'FAITHFUL' }, renderingVerdict });
   assert.deepEqual([['FAITHFUL', 'UNKNOWN'], ['UNKNOWN', 'FAITHFUL'], ['FAITHFUL', 'FAITHFUL']]
     .map(([check, rendering]) => project(value, live, { englishAuxiliary: AUX, fidelity: record(check, rendering) }).emittable), [false, false, true]);
+});
+
+// Composition on this tree: the real L2 executor plans a literal command on a CJK PR body with the shipped settings and
+// stub ports (no network), its receipt is printed in the executor's JSON.stringify form behind a fixture runner
+// timestamp, and the caller and the real L1 provided admission consume it. This proves the functions compose, not a
+// workflow run, an actual acquisition, a rendering or an effect.
+test('the real L2 refusal receipt reaches the caller and the real L1 provided admission (composition)', async () => {
+  const target = SETTINGS.targets.find(t => t.repository === REPO && t.pullRequest === NUMBER);
+  const org = SETTINGS.provider.receipt.target;
+  const event = { comment: { id: EXPECTED.commandCommentId, node_id: 'IC_' + EXPECTED.commandCommentId, body: '/jev-evaluate', user: { login: 'roccho-dev' } },
+    issue: { number: NUMBER, pull_request: {} },
+    repository: { full_name: REPO, id: Number(target.repositoryId), owner: { login: org.organization, id: Number(org.organization_id), type: 'Organization' } } };
+  const calls = [];
+  const deps = {
+    github: async (method, route) => {
+      calls.push(`${method} ${route}`);
+      if (method !== 'GET') return { status: 500, json: null };
+      if (route === `repos/${REPO}/actions/runs/${RUN.id}`) return { status: 200, json: { id: RUN.id, repository: { full_name: REPO }, workflow_id: RUN.workflowId,
+        path: WORKFLOW_PATH, run_number: RUN.number, run_attempt: 1, head_sha: RUN_HEAD } };
+      if (route === `repos/${REPO}/actions/workflows/${RUN.workflowId}`) return { status: 200, json: { id: RUN.workflowId, state: 'active' } };
+      return { status: 404, json: null };
+    },
+    graphql: async query => query === PULL_REQUEST_QUERY
+      ? { data: { repository: { pullRequest: { id: NODE, number: NUMBER, body: JA_BODY, lastEditedAt: EDITS.lastEditedAt,
+        includesCreatedEdit: EDITS.includesCreatedEdit, userContentEdits: { totalCount: EDITS.userContentEditsTotal } } } } }
+      : query === COMMENT_QUERY ? { data: { node: { id: event.comment.node_id, fullDatabaseId: String(event.comment.id), author: { login: 'roccho-dev' },
+        body: event.comment.body, lastEditedAt: null, includesCreatedEdit: false, userContentEdits: { totalCount: 0 }, reactions: { totalCount: 0, nodes: [] } } } }
+      : { errors: ['unexpected query'] },
+    readFile: path => repoFile(path),
+  };
+  const planned = await planIssueCommand({ repository: REPO, sha: RUN_HEAD, executionSource: SHA, runId: RUN.id, runAttempt: 1, event }, SETTINGS, deps);
+  // The producer refuses before any claim, owner run, provider call or write, and keeps its own exact observation.
+  assert.deepEqual(planned.receipt, { schema: 'ops.jev.issue-actions-receipt.v1', stage: 'plan', outcome: 'NONE', cause: 'UNSUPPORTED_CJK', claimed: false,
+    providerCalls: 0, authority: false, commentId: EXPECTED.commandCommentId, run: { id: RUN.id, number: RUN.number, attempt: 1, workflowId: RUN.workflowId },
+    observed: { issueNodeId: NODE, subjectRevision: subjectRevision(JA_ISSUE) } });
+  assert.equal(Object.hasOwn(planned, 'plan'), false);
+  assert.deepEqual(calls.filter(c => !c.startsWith('GET ')), []);
+  const log = planLog(['2026-10-15T00:00:00.0000000Z ##[group]Run plan', '2026-10-15T00:00:01.0000000Z ' + JSON.stringify(planned.receipt)].join('\n'));
+  const origin = await originOf({ log, bind: refusalOrigin });
+  assert.deepEqual([origin.status, origin.kind, origin.planObservation], ['BOUND', 'literal-cjk-refusal', planned.receipt.observed], origin.cause);
+  const subject = await refusalSnapshotOf({ origin });
+  assert.deepEqual([subject.status, subject.snapshot], ['VERIFIED', JA_ISSUE], subject.cause);
+  const value = await goalPlan(), out = project(value, subject, { englishAuxiliary: AUX }), english = project(value, await snapshotOf());
+  assert.equal(out.status, 'ELIGIBLE');
+  const input = wireInput(out);
+  assert.deepEqual([input.subject.content, input.subject.revision, input.subject.evaluationSpan, input.subject.englishAuxiliary],
+    [JA_BODY, planned.receipt.observed.subjectRevision, { startByte: 0, endByte: Buffer.byteLength(JA_BODY) }, AUX]);
+  for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(out[key], english[key], key);
+  assert.deepEqual([out.fidelity.renderingVerdict, out.emittable, out.postingAuthorized], ['UNREVIEWED', false, false]);
+  assert.throws(() => project(value, subject, { englishAuxiliary: AUX, fidelity: faithful(out) }), /FIDELITY_RECORD_MISMATCH/, 'a check-only record cannot stand in for renderingVerdict');
+  const admitted = await admitIssueCommand(admissionInput(out.envelope, JA_ISSUE, 4300), SETTINGS);
+  assert.deepEqual([admitted.status, admitted.identity?.observation, admitted.identity?.subjectRevision],
+    ['ADMITTED', PROVIDED_COMMAND_OBSERVATION, planned.receipt.observed.subjectRevision], admitted.cause);
+  // A later executor read with a changed body, or with the same body after an edit and a revert (new edit count), refuses.
+  for (const later of [issue(JA_BODY + ' Edited.'), issue(JA_BODY, { ...EDITS, userContentEditsTotal: EDITS.userContentEditsTotal + 1 })]) {
+    assert.equal((await admitIssueCommand(admissionInput(out.envelope, later, 4301), SETTINGS)).status, 'NOT_ADMITTED');
+  }
+  // A tampered rendering hash refuses too. Only the status is asserted: L1's hash check and Core v14's auxiliary() both catch it.
+  const tampered = JSON.parse(out.envelope.slice(out.envelope.indexOf('\n') + 1));
+  tampered.cases[0].input.subject.englishAuxiliary.sourceSha256 = '0'.repeat(64);
+  const tamperedEnvelope = out.envelope.slice(0, out.envelope.indexOf('\n') + 1) + JSON.stringify(tampered);
+  assert.equal((await admitIssueCommand(admissionInput(tamperedEnvelope, JA_ISSUE, 4302), SETTINGS)).status, 'NOT_ADMITTED');
 });
