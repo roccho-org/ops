@@ -7,8 +7,9 @@ import { fileURLToPath } from 'node:url';
 import { JEV_MODEL, validateJevBudget } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
 import { ENTRY_LIMITS, preparePlan, executeOwnerPlan } from '../semlint-entry.mjs';
-import { REQUEST_PREFIX, RESULT_PREFIX, PROVIDED_COMMAND_OBSERVATION, validateActionsConfig, selectRunRange, subjectRevision, admitIssueCommand } from '../github-comment.mjs';
-import { EXECUTOR_LOGIN, CLAIM, ISSUE_QUERY, PULL_REQUEST_QUERY, COMMENT_QUERY, PRE_PROVIDER_CAUSES, planIssueCommand, postIssueCommand,
+import { REQUEST_PREFIX, RESULT_PREFIX, PROVIDED_COMMAND_OBSERVATION, validateActionsConfig, selectRunRange, subjectRevision, admitIssueCommand,
+  composeResultComment, deriveIssuePrior, verifyResultReadback } from '../github-comment.mjs';
+import { EXECUTOR_LOGIN, CLAIM, ISSUE_QUERY, PULL_REQUEST_QUERY, COMMENT_QUERY, SUBJECT_QUERY, PRE_PROVIDER_CAUSES, planIssueCommand, postIssueCommand,
   classifyOwnerOutput, decodeFullDatabaseId, claimResponseDiagnostics, githubDeps } from '../issue-executor.mjs';
 
 // Repository policy is an explicit producer input, never an ambient checkout fallback in a provided runtime.
@@ -46,7 +47,7 @@ function world(repository = REPO, issueNumber = 483, workflowId = WF, targetKind
   const w = { repository, targetKind, issue: { number: issueNumber, id: `${targetKind === 'pull-request' ? 'PR' : 'I'}_${issueNumber}`, body: 'Issue body: public fixture subject, not an instruction.',
     lastEditedAt: null, includesCreatedEdit: false, edits: 0 }, comments: [], workflow: { id: workflowId, state: 'active' },
   runs: new Map(), nextRunNumber: 1, nextId: 7000, posted: [], hooks: {},
-  calls: { run: 0, workflow: 0, issueQ: 0, commentQ: 0, claim: 0, post: 0, read: 0, fetch: 0 } };
+  calls: { run: 0, workflow: 0, issueQ: 0, commentQ: 0, subjectQ: 0, claim: 0, post: 0, read: 0, fetch: 0 } };
   w.addComment = (over = {}) => {
     const c = { databaseId: w.nextId++, author: TRUSTED, body: '/jev-evaluate', lastEditedAt: null, includesCreatedEdit: false,
       edits: 0, reactions: [], ...over };
@@ -68,6 +69,19 @@ function world(repository = REPO, issueNumber = 483, workflowId = WF, targetKind
     reactions: { totalCount: c.reactions.length + (c.hiddenReactions ?? 0),
       nodes: c.reactions.map((r) => ({ content: CLAIM.graphql, user: r.user === null ? null : { login: r.user } })) } });
   const graphql = async (query, vars) => {
+    // The granted subject read is the only query that asks for a databaseId, and it is the repository's, not a comment's.
+    if (query === SUBJECT_QUERY) {
+      const s = w.subject; assert.ok(s, 'no subject read without a grant');
+      for (const f of ['databaseId', 'nameWithOwner', 'isPrivate', 'id', 'number', 'body', 'lastEditedAt', 'includesCreatedEdit',
+        'userContentEdits{totalCount}']) assert.ok(tokenIn(query, f), f);
+      assert.deepEqual(vars, { owner: s.grant.repository.split('/')[0], name: s.grant.repository.split('/')[1], number: s.grant.number });
+      w.calls.subjectQ++;
+      const repo = { databaseId: s.databaseId, nameWithOwner: s.nameWithOwner, isPrivate: s.isPrivate, issue: { id: s.issue.id,
+        number: s.issue.number, body: s.issue.body, lastEditedAt: s.issue.lastEditedAt, includesCreatedEdit: s.issue.includesCreatedEdit,
+        userContentEdits: { totalCount: s.issue.edits } } };
+      const r = w.hooks.subjectQuery?.(w, repo); if (r !== undefined) return r;
+      return { data: { repository: repo } };
+    }
     // Independent of the exported constants: no Int32 databaseId and no generic updatedAt are ever requested.
     assert.equal(/\bdatabaseId\b/.test(query), false); assert.equal(/\bupdatedAt\b/.test(query), false);
     if (query === ISSUE_QUERY || query === PULL_REQUEST_QUERY) {
@@ -1452,6 +1466,174 @@ await check('exact-public-pr511-pr522-current-context-budget', async () => {
       await assert.rejects(() => preparePlan(previousPlan), /ENTRY_PREFLIGHT_FAILED/);
     }
   }
+});
+
+// Pure, clock-free view of one fixture result: every elapsedMs is 0 so the composed comment bytes are comparable.
+const zeroClock = (r) => ({ ...r, cases: r.cases.map((row) => ({ ...row, ...(Object.hasOwn(row, 'elapsedMs') ? { elapsedMs: 0 } : {}),
+  result: { ...row.result, accounting: { ...row.result.accounting, elapsedMs: 0 } },
+  provider: row.provider && { ...row.provider, elapsedMs: 0 } })) });
+// Everything a no-grant run produces that a later reader or the post step binds, plus the GraphQL sequence.
+async function noGrantView() {
+  const w = world(), queries = [], graphql = w.deps.graphql;
+  w.deps.graphql = async (query, vars) => { queries.push(query === ISSUE_QUERY ? 'ISSUE' : query === COMMENT_QUERY ? 'COMMENT' : 'OTHER'); return graphql(query, vars); };
+  const c = w.addComment(), p = await planIssueCommand(ctxFor(w, c, w.newRun()), config(), w.deps);
+  const out = await w.entry(p.plan);
+  const request = await admitIssueCommand(p.state.admission, config());
+  const body = composeResultComment(request, zeroClock(JSON.parse(out.stdout)));
+  const q = await postIssueCommand(JSON.parse(JSON.stringify(p.state)), out, config(), w.deps);
+  return { state: hash(JSON.stringify(p.state)), admissionKeys: Object.keys(p.state.admission).join(), identity: hash(JSON.stringify(request.identity)),
+    requestDigest: request.requestDigest, configDigest: request.identity.configDigest, comment: hash(body),
+    prior: deriveIssuePrior(request, { claims: [EXECUTOR_LOGIN], results: [{ author: EXECUTOR_LOGIN, body, databaseId: 9001 }] }, EXECUTOR_LOGIN),
+    readback: verifyResultReadback(request, body, { repository: REPO, issue: 483, id: 9001, author: EXECUTOR_LOGIN, body }, EXECUTOR_LOGIN, 9001),
+    issueQuery: hash(ISSUE_QUERY), queries: queries.join(), post: [q.receipt.outcome, q.receipt.cause].join() };
+}
+// No-grant golden: with no subject on any target, the values below were recorded from M1 1f8acf0e and must not move.
+await check('no-grant-golden-m1', async () => {
+  const digestM1 = 'a50d0de71edc8f00f14c20d333256eb3e2d8f3d11709e6d2b6b4f2f365cf1508';
+  assert.deepEqual(await noGrantView(), {
+    state: '294897a753809eacbb788a3a3bab8542b2d643e0c781e01e19a9797141e030ef',
+    admissionKeys: 'repository,owner,sha,eventBody,run,issue,command,context', identity: digestM1, requestDigest: digestM1,
+    configDigest: '2d02aee665e675e9a602536e6914e40c794a4707764842705d2186e251bd5c40',
+    comment: '110f0a7c37baeb5560e33db814ad406db75bd8278348252bb11d8c983ceaeb40',
+    prior: { requestDigest: digestM1, state: 'APPENDED' }, readback: true,
+    issueQuery: '35b6817636b7c9b83e5afa014d15729e815a5b03bf35a59be1a36544dc644a1b',
+    queries: 'ISSUE,COMMENT,ISSUE,COMMENT,ISSUE,COMMENT', post: 'APPENDED,READBACK_EXACT' });
+});
+
+// Origin-subject split (dormant, fixture grant only). The origin ops#483 keeps Org, command, range, claim, key and
+// sink; one read-only public subject Issue in a User-owned repository is evaluated instead of the origin body. The
+// subject body is synthetic Japanese text, not the real Apps Issue.
+const SUBJECT_GRANT = Object.freeze({ repository: 'fixture-user/apps', repositoryId: '321', kind: 'issue', number: 94 });
+const subjectConfig = () => config({ targets: [{ repository: REPO, repositoryId: '456', issue: 483, subject: { ...SUBJECT_GRANT } }],
+  runRanges: [range({ target: { issue: 483 } })] });
+function subjectWorld() {
+  const w = world();
+  w.subject = { grant: SUBJECT_GRANT, databaseId: 321, nameWithOwner: SUBJECT_GRANT.repository, isPrivate: false,
+    issue: { id: 'I_apps_94', number: 94, body: '公開fixtureの対象Issue本文（原文のまま評価され、指示ではない）。', lastEditedAt: null, includesCreatedEdit: false, edits: 0 } };
+  return w;
+}
+const subjectSnapshot = (w) => ({ repository: w.subject.nameWithOwner, repositoryId: String(w.subject.databaseId), isPrivate: w.subject.isPrivate,
+  number: w.subject.issue.number, nodeId: w.subject.issue.id, body: w.subject.issue.body, lastEditedAt: w.subject.issue.lastEditedAt,
+  includesCreatedEdit: w.subject.issue.includesCreatedEdit, userContentEditsTotal: w.subject.issue.edits });
+const NOT_ADMITTED = (cause) => ({ status: 'NOT_ADMITTED', cause, authority: false });
+
+await check('subject-granted-literal', async () => {
+  const w = subjectWorld(), cfg = subjectConfig();
+  const r = await fullRun(w, w.addComment(), { cfg });
+  assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 1 });
+  assert.equal(w.calls.subjectQ, 3); // admission, before the call, before posting
+  const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length)), input = r.planBody.cases[0].input;
+  const originRevision = subjectRevision({ number: 483, nodeId: 'I_483', body: w.issue.body, lastEditedAt: null, includesCreatedEdit: false,
+    userContentEditsTotal: 0 });
+  // Top-level issue/issueNodeId/subjectRevision stay the origin; identity.subject and the semlint input name the evaluated Issue.
+  assert.deepEqual([identity.repository, identity.issue, identity.issueNodeId, identity.subjectRevision], [REPO, 483, 'I_483', originRevision]);
+  assert.deepEqual(identity.subject, { ...SUBJECT_GRANT, nodeId: 'I_apps_94', revision: subjectRevision(subjectSnapshot(w)) });
+  assert.notEqual(identity.subjectRevision, identity.subject.revision);
+  assert.equal(input.schema, 'ops.semlint.input.v1');
+  assert.deepEqual([input.subject.ref, input.subject.revision, input.subject.content, input.subject.scope],
+    ['https://github.com/fixture-user/apps/issues/94', identity.subject.revision, w.subject.issue.body, cfg.subjectScope]);
+});
+
+await check('subject-grant-settings', async () => {
+  assert.deepEqual({ ...validateActionsConfig(subjectConfig()).targets[0].subject }, SUBJECT_GRANT);
+  for (const alter of [
+    (c) => { c.targets[0].subject.kind = 'pull-request'; }, (c) => { c.targets[0].subject.number = 0; },
+    (c) => { c.targets[0].subject.repositoryId = '0'; }, (c) => { c.targets[0].subject.repositoryId = 321; },
+    (c) => { c.targets[0].subject.extra = 1; }, (c) => { c.targets[0].subject.repository = 'not a repository'; },
+    (c) => { c.targets[0].subject = { repository: REPO, repositoryId: '456', kind: 'issue', number: 483 }; }, // the origin itself
+    (c) => { c.runRanges = [range()]; }, // only an unscoped legacy range
+    (c) => { c.targets.push({ repository: REPO, repositoryId: '456', pullRequest: 600, subject: { ...SUBJECT_GRANT } }); },
+  ]) { const cfg = subjectConfig(); alter(cfg); assert.throws(() => validateActionsConfig(cfg), /INVALID_ACTIONS_CONFIG/); }
+});
+
+await check('subject-admission-refusals', async () => {
+  for (const [mutate, cause] of [
+    [(w) => { w.subject.databaseId = 999; }, 'SUBJECT_MISMATCH'],
+    [(w) => { w.subject.nameWithOwner = 'someone-else/apps'; }, 'SUBJECT_MISMATCH'], // renamed or transferred
+    [(w) => { w.subject.isPrivate = true; }, 'SUBJECT_MISMATCH'],
+    [(w) => { w.hooks.subjectQuery = () => ({ data: null, errors: [{ message: 'x' }] }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = () => ({ data: { repository: null } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, issue: null } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, isPrivate: null } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, databaseId: '321' } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, visibility: 'PUBLIC' } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, issue: { ...repo.issue, number: 95 } } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = () => { throw new Error('network'); }; }, 'SUBJECT_UNKNOWN'],
+  ]) {
+    const w = subjectWorld(); mutate(w);
+    assert.deepEqual(outcome(await fullRun(w, w.addComment(), { cfg: subjectConfig() })), ['NONE', cause]); assert.deepEqual(effects(w), zero);
+  }
+  // A User-owned origin still stops at ORG_REQUIRED before any read; the grant does not move the Org check.
+  {
+    const w = subjectWorld(), c = w.addComment(), run = w.newRun(), ctx = ctxFor(w, c, run); ctx.event.repository.owner.type = 'User';
+    assert.deepEqual(outcome(await fullRun(w, c, { run, ctx, cfg: subjectConfig() })), ['NONE', 'ORG_REQUIRED']);
+    assert.equal(w.calls.subjectQ + w.calls.issueQ + w.calls.commentQ, 0);
+  }
+  // The comment cannot choose a subject, and a provided request with a grant is refused, both before any claim.
+  for (const [body, cause] of [['/jev-evaluate fixture-user/apps#95', 'NOT_A_REQUEST'], [REQUEST_PREFIX + '{}', 'PROVIDED_WITH_SUBJECT_UNSUPPORTED']]) {
+    const w = subjectWorld();
+    assert.deepEqual(outcome(await fullRun(w, w.addComment({ body }), { cfg: subjectConfig() })), ['NONE', cause]); assert.deepEqual(effects(w), zero);
+  }
+  // Pure admission: a snapshot of another Issue, a missing snapshot under a grant, a snapshot without a grant.
+  const w = subjectWorld(), adm = (await planIssueCommand(ctxFor(w, w.addComment(), w.newRun()), subjectConfig(), w.deps)).state.admission;
+  const { subject: _subject, ...withoutSubject } = adm;
+  for (const [input, cfg, cause] of [[{ ...adm, subject: { ...adm.subject, number: 95 } }, subjectConfig(), 'SUBJECT_MISMATCH'],
+    [withoutSubject, subjectConfig(), 'SUBJECT_UNKNOWN'], [adm, config({ runRanges: [range({ target: { issue: 483 } })] }), 'SUBJECT_NOT_GRANTED']]) {
+    assert.deepEqual(await admitIssueCommand(input, cfg), NOT_ADMITTED(cause));
+  }
+});
+
+await check('subject-gates', async () => {
+  const late = '2026-10-16T01:00:00Z';
+  // Before the paid call: subject-only drift, an edit reverted to the same body, a repository change, an unreadable subject.
+  for (const [change, cause] of [[(w) => { w.subject.issue.body += ' edited'; w.subject.issue.lastEditedAt = late; w.subject.issue.edits = 1; }, 'DRIFT_BEFORE_CALL'],
+    [(w) => { w.subject.issue.lastEditedAt = late; w.subject.issue.edits = 2; }, 'DRIFT_BEFORE_CALL'],
+    [(w) => { w.subject.databaseId = 322; }, 'DRIFT_BEFORE_CALL'],
+    [(w) => { w.hooks.subjectQuery = () => ({ data: null, errors: [{ message: 'x' }] }); }, 'REREAD_UNKNOWN'],
+    [(w) => { w.issue.body += ' edited'; }, 'DRIFT_BEFORE_CALL']]) { // origin-only drift still stops
+    const w = subjectWorld(); w.hooks.afterClaim = (ww, cc, reply) => { change(ww); return reply; };
+    assert.deepEqual(outcome(await fullRun(w, w.addComment(), { cfg: subjectConfig() })), ['NONE', cause]);
+    assert.deepEqual(effects(w), { claim: 1, fetch: 0, post: 0 });
+  }
+  // After the paid call, before posting: the same cases withhold the result with its real accounting.
+  for (const [afterEntry, cause] of [[(w) => { w.subject.issue.body += ' edited after the call'; }, 'DRIFT_AFTER_CALL'],
+    [(w) => { w.subject.issue.lastEditedAt = late; w.subject.issue.edits = 2; }, 'DRIFT_AFTER_CALL'],
+    [(w) => { w.subject.nameWithOwner = 'fixture-user/apps-renamed'; }, 'DRIFT_AFTER_CALL'],
+    [(w) => { w.hooks.subjectQuery = () => ({ data: null, errors: [{ message: 'x' }] }); }, 'REREAD_UNKNOWN'],
+    [(w) => { w.issue.edits = 2; }, 'DRIFT_AFTER_CALL']]) {
+    const w = subjectWorld();
+    const r = await fullRun(w, w.addComment(), { cfg: subjectConfig(), afterEntry });
+    assert.deepEqual(outcome(r), ['WITHHELD', cause]); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 0 });
+  }
+});
+
+await check('subject-state-sink-and-readback', async () => {
+  const w = subjectWorld(), cfg = subjectConfig();
+  const p = await planIssueCommand(ctxFor(w, w.addComment(), w.newRun()), cfg, w.deps);
+  assert.equal(p.receipt.outcome, 'PLANNED'); assert.equal(Object.keys(p.state.admission).at(-1), 'subject');
+  const out = await w.entry(p.plan);
+  // Run-local state: a changed or missing subject, or a subject under settings without the grant, never posts.
+  for (const [tamper, settings] of [[(s) => { s.admission.subject.body += ' x'; }, cfg], [(s) => { delete s.admission.subject; }, cfg],
+    [(s) => { s.admission.subject.repositoryId = '322'; }, cfg], [() => {}, config({ runRanges: [range({ target: { issue: 483 } })] })]]) {
+    const s = JSON.parse(JSON.stringify(p.state)); tamper(s);
+    const q = await postIssueCommand(s, out, settings, w.deps);
+    assert.deepEqual([q.receipt.outcome, q.receipt.cause], ['UNKNOWN', 'STATE_MISMATCH']);
+  }
+  assert.equal(w.calls.post, 0);
+  // Read-back and prior derivation bind identity.subject, and the sink is only ever the origin.
+  const request = await admitIssueCommand(p.state.admission, cfg);
+  const body = composeResultComment(request, zeroClock(JSON.parse(out.stdout)));
+  const envelope = JSON.parse(body.slice(RESULT_PREFIX.length));
+  const swapped = RESULT_PREFIX + JSON.stringify({ ...envelope, identity: { ...envelope.identity, subject: { ...envelope.identity.subject, number: 95 } } }) + '\n';
+  const at = (repository, issue, text) => ({ repository, issue, id: 9001, author: EXECUTOR_LOGIN, body: text });
+  assert.equal(verifyResultReadback(request, body, at(REPO, 483, body), EXECUTOR_LOGIN, 9001), true);
+  assert.equal(verifyResultReadback(request, body, at(REPO, 483, swapped), EXECUTOR_LOGIN, 9001), false);
+  assert.equal(verifyResultReadback(request, body, at(SUBJECT_GRANT.repository, 94, body), EXECUTOR_LOGIN, 9001), false);
+  assert.equal(deriveIssuePrior(request, { claims: [EXECUTOR_LOGIN], results: [{ author: EXECUTOR_LOGIN, body: swapped, databaseId: 9001 }] },
+    EXECUTOR_LOGIN).state, 'UNRECOGNIZED');
+  const q = await postIssueCommand(JSON.parse(JSON.stringify(p.state)), out, cfg, w.deps);
+  assert.deepEqual([q.receipt.outcome, q.receipt.cause], ['APPENDED', 'READBACK_EXACT']);
+  assert.equal(w.posted.length, 1);
 });
 
 const here = fileURLToPath(new URL('../issue-executor.mjs', import.meta.url));

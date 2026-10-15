@@ -136,6 +136,12 @@ const REPO_PATH = /^(?!.*(?:^|\/)\.\.?(?:\/|$))[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-
 const WORKFLOW_PATH = /^\.github\/workflows\/[A-Za-z0-9._-]+\.ya?ml$/;
 const freezeDeep = (x) => { if (x && typeof x === 'object') { Object.values(x).forEach(freezeDeep); Object.freeze(x); } return x; };
 const databaseId = (x) => typeof x === 'string' && /^[1-9][0-9]*$/.test(x);
+// An Issue target may name one read-only public subject Issue that is evaluated instead of the origin body. The
+// subject is not an execution target or provider-receipt member: Org, command, range, claim, key and result sink stay
+// with the origin. It may not be the origin Issue itself.
+const subjectGrantValid = (s, origin) => exact(s, ['repository', 'repositoryId', 'kind', 'number'])
+  && REPOSITORY.test(s.repository) && databaseId(s.repositoryId) && s.kind === 'issue' && positive(s.number)
+  && !((s.repository === origin.repository || s.repositoryId === origin.repositoryId) && s.number === origin.issue);
 function providerValid(value) {
   if (value === null) return true;
   if (!exact(value, ['repository', 'revision', 'path', 'receipt']) || !REPOSITORY.test(value.repository) || !sha(value.revision)
@@ -169,7 +175,8 @@ export function validateActionsConfig(value) {
     || new Set(config.context.map((c) => JSON.stringify([c.role, c.path]))).size !== config.context.length
     || !providerValid(config.provider)
     || !Array.isArray(config.targets) || !config.targets.every((target) =>
-      (exact(target, ['repository', 'repositoryId', 'issue']) && positive(target.issue)
+      ((exact(target, ['repository', 'repositoryId', 'issue'])
+        || exact(target, ['repository', 'repositoryId', 'issue', 'subject']) && subjectGrantValid(target.subject, target)) && positive(target.issue)
         || exact(target, ['repository', 'repositoryId', 'pullRequest']) && positive(target.pullRequest))
       && REPOSITORY.test(target.repository) && databaseId(target.repositoryId))
     || new Set(config.targets.map((target) => JSON.stringify(Object.hasOwn(target, 'pullRequest')
@@ -203,6 +210,9 @@ export function validateActionsConfig(value) {
     && (Object.hasOwn(r.target, 'pullRequest') ? t.pullRequest === r.target.pullRequest : t.issue === r.target.issue)))) {
     throw new Error('INVALID_ACTIONS_CONFIG');
   }
+  // A subject-bearing target runs only within its own target-scoped range, never an unscoped legacy range.
+  if (config.targets.some((t) => Object.hasOwn(t, 'subject') && !ranges.some((r) => r.repository === t.repository
+    && Object.hasOwn(r, 'target') && r.target.issue === t.issue))) throw new Error('INVALID_ACTIONS_CONFIG');
   // Reservations never overlap for one native workflow identity, so a run number is admitted by at most one.
   for (const a of ranges) for (const b of ranges) {
     if (a !== b && a.repository === b.repository && a.workflowId === b.workflowId && a.first <= b.last && b.first <= a.last) throw new Error('INVALID_ACTIONS_CONFIG');
@@ -253,6 +263,8 @@ const editSignals = (x) => (x.lastEditedAt === null || time(x.lastEditedAt)) && 
   && Number.isSafeInteger(x.userContentEditsTotal) && x.userContentEditsTotal >= 0;
 export const ISSUE_KEYS = ['number', 'nodeId', 'body', 'lastEditedAt', 'includesCreatedEdit', 'userContentEditsTotal'];
 export const COMMAND_KEYS = ['databaseId', 'nodeId', 'author', 'body', 'lastEditedAt', 'includesCreatedEdit', 'userContentEditsTotal'];
+// A granted subject snapshot: the Issue keys plus the repository identity observed in the same read.
+export const SUBJECT_KEYS = ['repository', 'repositoryId', 'isPrivate', ...ISSUE_KEYS];
 export function subjectRevision(issue) {
   return [issue.nodeId, 'sha256:' + sha256(issue.body), issue.lastEditedAt ?? 'unedited',
     String(issue.userContentEditsTotal), String(issue.includesCreatedEdit)].join('|');
@@ -288,8 +300,12 @@ export async function admitIssueCommand(inputValue, configValue) {
   try { config = validateActionsConfig(configValue); } catch (error) { return reject(error.message); }
   try {
     input = snapshotJson(inputValue);
+    const subject = input.subject;
     if (!exact(input, ['repository', 'owner', 'sha', 'eventBody', 'run', 'issue', 'command', 'context',
-      ...(Object.hasOwn(input, 'targetKind') ? ['targetKind'] : [])])
+      ...(Object.hasOwn(input, 'targetKind') ? ['targetKind'] : []), ...(Object.hasOwn(input, 'subject') ? ['subject'] : [])])
+      || (Object.hasOwn(input, 'subject') && (!exact(subject, SUBJECT_KEYS) || !REPOSITORY.test(subject.repository)
+        || !databaseId(subject.repositoryId) || typeof subject.isPrivate !== 'boolean' || !positive(subject.number)
+        || !text(subject.nodeId) || typeof subject.body !== 'string' || !editSignals(subject)))
       || (Object.hasOwn(input, 'targetKind') && input.targetKind !== 'pull-request')
       || !REPOSITORY.test(input.repository) || !text(input.owner) || !sha(input.sha) || !text(input.eventBody)
       || !exact(input.issue, ISSUE_KEYS) || !positive(input.issue.number) || !text(input.issue.nodeId)
@@ -303,9 +319,16 @@ export async function admitIssueCommand(inputValue, configValue) {
   const { issue, command } = input;
   const targetKind = input.targetKind ?? 'issue';
   const pullRequest = targetKind === 'pull-request';
-  if (!selectActionsTarget(config, input.repository, issue.number, targetKind)) return reject('TARGET_NOT_AUTHORIZED');
+  const target = selectActionsTarget(config, input.repository, issue.number, targetKind);
+  if (!target) return reject('TARGET_NOT_AUTHORIZED');
+  // Only the reviewed target names a subject; the snapshot must be that exact public Issue in that exact repository.
+  const grant = target.subject, subject = input.subject;
+  if (!grant !== !subject) return reject(grant ? 'SUBJECT_UNKNOWN' : 'SUBJECT_NOT_GRANTED');
+  if (grant && (subject.repository !== grant.repository || subject.repositoryId !== grant.repositoryId
+    || subject.number !== grant.number || subject.isPrivate !== false)) return reject('SUBJECT_MISMATCH');
   if (!config.trustedCallers.includes(command.author)) return reject('COMMAND_NOT_AUTHORIZED');
   const provided = input.eventBody.startsWith(REQUEST_PREFIX);
+  if (provided && grant) return reject('PROVIDED_WITH_SUBJECT_UNSUPPORTED');
   if (input.eventBody !== '/jev-evaluate' && !provided) return reject('NOT_A_REQUEST');
   const granted = pullRequest && config.providedRequestTargets?.some((grant) =>
     grant.repository === input.repository && grant.pullRequest === issue.number) === true;
@@ -314,11 +337,15 @@ export async function admitIssueCommand(inputValue, configValue) {
   if (command.lastEditedAt !== null || command.includesCreatedEdit || command.userContentEditsTotal !== 0) return reject('EDITED');
   const selected = selectRunRange(config, { ...input.run, repository: input.repository }, { kind: targetKind, number: issue.number });
   if (!selected.range) return reject(selected.cause);
+  // The top-level identity keeps describing the origin Issue (issue, issueNodeId, subjectRevision). With a grant, the
+  // evaluated Issue is the subject: the semlint input and identity.subject carry its ref and revision instead.
   const revision = subjectRevision(issue);
+  const evaluatedRevision = grant ? subjectRevision(subject) : revision;
   const semlintInput = { schema: 'ops.semlint.input.v1',
-    subject: { kind: 'log-entry', ref: `https://github.com/${input.repository}/${pullRequest ? 'pull' : 'issues'}/${issue.number}`, revision,
+    subject: { kind: 'log-entry', ref: grant ? `https://github.com/${grant.repository}/issues/${grant.number}`
+      : `https://github.com/${input.repository}/${pullRequest ? 'pull' : 'issues'}/${issue.number}`, revision: evaluatedRevision,
       scope: pullRequest ? 'entire body of the approved pull request at the observed revision' : config.subjectScope,
-      content: issue.body, sha256: sha256(issue.body) },
+      content: grant ? subject.body : issue.body, sha256: sha256(grant ? subject.body : issue.body) },
     context: input.context.map((c) => ({ role: c.role, ref: `${c.path}@${input.sha}`, revision: input.sha, content: c.content, sha256: sha256(c.content) })),
     checks: [...config.allowedChecks] };
   let prepared;
@@ -343,6 +370,8 @@ export async function admitIssueCommand(inputValue, configValue) {
   }
   return finishRequest(prepared, (planDigest) => ({
     repository: input.repository, issue: issue.number, issueNodeId: issue.nodeId, subjectRevision: revision,
+    ...(grant ? { subject: { repository: grant.repository, repositoryId: grant.repositoryId, kind: 'issue', number: grant.number,
+      nodeId: subject.nodeId, revision: evaluatedRevision } } : {}),
     ...(pullRequest ? { targetKind } : {}),
     commentId: command.databaseId, nodeId: command.nodeId, author: command.author, bodyDigest: digest(command.body),
     observation: provided ? PROVIDED_COMMAND_OBSERVATION : COMMAND_OBSERVATION, executionSource: input.sha, configDigest: digest(config),
