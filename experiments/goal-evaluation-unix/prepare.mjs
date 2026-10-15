@@ -120,9 +120,11 @@ export function project(planValue, subject, { fidelity, ...planLimits } = {}) {
   const base = { checks, mapping, notProjected, unprojectedClauses, unquotedGoalText: unquotedGoalText(value.request, value.clauses), missing: value.missing,
     goal: { ref: goal.ref, sha256: sha256(goal.content), onWire: !CJK.test(goal.content) } };
   if (!value.clauses.some(c => c.kind === 'obligation')) return hold('NEED_CLARIFICATION', base);
+  // With no Core check the projection is decided without the subject: nothing reaches the wire, so no snapshot or
+  // paid identity is awaited. This concludes only the projection, not an evaluation, Program result or posting.
+  if (!checks.length) return hold('NOTHING_PROJECTED', base);
   if (subject?.status !== 'VERIFIED' || !exact(subject.target, ['repository', 'number']) || !REPOSITORY.test(subject.target.repository)
     || subject.target.number !== subject.snapshot?.number) return hold(subject?.cause ?? 'REVISION_UNOBSERVED', base);
-  if (!checks.length) return hold('NOTHING_PROJECTED', base);
   const { snapshot, target } = subject;
   const input = { schema: 'ops.semlint.input.v14',
     subject: unit({ kind: 'log-entry', ref: `https://github.com/${target.repository}/pull/${target.number}`, revision: subjectRevision(snapshot), scope: SCOPE }, snapshot.body),
