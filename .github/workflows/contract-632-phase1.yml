@@ -1,0 +1,265 @@
+name: contract-632-phase1
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/contract-632-phase1.yml'
+      - 'governance/contract-632-phase1-selector.v1.json'
+      - 'tools/contract-632-phase1-proof.py'
+      - 'tools/contract-632-phase2-source-universe.nix'
+      - 'packages/ops-package-contract-bridge/**'
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'build/packages.jsonl'
+      - 'build/checks.jsonl'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contract-632-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  phase1-bundle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+      - name: Build and read back the exact Phase 1 bundle
+        id: bundle
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          tree="$(git rev-parse 'HEAD^{tree}')"
+          check="$(nix build --no-link --print-out-paths .#checks.x86_64-linux.ops-package-contract-bridge-phase1)"
+          bridge="$(nix build --no-link --print-out-paths .#packages.x86_64-linux.ops-package-contract-bridge)"
+          diff -r "$check/run1" "$check/run2"
+
+          root=contract-632-phase1-bundle
+          mkdir -p "$root/proof"
+          cp -R "$check/run1/." "$root/proof/"
+          "$bridge/bin/ops-package-contract-bridge" verify-phase1 "$root/proof" > "$root/workflow-readback.json"
+
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg commit "$EXPECTED_SHA" \
+            --arg tree "$tree" \
+            --arg workflowRef "$GITHUB_WORKFLOW_REF" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg runAttempt "$GITHUB_RUN_ATTEMPT" \
+            --arg checkStorePath "$check" \
+            --arg proofReceiptSha256 "$(sha256sum "$root/proof/phase1-receipt.json" | cut -d' ' -f1)" \
+            --arg proofVerificationSha256 "$(sha256sum "$root/proof/bridge-verification.json" | cut -d' ' -f1)" \
+            --arg workflowReadbackSha256 "$(sha256sum "$root/workflow-readback.json" | cut -d' ' -f1)" \
+            --arg selectorSha256 "$(sha256sum "$root/proof/phase1-selector.json" | cut -d' ' -f1)" \
+            '{
+              schema: "ops.contract632.phase1ArtifactProvenance.v1",
+              authority: false,
+              claim: "BOUNDED_COMPILER_PROOF_NOT_ORGANIZATION_ADMISSION",
+              producer: {
+                repository: $repository,
+                workflowRef: $workflowRef,
+                runId: $runId,
+                runAttempt: $runAttempt
+              },
+              source: { commit: $commit, tree: $tree },
+              checkStorePath: $checkStorePath,
+              proof: {
+                receiptSha256: $proofReceiptSha256,
+                verificationSha256: $proofVerificationSha256,
+                workflowReadbackSha256: $workflowReadbackSha256,
+                selectorSha256: $selectorSha256
+              }
+            }' > "$root/provenance.json"
+
+          manifest="$RUNNER_TEMP/contract-632-phase1-manifest.json"
+          (cd "$root" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+            | jq -Rn '[inputs | capture("^(?<sha256>[0-9a-f]{64})  (?<path>.+)$") | {path: .path, sha256: .sha256}]' \
+            > "$manifest"
+          mv "$manifest" "$root/bundle-manifest.json"
+          manifest_digest="$(sha256sum "$root/bundle-manifest.json" | cut -d' ' -f1)"
+          printf 'tree=%s\nmanifest_sha256=%s\n' "$tree" "$manifest_digest" >> "$GITHUB_OUTPUT"
+          jq -e '.status == "PASS" and .phaseClosed == false and .authority == false' "$root/workflow-readback.json" >/dev/null
+      - name: Upload exact Phase 1 bundle
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-632-phase1-${{ github.event.pull_request.head.sha }}
+          path: contract-632-phase1-bundle/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Emit Phase 1 artifact identity
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          SOURCE_TREE: ${{ steps.bundle.outputs.tree }}
+          MANIFEST_SHA256: ${{ steps.bundle.outputs.manifest_sha256 }}
+        run: |
+          set -euo pipefail
+          test -n "$ARTIFACT_ID"
+          test -n "$ARTIFACT_URL"
+          [[ "$ARTIFACT_DIGEST" =~ ^(sha256:)?[0-9a-f]{64}$ ]]
+          [[ "$SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          printf 'contract_632_phase1 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s\n' \
+            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256"
+
+  phase2-v5-bundle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+      - name: Build and read back the exact Phase 2 v5 bundle
+        id: bundle
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          tree="$(git rev-parse 'HEAD^{tree}')"
+          bridge="$(nix build --no-link --print-out-paths .#packages.x86_64-linux.ops-package-contract-bridge)"
+
+          work="$RUNNER_TEMP/contract-632-phase2-v5"
+          mkdir -p "$work"
+          nix eval --json --file tools/contract-632-phase2-source-universe.nix > "$work/source-universe-1.json"
+          nix eval --json --file tools/contract-632-phase2-source-universe.nix > "$work/source-universe-2.json"
+          cmp "$work/source-universe-1.json" "$work/source-universe-2.json"
+
+          node packages/ops-package-contract-bridge/tests/phase2-v5.mjs \
+            "$work/source-universe-1.json" > "$work/unit-receipt.json"
+          jq -e '.status == "PASS" and .authority == false' "$work/unit-receipt.json" >/dev/null
+
+          "$bridge/bin/ops-package-contract-bridge" build-phase2-v5 \
+            --ops-source "$PWD" \
+            --ops-candidate-sha "$EXPECTED_SHA" \
+            --local-source-universe "$work/source-universe-1.json" \
+            --out "$work/run1" > "$work/run1-build.json"
+          "$bridge/bin/ops-package-contract-bridge" build-phase2-v5 \
+            --ops-source "$PWD" \
+            --ops-candidate-sha "$EXPECTED_SHA" \
+            --local-source-universe "$work/source-universe-1.json" \
+            --out "$work/run2" > "$work/run2-build.json"
+          diff -r "$work/run1" "$work/run2"
+          cmp "$work/run1-build.json" "$work/run2-build.json"
+
+          root=contract-632-phase2-v5-bundle
+          mkdir -p "$root/proof"
+          cp "$work/unit-receipt.json" "$root/unit-receipt.json"
+          cp -R "$work/run1/." "$root/proof/"
+          "$bridge/bin/ops-package-contract-bridge" verify-phase2-v5 "$root/proof" > "$root/workflow-readback.json"
+
+          jq -e '.status == "PASS"
+            and .phaseClosed == false
+            and .authority == false
+            and .relationFindingCount == 0
+            and .unresolvedSupportCount == 0
+            and .unknownCount == 0
+            and .conflictCount == 0
+            and .omissionCount == 0
+            and .combinedAssertionCount == .relationValidAssertionCount
+            and .directPlacementCount == .packageCount
+            and .structuredDerivedCount > 0
+            and .structuredSupportCount > 0' \
+            "$root/workflow-readback.json" >/dev/null
+
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg commit "$EXPECTED_SHA" \
+            --arg tree "$tree" \
+            --arg workflowRef "$GITHUB_WORKFLOW_REF" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg runAttempt "$GITHUB_RUN_ATTEMPT" \
+            --arg nodeVersion "$(node --version)" \
+            --arg unitReceiptSha256 "$(sha256sum "$root/unit-receipt.json" | cut -d' ' -f1)" \
+            --arg combinedAssertionsSha256 "$(sha256sum "$root/proof/combined-source-assertions-v5.jsonl" | cut -d' ' -f1)" \
+            --arg relationFindingsSha256 "$(sha256sum "$root/proof/combined-source-relation-findings-v5.json" | cut -d' ' -f1)" \
+            --arg relationValidAssertionsSha256 "$(sha256sum "$root/proof/relation-valid-source-assertions-v5.jsonl" | cut -d' ' -f1)" \
+            --arg proofReceiptSha256 "$(sha256sum "$root/proof/phase2-v5-receipt.json" | cut -d' ' -f1)" \
+            --arg proofVerificationSha256 "$(sha256sum "$root/proof/phase2-v5-verification.json" | cut -d' ' -f1)" \
+            --arg workflowReadbackSha256 "$(sha256sum "$root/workflow-readback.json" | cut -d' ' -f1)" \
+            '{
+              schema: "ops.contract632.phase2ArtifactProvenance.v5",
+              authority: false,
+              claim: "PACKAGE_COMBINED_SOURCE_RELATIONS_CLOSED_NOT_ORGANIZATION_ADMISSION",
+              producer: {
+                repository: $repository,
+                workflowRef: $workflowRef,
+                runId: $runId,
+                runAttempt: $runAttempt
+              },
+              source: { commit: $commit, tree: $tree },
+              testRuntime: {
+                nodeVersion: $nodeVersion,
+                unitReceiptSha256: $unitReceiptSha256
+              },
+              proof: {
+                combinedAssertionsSha256: $combinedAssertionsSha256,
+                relationFindingsSha256: $relationFindingsSha256,
+                relationValidAssertionsSha256: $relationValidAssertionsSha256,
+                receiptSha256: $proofReceiptSha256,
+                verificationSha256: $proofVerificationSha256,
+                workflowReadbackSha256: $workflowReadbackSha256
+              }
+            }' > "$root/provenance.json"
+
+          manifest="$RUNNER_TEMP/contract-632-phase2-v5-manifest.json"
+          (cd "$root" && find . -type f -print0 | sort -z | xargs -0 sha256sum) \
+            | jq -Rn '[inputs | capture("^(?<sha256>[0-9a-f]{64})  (?<path>.+)$") | {path: .path, sha256: .sha256}]' \
+            > "$manifest"
+          mv "$manifest" "$root/bundle-manifest.json"
+          manifest_digest="$(sha256sum "$root/bundle-manifest.json" | cut -d' ' -f1)"
+          package_count="$(jq -r '.packageCount' "$root/workflow-readback.json")"
+          assertion_count="$(jq -r '.combinedAssertionCount' "$root/workflow-readback.json")"
+          support_count="$(jq -r '.structuredSupportCount' "$root/workflow-readback.json")"
+          printf 'tree=%s\nmanifest_sha256=%s\npackage_count=%s\nassertion_count=%s\nsupport_count=%s\n' \
+            "$tree" "$manifest_digest" "$package_count" "$assertion_count" "$support_count" >> "$GITHUB_OUTPUT"
+      - name: Upload exact Phase 2 v5 bundle
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-632-phase2-v5-${{ github.event.pull_request.head.sha }}
+          path: contract-632-phase2-v5-bundle/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Emit Phase 2 v5 artifact identity
+        env:
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
+          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
+          ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest }}
+          SOURCE_TREE: ${{ steps.bundle.outputs.tree }}
+          MANIFEST_SHA256: ${{ steps.bundle.outputs.manifest_sha256 }}
+          PACKAGE_COUNT: ${{ steps.bundle.outputs.package_count }}
+          ASSERTION_COUNT: ${{ steps.bundle.outputs.assertion_count }}
+          SUPPORT_COUNT: ${{ steps.bundle.outputs.support_count }}
+        run: |
+          set -euo pipefail
+          test -n "$ARTIFACT_ID"
+          test -n "$ARTIFACT_URL"
+          [[ "$ARTIFACT_DIGEST" =~ ^(sha256:)?[0-9a-f]{64}$ ]]
+          [[ "$SOURCE_TREE" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$PACKAGE_COUNT" =~ ^[1-9][0-9]*$ ]]
+          [[ "$ASSERTION_COUNT" =~ ^[1-9][0-9]*$ ]]
+          [[ "$SUPPORT_COUNT" =~ ^[1-9][0-9]*$ ]]
+          printf 'contract_632_phase2_v5 artifact_id=%s artifact_digest=%s source_tree=%s manifest_sha256=%s packages=%s assertions=%s supports=%s\n' \
+            "$ARTIFACT_ID" "$ARTIFACT_DIGEST" "$SOURCE_TREE" "$MANIFEST_SHA256" "$PACKAGE_COUNT" "$ASSERTION_COUNT" "$SUPPORT_COUNT"
