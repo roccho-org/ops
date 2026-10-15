@@ -43,7 +43,14 @@ function jsonData(value, ancestors = new Set(), depth = 0) {
   ancestors.delete(value);
   return result;
 }
-function plan(request, thresholds) {
+const freeze = value => {
+  if (value !== null && typeof value === "object") {
+    for (const item of Object.values(value)) freeze(item);
+    Object.freeze(value);
+  }
+  return value;
+};
+export function prepareMultiSelect(request, thresholds) {
   const input = fields(request, ["state", "question", "choices"]);
   const policy = fields(thresholds, ["reject", "accept"]);
   if (![policy.reject, policy.accept].every(p => typeof p === "number" && Number.isFinite(p))
@@ -60,8 +67,8 @@ function plan(request, thresholds) {
       evaluation: "Does candidate apply as an answer to question for the provided state? Evaluate this candidate independently; multiple candidates may apply.",
     }},
   ]));
-  return {ids: choices.map(([id]) => id), policy,
-    body: {model: "jev-latest", state: jsonData(input.state), questions}};
+  return freeze({ids: choices.map(([id]) => id), policy,
+    body: {model: "jev-latest", state: jsonData(input.state), questions}});
 }
 function normalize(data, ids, policy) {
   if (!plain(data) || !own(data, "model") || typeof data.model !== "string" || !data.model.trim()
@@ -86,7 +93,7 @@ function normalize(data, ids, policy) {
 }
 
 export async function judgeMultiSelect({request, thresholds, provider, signal} = {}) {
-  const {ids, policy, body} = plan(request, thresholds);
+  const {ids, policy, body} = prepareMultiSelect(request, thresholds);
   if (!provider?.available) throw new JevError("auth_missing", "Jev provider unavailable");
   if (typeof provider.post !== "function") invalid();
   let data;
