@@ -123,3 +123,91 @@ no Nix build and compares a re-download byte-for-byte; existing assets are never
 overwritten. This is unsigned, shared-principal review/provenance evidence,
 not a provider signature or host immutability guarantee. A PR build is not
 formal supply. Old artifacts/real receipts do not transfer to a new identity.
+
+
+## One-question multiple selection
+
+The source package exports `judgeMultiSelect` from `jev/multi-select`. It accepts
+one state, one question stem, a nonempty map of candidate IDs to nonempty string
+descriptions, explicit thresholds, and the existing bound provider:
+
+```js
+import {judgeMultiSelect} from "jev/multi-select";
+
+const result = await judgeMultiSelect({
+  provider, // the target's existing bindJev capability
+  request: {
+    state: "DEV requires MFA. STG requires an assumed role.",
+    question: "Which conditional authentication requirements are explicitly stated?",
+    choices: {
+      dev_mfa: "DEV requires MFA.",
+      stg_role: "STG requires an assumed role.",
+      dev_role: "DEV requires an assumed role.",
+      stg_mfa: "STG requires MFA.",
+    },
+  },
+  thresholds: {reject: 0.2, accept: 0.8},
+});
+```
+
+This is a composition of independent [Noul questions](https://docs.typesafe.ai/primitives/noul),
+one per candidate, sent in one POST against the same state. It uses the existing
+transport's ten-second deadline and cancellation, without retries. The request
+uses the existing `jev-latest` default; the resolved response model is retained.
+It is separate from single-option Choice and the named-choice Worker artifact.
+
+Question and candidate text are preserved verbatim, including conditions.
+Candidate IDs are opaque metadata, mapped to neutral wire question IDs and
+returned safely even for IDs such as `__proto__`. Output IDs are sorted by
+JavaScript string comparison. State accepts JSON strings, objects and arrays;
+non-JSON values, cycles, accessors and implicit `toJSON` conversions are refused.
+Empty text remains representable; its applicability and sufficiency belong to
+the caller. Structured candidate descriptions are outside this adapter.
+
+A successful result has:
+
+```text
+{
+  observation: "OBSERVED",
+  status: "COMPLETE" | "REVIEW",
+  model,
+  scores: {candidate_id: raw_noul},
+  selected: [...],
+  notSelected: [...],
+  undecided: [...]
+}
+```
+
+For finite thresholds `0 <= reject < accept <= 1`, a score at or above
+`accept` is selected, at or below `reject` is not selected, and a score
+strictly between them is undecided. These are score classifications. A low
+score does not prove logical negation or source absence. Threshold quality is
+not calibrated by this package.
+
+`OBSERVED` means every candidate's valid score and the nonempty resolved
+model were received. `COMPLETE` means no candidate remains undecided;
+`REVIEW` preserves successful observations needing a decision. Neither means
+semantic correctness. An empty selected set is `COMPLETE` only when every
+candidate is classified as not selected. All candidates may be selected.
+Exclusivity and cardinality constraints are caller policy.
+
+Invalid input throws the existing `JevError("input_invalid")`; unavailable
+binding throws `auth_missing`. Missing, extra or malformed decoded answers,
+out-of-range scores and a missing model throw `JevContractError` for the
+whole observation. Existing typed transport errors retain their identity.
+Failures never return a successful empty set or partial selection. The caller
+records ERROR, UNKNOWN or NOT_RUN as appropriate; this adapter does not invent
+those source or execution states. The existing transport parses with
+`response.json()`: duplicate raw JSON keys cannot be recovered or detected
+here. Exact decoded keys and candidate mapping are checked.
+
+Keep different collections in independent states. For C collections with N
+candidates each, calling this function once per collection makes C POSTs and
+asks C × N Noul questions. It does not combine collections into shared context
+or imply C internal model evaluations. JSONL loading, looping over all cases,
+block extraction and comparison relations remain caller concerns.
+
+Offline tests use synthetic responses to verify transport count, mapping,
+thresholds, retained uncertainty and failure handling. Decoder order tests do
+not establish model order invariance. This addition has no live quality,
+latency, token-cost or savings measurement.
