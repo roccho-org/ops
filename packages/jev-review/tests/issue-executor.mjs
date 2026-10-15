@@ -331,22 +331,103 @@ await check('reviewed-budget-addition', async () => {
     { repository: 'roccho-org/envs', workflowId: 377400122, path: WF_PATH, first: 2, last: 2, reservedCallsPerRun: 1 },
   ];
   assert.deepEqual(raw.runRanges.slice(0, 4), old);
-  const added = shipped.runRanges.slice(4);
+  const added = shipped.runRanges.slice(4, 6);
   assert.equal(added.length, 2);
   assert.equal(added.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 200);
-  assert.equal(shipped.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 204);
   assert.equal(shipped.limits.maxCalls, 1);
+  // Legacy unscoped records serve their existing targets; Ops runs past 103 fall into the PR536-only range.
+  const legacyTarget = { 'roccho-org/ops': { kind: 'issue', number: 483 }, 'roccho-org/envs': { kind: 'issue', number: 52 } };
   for (const r of added) {
-    assert.equal(r.last - r.first + 1, 100);
+    assert.equal(r.last - r.first + 1, 100); assert.equal(Object.hasOwn(r, 'target'), false);
     const run = (number, attempt = 1) => ({ repository: r.repository, workflowId: r.workflowId,
       path: r.path, number, attempt, id: 1 });
-    for (const number of [r.first, r.last]) assert.equal(selectRunRange(shipped, run(number)).callsPerRun, 1);
-    assert.equal(selectRunRange(shipped, run(r.last + 1)).cause, 'NO_RANGE');
-    assert.equal(selectRunRange(shipped, run(r.first, 2)).cause, 'RERUN_NOT_PAID');
-    assert.equal(selectRunRange(shipped, { ...run(r.first), workflowId: r.workflowId + 1 }).cause, 'NO_RANGE');
+    const target = legacyTarget[r.repository];
+    for (const number of [r.first, r.last]) assert.equal(selectRunRange(shipped, run(number), target).callsPerRun, 1);
+    assert.equal(selectRunRange(shipped, run(r.last + 1), target).cause, r.repository === 'roccho-org/ops' ? 'RANGE_TARGET_MISMATCH' : 'NO_RANGE');
+    assert.equal(selectRunRange(shipped, run(r.first, 2), target).cause, 'RERUN_NOT_PAID');
+    assert.equal(selectRunRange(shipped, { ...run(r.first), workflowId: r.workflowId + 1 }, target).cause, 'NO_RANGE');
   }
   assert.equal(selectRunRange(shipped, { repository: 'roccho-org/ops', workflowId: 377399991,
-    path: WF_PATH, number: 3, attempt: 1, id: 1 }).cause, 'NO_RANGE');
+    path: WF_PATH, number: 3, attempt: 1, id: 1 }, legacyTarget['roccho-org/ops']).cause, 'NO_RANGE');
+  // v12 candidate: two PR536-only slots after the observed ordinal 103; cumulative 204 -> 206, no reset.
+  assert.deepEqual(raw.runRanges.slice(6), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+    first: 104, last: 105, reservedCallsPerRun: 1, target: { pullRequest: 536 } }]);
+  assert.equal(shipped.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 206);
+  const ops = (number) => ({ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH, number, attempt: 1, id: 1 });
+  const pr536 = { kind: 'pull-request', number: 536 };
+  for (const number of [104, 105]) assert.equal(selectRunRange(shipped, ops(number), pr536).callsPerRun, 1);
+  assert.equal(selectRunRange(shipped, ops(106), pr536).cause, 'NO_RANGE');
+  for (const target of [{ kind: 'issue', number: 483 }, { kind: 'pull-request', number: 511 }, { kind: 'pull-request', number: 522 },
+    { kind: 'issue', number: 536 }]) assert.equal(selectRunRange(shipped, ops(104), target).cause, 'RANGE_TARGET_MISMATCH');
+  for (const number of [4, 103]) assert.equal(selectRunRange(shipped, ops(number), pr536).cause, 'RANGE_TARGET_MISMATCH');
+  for (const target of [undefined, null, {}, { kind: 'pull-request' }, { kind: 'pull-request', number: '536' },
+    { kind: 'repository', number: 536 }, { ...pr536, repository: 'roccho-org/ops' }]) {
+    assert.equal(selectRunRange(shipped, ops(104), target).cause, 'RANGE_TARGET_UNKNOWN');
+    assert.equal(selectRunRange(shipped, ops(50), target).cause, 'RANGE_TARGET_UNKNOWN');
+  }
+  // Envs has no scoped range, so its legacy behavior does not depend on a target observation.
+  assert.equal(selectRunRange(shipped, { repository: 'roccho-org/envs', workflowId: 377400122, path: WF_PATH,
+    number: 3, attempt: 1, id: 1 }).callsPerRun, 1);
+});
+
+const PR_NUMBER = 600;
+const prConfig = () => config({ targets: [...config().targets, { repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] });
+const prWorld = () => world(REPO, PR_NUMBER, WF, 'pull-request');
+
+// Target-scoped ranges: closed settings, the observed target selects, no fallback to unscoped legacy slots.
+await check('target-scoped-run-ranges', async () => {
+  const scopedConfig = (scopedTarget = { pullRequest: PR_NUMBER }) => ({ ...prConfig(),
+    runRanges: [range({ first: 1, last: 10 }), range({ first: 11, last: 12, target: scopedTarget })] });
+  assert.equal(validateActionsConfig(scopedConfig()).runRanges[1].target.pullRequest, PR_NUMBER);
+  assert.equal(validateActionsConfig(scopedConfig({ issue: 483 })).runRanges[1].target.issue, 483);
+  for (const bad of [
+    scopedConfig({}), scopedConfig({ pullRequest: PR_NUMBER, issue: 483 }), scopedConfig({ pullRequest: 0 }),
+    scopedConfig({ pullRequest: String(PR_NUMBER) }), scopedConfig({ pullRequest: PR_NUMBER, repository: REPO }),
+    scopedConfig({ pullRequest: PR_NUMBER + 1 }), scopedConfig({ issue: 484 }), scopedConfig({ issue: PR_NUMBER }),
+    scopedConfig(null), scopedConfig([PR_NUMBER]),
+    { ...scopedConfig(), runRanges: [range({ first: 1, last: 11 }), range({ first: 11, last: 12, target: { pullRequest: PR_NUMBER } })] },
+    { ...scopedConfig(), runRanges: [range({ first: 11, last: 12, target: { pullRequest: PR_NUMBER } }),
+      range({ first: 12, last: 13, target: { issue: 483 } })] },
+    { ...scopedConfig(), runRanges: [range({ repository: `${OWNER}/envs`, first: 11, last: 12, target: { pullRequest: PR_NUMBER } })] },
+  ]) {
+    assert.throws(() => validateActionsConfig(bad), /INVALID_ACTIONS_CONFIG/);
+    const w = prWorld(); const r = await fullRun(w, w.addComment(), { cfg: bad });
+    assert.deepEqual(outcome(r), ['NONE', 'INVALID_ACTIONS_CONFIG']); assert.deepEqual(effects(w), zero);
+  }
+  const cfg = scopedConfig();
+  for (const [kind, number, runNumber, expected] of [
+    ['pull-request', PR_NUMBER, 11, 'READBACK_EXACT'], ['pull-request', PR_NUMBER, 12, 'READBACK_EXACT'],
+    ['issue', 483, 5, 'READBACK_EXACT'],
+    ['pull-request', PR_NUMBER, 5, 'RANGE_TARGET_MISMATCH'], ['issue', 483, 11, 'RANGE_TARGET_MISMATCH'],
+    ['pull-request', PR_NUMBER, 13, 'NO_RANGE'],
+  ]) {
+    const w = world(REPO, number, WF, kind), c = w.addComment(), run = w.newRun({ run_number: runNumber });
+    const r = await fullRun(w, c, { cfg, run });
+    assert.equal(r.post.cause, expected, JSON.stringify({ kind, number, runNumber }));
+    assert.deepEqual(effects(w), expected === 'READBACK_EXACT' ? { claim: 1, fetch: 1, post: 1 } : zero);
+    if (expected !== 'READBACK_EXACT') { assert.equal(w.calls.issueQ + w.calls.commentQ + w.calls.workflow, 0); continue; }
+    // The existing receipt and result identity shapes are unchanged (no target key is added to either run record).
+    assert.deepEqual(r.plan.run, { id: run.id, number: runNumber, attempt: 1, workflowId: WF });
+    assert.deepEqual(Object.keys(r.plan.run), ['id', 'number', 'attempt', 'workflowId']);
+    const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length));
+    assert.deepEqual(identity.run, { id: run.id, number: runNumber, attempt: 1, workflowId: WF });
+  }
+  // Pure admission re-selects with the snapshot target: a state rewritten to another target never spends a scoped slot.
+  const w = prWorld(), c = w.addComment(), run = w.newRun({ run_number: 11 });
+  const planned = await planIssueCommand(ctxFor(w, c, run), cfg, w.deps);
+  assert.equal(planned.receipt.outcome, 'PLANNED');
+  for (const [alter, cause] of [
+    [(value) => { value.issue.number = 483; delete value.targetKind; }, 'RANGE_TARGET_MISMATCH'],
+    [(value) => { value.run.number = 5; }, 'RANGE_TARGET_MISMATCH'],
+    [(value) => { value.run.number = 13; }, 'NO_RANGE'],
+  ]) {
+    const value = structuredClone(planned.state.admission); alter(value);
+    assert.deepEqual(await admitIssueCommand(value, cfg), { status: 'NOT_ADMITTED', cause, authority: false });
+  }
+  // A snapshot for another number than the event is never admitted (existing exact snapshot binding).
+  const drift = prWorld(); drift.hooks.issueQuery = (_, row) => ({ data: { repository: { pullRequest: { ...row, number: 483 } } } });
+  const held = await fullRun(drift, drift.addComment(), { cfg, run: drift.newRun({ run_number: 11 }) });
+  assert.deepEqual(outcome(held), ['NONE', 'SNAPSHOT_UNKNOWN']); assert.deepEqual(effects(drift), zero);
 });
 
 // Native run identity is bound before any read or effect; reruns never spend.
@@ -700,10 +781,6 @@ await check('same-issue-across-repositories', async () => {
   assert.deepEqual(effects(w), { claim: 2, fetch: 2, post: 2 });
 });
 
-const PR_NUMBER = 600;
-const prConfig = () => config({ targets: [...config().targets, { repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] });
-const prWorld = () => world(REPO, PR_NUMBER, WF, 'pull-request');
-
 const providedConfig = () => ({ ...prConfig(), providedRequestTargets: [{ repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] });
 function providedPayload(fixture) {
   const unit = (fields, content) => ({ ...fields, content, sha256: hash(content),
@@ -724,7 +801,7 @@ const providedBody = (payload) => REQUEST_PREFIX + JSON.stringify(payload);
 await check('provided-v14-independent-grant', async () => {
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   assert.deepEqual(shipped.providedRequestTargets.map(row => ({ ...row })), [
-    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 522 },
+    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
   for (const cfg of [prConfig(), { ...prConfig(), providedRequestTargets: [] }]) {
     const fixture = prWorld(), payload = providedPayload(fixture);
@@ -742,6 +819,7 @@ await check('provided-v14-independent-grant', async () => {
     cfg => { cfg.providedRequestTargets[0].executionSource = SHA; },
     cfg => { cfg.targets[1].pullRequest = cfg.providedRequestTargets[0].pullRequest = 511; },
     cfg => { cfg.targets[1].pullRequest = cfg.providedRequestTargets[0].pullRequest = 520; },
+    cfg => { cfg.targets[1].pullRequest = cfg.providedRequestTargets[0].pullRequest = 522; },
   ]) {
     const cfg = providedConfig(); alter(cfg); assert.throws(() => validateActionsConfig(cfg), /INVALID_ACTIONS_CONFIG/);
   }
@@ -892,7 +970,7 @@ await check('pull-request-closed-targets', async () => {
     { repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 483 },
     { repository: 'roccho-org/envs', repositoryId: '1391871347', issue: 52 },
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 511 },
-    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 522 },
+    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
 });
 
@@ -1050,30 +1128,39 @@ await check('pull-request-native-unknown-and-exact-readback', async () => {
   }
 });
 
-await check('configured-exact-ops511-ops522-and-legacy-targets', async () => {
+await check('configured-exact-ops511-ops536-and-legacy-targets', async () => {
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   for (const alter of [
     cfg => { cfg.targets.push({ ...cfg.targets[3] }); },
     cfg => { cfg.targets.push({ ...cfg.targets[3], pullRequest: 521 }); },
     cfg => { cfg.targets[3].repository = 'roccho-org/envs'; cfg.targets[3].repositoryId = '1391871347'; },
     cfg => { cfg.targets[3].repositoryId = '1391871347'; },
-    cfg => { cfg.targets[3].issue = 522; },
+    cfg => { cfg.targets[3].issue = 536; },
+    // The PR536-only range cannot outlive or move its target, and never widens a legacy target.
+    cfg => { cfg.targets[3].pullRequest = 522; cfg.providedRequestTargets = []; },
+    cfg => { cfg.runRanges[6].target = { pullRequest: 522 }; },
+    cfg => { cfg.runRanges[6].first = 103; },
   ]) {
     const invalid = structuredClone(shipped); alter(invalid);
     assert.throws(() => validateActionsConfig(invalid), /INVALID_ACTIONS_CONFIG/);
   }
+  // Legacy targets use their unscoped records; PR536 only its own scoped record (Ops runs 104..105).
+  const reservationFor = (repository, number, targetKind) => shipped.runRanges.find(range => range.repository === repository
+    && range.target?.pullRequest === number && targetKind === 'pull-request')
+    ?? shipped.runRanges.find(range => range.repository === repository && !range.target);
   for (const [repository, number, targetKind, admitted] of [
     ['roccho-org/ops', 511, 'pull-request', true], ['roccho-org/ops', 483, 'issue', true],
     ['roccho-org/envs', 52, 'issue', true], ['roccho-org/ops', 511, 'issue', false],
-    ['roccho-org/ops', 522, 'pull-request', true], ['roccho-org/ops', 522, 'issue', false],
-    ['roccho-org/envs', 522, 'pull-request', false], ['roccho-org/other', 522, 'pull-request', false],
+    ['roccho-org/ops', 536, 'pull-request', true], ['roccho-org/ops', 536, 'issue', false],
+    ['roccho-org/envs', 536, 'pull-request', false], ['roccho-org/other', 536, 'pull-request', false],
+    ['roccho-org/ops', 522, 'pull-request', false], ['roccho-org/ops', 522, 'issue', false],
     ['roccho-org/ops', 520, 'pull-request', false], ['roccho-org/ops', 520, 'issue', false],
     ['roccho-org/ops', 521, 'pull-request', false],
     ['roccho-org/ops', 483, 'pull-request', false], ['roccho-org/envs', 52, 'pull-request', false],
     ['roccho-org/envs', 511, 'pull-request', false], ['roccho-org/ops', 512, 'pull-request', false],
     ['roccho-org/other', 511, 'pull-request', false],
   ]) {
-    const reservation = shipped.runRanges.find(range => range.repository === repository);
+    const reservation = reservationFor(repository, number, targetKind);
     const fixture = world(repository, number, reservation?.workflowId ?? WF, targetKind);
     const command = fixture.addComment({ author: 'roccho-dev' });
     const run = fixture.newRun({ run_number: reservation?.first ?? 1 });
@@ -1093,6 +1180,18 @@ await check('configured-exact-ops511-ops522-and-legacy-targets', async () => {
       assert.equal(identity.targetKind, targetKind === 'pull-request' ? targetKind : undefined);
     }
   }
+  // No slot moves between targets: PR536 at a legacy ordinal and a legacy target at 104 hold before any read or effect.
+  for (const [number, targetKind, runNumber] of [[536, 'pull-request', 4], [536, 'pull-request', 103],
+    [483, 'issue', 104], [511, 'pull-request', 105]]) {
+    const fixture = world('roccho-org/ops', number, 377399991, targetKind);
+    const command = fixture.addComment({ author: 'roccho-dev' }), run = fixture.newRun({ run_number: runNumber });
+    const ctx = ctxFor(fixture, command, run);
+    ctx.event.repository.id = 1275606595;
+    ctx.event.repository.owner = { id: 319185687, login: 'roccho-org', type: 'Organization' };
+    const result = await fullRun(fixture, command, { cfg: shipped, run, ctx });
+    assert.deepEqual(outcome(result), ['NONE', 'RANGE_TARGET_MISMATCH']); assert.deepEqual(effects(fixture), zero);
+    assert.equal(fixture.calls.workflow + fixture.calls.issueQ + fixture.calls.commentQ, 0);
+  }
 });
 
 const PR511_SNAPSHOT = Object.freeze({"base":"035fbf17fdd7ea699d33dc98537d74382c9eb9b5","body":"## Purpose and necessity\nAllow this meaningful change PR's complete body to be evaluated through the existing comment → Actions → real Jev → same-conversation result path. This adds only Ops PR511 as a bounded PR-body target; it does not admit arbitrary PRs or execute evaluated PR code.\n\nRel: https://github.com/roccho-org/ops/issues/483\nRel: https://github.com/roccho-org/ops/issues/482\nRel: https://github.com/roccho-dev/adrs/pull/593\nRef: https://github.com/roccho-dev/windows/issues/68\n\n## Current implementation\n- Closed target shape: legacy Ops483/envs52 Issues plus only {repository: roccho-org/ops, repositoryId: 1275606595, pullRequest: 511}.\n- Fixed GraphQL body observation and typed subject/ref/revision binding through admission, claim, result and exact same-PR readback.\n- Existing issue_comment event, literal /jev-evaluate, reviewed requester roccho-dev and the same six catalog questions.\n- Exact workflow guard and central guard selftests retain both Issues and reject unrelated PR numbers, repositories and swapped target types; the fail-closed analyzer is not weakened.\n- Caller workflow is this S3 source. Runtime code/settings/context pin the previously published, Root-reviewed immutable S2 commit f053c18b4b3b24bac3622821eeaf14b58ad56f65. PR511 body is untrusted data, never dynamically selected PR HEAD code.\n- No new event, client, core, actor, database, queue, ledger, credential or secret projection. Existing Org-only provider secret separation and all 204 lifetime reservations are unchanged; PR attempts share existing Ops slots. No rerun spending or replay after UNKNOWN.\n- User authorized merge. #511 is merged at 6da72a69d5776734f2ee47b1c2d5ef4d1b713900; the proposals default tree exactly matches the reviewed S3 tree. The fixed runtime remains S2. First+next real PR-body proof is still PENDING.\n\n## Changed source tree\n```text\n.github/workflows/jev-issue-comment.yml\npackages/jev-review/\n  github-comment.mjs\n  issue-executor.mjs\n  tests/issue-executor.mjs\n  issue-actions.json\n  ISSUE-EVALUATION.md\n  COMMENT-INVOCATION.md\ntools/check-ci-intent-workflow-branches.mjs\n```\n\n## Verification and provenance\nHead: 849f927cc8851982a3b9e23a33f984e359493e95\nTree: f8589d1f8deae5296643ec589d474010a98788c1\nBase: 035fbf17fdd7ea699d33dc98537d74382c9eb9b5\nJob contract: jev-pr-body-target-20261008-v2\nSource author: existing persistent OCI Codex writer, User-required GPT-6.1 Sol / Medium on official GitHub Codex 0.161.0, no model fallback.\nRoot independently reviewed the writer's source and re-ran the tests/provided-source checks; this is not third-party assurance or independent review of Root-authored policy.\n\nPASS locally, independently rechecked by Root:\n- 25 executor scenarios and source-contract guard matrix, including first+next, exact target closure, state integrity, body/edit drift, concurrency/stop, reservations, UNKNOWN and exact readback.\n- Functional fixtures and central guard rejection selftests.\n- Nix jev-review / jev-issue-executor / jev-comment-functional / ci-intent-workflow-branches checks.\n- Current provided-source byte parity (17 review files +13 Jev files), installed fixtures/smoke; pinned S2 runtime/config parity against its immutable Git source.\nReal Jev calls / GitHub evaluation effects during these tests: 0. The initial guard and smoke-invocation failures were corrected and remain history; fixtures are not live proof.\nCurrent-head GitHub CI PASS on 849f927cc8851982a3b9e23a33f984e359493e95: [nix-check](https://github.com/roccho-org/ops/actions/runs/37727405760), [repo-health](https://github.com/roccho-org/ops/actions/runs/37727405825), [README artifact exporter](https://github.com/roccho-org/ops/actions/runs/37727405755). The unrelated conditional cdp-tty-proof job was skipped, not counted as PASS.\n\n## Remaining completion\nUser merge permission and actual default-workflow/tree readback are confirmed. Root's bounded activation GO authorizes only first+next evaluation of this PR body, at most two Jev calls within existing Ops reservations, after source acceptance, exact target identity, trusted immutable runtime and active workflow/capacity verification. No broader target or budget is granted.\nThen each real call must append a result to this same PR, with Root independently verifying author, body/input revision, command identity, fixed source/model and actual attempted/completed/validated/unknown accounting. UNKNOWN is not retried.\nOnly after this foundation is proven should the necessity → evaluation → concrete improvement → same-case re-evaluation → useful-outcome evidence loop be discussed further.\nSource/CI, numerical axes, successful transport or repeated calls alone do not prove semantic usefulness, merge authority, quality improvement or whole-loop closure; Ops482 remains the quality owner.\n","head":"849f927cc8851982a3b9e23a33f984e359493e95","node_id":"PR_kwDOTAg2Q88AAAABHQE8Rg","number":511,"updated_at":"2026-10-08T04:47:15Z","url":"https://github.com/roccho-org/ops/pull/511"});
@@ -1102,22 +1201,25 @@ const PR511_EDIT_SIGNALS = Object.freeze({ lastEditedAt: '2026-10-08T04:38:40Z',
 const REFUSED_S2_CONTEXT = "# Issue evaluation context\n\nAuthority: User permits Root-only OCI setup/source, normal merge and paid proof, plus 200 additional calls in total. Legacy admission is reviewed roccho-dev commands on Ops483/envs52; staged PR511 source and its separate activation boundary are described below. Evidence never grants effects.\nCompletion: First+next real Actions/Jev/result append and exact same-Issue readback on both targets. Source, projection and CI alone are not completion. Root self-readback is not independent R.\nResponsibility: envs/SOPS owns the secret SSOT and one Org slot; Ops owns the supplied evaluator and effect adapter; GitHub hosts normal execution. No Ops key copy.\nRequired contracts: Existing semlint six-axis catalog, closed request/result identity, trusted settings, finite spend and no replay after UNKNOWN.\nDependencies: Native Issue event, fixed Ops source/runtime, selected Org Secret and existing Jev core. No host/OCI or envs-CI dependency during evaluation.\nAccounting: Initial four-call history is retained; 100 further slots per repo add at most 200 calls (lifetime ceiling 204). One call per run, 15s operation/60s plan; no rerun spending or automatic refill. Missing/invalid/UNKNOWN is not success.\nRegistered cases: First+next on Ops483 and envs52; fixture non-trigger, replay, concurrency, stop, drift and UNKNOWN cases remain source evidence only.\nQuality: Raw six-axis Noul evidence, not truth, authority or merge verdict. Semantic usefulness improvement belongs to Ops482; no accuracy claim here.\nBaseline: Existing semlint bounded API is reused unchanged. Known finite-quality limitations496/500 remain; this functional proof is not a quality comparison.\n\n## Bounded PR-body extension\n\nUnder `jev-pr-body-target-20261008-v2`, the persistent OCI writer owns only the\ndeclared source/test/correction slice after source GO. Root independently reviews\nthat source without authoring it and alone publishes the accepted result. Root's\npolicy self-readback is not independent policy review, and same-account source\nreview is not third-party assurance.\n\nRoot has published and verified the meaningful change PR Ops511 in `roccho-org/ops`,\nrepository ID `1275606595`, author `roccho-dev`, branch `codex/jev-pr-body-target-v1`,\nbase `035fbf17fdd7ea699d33dc98537d74382c9eb9b5`. S2 settings and the source workflow\nguard retain both Issues and configure only PR511's full body as untrusted evaluation\ndata. Both runtime pins remain `2d592b1cdcdb2abed7b00dfd98baab7105914521`, whose\nsettings do not admit511: configured source is not deployed activation. Root must\nreview/publish S2 and verify its actual immutable remote identity before separate S3\ncorrection GO can pin that already published trusted runtime. No unpublished self-pin,\nS1 runtime substitution or dynamic evaluated PR HEAD is allowed.\nThe PR is never a runtime or authority source. Root separately\nauthorizes activation after source acceptance, verified PR identity, a previously\npublished immutable trusted runtime and current existing Ops reserved capacity.\nMerge/default-workflow activation needs applicable User merge authority; this source\ncontract does not grant it.\n\nCompletion for this extension is first+next real Jev evaluation, same-PR result append\nand Root's exact identity/author/body/input/source/model/accounting readback before\nmeta-loop discussion. The six questions, requester, Org-only provider/secret boundary,\nall 204 reservations and no replay after UNKNOWN remain unchanged. There is no new\nbudget, target discovery, event, client, actor, ledger or quality claim. Verified Codex\nweekly remaining zero stops new work/effects; reset alone does not resume work.\n";
 const PR522_SNAPSHOT = Object.freeze({"base":"c8c8430aed9c48ff3bf3c654fc15e6d12b793ea7","body":"## Purpose\nRefs roccho-org/ops#482. Connect the ALREADY IMPLEMENTED closed semlint v14/provided-criteria capability to the native comment consumer, reusing preparePlan, fixed owner, claim/drift, composer and exact readback. No new evaluator/client/translator/actor/DB. Existing completed semlint quality and PR511 function proof are reused, not repeated or promoted to consumer usefulness.\n\n## Current source and stage\nW source0d506978270fb0bd97dcd7ba6074835d7faa1faf / tree1d289e1af6527cf81d501fbf5739e82f6245b0a2; parent/basec8c8430aed9c48ff3bf3c654fc15e6d12b793ea7. Dedicated codex/jev-comment-consumer-v14-v1 and /work/repos/ops/.bare/.worktrees/jev-comment-consumer-v14-v1.\nChanged only packages/jev-review/github-comment.mjs, tests/issue-executor.mjs, COMMENT-INVOCATION.md. Bootstrap is INACTIVE: old actual target settings/context and both caller pins remain unchanged; no providedRequestTargets grant or future target number is active. Root creates/reads this real PR before subsequent binding. Target-bound published accepted runtime precedes repin/current CI/normal merge/default/settings/capacity readback and separate live GO.\n\n## Boundary\nProvided requests require an independent source-reviewed exact target grant, excluding legacy511/retired520. One case, one through six criteria, one provider call per native run. Closed JSON binds exact full observed PR body/URL/body-edit revision/UTF8 SHA/full byte span; no replacement/summary, payload-derived config/runtime/argv/grant or non-null auxiliary. CJK input and incomplete required context refuse before claim/provider. CJK absence does NOT prove English suitability; caller context/refs are declarations, not fetched or accepted evidence. Root reviews actual payload/off-wire gold separation. Legacy literal v1 is retained.\nExisting Core28000/31000/60000, 204 lifetime reservations/native ranges, roccho-dev requester, Org-only key custody and token grant remain; PRwrite is repository-wide authority, not a PR-scoped token. Raw Noul does not authorize actions or certify truth/quality.\n\n## Source evidence and roles\nSame native W01a1196c-ebd6-7e61-be34-3258c13cf828, gpt-6.1-sol/medium, windows-ownUID1000; Root01a1188d-bb1c-72b2-84ff-612aada80f5b P/D and independent R of this W's product code, not independent own-policy/thirdparty assurance.\nComplete scoped P source/controlf1c89ce6d10e4fe702c52544659d093cf90aac79/v4, [sourceGO6075568099](https://github.com/roccho-org/ops/issues/482#issuecomment-6075568099); native W independent PREPARE AGREE.\nW PASS: 35 scenarios/source-contract, four relevant Nix checks, 17+13-file packaged-byte parity/installed fixtures/malformed-entry refusal. Root independently read exact changes, verified clean parent/head/tree and unchanged legacy config/caller/S1 modules, and reran actual35 scenarios plus source-contract PASS. Earlier fixture prototype/hook expectation failures and Root transport timeout remain retained; readonly recheck succeeded, no paid retry. Public exact-head CI is pending, not claimed from local tests.\n\n## Necessary unresolved consumer decision\nThe new provided mode still inherits native collection/validation of nine fixed legacy context roles, while its provider plan uses the supplied criterion context. Do those native observations protect a required provided-mode boundary, or can that dependency be removed while preserving legacy literal behavior, independent target/grant/source safety, full subject binding, native reservation, claim/drift and required supplied-context coverage?\nThis is a real dependency/contract decision, not an assumed defect or predetermined removal. Nine roles share one document; nine reads are NOT nine distinct human reviews. A local machine-read reduction would not automatically prove lower human checking burden.\n\n## Finite trial\nNew ceiling10 actual attempted requests; current newcalls0. Prior PR520 one-call trial ended NOT_PROVEN and stays historical. Before J0, fix actual needed decision, independent expectation/unassisted comparison and exact X0/E off wire; before any warranted J1 preserve real change and same E/correctness. No forced removal/J1, score hunting, rerun/refill/UNKNOWN replay or inherited GO.\nKnown wiring/cap/target/context/metadata fixes are preparation, not Jev contribution. Correctness/safety and total preparation/interpretation/verification/fixing burden, all failures/unknown cost and learning/exposure limits are separate. Consumer usefulness remains NOT_PROVEN. Return actual evidence/verdict/next decision to existing Ops482; no automatic all-comment evaluation or Issue close.\n","head":"0d506978270fb0bd97dcd7ba6074835d7faa1faf","node_id":"PR_kwDOTAg2Q88AAAABHfC9qg","number":522,"updated_at":"2026-10-09T07:09:58Z","url":"https://github.com/roccho-org/ops/pull/522"});
 const actualContextBudgets = [];
-await check('configured-pr522-provided-full-body-and-exclusive-grant', async () => {
+// The PR536 grant is exercised with PR522's historical public body as a synthetic stand-in subject: the actual
+// PR536 body is not read in this source phase, so no PR536 size or fit is claimed.
+await check('configured-pr536-provided-full-body-and-exclusive-grant', async () => {
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   for (const [repository, number, kind, cause] of [
-    ['roccho-org/ops', 522, 'pull-request', null],
+    ['roccho-org/ops', 536, 'pull-request', null],
     ['roccho-org/ops', 511, 'pull-request', 'PROVIDED_REQUEST_NOT_AUTHORIZED'],
     ['roccho-org/ops', 483, 'issue', 'PROVIDED_REQUEST_NOT_AUTHORIZED'],
     ['roccho-org/envs', 52, 'issue', 'PROVIDED_REQUEST_NOT_AUTHORIZED'],
     ['roccho-org/ops', 520, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
+    ['roccho-org/ops', 522, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
     ['roccho-org/ops', 523, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
-    ['roccho-org/ops', 522, 'issue', 'TARGET_NOT_AUTHORIZED'],
-    ['roccho-org/envs', 522, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
+    ['roccho-org/ops', 536, 'issue', 'TARGET_NOT_AUTHORIZED'],
+    ['roccho-org/envs', 536, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
   ]) {
-    const reservation = shipped.runRanges.find(row => row.repository === repository);
+    const reservation = shipped.runRanges.find(row => row.repository === repository && kind === 'pull-request'
+      && row.target?.pullRequest === number) ?? shipped.runRanges.find(row => row.repository === repository && !row.target);
     const fixture = world(repository, number, reservation.workflowId, kind);
     fixture.issue.body = PR522_SNAPSHOT.body;
-    fixture.issue.id = PR522_SNAPSHOT.node_id;
     const payload = providedPayload(fixture);
     const context = fs.readFileSync(new URL('../ISSUE-EVALUATION.md', import.meta.url), 'utf8');
     Object.assign(payload.cases[0].input.context[0], { content: context, sha256: hash(context),
@@ -1144,12 +1246,13 @@ await check('configured-pr522-provided-full-body-and-exclusive-grant', async () 
     assert.equal(nativeReads, 9);
     assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases));
     const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
-    assert.equal(envelope.identity.issue, 522); assert.equal(envelope.identity.targetKind, 'pull-request');
+    assert.equal(envelope.identity.issue, 536); assert.equal(envelope.identity.targetKind, 'pull-request');
     assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION);
+    assert.deepEqual(envelope.identity.run, { id: run.id, number: 104, attempt: 1, workflowId: 377399991 });
     assert.equal(envelope.result.cases[0].result.schema, 'ops.semlint.result.v14');
     await semlint(result.planBody.cases[0].input, async (state, questions) => {
       const budget = validateJevBudget(state, questions);
-      actualContextBudgets.push({ number: 522, kind: 'provided-mechanical-fixture', contextBytes: Buffer.byteLength(context),
+      actualContextBudgets.push({ number: 536, kind: 'provided-mechanical-fixture-historical-522-subject', contextBytes: Buffer.byteLength(context),
         subjectBytes: Buffer.byteLength(PR522_SNAPSHOT.body), ...budget,
         statePlusLongestQuestionBytes: budget.stateBytes + budget.longestQuestionBytes,
         statePlusAllQuestionsBytes: budget.stateBytes + budget.allQuestionsBytes });
@@ -1177,25 +1280,30 @@ await check('exact-public-pr511-pr522-current-context-budget', async () => {
   assert.equal(PR522_SNAPSHOT.head, '0d506978270fb0bd97dcd7ba6074835d7faa1faf');
   assert.equal(hash(PR522_SNAPSHOT.body), 'a4fdbe79a47775363902f5a1c4534b35ced11d3bb848093429812f2c089f90f4');
   assert.equal(Buffer.byteLength(PR522_SNAPSHOT.body, 'utf8'), 4585);
-  for (const required of ['Ops483/envs52 Issues and Ops PR511/522 only', 'PR511 function is complete',
-    'ten-attempt ceiling', 'PR520 ended NOT_PROVEN', 'pre-J0 input freeze', 'no forced second call or inherited GO',
-    'Nine native context observations remain',
+  for (const required of ['Ops483/envs52 Issues and Ops PR511/536 only', 'the independent PR536 grant', 'PR511 function is complete',
+    'Evaluating PR536 needs accepted published target-bound runtime', 'only its own run range', 'PR520 ended NOT_PROVEN', 'pre-J0 input freeze', 'no forced second call or inherited GO',
+    'two PR536 slots total 206 lifetime calls', 'PR536 replaces retired522', 'Nine native context observations remain',
     'same-PR result append and exact identity/body/input/source/model/accounting readback']) {
     assert.ok(actualContext.includes(required), required);
+  }
+  // Model-input wording must stay true after activation: no stale grant/total and no candidate/not-live status.
+  for (const stale of ['PR511/522 only', 'PR522 grant', 'PR522 needs', 'total 204', 'candidate', 'not live']) {
+    assert.equal(actualContext.includes(stale), false, stale);
   }
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   assert.deepEqual(shipped.context.map(row => row.role), ROLES);
   assert.deepEqual(shipped.allowedChecks, CHECKS);
+  // PR536 is planned with PR522's historical body as a stand-in subject (mechanical, not a PR536 measurement).
   for (const [number, kind, body] of [
     [511, 'pull-request', PR511_SNAPSHOT.body],
-    [522, 'pull-request', PR522_SNAPSHOT.body],
+    [536, 'pull-request', PR522_SNAPSHOT.body],
     [483, 'issue', 'Legacy Ops483 compatibility subject (synthetic); full-body admission.'],
   ]) {
-    const reservation = shipped.runRanges.find(row => row.repository === 'roccho-org/ops');
+    const reservation = shipped.runRanges.find(row => row.repository === 'roccho-org/ops'
+      && (number === 536 ? row.target?.pullRequest === 536 : !row.target));
     const fixture = world('roccho-org/ops', number, reservation.workflowId, kind);
     fixture.issue.body = body;
     if (number === 511) Object.assign(fixture.issue, PR511_EDIT_SIGNALS, { id: PR511_SNAPSHOT.node_id });
-    if (number === 522) fixture.issue.id = PR522_SNAPSHOT.node_id;
     const command = fixture.addComment({ author: 'roccho-dev' });
     const run = fixture.newRun({ run_number: reservation.first });
     const ctx = ctxFor(fixture, command, run);
@@ -1269,11 +1377,21 @@ for (const required of ['jev-issue-comment-utility-20261009-v4', 'providedReques
   'only actual [PR522]', 'ten-attempt pool', 'full byte span', 'not fetched evidence',
   'all nine fixed legacy context roles', 'fixed-runtime wired source',
   'runtime/settings/2189-byte context are305b5321', 'not default deployment or live acceptance']) assert.ok(currentInvocation.includes(required), required);
+const flatInvocation = currentInvocation.replace(/\s+/g, ' ');
+for (const required of ['semlint-goal-quality-implementation-20261015-v12', 'retires PR511/520/522 as provided targets',
+  '`RANGE_TARGET_MISMATCH`', '`RANGE_TARGET_UNKNOWN`', 'runs 104..105 for PR536 only', 'from 204 to 206 with no reset',
+  'not a live grant', 'This source is dormant', 'rejects PR536', 'It is not pin-only']) assert.ok(flatInvocation.includes(required), required);
 assert.deepEqual(JSON.parse(repoFile('packages/jev-review/issue-actions.json')).providedRequestTargets,
-  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 522 }]);
-const targetBudget = actualContextBudgets.find(row => row.number === 522 && row.kind === 'pull-request');
-assert.ok(currentInvocation.includes(`Current context is ${targetBudget.contextBytes} bytes`));
-assert.ok(currentInvocation.includes(`state ${targetBudget.stateBytes} bytes, longest question ${targetBudget.longestQuestionBytes} and all\nquestions ${targetBudget.allQuestionsBytes}`));
+  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 }]);
+// Historical runtime-305b5321 budget facts stay frozen; the candidate figure is recomputed from the current context.
+assert.ok(currentInvocation.includes("Current context is 2189 bytes. With PR522's exact initial 4585-byte subject"));
+assert.ok(currentInvocation.includes('state 27373 bytes, longest question 720 and all\nquestions 4079'));
+const candidateBudget = actualContextBudgets.find(row => row.number === 536 && row.kind === 'pull-request');
+const legacyBudget = actualContextBudgets.find(row => row.number === 511 && row.kind === 'pull-request');
+assert.ok(flatInvocation.includes(`Candidate context is ${candidateBudget.contextBytes} bytes`));
+for (const budget of [candidateBudget, legacyBudget]) {
+  assert.ok(flatInvocation.includes(`state ${budget.stateBytes} bytes, longest question ${budget.longestQuestionBytes} and all questions ${budget.allQuestionsBytes}`));
+}
 for (const required of ['functional path is COMPLETE', '6057281071', '6056525801', '6057022678',
   'old two-call allowance is exhausted', 'utility remains NOT_PROVEN', 'Jev-unseen comparison',
   'external gold', 'shipped settings and', 'at most two distinct explicitly configured PRs',
@@ -1288,8 +1406,10 @@ const prefixExpression = `fromJSON('${JSON.stringify(REQUEST_PREFIX)}')`;
 assert.ok(guardText.includes(prefixExpression));
 const guard = new Function('github', 'startsWith', `return (${guardText.replace(prefixExpression, JSON.stringify(REQUEST_PREFIX))});`);
 const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase().startsWith(prefix.toLowerCase()));
+// The current caller guard belongs to the deployed runtime pin 305b5321 and is deliberately unchanged here: it rejects
+// PR536 for literal and provided requests although the dormant settings grant PR536 (S-c must change both together).
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
-  for (const number of [483, 52, 511, 512, 520, 521, 522, 523]) {
+  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
       const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 522].includes(number) : number === 483)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;
