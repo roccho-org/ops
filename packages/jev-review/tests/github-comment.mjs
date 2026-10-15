@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { JEV_MODEL } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
 import { ENTRY_LIMITS, preparePlan, runPlan, executeOwnerPlan, snapshotJson } from '../semlint-entry.mjs';
-import { REQUEST_PREFIX, RESULT_PREFIX, admitIssueComment, nextIssueEffect, composeResultComment, verifyResultReadback } from '../github-comment.mjs';
+import { REQUEST_PREFIX, RESULT_PREFIX, admitIssueComment, nextIssueEffect, composeResultComment, verifyResultReadback,
+  admitIssueCommand, subjectRevision } from '../github-comment.mjs';
 
 const copy = (x) => JSON.parse(JSON.stringify(x));
 const hash = (x) => createHash('sha256').update(x).digest('hex');
@@ -475,6 +476,68 @@ for (const program of [entry, compatibility]) {
   assert.equal(late.value.accounting.providerHttpCalls, 1); assert.equal(late.value.accounting.unknownHttpCalls, 1);
   assert.equal(late.value.cases[1].provider.attemptedHttpCalls, 0); assert.equal(late.value.cases[1].provider.statusClass, 'NOT_RUN');
   assert.ok(late.value.cases[1].result.records.every((x) => x.status === 'EXECUTION_ERROR'));
+}
+// Granted literal CJK refusal against the shipped settings (synthetic subject; no PR body is read): the refusal keeps
+// this admission snapshot's identity, exactly {issueNodeId, subjectRevision} and no body text. Every other refusal
+// keeps its prior three-key shape, and legacy or English literals are unchanged. Dormant code only: no command runs.
+{
+  const shipped = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const OPS = 'roccho-org/ops', ENVS = 'roccho-org/envs', WFP = '.github/workflows/jev-issue-comment.yml';
+  const JA = '受信記録だけで完了を確認する。', EN = 'Confirm completion from the delivery receipt alone.';
+  const subject = (over = {}) => ({ number: 536, nodeId: 'PR_fixture536', body: JA, lastEditedAt: null, includesCreatedEdit: false,
+    userContentEditsTotal: 0, ...over });
+  const commandOf = (body, over = {}) => ({ databaseId: 4242, nodeId: 'IC_4242', author: 'roccho-dev', body, lastEditedAt: null,
+    includesCreatedEdit: false, userContentEditsTotal: 0, ...over });
+  const contextOf = (first = 'public fixture contract') => shipped.context.map((c, i) => ({ role: c.role, path: c.path, content: i ? 'public fixture contract' : first }));
+  const literal = (over = {}) => ({ repository: OPS, owner: 'roccho-org', sha: 'a'.repeat(40), eventBody: '/jev-evaluate',
+    run: { id: 77, number: 104, attempt: 1, workflowId: 377399991, path: WFP }, issue: subject(), command: commandOf('/jev-evaluate'),
+    context: contextOf(), targetKind: 'pull-request', ...over });
+  const refusal = (issue) => ({ status: 'NOT_ADMITTED', cause: 'UNSUPPORTED_CJK', authority: false,
+    observed: { issueNodeId: issue.nodeId, subjectRevision: subjectRevision(issue) } });
+  const first = await admitIssueCommand(literal(), shipped);
+  assert.deepEqual(first, refusal(subject()));
+  assert.equal(first.observed.subjectRevision.split('|')[0], first.observed.issueNodeId);
+  assert.equal(JSON.stringify(first).includes(JA), false);
+  // Each edit signal, and an edit reverted to the same text, gives its own complete 5-part tuple over one body SHA.
+  const variants = [subject(), subject({ lastEditedAt: '2026-10-15T01:00:00Z', userContentEditsTotal: 1 }), subject({ includesCreatedEdit: true }),
+    subject({ lastEditedAt: '2026-10-15T02:00:00Z', userContentEditsTotal: 2 })];
+  const revisions = [];
+  for (const issue of variants) {
+    const refused = await admitIssueCommand(literal({ issue }), shipped);
+    assert.deepEqual(refused, refusal(issue)); revisions.push(refused.observed.subjectRevision);
+  }
+  assert.equal(new Set(revisions).size, variants.length); assert.equal(new Set(revisions.map((r) => r.split('|')[1])).size, 1);
+  // Whole-input CJK: CJK only in a context file still refuses, and the observation names the English subject.
+  const english = subject({ body: EN });
+  assert.deepEqual(await admitIssueCommand(literal({ issue: english, context: contextOf('日本語の契約') }), shipped), refusal(english));
+  const admitted = await admitIssueCommand(literal({ issue: english }), shipped);
+  assert.equal(admitted.status, 'ADMITTED'); assert.equal(Object.hasOwn(admitted, 'observed'), false);
+  // Every other refusal keeps exactly {status, cause, authority}.
+  const provided = REQUEST_PREFIX + '{}';
+  for (const [input, cause] of [
+    [literal({ command: commandOf('/jev-evaluate', { lastEditedAt: '2026-10-15T01:00:00Z', userContentEditsTotal: 1 }) }), 'EDITED'],
+    [literal({ command: commandOf('/jev-evaluate ') }), 'COMMAND_DRIFT'],
+    [literal({ issue: subject({ number: 999 }) }), 'TARGET_NOT_AUTHORIZED'],
+    [literal({ run: { id: 77, number: 50, attempt: 1, workflowId: 377399991, path: WFP } }), 'RANGE_TARGET_MISMATCH'],
+    [literal({ run: { id: 77, number: 200, attempt: 1, workflowId: 377399991, path: WFP } }), 'NO_RANGE'],
+    [literal({ issue: subject({ number: 511 }), eventBody: provided, command: commandOf(provided),
+      run: { id: 77, number: 50, attempt: 1, workflowId: 377399991, path: WFP } }), 'PROVIDED_REQUEST_NOT_AUTHORIZED'],
+    [literal({ eventBody: provided, command: commandOf(provided) }), null],
+  ]) {
+    const refused = await admitIssueCommand(input, shipped);
+    assert.deepEqual(Object.keys(refused).sort(), ['authority', 'cause', 'status']);
+    assert.equal(refused.status, 'NOT_ADMITTED'); if (cause) assert.equal(refused.cause, cause);
+  }
+  // Legacy literal targets with CJK keep their behavior (admitted, no observation).
+  const legacy = (repository, number, workflowId, kind) => {
+    const input = literal({ repository, issue: subject({ number }), run: { id: 77, number: 50, attempt: 1, workflowId, path: WFP } });
+    if (kind === 'issue') delete input.targetKind;
+    return input;
+  };
+  for (const input of [legacy(OPS, 483, 377399991, 'issue'), legacy(OPS, 511, 377399991, 'pull-request'), legacy(ENVS, 52, 377400122, 'issue')]) {
+    const legacyResult = await admitIssueCommand(input, shipped);
+    assert.equal(legacyResult.status, 'ADMITTED', legacyResult.cause); assert.equal(Object.hasOwn(legacyResult, 'observed'), false);
+  }
 }
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
   githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,
