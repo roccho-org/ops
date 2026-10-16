@@ -72,11 +72,12 @@ test("wrong/missing/extra typed answers never become application data", async ()
 
 test("errors discard raw details; HTTP errors do not read bodies; no retries", async () => {
   for (const status of [301, 401, 402, 429, 503, 504]) {
-    let calls = 0, reads = 0;
-    await assert.rejects(() => invoke(raw(), { fetch: async () => {
+    let calls = 0, reads = 0, signal;
+    await assert.rejects(() => invoke(raw(), { fetch: async (_url, init) => {
+      signal = init.signal;
       calls++; return { ok: false, status, get body() { reads++; throw Error("private-canary"); } };
     } }), e => e.code === "provider_http_error" && e.upstreamStatus === status && !JSON.stringify(e).includes("canary"));
-    assert.equal(calls, 1); assert.equal(reads, 0);
+    assert.equal(calls, 1); assert.equal(reads, 0); assert.equal(signal.aborted, true);
   }
   await refuse(() => invoke(raw(), { fetch: async () => { throw Error("key-canary"); } }), "provider_unavailable");
   for (const body of ["not-json-canary", new Uint8Array([255]), " ".repeat(1024 * 1024 + 1)])

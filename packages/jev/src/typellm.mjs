@@ -115,7 +115,10 @@ export function bindTypeLLM({ apiKey, fetch: fetchFn = globalThis.fetch, deadlin
           try { Promise.resolve(response?.body?.cancel()).catch(() => {}); } catch {}
           fail("cancelled");
         }
-        if (!response?.ok) fail("provider_http_error", response?.status);
+        if (!response?.ok) {
+          controller.abort(); // Close the unread HTTP error body without reflecting or parsing it.
+          fail("provider_http_error", response?.status);
+        }
         try {
           reader = response.body.getReader();
           const chunks = [];
