@@ -682,6 +682,25 @@ for (const program of [entry, compatibility]) {
   // A subject grant alone keeps the exact legacy passthrough (no refusal, no observation), as the M bytes above show.
   const passthrough = await admitIssueCommand(issueLiteral({ subject: jaApps }), granted);
   assert.deepEqual([passthrough.status, Object.hasOwn(passthrough, 'observed')], ['ADMITTED', false]);
+
+  // The Issue grant binds its origin repository, not only the Issue number (R's finding A1 on #559). A valid config with two
+  // origins numbered 483, Ops and envs, each with its own subject grant and scoped range; only Ops holds the Issue grant.
+  const twoOrigins = copy(issueGranted);
+  Object.assign(twoOrigins.targets.find((t) => t.repository === ENVS), { issue: 483,
+    subject: { repository: 'fixture-user/apps', repositoryId: '321', kind: 'issue', number: 94 } });
+  twoOrigins.runRanges.push({ repository: ENVS, workflowId: 377400122, path: WFP, first: 900, last: 900, reservedCallsPerRun: 1, target: { issue: 483 } });
+  assert.deepEqual(valid(twoOrigins).providedRequestTargets.map((g) => ({ ...g })), [issueGrant]);
+  const envsInput = (over) => issueLiteral({ repository: ENVS, issue: subject({ number: 483, nodeId: 'I_fixtureEnvs483', body: EN }),
+    run: { ...originRun, workflowId: 377400122 }, ...over });
+  // Positive controls on the granted Ops origin, under the same two-origin config.
+  assert.equal((await admitIssueCommand(issueProvided(issueBody), twoOrigins)).status, 'ADMITTED');
+  assert.deepEqual(await admitIssueCommand(issueLiteral({ subject: jaApps }), twoOrigins), issueRefusal(jaApps));
+  // The ungranted envs origin: its provided request keeps the legacy refusal, and its CJK literal the legacy passthrough.
+  assert.deepEqual(await admitIssueCommand(envsInput({ subject: englishApps, eventBody: issueBody, command: commandOf(issueBody) }), twoOrigins),
+    { status: 'NOT_ADMITTED', cause: 'PROVIDED_WITH_SUBJECT_UNSUPPORTED', authority: false });
+  const envsLiteral = await admitIssueCommand(envsInput({ subject: jaApps }), twoOrigins);
+  assert.deepEqual([envsLiteral.status, Object.hasOwn(envsLiteral, 'observed'), envsLiteral.identity?.repository, envsLiteral.identity?.subject?.revision],
+    ['ADMITTED', false, ENVS, subjectRevision(jaApps)], envsLiteral.cause);
 }
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
   githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,

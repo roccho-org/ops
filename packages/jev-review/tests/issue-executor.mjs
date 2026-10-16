@@ -1811,6 +1811,37 @@ await check('issue-granted-literal-cjk-refusal-three-keys', async () => {
   assert.deepEqual(outcome(er), ['NONE', 'EDITED']); assert.equal(Object.hasOwn(er.plan, 'observed'), false);
 });
 
+// The Issue grant binds its origin repository, not only the Issue number (R's finding A1 on #559). A valid config with two
+// origins numbered 483, Ops and envs, each with its own subject grant and scoped range; only Ops holds the Issue grant.
+await check('issue-grant-bound-to-origin-repository', async () => {
+  const ENVS = `${OWNER}/envs`;
+  const twoOrigins = () => {
+    const cfg = issueProvidedConfig();
+    cfg.targets.push({ repository: ENVS, repositoryId: '789', issue: 483, subject: { ...SUBJECT_GRANT } });
+    cfg.provider.receipt.target.repositories.push(ENVS); cfg.provider.receipt.target.repository_ids.push('789');
+    cfg.runRanges.push(range({ repository: ENVS, workflowId: WF + 1, target: { issue: 483 } }));
+    return cfg;
+  };
+  let checked; assert.doesNotThrow(() => { checked = validateActionsConfig(twoOrigins()); });
+  assert.deepEqual(checked.providedRequestTargets.map((g) => ({ ...g })), [{ ...ISSUE_GRANT }]);
+  const envsWorld = (body) => { const w = world(ENVS, 483, WF + 1); w.subject = subjectWorld().subject; if (body) w.subject.issue.body = body; return w; };
+  // Positive controls on the granted Ops origin, under the same two-origin config.
+  const opsLiteral = subjectWorld(), ol = await fullRun(opsLiteral, opsLiteral.addComment(), { cfg: twoOrigins() });
+  assert.deepEqual([...outcome(ol), ...Object.keys(ol.plan.observed ?? {})], ['NONE', 'UNSUPPORTED_CJK', 'issueNodeId', 'subjectRevision', 'subject']);
+  const opsProvided = englishSubjectWorld(), op = await fullRun(opsProvided, opsProvided.addComment({ body: providedBody(issuePayload(opsProvided)) }), { cfg: twoOrigins() });
+  assert.deepEqual(outcome(op), ['APPENDED', 'READBACK_EXACT']);
+  // The ungranted envs origin: its CJK literal is the legacy passthrough with no observation, at the envs origin only.
+  const envsLiteral = envsWorld(), el = await fullRun(envsLiteral, envsLiteral.addComment(), { cfg: twoOrigins() });
+  assert.deepEqual(outcome(el), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(envsLiteral), { claim: 1, fetch: 1, post: 1 });
+  assert.equal(Object.hasOwn(el.plan, 'observed') || Object.hasOwn(el.post, 'observed'), false);
+  const { identity } = JSON.parse(envsLiteral.posted[0].body.slice(RESULT_PREFIX.length));
+  assert.deepEqual([identity.repository, identity.issue, identity.subject.revision], [ENVS, 483, subjectRevision(subjectSnapshot(envsLiteral))]);
+  // Its provided request keeps the legacy refusal before any claim.
+  const envsProvided = envsWorld(SUBJECT_EN), ep = await fullRun(envsProvided, envsProvided.addComment({ body: providedBody(issuePayload(envsProvided)) }), { cfg: twoOrigins() });
+  assert.deepEqual(outcome(ep), ['NONE', 'PROVIDED_WITH_SUBJECT_UNSUPPORTED']); assert.deepEqual(effects(envsProvided), zero);
+  assert.equal(Object.hasOwn(ep.plan, 'observed') || Object.hasOwn(ep.post, 'observed'), false);
+});
+
 const here = fileURLToPath(new URL('../issue-executor.mjs', import.meta.url));
 const executorSource = fs.readFileSync(here, 'utf8');
 const commentSource = fs.readFileSync(new URL('../github-comment.mjs', import.meta.url), 'utf8');
