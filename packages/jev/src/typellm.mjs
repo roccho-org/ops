@@ -111,6 +111,10 @@ export function bindTypeLLM({ apiKey, fetch: fetchFn = globalThis.fetch, deadlin
             headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
             body, signal: controller.signal });
         } catch { fail("provider_unavailable"); }
+        if (controller.signal.aborted) {
+          try { Promise.resolve(response?.body?.cancel()).catch(() => {}); } catch {}
+          fail("cancelled");
+        }
         if (!response?.ok) fail("provider_http_error", response?.status);
         try {
           reader = response.body.getReader();

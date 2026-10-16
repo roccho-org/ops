@@ -208,6 +208,7 @@
                 JEV_PROVIDER_ENTRY=${
                   packages.${system}.jev-worker-esm
                 }/batch.mjs ${pkgs.nodejs}/bin/node --test tests/batch.test.mjs
+                  TYPELLM_PROVIDER_ENTRY=${packages.${system}.jev-worker-esm}/batch.mjs ${pkgs.nodejs}/bin/node --test tests/typellm.test.mjs
                 python3 ${self}/tools/jev-provider-artifact.py selftest --source ${
                   packages.${system}.jev-worker-esm
                 }/batch.mjs

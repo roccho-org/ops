@@ -98,14 +98,15 @@ No retry occurs. Fixture tests are mechanical evidence, not live Jev success.
 
 `nix build .#jev-worker-esm` produces one deterministic ZIP containing only
 `batch.mjs` (producer-bundled core and adapter) and a manifest
-(`jev-provider/1`, `named-choices/2`, entry,
+(`jev-provider/1`, `named-choices-and-typed/1`, entry,
 exports, empty import closure and the entry's byte length/SHA256).
 Consumers verify locator/digest/contract/merged proof before import; refusal
 must not fall back to source checkout, ambient resolution or a credential read.
 Source input digests, the completed ESM digest, and a later app Worker digest
 are distinct. Provenance records the core, batch adapter and assembly definition
 as source inputs, never claims that bundled bytes equal source bytes. Old
-`named-choices/1` assets are retained and are not silently accepted as /2.
+Earlier `named-choices/1` and `named-choices/2` releases are retained. A consumer
+must explicitly admit the new contract; old pins never silently gain generation.
 
 The narrow `jev-provider-release.yml` verifies the actual ZIP entry, preserves
 old CLI tests, and reuses unchanged reviewed-merge proof/selftest/workflow lint.
@@ -127,7 +128,10 @@ formal supply. Old artifacts/real receipts do not transfer to a new identity.
 
 `src/typellm.mjs` owns the TypeLLM transport and typed-answer contract. `bindTypeLLM`
 captures one credential; `generateTyped({request, provider, signal})` returns only
-validated `result`, optional token usage and elapsed seconds. The consumer supplies
+validated `result`, optional token usage and elapsed seconds. The existing Worker
+artifact exports `bindTypeLLM`, `generateTyped`, and `TypedProviderError` beside
+its three existing Jev exports, with the explicit `named-choices-and-typed/1`
+contract and TypeLLM source digest. The consumer supplies
 the questions and their meaning. No generated operator, diagram mutation, retry,
 environment lookup or credential is part of that domain API.
 

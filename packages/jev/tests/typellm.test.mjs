@@ -107,3 +107,12 @@ test("CLI refuses malformed/oversize input and absent key with one closed stdout
     assert.equal(run.stdout, JSON.stringify({ error }) + "\n");
   }
 });
+
+test("a late response after timeout is cancelled without reading it", async () => {
+  let release, cancels = 0, reads = 0;
+  const pending = invoke(raw(), { deadlineMs: 5, fetch: () => new Promise(resolve => { release = resolve; }) });
+  await refuse(() => pending, "provider_timeout");
+  release({ ok: true, body: { cancel() { cancels++; }, getReader() { reads++; throw Error("late-canary"); } } });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(reads, 0); assert.equal(cancels, 1);
+});
