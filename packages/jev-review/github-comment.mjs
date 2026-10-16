@@ -198,13 +198,19 @@ export function validateActionsConfig(value) {
       throw new Error('INVALID_ACTIONS_CONFIG');
     }
   }
+  // At most one provided grant in total: a PR body, or an origin Issue whose own subject grant (and so its own scoped
+  // range) names the evaluated Issue. Retirement numbers are PR numbers and apply to the PR form only.
   if (Object.hasOwn(config, 'providedRequestTargets') && (!Array.isArray(config.providedRequestTargets)
     || config.providedRequestTargets.length > 1 || !config.providedRequestTargets.every((grant) =>
       exact(grant, ['repository', 'repositoryId', 'pullRequest']) && positive(grant.pullRequest)
       && !RETIRED_PROVIDED.includes(grant.pullRequest)
       && config.targets.some((target) => Object.hasOwn(target, 'pullRequest')
         && target.repository === grant.repository && target.repositoryId === grant.repositoryId
-        && target.pullRequest === grant.pullRequest)))) throw new Error('INVALID_ACTIONS_CONFIG');
+        && target.pullRequest === grant.pullRequest)
+      || exact(grant, ['repository', 'repositoryId', 'issue']) && positive(grant.issue)
+      && config.targets.some((target) => Object.hasOwn(target, 'subject')
+        && target.repository === grant.repository && target.repositoryId === grant.repositoryId
+        && target.issue === grant.issue)))) throw new Error('INVALID_ACTIONS_CONFIG');
   // A scoped range binds an already configured target of its own repository; it never creates a target.
   if (ranges.some((r) => Object.hasOwn(r, 'target') && !config.targets.some((t) => t.repository === r.repository
     && (Object.hasOwn(r.target, 'pullRequest') ? t.pullRequest === r.target.pullRequest : t.issue === r.target.issue)))) {
@@ -279,17 +285,17 @@ export const PROVIDED_COMMAND_OBSERVATION = 'ACTIONS_TRUSTED_PROVIDED_REQUEST';
 // The subject may carry one English rendering of the whole observed body ({text, sourceSha256}, CJK-free). The runtime
 // checks bytes only; fidelity of the rendering stays with the trusted requester's owner route and posting decision.
 // CJK may appear only in the original subject content; every other field, including the English, stays CJK-free.
-function providedPayloadMatches(payload, input, revision) {
+// `expected` is the evaluated text {ref, revision, scope, body}: the PR body itself, or the granted subject Issue.
+function providedPayloadMatches(payload, expected) {
   if (!Array.isArray(payload.cases) || payload.cases.length !== 1) return false;
   const value = payload.cases[0]?.input, subject = value?.subject;
   const aux = subject?.englishAuxiliary;
-  if (!(aux === null || exact(aux, ['text', 'sourceSha256']) && text(aux.text) && aux.sourceSha256 === sha256(input.issue.body))) return false;
+  if (!(aux === null || exact(aux, ['text', 'sourceSha256']) && text(aux.text) && aux.sourceSha256 === sha256(expected.body))) return false;
   const { content, ...outsideOriginal } = subject;
   return value?.schema === 'ops.semlint.input.v14' && subject?.kind === 'log-entry'
-    && subject.ref === `https://github.com/${input.repository}/pull/${input.issue.number}`
-    && subject.revision === revision && subject.scope === 'entire body of the approved pull request at the observed revision'
-    && content === input.issue.body && subject.sha256 === sha256(input.issue.body)
-    && subject.evaluationSpan?.startByte === 0 && subject.evaluationSpan.endByte === Buffer.byteLength(input.issue.body, 'utf8')
+    && subject.ref === expected.ref && subject.revision === expected.revision && subject.scope === expected.scope
+    && content === expected.body && subject.sha256 === sha256(expected.body)
+    && subject.evaluationSpan?.startByte === 0 && subject.evaluationSpan.endByte === Buffer.byteLength(expected.body, 'utf8')
     && Array.isArray(value.context) && value.context.every((row) => row?.englishAuxiliary === null)
     && Array.isArray(value.checks) && value.checks.length > 0 && value.checks.length <= 6
     && !CJK.test(JSON.stringify({ ...value, subject: outsideOriginal }));
@@ -328,11 +334,14 @@ export async function admitIssueCommand(inputValue, configValue) {
     || subject.number !== grant.number || subject.isPrivate !== false)) return reject('SUBJECT_MISMATCH');
   if (!config.trustedCallers.includes(command.author)) return reject('COMMAND_NOT_AUTHORIZED');
   const provided = input.eventBody.startsWith(REQUEST_PREFIX);
-  if (provided && grant) return reject('PROVIDED_WITH_SUBJECT_UNSUPPORTED');
+  // Only an explicit Issue provided grant lets a provided request evaluate the origin's granted subject Issue.
+  const issueGranted = !pullRequest && grant !== undefined && config.providedRequestTargets?.some((g) =>
+    g.repository === input.repository && g.issue === issue.number) === true;
+  if (provided && grant && !issueGranted) return reject('PROVIDED_WITH_SUBJECT_UNSUPPORTED');
   if (input.eventBody !== '/jev-evaluate' && !provided) return reject('NOT_A_REQUEST');
   const granted = pullRequest && config.providedRequestTargets?.some((grant) =>
     grant.repository === input.repository && grant.pullRequest === issue.number) === true;
-  if (provided && !granted) return reject('PROVIDED_REQUEST_NOT_AUTHORIZED');
+  if (provided && !granted && !issueGranted) return reject('PROVIDED_REQUEST_NOT_AUTHORIZED');
   if (command.body !== input.eventBody) return reject('COMMAND_DRIFT');
   if (command.lastEditedAt !== null || command.includesCreatedEdit || command.userContentEditsTotal !== 0) return reject('EDITED');
   const selected = selectRunRange(config, { ...input.run, repository: input.repository }, { kind: targetKind, number: issue.number });
@@ -350,8 +359,14 @@ export async function admitIssueCommand(inputValue, configValue) {
     checks: [...config.allowedChecks] };
   let prepared;
   if (provided) {
+    // The provided subject must be the evaluated text: the PR body, or on the Issue route the granted subject Issue at its
+    // own revision and the configured scope. The origin body, revision or digest never stand in for it.
+    const expected = issueGranted
+      ? { ref: `https://github.com/${grant.repository}/issues/${grant.number}`, revision: evaluatedRevision, scope: config.subjectScope, body: subject.body }
+      : { ref: `https://github.com/${input.repository}/pull/${issue.number}`, revision,
+        scope: 'entire body of the approved pull request at the observed revision', body: issue.body };
     const parsed = await prepareIssueRequest(command.body, { ...config.limits, maxCases: 1, maxCalls: Math.min(1, selected.callsPerRun) },
-      (payload) => providedPayloadMatches(payload, input, revision));
+      (payload) => providedPayloadMatches(payload, expected));
     if (parsed.cause) return reject(parsed.cause);
     prepared = parsed.prepared;
     if (prepared.expected[0].sendable !== prepared.plan.cases[0].input.checks.length) return reject('PROVIDED_CONTEXT_INCOMPLETE');
@@ -359,9 +374,11 @@ export async function admitIssueCommand(inputValue, configValue) {
     // A literal v1 request sends the original text unrendered; on a target granted the provided route, CJK input
     // is refused here rather than evaluated unsupported. Legacy literal targets keep their behavior. The refusal
     // keeps this admission snapshot's subject identity (node ID and exact revision, no body text). CJK anywhere in
-    // the input refuses, so the observation names the subject; it does not say the body itself is CJK.
-    if (granted && CJK.test(JSON.stringify(semlintInput))) {
-      return { ...reject('UNSUPPORTED_CJK'), observed: { issueNodeId: issue.nodeId, subjectRevision: revision } };
+    // the input refuses, so the observation names the subject; it does not say the body itself is CJK. On the Issue route
+    // the origin pair is joined by the evaluated subject's own pair; a subject grant alone keeps the legacy passthrough.
+    if ((granted || issueGranted) && CJK.test(JSON.stringify(semlintInput))) {
+      return { ...reject('UNSUPPORTED_CJK'), observed: { issueNodeId: issue.nodeId, subjectRevision: revision,
+        ...(issueGranted ? { subject: { nodeId: subject.nodeId, revision: evaluatedRevision } } : {}) } };
     }
     try {
       prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: [{ id: targetKind, input: semlintInput }] },
