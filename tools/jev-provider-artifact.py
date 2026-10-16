@@ -9,10 +9,10 @@ import tempfile
 import zipfile
 
 SCHEMA = "jev-provider/1"
-CONTRACT = "named-choices/2"
-EXPORTS = ["JudgeProviderError", "bindJev", "judgeNamedChoices"]
+CONTRACT = "named-choices-and-typed/1"
+EXPORTS = ["JudgeProviderError", "TypedProviderError", "bindJev", "bindTypeLLM", "generateTyped", "judgeNamedChoices"]
 INPUTS = ("flake.lock", "packages/jev/src/core.mjs", "packages/jev/src/batch.mjs",
-          "packages/jev/default.nix", "tools/jev-provider-artifact.py")
+          "packages/jev/src/typellm.mjs", "packages/jev/default.nix", "tools/jev-provider-artifact.py")
 MEMBERS = ["batch.mjs", "manifest.json"]
 
 
@@ -109,10 +109,10 @@ def provenance(archive, proof_path, out, sha, tree, workflow_ref, run_id, run_at
     proof = json.loads(proof_path.read_text())
     proof_binding(proof, sha, tree)
     # The generic helper owns head/tree/review admission; bind its exact bytes.
-    result = {"schema": "jev-provider-provenance/1", "repository": "roccho-dev/ops",
-              "source": {"repository": "roccho-dev/ops", "commit": sha, "tree": tree},
+    result = {"schema": "jev-provider-provenance/1", "repository": "roccho-org/ops",
+              "source": {"repository": "roccho-org/ops", "commit": sha, "tree": tree},
               "producer": {"workflow_ref": workflow_ref, "run_id": run_id, "run_attempt": run_attempt},
-              "locator": f"https://github.com/roccho-dev/ops/releases/download/jev-provider-{sha}/jev-provider.zip",
+              "locator": f"https://github.com/roccho-org/ops/releases/download/jev-provider-{sha}/jev-provider.zip",
               "inputDigests": {name: digest((root / name).read_bytes()) for name in INPUTS},
               "entrySha256": manifest["files"][0]["sha256"],
               "cross_host_bytes_reproducible": False,
@@ -133,13 +133,13 @@ def verify_release(directory, sha):
     proof_path = directory / "merged-pr-proof.json"
     proof = json.loads(proof_path.read_text())
     require(record.get("schema") == "jev-provider-provenance/1" and record.get("contract") == CONTRACT, "provenance_invalid")
-    require(record.get("source", {}).get("repository") == "roccho-dev/ops" and record["source"].get("commit") == sha, "provenance_invalid")
+    require(record.get("source", {}).get("repository") == "roccho-org/ops" and record["source"].get("commit") == sha, "provenance_invalid")
     proof_binding(proof, sha, record["source"].get("tree"))
     require(record.get("artifact") == {"name": "jev-provider.zip", "bytes": len(payload), "sha256": expected}, "provenance_invalid")
     require(record.get("proof") == {"name": "merged-pr-proof.json", "sha256": digest(proof_path.read_bytes())}
             and record.get("mergedProof") == proof, "proof_invalid")
     require(record.get("manifestSha256") == digest((json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()), "manifest_mismatch")
-    require(record.get("locator") == f"https://github.com/roccho-dev/ops/releases/download/jev-provider-{sha}/jev-provider.zip"
+    require(record.get("locator") == f"https://github.com/roccho-org/ops/releases/download/jev-provider-{sha}/jev-provider.zip"
             and record.get("cross_host_bytes_reproducible") is False, "provenance_invalid")
     require(set(record.get("inputDigests", {})) == set(INPUTS)
             and all(re.fullmatch(r"[0-9a-f]{64}", v) for v in record["inputDigests"].values()), "provenance_invalid")
