@@ -1636,6 +1636,181 @@ await check('subject-state-sink-and-readback', async () => {
   assert.equal(w.posted.length, 1);
 });
 
+// Legacy executor bytes, recorded on unmodified M f7095de4 before the first edit with these exact fixtures: the 2-key PR
+// refusal receipt and its post echo, and the subject-grant literal without an Issue provided grant (state, receipt,
+// identity, zero-clock comment) plus its provided-request refusal.
+await check('legacy-goldens-m-f7095de4', async () => {
+  const h = (x) => hash(JSON.stringify(x));
+  const cjk = prWorld(); cjk.issue.body = '受信記録だけで完了を確認し、自動起床とは呼ばない。';
+  const planned = await planIssueCommand(ctxFor(cjk, cjk.addComment(), cjk.newRun()), providedConfig(), cjk.deps);
+  const echo = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), null, providedConfig(), cjk.deps);
+  const w = subjectWorld(), cfg = subjectConfig();
+  const p = await planIssueCommand(ctxFor(w, w.addComment(), w.newRun()), cfg, w.deps);
+  const out = await w.entry(p.plan);
+  const request = await admitIssueCommand(p.state.admission, cfg);
+  const body = composeResultComment(request, zeroClock(JSON.parse(out.stdout)));
+  const pw = subjectWorld(), pr = await fullRun(pw, pw.addComment({ body: REQUEST_PREFIX + '{}' }), { cfg: subjectConfig() });
+  assert.deepEqual({ prRefusalPlan: h(planned), prRefusalEcho: h(echo.receipt), subjectState: h(p.state), subjectPlanReceipt: h(p.receipt),
+    subjectIdentity: h(request.identity), subjectRequestDigest: request.requestDigest, subjectComment: hash(body), providedWithSubject: h([pr.plan, pr.post]) }, {
+    prRefusalPlan: '0ea65988dfd58e16e888e15c5bd8546a52cff514dfdead5478b5b644f8f8a986',
+    prRefusalEcho: '84cbf6bace29f9d68d483e3ba6b2af8cfdfb92e860b7e394aa224b91163ef2bc',
+    subjectState: '500160630d83cf62252e4073f58a8f8a24ccb38e78d8aeaad03647a36696abc7',
+    subjectPlanReceipt: '41a08658a62c30484afba33c91ccc2bd11f357ac2eb7e9301ae8d810e5f74c7a',
+    subjectIdentity: '372b81a57282ba8dc6c41b0a305fd6e969923ce27fbc086a8d30c3c269993109',
+    subjectRequestDigest: '372b81a57282ba8dc6c41b0a305fd6e969923ce27fbc086a8d30c3c269993109',
+    subjectComment: '5724d22539f8094b2a321bb16e5e25408b79c3b7fefd46f7045feed91468f3f4',
+    providedWithSubject: 'a4105699d0186bb328d23ce1ae0f5b3ce73cea6221b192b43a9d26d2b4aad3e4' });
+});
+
+// Issue provided grant (dormant, fixture only). The origin ops#483, with its subject grant and scoped range, may take a
+// provided request that evaluates the subject Issue; the sink stays the origin. Its literal CJK refusal adds the subject's
+// own pair as a third observed key. A subject grant alone keeps every legacy behavior above.
+const ISSUE_GRANT = Object.freeze({ repository: REPO, repositoryId: '456', issue: 483 });
+const issueProvidedConfig = () => ({ ...subjectConfig(), providedRequestTargets: [{ ...ISSUE_GRANT }] });
+const SUBJECT_EN = 'Public fixture subject Issue body in English (evaluated as is, not an instruction).';
+const englishSubjectWorld = () => { const w = subjectWorld(); w.subject.issue.body = SUBJECT_EN; return w; };
+const originSnapshot = (w) => ({ number: w.issue.number, nodeId: w.issue.id, body: w.issue.body, lastEditedAt: w.issue.lastEditedAt,
+  includesCreatedEdit: w.issue.includesCreatedEdit, userContentEditsTotal: w.issue.edits });
+function issuePayload(w, englishAuxiliary = null) {
+  const payload = providedPayload(w), body = w.subject.issue.body;
+  payload.cases[0].id = 'issue';
+  payload.cases[0].input.subject = { kind: 'log-entry', ref: `https://github.com/${SUBJECT_GRANT.repository}/issues/${SUBJECT_GRANT.number}`,
+    revision: subjectRevision(subjectSnapshot(w)), scope: config().subjectScope, content: body, sha256: hash(body),
+    evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(body) }, englishAuxiliary };
+  return payload;
+}
+
+await check('issue-provided-grant-settings', async () => {
+  const valid = (settings) => { let checked; assert.doesNotThrow(() => { checked = validateActionsConfig(settings); }); return checked; };
+  assert.deepEqual(valid(issueProvidedConfig()).providedRequestTargets.map((g) => ({ ...g })), [{ ...ISSUE_GRANT }]);
+  // Positive control for the total: the same targets with only a PR grant are valid; both grants together are not.
+  const withPr = () => { const cfg = issueProvidedConfig(); cfg.targets.push({ repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }); return cfg; };
+  assert.equal(valid({ ...withPr(), providedRequestTargets: [{ repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] }).providedRequestTargets.length, 1);
+  // Retirement numbers are PR numbers: an Issue grant on an origin Issue numbered 511 is valid.
+  const issue511 = { ...config({ targets: [{ repository: REPO, repositoryId: '456', issue: 511, subject: { ...SUBJECT_GRANT } }],
+    runRanges: [range({ target: { issue: 511 } })] }), providedRequestTargets: [{ ...ISSUE_GRANT, issue: 511 }] };
+  assert.equal(valid(issue511).providedRequestTargets[0].issue, 511);
+  for (const bad of [
+    { ...withPr(), providedRequestTargets: [{ ...ISSUE_GRANT }, { repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] },
+    { ...config({ runRanges: [range({ target: { issue: 483 } })] }), providedRequestTargets: [{ ...ISSUE_GRANT }] }, // no subject grant
+    { ...issueProvidedConfig(), providedRequestTargets: [{ ...ISSUE_GRANT, issue: 484 }] },
+    { ...issueProvidedConfig(), providedRequestTargets: [{ ...ISSUE_GRANT, repositoryId: '789' }] },
+    { ...issueProvidedConfig(), providedRequestTargets: [{ ...ISSUE_GRANT, kind: 'issue' }] },
+    { ...issueProvidedConfig(), runRanges: [range()] }, // the subject target without its scoped range
+  ]) {
+    assert.throws(() => validateActionsConfig(bad), /INVALID_ACTIONS_CONFIG/);
+    const w = englishSubjectWorld(), r = await fullRun(w, w.addComment({ body: providedBody(issuePayload(w)) }), { cfg: bad });
+    assert.deepEqual(outcome(r), ['NONE', 'INVALID_ACTIONS_CONFIG']); assert.deepEqual(effects(w), zero);
+  }
+});
+
+await check('issue-provided-request-first-and-next', async () => {
+  const w = englishSubjectWorld(), cfg = issueProvidedConfig();
+  const payload = issuePayload(w), command = w.addComment({ body: providedBody(payload) });
+  const r = await fullRun(w, command, { cfg });
+  assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 1 });
+  assert.equal(w.calls.subjectQ, 3); // admission, before the call, before posting
+  assert.equal(JSON.stringify(r.planBody.cases), JSON.stringify(payload.cases));
+  const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length));
+  assert.equal(identity.observation, PROVIDED_COMMAND_OBSERVATION);
+  assert.deepEqual([identity.repository, identity.issue, identity.issueNodeId, identity.subjectRevision], [REPO, 483, 'I_483', subjectRevision(originSnapshot(w))]);
+  assert.deepEqual(identity.subject, { ...SUBJECT_GRANT, nodeId: 'I_apps_94', revision: subjectRevision(subjectSnapshot(w)) });
+  assert.deepEqual(outcome(await fullRun(w, command, { cfg })), ['NONE', 'STARTED']);
+  // The English literal on the same grant stays the admitted passthrough, with identity.subject (the English bootstrap).
+  const literal = englishSubjectWorld(), lr = await fullRun(literal, literal.addComment(), { cfg });
+  assert.deepEqual(outcome(lr), ['APPENDED', 'READBACK_EXACT']);
+  const literalIdentity = JSON.parse(literal.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+  assert.deepEqual([literalIdentity.observation, literalIdentity.subject.revision], ['ACTIONS_TRUSTED_LITERAL_COMMAND', identity.subject.revision]);
+});
+
+await check('issue-provided-request-refusals-before-claim', async () => {
+  const PR_SCOPE = 'entire body of the approved pull request at the observed revision';
+  for (const [label, world_, alter, cfg, cause] of [
+    ['no Issue grant (legacy)', englishSubjectWorld, () => {}, subjectConfig(), 'PROVIDED_WITH_SUBJECT_UNSUPPORTED'],
+    ['PR-shaped subject', englishSubjectWorld, (p, w) => { p.cases[0].input.subject = providedPayload(w).cases[0].input.subject; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['origin revision', englishSubjectWorld, (p, w) => { p.cases[0].input.subject.revision = subjectRevision(originSnapshot(w)); }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['PR scope', englishSubjectWorld, (p) => { p.cases[0].input.subject.scope = PR_SCOPE; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['/pull/ ref', englishSubjectWorld, (p) => { p.cases[0].input.subject.ref = `https://github.com/${SUBJECT_GRANT.repository}/pull/${SUBJECT_GRANT.number}`; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['subject edited after binding', englishSubjectWorld, (p, w) => { w.subject.issue.body += ' Edited.'; w.subject.issue.edits = 1; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['context aux', englishSubjectWorld, (p) => { const c = p.cases[0].input.context[0]; c.englishAuxiliary = { text: 'x', sourceSha256: c.sha256 }; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['JA without a rendering', subjectWorld, () => {}, issueProvidedConfig(), 'INVALID_REQUEST_OR_ADMISSION'],
+    ['aux bound to the origin body', subjectWorld, (p, w) => { p.cases[0].input.subject.englishAuxiliary = { text: 'An English rendering.', sourceSha256: hash(w.issue.body) }; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+  ]) {
+    const w = world_(), payload = issuePayload(w); alter(payload, w);
+    const r = await fullRun(w, w.addComment({ body: providedBody(payload) }), { cfg });
+    assert.deepEqual(outcome(r), ['NONE', cause], label); assert.deepEqual(effects(w), zero, label);
+    assert.equal(Object.hasOwn(r.plan, 'observed') || Object.hasOwn(r.post, 'observed'), false, label);
+  }
+  // Positive control for the last two: the same JA subject with a rendering bound to its own body is appended.
+  const w = subjectWorld(), r = await fullRun(w, w.addComment({ body: providedBody(issuePayload(w, { text: 'An English rendering.', sourceSha256: hash(w.subject.issue.body) })) }),
+    { cfg: issueProvidedConfig() });
+  assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']);
+});
+
+await check('issue-provided-origin-and-subject-gates', async () => {
+  const late = '2026-10-16T01:00:00Z', cfg = issueProvidedConfig();
+  for (const [change, cause] of [[(w) => { w.subject.issue.lastEditedAt = late; w.subject.issue.edits = 2; }, 'DRIFT_BEFORE_CALL'],
+    [(w) => { w.issue.body += ' edited'; }, 'DRIFT_BEFORE_CALL']]) {
+    const w = englishSubjectWorld(); w.hooks.afterClaim = (ww, cc, reply) => { change(ww); return reply; };
+    assert.deepEqual(outcome(await fullRun(w, w.addComment({ body: providedBody(issuePayload(w)) }), { cfg })), ['NONE', cause]);
+    assert.deepEqual(effects(w), { claim: 1, fetch: 0, post: 0 });
+  }
+  for (const afterEntry of [(w) => { w.subject.issue.body += ' edited after the call'; }, (w) => { w.issue.edits = 2; }]) {
+    const w = englishSubjectWorld(), r = await fullRun(w, w.addComment({ body: providedBody(issuePayload(w)) }), { cfg, afterEntry });
+    assert.deepEqual(outcome(r), ['WITHHELD', 'DRIFT_AFTER_CALL']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 0 });
+  }
+  const w = englishSubjectWorld(), p = await planIssueCommand(ctxFor(w, w.addComment({ body: providedBody(issuePayload(w)) }), w.newRun()), cfg, w.deps);
+  assert.equal(p.receipt.outcome, 'PLANNED');
+  const out = await w.entry(p.plan);
+  for (const tamper of [(s) => { s.admission.subject.body += ' x'; }, (s) => { delete s.admission.subject; }]) {
+    const s = JSON.parse(JSON.stringify(p.state)); tamper(s);
+    const q = await postIssueCommand(s, out, cfg, w.deps);
+    assert.deepEqual([q.receipt.outcome, q.receipt.cause], ['UNKNOWN', 'STATE_MISMATCH']);
+  }
+  assert.equal(w.calls.post, 0);
+  const q = await postIssueCommand(JSON.parse(JSON.stringify(p.state)), out, cfg, w.deps);
+  assert.deepEqual([q.receipt.outcome, q.receipt.cause], ['APPENDED', 'READBACK_EXACT']);
+});
+
+// The literal CJK refusal on the Issue route: before claim, owner, provider or comment, with the origin pair and the
+// evaluated subject's own pair, both from this run's reads, and no body text.
+await check('issue-granted-literal-cjk-refusal-three-keys', async () => {
+  const cfg = issueProvidedConfig();
+  const refusedPlan = async (w) => {
+    const command = w.addComment(), run = w.newRun();
+    const planned = await planIssueCommand(ctxFor(w, command, run), cfg, w.deps);
+    assert.deepEqual(planned.receipt, { schema: 'ops.jev.issue-actions-receipt.v1', stage: 'plan', outcome: 'NONE', cause: 'UNSUPPORTED_CJK',
+      claimed: false, providerCalls: 0, authority: false, commentId: command.databaseId, run: { id: run.id, number: run.run_number, attempt: 1, workflowId: WF },
+      observed: { issueNodeId: 'I_483', subjectRevision: subjectRevision(originSnapshot(w)),
+        subject: { nodeId: 'I_apps_94', revision: subjectRevision(subjectSnapshot(w)) } } });
+    assert.deepEqual(planned.state, planned.receipt); assert.equal(planned.plan, undefined);
+    assert.equal(JSON.stringify(planned).includes(w.subject.issue.body) || JSON.stringify(planned).includes(w.issue.body), false);
+    const reads = { ...w.calls };
+    const post = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), null, cfg, w.deps);
+    assert.deepEqual(post.receipt, { ...planned.receipt, stage: 'post' }); assert.deepEqual(w.calls, reads);
+    assert.deepEqual(effects(w), zero); assert.equal(w.calls.subjectQ, 1);
+    return planned.receipt.observed;
+  };
+  const base = await refusedPlan(subjectWorld());
+  // A subject edit moves only the subject pair; an origin edit moves only the origin pair.
+  const subjectEdited = subjectWorld(); Object.assign(subjectEdited.subject.issue, { lastEditedAt: '2026-10-16T01:00:00Z', edits: 1 });
+  const originEdited = subjectWorld(); Object.assign(originEdited.issue, { lastEditedAt: '2026-10-16T01:00:00Z', edits: 1 });
+  const [s, o] = [await refusedPlan(subjectEdited), await refusedPlan(originEdited)];
+  assert.deepEqual([s.subjectRevision === base.subjectRevision, s.subject.revision === base.subject.revision], [true, false]);
+  assert.deepEqual([o.subjectRevision === base.subjectRevision, o.subject.revision === base.subject.revision], [false, true]);
+  // CJK only in a context file with an English subject still refuses; the subject pair names the English subject.
+  const contextual = englishSubjectWorld(), readFile = contextual.deps.readFile;
+  contextual.deps.readFile = (p) => (p === CONTEXT[0].path ? '日本語の契約' : readFile(p));
+  await refusedPlan(contextual);
+  // A generic subject grant alone: the same JA subject is the legacy passthrough, with no refusal and no observation.
+  const generic = subjectWorld(), gr = await fullRun(generic, generic.addComment(), { cfg: subjectConfig() });
+  assert.deepEqual(outcome(gr), ['APPENDED', 'READBACK_EXACT']);
+  assert.equal(Object.hasOwn(gr.plan, 'observed') || Object.hasOwn(gr.post, 'observed'), false);
+  // Every other NONE refusal on the Issue route carries no observation.
+  const edited = subjectWorld(), er = await fullRun(edited, edited.addComment({ edits: 1, lastEditedAt: '2026-10-16T01:00:00Z' }), { cfg });
+  assert.deepEqual(outcome(er), ['NONE', 'EDITED']); assert.equal(Object.hasOwn(er.plan, 'observed'), false);
+});
+
 const here = fileURLToPath(new URL('../issue-executor.mjs', import.meta.url));
 const executorSource = fs.readFileSync(here, 'utf8');
 const commentSource = fs.readFileSync(new URL('../github-comment.mjs', import.meta.url), 'utf8');

@@ -34,8 +34,15 @@ dormant). Only this branch adds an optional
 and the exact 5-part revision (node, body SHA256, `lastEditedAt` or `unedited`,
 edit count, `includesCreatedEdit`), with no body text and no second read. It is
 reached only after the target, caller, request kind, grant, command drift/edit and
-range gates. The executor copies it into its `NONE` plan receipt and `state.json`
-only when it equals the executor's own snapshot (`subjectRevision(seen.issue)`); the
+range gates. On an origin Issue that holds the Issue provided grant below (v32), the
+same refusal adds a third key, `subject: {nodeId, revision}`: the evaluated subject
+Issue's node ID and exact 5-part revision, while the first two keys keep naming the
+origin. The executor copies the observation into its `NONE` plan receipt and
+`state.json` only when it equals the executor's own snapshot
+(`subjectRevision(seen.issue)`), and keeps a third key only under that explicit grant
+for its own origin and only when it also equals its own subject read; otherwise the
+whole observation is dropped. A subject grant alone never yields this refusal or a
+third key, and PR receipts keep exactly two keys. The
 existing post step echoes that same plan observation with `stage: post`, which is a
 copy and not a new observation. No claim, owner run, provider call or comment
 happens, so `requestDigest` stays absent. Every other refusal, `PLANNED` receipts,
@@ -46,9 +53,32 @@ result comments and legacy shapes are unchanged; the receipt schema id stays
 CJK (CJK anywhere in the input refuses), and it is not execution-origin proof,
 fidelity, an evaluation, a permission or semantic truth. It appears only in the
 non-public job log and state, so a caller can receive it only as a P-transported
-log with `providerDigest: null`; no caller consumes it yet (the existing caller
-accepts only `PLANNED` with a `requestDigest`). It stays dormant until a separately
-scoped activation and command GO.
+log with `providerDigest: null`; the caller in `experiments/goal-evaluation-unix`
+consumes it only through `refusalOrigin` (two keys) or `issueRefusalOrigin` (three
+keys). It stays dormant until a separately scoped activation and command GO.
+
+## Issue provided grant (v32, dormant)
+
+Under `semlint-goal-quality-implementation-20261016-v32`, `providedRequestTargets` may
+instead hold one exact `{repository, repositoryId, issue}` grant. It must name a
+configured origin Issue target that has its own `subject` grant, and so its own
+target-scoped range. It counts toward the same limit of one provided grant in total,
+and `RETIRED_PROVIDED` lists PR numbers, so it applies to the PR form only. Under this
+grant a provided request on the origin evaluates the subject Issue: exactly one case
+whose subject ref is `https://github.com/<subject repository>/issues/<n>`, whose
+revision is the subject's own 5-part revision, whose scope is exactly `subjectScope`,
+and whose content, SHA256, full byte span and optional English rendering are bound
+to the whole subject body. The origin's body, revision or digest never stand in for
+it. Org, trusted caller, command, run, range, claim, key, provider receipt, drift
+checks before the call and before posting, and the result sink stay with the origin;
+the result identity keeps the origin's top-level fields and adds `identity.subject`.
+Admission does not check the case ID; `issue` is the caller's convention.
+
+Without this grant a subject-bearing target keeps `PROVIDED_WITH_SUBJECT_UNSUPPORTED`
+and its literal passthrough, and PR grants are unchanged. The shipped settings hold no
+such grant and no subject; the tests use fixture settings only. This source is
+dormant: both callers still pin runtime `305b5321ebc4d41d5c143cc002b82af71f140b8e`.
+Live calls in this source: 0.
 
 ## Target-bound PR536 runtime source (v12 S-b, dormant)
 
