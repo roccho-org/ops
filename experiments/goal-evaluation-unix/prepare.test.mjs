@@ -1071,3 +1071,162 @@ test('earlier outcomes keep priority over the budget, and an oversized fidelity 
     heldForBudget(project(w3, verifiedBody(W3_BODY), { fidelity }), JSON.stringify(fidelity));
   }
 });
+
+// Selected English K context. The caller may publish chosen English observations as existing v14 context units; Core and
+// the provided admission are unchanged. M_CONTEXT was recorded on unmodified M eebafb32 before the first edit, with the
+// contextRefs key omitted (development fixtures, not Gold). On M any explicit contextRefs key, even undefined or [], threw
+// INVALID_LIMITS, so M is never asked for a keyed output; accepting the key is the intended migration.
+const K_RUNBOOK = '  Runbook: Adds a retry for the delivery job. Confirm the destination state after each send.\n';
+const K_OBS = [{ ref: 'target', content: BODY }, { ref: 'k1', content: K_RUNBOOK }, { ref: 'k2', content: 'An English note no question requires.' },
+  { ref: 'k3', content: 'An English note named only as basis.' }];
+const kPlan = (questions, observations = K_OBS, options = {}) =>
+  plan({ goal: GOAL, observations }, { propose: async () => ({ clauses, questions, missing: [] }), ...options });
+const kq = (id, requiredRefs, extra = {}) => question(id, { requiredRefs, basisRefs: [GOAL.ref, ...requiredRefs], ...extra });
+const CONTROL = () => kPlan([question('q1'), question('q2', { clauseIds: ['g-confirm'], basisRefs: [GOAL.ref, 'target', 'k3'] }), kq('qK', ['target', 'k1'])]);
+const M_CONTEXT = { keyedError: 'INVALID_LIMITS',
+  eligible: { output: '7a7ba3d77a999fec12e385074b5d3e02967ced2d846c62d2382ecc3977f33485', envelope: 'c3fae1f9daf7edad6ac52e2c8b70de86212d5b01a7ead59456712e4160218d39' },
+  hold: '03336c5716afe9b3007974907d8e81673fcc98c2b98c4dd1611c6ecae35628b3' };
+// The expected unit, written out here rather than taken from the code under test.
+const kUnit = (ref, content) => ({ role: 'observation:' + ref, ref, revision: 'sha256:' + sha256(content), content, sha256: sha256(content),
+  evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(content, 'utf8') }, englishAuxiliary: null });
+const withEnvelope = (input, change) => { const next = structuredClone(input); change(next); return envelopeOf(next); };
+
+test('an explicit contextRefs key is accepted; absent, undefined, [] and refs no question requires keep M\'s key-omitted bytes', async () => {
+  const value = await CONTROL();
+  // k2 is required by no question and k3 is named only in basisRefs, so neither is carried and nothing new is reported.
+  for (const extra of [{}, { contextRefs: undefined }, { contextRefs: [] }, { contextRefs: ['k2'] }, { contextRefs: ['k3'] }, { contextRefs: ['k2', 'k3'] }]) {
+    const label = JSON.stringify(extra);
+    let eligible;
+    assert.doesNotThrow(() => { eligible = project(value, verifiedBody(BODY), extra); }, label);
+    assert.deepEqual([sha256(JSON.stringify(eligible)), eligible.envelopeSha256], [M_CONTEXT.eligible.output, M_CONTEXT.eligible.envelope], label);
+    assert.equal(sha256(JSON.stringify(project(value, undefined, extra))), M_CONTEXT.hold, label);
+  }
+  // Every other unknown option still fails as the keyed calls did on M.
+  for (const extra of [{ contextRef: [] }, { contextrefs: ['k1'] }]) assert.throws(() => project(value, verifiedBody(BODY), extra), { message: M_CONTEXT.keyedError });
+  // The selection is checked after the Plan and the subject declaration, before any question; names are not trimmed.
+  for (const contextRefs of ['k1', null, {}, [1], [''], ['k1', 'k1'], [GOAL.ref], ['nope'], ['target'], [' k1']]) {
+    assert.throws(() => project(value, verifiedBody(BODY), { contextRefs }), { message: 'INVALID_CONTEXT_REF' }, JSON.stringify(contextRefs));
+  }
+  assert.throws(() => projectPlan(value, verifiedBody(BODY), { subjectRef: 'nope', contextRefs: 'k1' }), { message: 'INVALID_SUBJECT_REF' });
+  assert.throws(() => project({}, verifiedBody(BODY), { contextRefs: 'k1' }), error => error.message !== 'INVALID_CONTEXT_REF');
+});
+
+test('selected English K travels as one full unit per required ref with exact roles; every projected mapping records the shared context', async () => {
+  const K4 = 'Delivery log format: one line per attempt.';
+  const value = await kPlan([question('q0'), kq('qK', ['target', 'k4', 'k1']), kq('qK2', ['target', 'k1'], { clauseIds: ['g-confirm'] })],
+    [...K_OBS, { ref: 'k4', content: K4 }]);
+  const out = project(value, verifiedBody(BODY), { contextRefs: ['k1', 'k4', 'k2'] }), wire = wireInput(out);
+  assert.equal(out.status, 'ELIGIBLE');
+  assert.equal(Object.hasOwn(out, 'contextNotCarried'), false);
+  // First projected use decides the order; k1 is needed twice but sent once; the unused k2 is not sent.
+  assert.equal(wire.context[0].role, 'goal');
+  assert.deepEqual(wire.context.slice(1), [kUnit('k4', K4), kUnit('k1', K_RUNBOOK)]);
+  assert.deepEqual(wire.checks.map(c => [c.id, c.requiredRoles]), [['q0', []], ['qK', ['observation:k4', 'observation:k1']], ['qK2', ['observation:k1']]]);
+  for (const c of wire.checks) assert.deepEqual(Object.keys(c), ['id', 'axis', 'concern', 'requiredRoles', 'crossLinks', 'predicate']);
+  // Every projected check, q0 included, is evaluated next to the same context; the mapping says so as its last key.
+  for (const m of out.mapping) {
+    assert.equal(Object.keys(m).at(-1), 'sharedContextRefs', m.id);
+    assert.deepEqual(m.sharedContextRefs, [GOAL.ref, 'k4', 'k1'], m.id);
+  }
+  // The real admission with the shipped settings: the full request is admitted, a missing required unit and a duplicated
+  // unit are refused. Roles removed or an unused unit added are still admitted, so only the assertions above catch them.
+  const admit = async (envelope, id) => { const r = await admitIssueCommand(admissionInput(envelope, issue(BODY, UNEDITED), id), SETTINGS); return r.cause ?? r.status; };
+  assert.equal(await admit(out.envelope, 4501), 'ADMITTED');
+  assert.equal(await admit(withEnvelope(wire, w => { w.context.splice(2, 1); }), 4502), 'PROVIDED_CONTEXT_INCOMPLETE');
+  assert.equal(await admit(withEnvelope(wire, w => { w.context.push(structuredClone(w.context[2])); }), 4503), 'INVALID_REQUEST_OR_ADMISSION');
+  assert.equal(await admit(withEnvelope(wire, w => { for (const c of w.checks) c.requiredRoles = []; }), 4504), 'ADMITTED');
+  assert.equal(await admit(withEnvelope(wire, w => { w.context.push(kUnit('k2', K_OBS[2].content)); }), 4505), 'ADMITTED');
+  // R's fidelity record must cover every check of the exact envelope, not only those that declared K.
+  assert.throws(() => project(value, verifiedBody(BODY), { contextRefs: ['k1', 'k4'], fidelity: { ...faithful(out), verdicts: { qK: 'FAITHFUL', qK2: 'FAITHFUL' } } }),
+    { message: 'FIDELITY_RECORD_MISMATCH' });
+  assert.equal(project(value, verifiedBody(BODY), { contextRefs: ['k1', 'k4'], fidelity: faithful(out) }).fidelity.allFaithful, true);
+  // The model-facing state, captured network-free: one call carries every question; q0 sees K although its record lists
+  // no context, and K changes which subject pieces count as unmatched. Availability, not verified support or use.
+  const capture = async input => {
+    const seen = [];
+    const result = await semlint(input, async (state, questions) => { seen.push({ state, questions: Object.keys(questions) }); throw new Error('NO_CALL_IN_TEST'); });
+    return { seen, records: result.records };
+  };
+  const withK = await capture(wire), withoutK = await capture(wireInput(project(value, verifiedBody(BODY))));
+  assert.deepEqual(withK.seen.map(s => s.questions), [['q0', 'q1', 'q2']]);
+  assert.deepEqual(withK.seen[0].state.context.map(row => row.role), ['goal', 'observation:k4', 'observation:k1']);
+  assert.deepEqual(withK.records.map(r => r.contextRefs.map(c => c.ref)), [[], ['k4', 'k1'], ['k1']]);
+  assert.deepEqual([withK.seen[0].state.subject.contextUnmatchedPieces, withoutK.seen[0].state.subject.contextUnmatchedPieces], [[1], [0, 1]]);
+});
+
+test('withheld K stays local: a missing alias or CJK name/content is reported once at the top level, and notCarried keeps M\'s full list', async () => {
+  const OBS = [...K_OBS, { ref: 'kja', content: '配信ジョブの再送を記録する。' }, { ref: '手順', content: 'Check the delivery log.' },
+    { ref: 'kja2', content: '宛先の状態を確認する。' }, { ref: 'u1', content: 'An undeclared English note.' }];
+  const questions = [kq('qN', ['target', 'kja2'], { needs: ['operator note'] }), kq('qA', ['target', 'k1']), kq('qB', ['target', 'kja']),
+    kq('qC', ['target', '手順']), kq('qM', ['target', 'k1', 'u1']), kq('qB2', ['target', 'kja'], { clauseIds: ['g-confirm'] })];
+  const big = { maxQuestions: 8 }, value = await kPlan(questions, OBS, big), selection = { ...big, contextRefs: ['k1', 'kja', '手順', 'kja2'] };
+  const out = project(value, verifiedBody(BODY), selection), plain = project(value, verifiedBody(BODY), big);
+  assert.equal(out.status, 'ELIGIBLE');
+  // Needs come first (qN reports nothing about kja2); u1 was never selected; k1 was carried, so it is not reported.
+  assert.deepEqual(out.contextNotCarried, [{ ref: 'kja', reason: 'CJK_CONTEXT_NOT_ADMITTED' }, { ref: '手順', reason: 'CJK_CONTEXT_NOT_ADMITTED' }]);
+  assert.deepEqual(wireInput(out).context.map(row => row.ref), [GOAL.ref, 'k1']);
+  // The withheld records keep M's shape and full lists, even for qM while k1 is on the wire for qA.
+  const entry = (o, id) => o.notProjected.find(n => n.id === id);
+  for (const id of ['qN', 'qB', 'qC', 'qM', 'qB2']) assert.deepEqual(entry(out, id), entry(plain, id), id);
+  assert.deepEqual(entry(out, 'qM').notCarried, ['k1', 'u1']);
+  // The same report on every returned outcome, never as an empty key.
+  for (const held of [project(value, undefined, selection), project(value, verifiedBody(BODY + ' Edited.'), selection)]) {
+    assert.deepEqual([held.status, held.contextNotCarried], ['HOLD', out.contextNotCarried], held.cause);
+  }
+  const jaValue = await kPlan([question('qA'), kq('qB', ['target', 'kja'])], [{ ref: 'target', content: JA_BODY }, OBS[4]]);
+  const unsupported = project(jaValue, verifiedBody(JA_BODY), { contextRefs: ['kja'] });
+  assert.deepEqual([unsupported.status, unsupported.contextNotCarried], ['UNSUPPORTED_CJK', [{ ref: 'kja', reason: 'CJK_CONTEXT_NOT_ADMITTED' }]]);
+  // Without an alias nothing is carried and the missing alias is reported first, even for a CJK name. q0 stays as on M.
+  const loose = await kPlan([question('q0', { requiredRefs: [], basisRefs: [GOAL.ref] }), kq('qK', ['k1']), kq('qC', ['手順'])], OBS);
+  let unbound;
+  assert.doesNotThrow(() => { unbound = projectPlan(loose, verifiedBody(BODY), { contextRefs: ['k1', '手順'] }); });
+  const { contextNotCarried, ...rest } = unbound;
+  assert.deepEqual(contextNotCarried, [{ ref: 'k1', reason: 'SUBJECT_REF_REQUIRED' }, { ref: '手順', reason: 'SUBJECT_REF_REQUIRED' }]);
+  assert.deepEqual(rest, projectPlan(loose, verifiedBody(BODY)));
+  // An all-needs plan concludes before any subject, with no report, no throw and M's bytes.
+  const needsOnly = await kPlan([kq('qK', ['target', 'k1'], { needs: ['operator note'] })]);
+  assert.deepEqual(projectPlan(needsOnly, undefined, { contextRefs: ['k1'] }), projectPlan(needsOnly, undefined));
+});
+
+test('the intended new-option deltas: LIMIT slots, carried K checks in HOLD records, and the budgets K enlarges', async () => {
+  const six = [1, 2, 3, 4, 5, 6].map(n => question('q' + n)), big = { maxQuestions: 7 };
+  // A carriable K question after six checks is LIMIT, not REQUIRED_CONTEXT_NOT_CARRIED; nothing about K reaches the wire.
+  const late = await kPlan([...six, kq('qK', ['target', 'k1'])], K_OBS, big);
+  const lateK = project(late, verifiedBody(BODY), { ...big, contextRefs: ['k1'] }), lateM = project(late, verifiedBody(BODY), big);
+  assert.deepEqual([lateK.notProjected.at(-1).reason, lateM.notProjected.at(-1).reason], ['LIMIT', 'REQUIRED_CONTEXT_NOT_CARRIED']);
+  assert.equal(lateK.envelope, lateM.envelope);
+  // A carried K question first takes a slot, so the sixth subject-only check M projected becomes LIMIT.
+  const early = await kPlan([kq('qK', ['target', 'k1']), ...six], K_OBS, big);
+  const earlyK = project(early, verifiedBody(BODY), { ...big, contextRefs: ['k1'] }), earlyM = project(early, verifiedBody(BODY), big);
+  assert.deepEqual([earlyK.checks.map(c => c.id), earlyM.checks.map(c => c.id)], [['qK', 'q1', 'q2', 'q3', 'q4', 'q5'], ['q1', 'q2', 'q3', 'q4', 'q5', 'q6']]);
+  assert.deepEqual(earlyK.notProjected, [{ id: 'q6', reason: 'LIMIT', clauseIds: ['g-once'] }]);
+  // HOLD records before the envelope now list the carried K check, with its roles and without sharedContextRefs.
+  const value = await CONTROL();
+  for (const held of [project(value, undefined, { contextRefs: ['k1'] }), project(value, verifiedBody(BODY + ' Edited.'), { contextRefs: ['k1'] })]) {
+    assert.deepEqual([held.status, held.checks.map(c => c.requiredRoles)], ['HOLD', [[], [], ['observation:k1']]], held.cause);
+    assert.equal(held.mapping.some(m => Object.hasOwn(m, 'sharedContextRefs')), false, held.cause);
+    assert.equal(Object.hasOwn(held, 'envelope'), false, held.cause);
+  }
+  // The one raw budget counts the full K: oversized K holds, with nothing truncated or sent.
+  const huge = 'The destination log keeps one line per attempt. '.repeat(700), wide = { maxBytes: 70000 };
+  const hugeValue = await kPlan([question('q0'), kq('qK', ['target', 'kBig'])], [...K_OBS, { ref: 'kBig', content: huge }], wide);
+  const held = project(hugeValue, verifiedBody(BODY), { ...wide, contextRefs: ['kBig'] });
+  heldForBudget(held, 'oversized K');
+  assert.equal(held.mapping.some(m => Object.hasOwn(m, 'sharedContextRefs')), false);
+  // Residual, not closed: K also enlarges the model-facing state. With the same raw-valid sentence-rich subject, a 5000 B K
+  // is prepared and a 6500 B K is refused by the real preflight before any call; project only mirrors the raw check.
+  const body = 'Adds a retry. '.repeat(1000).trimEnd();
+  const residual = async length => {
+    const k = 'The destination log keeps one line per delivery attempt and its final state'.repeat(Math.ceil(length / 76)).slice(0, length);
+    const kValue = await kPlan([question('q0'), kq('qK', ['target', 'k1'])], [{ ref: 'target', content: body }, { ref: 'k1', content: k }]);
+    const kOut = project(kValue, verifiedBody(body), { contextRefs: ['k1'] });
+    assert.equal(kOut.status, 'ELIGIBLE', String(length));
+    return wireInput(kOut);
+  };
+  const fits = await residual(5000), over = await residual(6500);
+  assert.deepEqual([withinBudget(fits), await preflight(fits)], [true, 'PREPARED']);
+  assert.ok(Buffer.byteLength(JSON.stringify(over)) < 23000 && withinBudget(over));
+  assert.equal(await preflight(over), 'ENTRY_PREFLIGHT_FAILED');
+  const attempts = (await semlint(over, async () => { throw new Error('NO_CALL_IN_TEST'); })).accounting.callbackAttempts;
+  assert.equal(attempts, 0);
+});

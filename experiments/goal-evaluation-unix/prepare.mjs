@@ -110,27 +110,40 @@ function fidelityOf(record, envelopeSha256, ids, rendering) {
 }
 
 // Faithful binary projection of obligation-bound questions without needs. Goal and clause text stay local:
-// the wire carries only the subject and the English predicates; a CJK Goal is kept as ref and digest.
+// the wire carries only the subject, the English predicates and English context the caller selected; a CJK Goal is
+// kept as ref and digest.
 // `subjectRef` is the caller's declaration of which plan observation is the subject text. Nothing is inferred from
-// ref names or URLs: without it, no observation counts as carried.
-export function project(planValue, subject, { fidelity, englishAuxiliary, subjectRef, ...planLimits } = {}) {
+// ref names or URLs: without it, no observation counts as carried. `contextRefs` is the caller's explicit choice of
+// other observations that may be published on the wire as context; only those a projected check requires are sent.
+export function project(planValue, subject, { fidelity, englishAuxiliary, subjectRef, contextRefs, ...planLimits } = {}) {
   const value = checkPlan(planValue, planLimits);
   const observations = new Map(value.request.observations.map(row => [row.ref, row.content]));
   // The Goal ref is never an observation ref, so it cannot be declared as the subject either.
   if (subjectRef !== undefined && (typeof subjectRef !== 'string' || !observations.has(subjectRef))) throw new Error('INVALID_SUBJECT_REF');
-  const checks = [], mapping = [], notProjected = [];
+  // An absent selection carries nothing beyond the subject. Each entry names one supplied observation other than the
+  // subject, exactly as written; names and contents are never trimmed or rewritten.
+  const selected = contextRefs === undefined ? [] : contextRefs;
+  if (!Array.isArray(selected) || new Set(selected).size !== selected.length
+    || selected.some(ref => typeof ref !== 'string' || ref === subjectRef || !observations.has(ref))) throw new Error('INVALID_CONTEXT_REF');
+  // A selected ref is carried only next to a declared subject, and only when its name and whole content are CJK-free:
+  // the provided admission refuses CJK outside the subject and any context auxiliary, so it is withheld, never translated.
+  const blocked = ref => subjectRef === undefined ? 'SUBJECT_REF_REQUIRED' : CJK.test(ref) || CJK.test(observations.get(ref)) ? 'CJK_CONTEXT_NOT_ADMITTED' : null;
+  const carried = ref => ref === subjectRef || (selected.includes(ref) && blocked(ref) === null);
+  const checks = [], mapping = [], notProjected = [], contextNotCarried = [], contextUnits = [];
   for (const q of value.questions) {
     if (q.needs.length) { notProjected.push({ id: q.id, reason: 'INCOMPLETE', needs: q.needs, clauseIds: q.clauseIds }); continue; }
-    // The wire carries no observation other than the subject text, so a question requiring any other supplied
-    // observation would be judged without it. It stays for a Program, the local judge or a direct route instead.
-    // Only requiredRefs are gated; basisRefs and clause sources are not a carriage declaration.
-    const notCarried = q.requiredRefs.filter(ref => ref !== subjectRef);
-    if (notCarried.length) {
-      notProjected.push({ id: q.id, reason: 'REQUIRED_CONTEXT_NOT_CARRIED', requiredRefs: q.requiredRefs, notCarried, clauseIds: q.clauseIds });
+    // A question requiring an observation the wire does not carry would be judged without it. It stays for a Program,
+    // the local judge or a direct route instead, with every required ref other than the subject listed, since none of
+    // them reaches the wire for it. Only requiredRefs are gated; basisRefs and clause sources are not a carriage declaration.
+    const others = q.requiredRefs.filter(ref => ref !== subjectRef);
+    if (!q.requiredRefs.every(carried)) {
+      for (const ref of q.requiredRefs) if (selected.includes(ref) && !carried(ref) && !contextNotCarried.some(row => row.ref === ref)) contextNotCarried.push({ ref, reason: blocked(ref) });
+      notProjected.push({ id: q.id, reason: 'REQUIRED_CONTEXT_NOT_CARRIED', requiredRefs: q.requiredRefs, notCarried: others, clauseIds: q.clauseIds });
       continue;
     }
     if (checks.length === MAX_CHECKS) { notProjected.push({ id: q.id, reason: 'LIMIT', clauseIds: q.clauseIds }); continue; }
-    checks.push({ id: q.id, axis: 'Aligned', concern: `Goal-derived question ${q.id}.`, requiredRoles: [], crossLinks: [],
+    for (const ref of others) if (!contextUnits.includes(ref)) contextUnits.push(ref);
+    checks.push({ id: q.id, axis: 'Aligned', concern: `Goal-derived question ${q.id}.`, requiredRoles: others.map(ref => 'observation:' + ref), crossLinks: [],
       predicate: { question: problemQuestion(q), true: q.criteria.problem, false: q.criteria.ok } });
     const clauses = value.clauses.filter(c => q.clauseIds.includes(c.id));
     // Exceptions and legitimate alternatives are not on the wire; R checks that the criteria text reflects them.
@@ -146,7 +159,7 @@ export function project(planValue, subject, { fidelity, englishAuxiliary, subjec
   });
   const goal = value.request.goal;
   const base = { checks, mapping, notProjected, unprojectedClauses, unquotedGoalText: unquotedGoalText(value.request, value.clauses), missing: value.missing,
-    goal: { ref: goal.ref, sha256: sha256(goal.content), onWire: !CJK.test(goal.content) } };
+    goal: { ref: goal.ref, sha256: sha256(goal.content), onWire: !CJK.test(goal.content) }, ...(contextNotCarried.length ? { contextNotCarried } : {}) };
   if (!value.clauses.some(c => c.kind === 'obligation')) return hold('NEED_CLARIFICATION', base);
   // With no Core check the projection is decided without the subject: nothing reaches the wire, so no snapshot or
   // paid identity is awaited. This concludes only the projection, not an evaluation, Program result or posting.
@@ -168,7 +181,8 @@ export function project(planValue, subject, { fidelity, englishAuxiliary, subjec
     subjectUnit.englishAuxiliary = { text: englishAuxiliary.text, sourceSha256: englishAuxiliary.sourceSha256 };
   }
   const input = { schema: 'ops.semlint.input.v14', subject: subjectUnit,
-    context: base.goal.onWire ? [unit({ role: 'goal', ref: goal.ref, revision: 'sha256:' + base.goal.sha256 }, goal.content)] : [],
+    context: [...(base.goal.onWire ? [unit({ role: 'goal', ref: goal.ref, revision: 'sha256:' + base.goal.sha256 }, goal.content)] : []),
+      ...contextUnits.map(ref => unit({ role: 'observation:' + ref, ref, revision: 'sha256:' + sha256(observations.get(ref)) }, observations.get(ref)))],
     checks };
   // Without a rendering any CJK makes the case unsupported; with one, CJK may remain only in the original subject content.
   if (CJK.test(JSON.stringify(rendering ? { ...input, subject: { ...subjectUnit, content: '' } } : input))) return { status: 'UNSUPPORTED_CJK', emittable: false, ...base };
@@ -178,7 +192,10 @@ export function project(planValue, subject, { fidelity, englishAuxiliary, subjec
   const envelope = REQUEST_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-request.v1', cases: [{ id: 'pull-request', input }] });
   const envelopeSha256 = sha256(envelope);
   const review = fidelityOf(fidelity, envelopeSha256, checks.map(c => c.id), rendering);
-  return { status: 'ELIGIBLE', emittable: subject.readerDeclaredLive === true && review.allFaithful, ...base, envelope, envelopeSha256,
+  // All checks share one case and its context, so with carried K every projected mapping lists what was serialized for
+  // all of them. That is availability and exposure, not the support the Plan declared for a check or what the model used.
+  const shared = contextUnits.length ? { mapping: mapping.map(m => ({ ...m, sharedContextRefs: input.context.map(row => row.ref) })) } : {};
+  return { status: 'ELIGIBLE', emittable: subject.readerDeclaredLive === true && review.allFaithful, ...base, ...shared, envelope, envelopeSha256,
     fidelity: review, postingAuthorized: false };
 }
 
