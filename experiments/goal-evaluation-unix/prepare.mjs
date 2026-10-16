@@ -1,8 +1,9 @@
 // Caller-local real-input preparation: acquisition receipts, an executor-identity or literal-CJK-refusal subject snapshot
-// and a faithful v14 provided-request projection, optionally with a supplied English subject rendering. No client, auth,
-// model, renderer, posting or Core change; readers are caller-owned ports.
+// (of a PR, or on the Issue route of a granted subject Issue beside its invocation origin) and a faithful v14
+// provided-request projection, optionally with a supplied English subject rendering. No client, auth, model, renderer,
+// posting or Core change; readers are caller-owned ports.
 import { createHash } from 'node:crypto';
-import { REQUEST_PREFIX, RESULT_PREFIX, COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
+import { REQUEST_PREFIX, RESULT_PREFIX, COMMAND_OBSERVATION, ISSUE_KEYS, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { exact } from '../../packages/jev-review/semlint-entry.mjs';
 import { validateJevBudget } from '../../packages/jev-review/core.mjs';
@@ -15,10 +16,13 @@ const hold = (cause, extra = {}) => ({ status: 'HOLD', cause, emittable: false, 
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const SCOPE = 'entire body of the approved pull request at the observed revision';
+// The Issue route's fixed scope, equal to the shipped subjectScope; a settings file with another scope is not supported here.
+const ISSUE_SCOPE = 'entire body of the approved Issue at the observed revision';
 const MAX_CHECKS = 6;
 const VERDICTS = ['FAITHFUL', 'UNFAITHFUL', 'UNKNOWN'];
 const LITERAL_COMMAND = '/jev-evaluate';
 const REFUSAL_KIND = 'literal-cjk-refusal';
+const ISSUE_REFUSAL_KIND = 'literal-cjk-refusal-issue-subject';
 
 // One receipt per acquisition. Only HTTP 200 with non-empty text is OK; 404 is NOT_FOUND; anything else,
 // including 403/429/5xx, a thrown reader or an empty body, is UNKNOWN. A list read is OK only when the reader
@@ -49,15 +53,15 @@ export function pullRequestFrom(receipt, { repository, number }) {
 }
 
 // The executor's 5-part subjectRevision: node | sha256:<body> | lastEditedAt or unedited | edit count | includesCreatedEdit.
-// Node and body come only from the public PR; only the edit signals are taken from the revision, which must round-trip.
-function snapshotFromRevision(revision, pullRequest, number) {
+// Node and body come only from the public PR or Issue; only the edit signals are taken from the revision, which must round-trip.
+function snapshotFromRevision(revision, { nodeId, body }, number) {
   const parts = revision.split('|');
-  if (parts.length !== 5 || parts[0] !== pullRequest.nodeId) return { cause: 'EXECUTOR_IDENTITY_MISMATCH' };
-  if (parts[1] !== 'sha256:' + sha256(pullRequest.body)) return { cause: 'SUBJECT_DRIFT' };
+  if (parts.length !== 5 || parts[0] !== nodeId) return { cause: 'EXECUTOR_IDENTITY_MISMATCH' };
+  if (parts[1] !== 'sha256:' + sha256(body)) return { cause: 'SUBJECT_DRIFT' };
   if (!(parts[2] === 'unedited' || Number.isFinite(Date.parse(parts[2]))) || !/^(0|[1-9][0-9]*)$/.test(parts[3]) || !['true', 'false'].includes(parts[4])) {
     return { cause: 'EXECUTOR_IDENTITY_MISMATCH' };
   }
-  const snapshot = { number, nodeId: pullRequest.nodeId, body: pullRequest.body, lastEditedAt: parts[2] === 'unedited' ? null : parts[2],
+  const snapshot = { number, nodeId, body, lastEditedAt: parts[2] === 'unedited' ? null : parts[2],
     includesCreatedEdit: parts[4] === 'true', userContentEditsTotal: Number(parts[3]) };
   if (subjectRevision(snapshot) !== revision) return { cause: 'EXECUTOR_IDENTITY_MISMATCH' };
   return { snapshot };
@@ -66,12 +70,11 @@ function snapshotFromRevision(revision, pullRequest, number) {
 // N1: the subject snapshot comes only from the existing executor's admitted old-literal result for the caller's
 // own expected command/run/runtime. Author, marker, closed envelope, identity and body digest are all checked.
 // readerDeclaredLive repeats the caller's reader declaration; it is not evidence that an actual read happened.
-export function executorIdentitySnapshot({ commentsReceipt, pullRequestReceipt, target, expected }) {
-  if (!exact(target, ['repository', 'number']) || !REPOSITORY.test(target.repository) || !positive(target.number)) return hold('TARGET_INVALID');
-  if (!exact(expected, ['commandCommentId', 'runId', 'executionSource']) || !positive(expected.commandCommentId) || !positive(expected.runId)
-    || typeof expected.executionSource !== 'string' || !/^[0-9a-f]{40}$/.test(expected.executionSource)) return hold('EXPECTED_ORIGIN_MISSING');
-  const pr = pullRequestFrom(pullRequestReceipt, target);
-  if (pr.status !== 'OK') return pr;
+const targetValid = target => exact(target, ['repository', 'number']) && REPOSITORY.test(target.repository) && positive(target.number);
+const expectedValid = expected => exact(expected, ['commandCommentId', 'runId', 'executionSource']) && positive(expected.commandCommentId)
+  && positive(expected.runId) && typeof expected.executionSource === 'string' && /^[0-9a-f]{40}$/.test(expected.executionSource);
+// The one executor result comment for the expected command in a complete comments list, or a HOLD.
+function executorResult(commentsReceipt, expected) {
   if (commentsReceipt?.status !== 'OK' || commentsReceipt.complete !== true) return hold('INPUT_' + (commentsReceipt?.status === 'OK' ? 'INCOMPLETE' : commentsReceipt?.status ?? 'MISSING'));
   const comments = parse(commentsReceipt.content);
   if (!Array.isArray(comments)) return hold('COMMENTS_UNREADABLE');
@@ -79,7 +82,17 @@ export function executorIdentitySnapshot({ commentsReceipt, pullRequestReceipt, 
     .map(c => ({ comment: c, envelope: parse(c.body.slice(RESULT_PREFIX.length)) }))
     .filter(({ envelope }) => envelope?.identity?.commentId === expected.commandCommentId);
   if (results.length !== 1) return hold(results.length ? 'EXECUTOR_RESULT_AMBIGUOUS' : 'REVISION_UNOBSERVED');
-  const [{ comment, envelope }] = results, id = envelope.identity, { pullRequest } = pr;
+  return results[0];
+}
+
+export function executorIdentitySnapshot({ commentsReceipt, pullRequestReceipt, target, expected }) {
+  if (!targetValid(target)) return hold('TARGET_INVALID');
+  if (!expectedValid(expected)) return hold('EXPECTED_ORIGIN_MISSING');
+  const pr = pullRequestFrom(pullRequestReceipt, target);
+  if (pr.status !== 'OK') return pr;
+  const found = executorResult(commentsReceipt, expected);
+  if (found.status === 'HOLD') return found;
+  const { comment, envelope } = found, id = envelope.identity, { pullRequest } = pr;
   if (!exact(envelope, ['schema', 'requestDigest', 'identity', 'authority', 'result']) || envelope.schema !== 'ops.jev.issue-result.v1'
     || envelope.authority !== false || id?.repository !== target.repository || id.issue !== target.number || id.targetKind !== 'pull-request'
     || id.observation !== COMMAND_OBSERVATION || id.run?.id !== expected.runId || id.executionSource !== expected.executionSource
@@ -90,6 +103,80 @@ export function executorIdentitySnapshot({ commentsReceipt, pullRequestReceipt, 
     readerDeclaredLive: [commentsReceipt, pullRequestReceipt].every(r => r.reader.mode === 'live'),
     origin: { resultCommentId: comment.id, requestDigest: envelope.requestDigest, runId: expected.runId, commandCommentId: expected.commandCommentId } };
 }
+
+// The Issue route. The invocation origin (the configured Issue that holds command, run, claim and result) and the
+// approved subject Issue (the evaluated text) are separate caller inputs, each read at its own canonical URL. Neither
+// stands in for the other, and the subject is never inferred from the origin, a URL or the top-level identity.
+const subjectTargetValid = target => exact(target, ['repository', 'repositoryId', 'number']) && REPOSITORY.test(target.repository)
+  && typeof target.repositoryId === 'string' && /^[1-9][0-9]*$/.test(target.repositoryId) && positive(target.number);
+const observedBody = body => typeof body === 'string' && body.length > 0;
+const READER_LIMIT = 'readerDeclaredLive repeats the caller\'s reader-port declarations for the public reads used; it is not evidence that an actual read happened';
+
+// One Issue as returned by the public REST issues endpoint, read at exactly its canonical URL. A pull request is an Issue
+// there too and carries its own pull_request key, so it is refused. The body is passed on as observed, never coerced.
+function issueFrom(receipt, { repository, number }) {
+  if (receipt?.status !== 'OK') return hold('INPUT_' + (receipt?.status ?? 'MISSING'));
+  const api = `https://api.github.com/repos/${repository}`, value = parse(receipt.content);
+  if (receipt.url !== `${api}/issues/${number}` || value?.repository_url !== api || value.number !== number || !text(value.node_id)) return hold('ISSUE_MISMATCH');
+  if (Object.hasOwn(value, 'pull_request')) return hold('NOT_AN_ISSUE');
+  return { status: 'OK', issue: { number, nodeId: value.node_id, body: value.body } };
+}
+
+// A null, empty or non-text body is not an observed body (GitHub reports an empty body as null): it holds, unrepaired.
+function readIssues(originIssueReceipt, originTarget, subjectIssueReceipt, subjectTarget) {
+  const origin = issueFrom(originIssueReceipt, originTarget);
+  if (origin.status !== 'OK') return origin;
+  if (!observedBody(origin.issue.body)) return hold('ORIGIN_BODY_UNOBSERVED');
+  const subject = issueFrom(subjectIssueReceipt, { repository: subjectTarget.repository, number: subjectTarget.number });
+  if (subject.status !== 'OK') return subject;
+  if (!observedBody(subject.issue.body)) return hold('SUBJECT_BODY_UNOBSERVED');
+  return { status: 'OK', origin: origin.issue, subject: subject.issue };
+}
+
+// Each pair binds its own Issue: the node must match and the 5-part revision must round-trip against that Issue's public
+// body, through the same parser as the PR route. The origin revision is kept as provenance and never evaluated.
+function bindIssues(read, originTarget, subjectTarget, originPair, subjectPair) {
+  if (originPair.nodeId !== read.origin.nodeId || typeof originPair.revision !== 'string') return hold('ORIGIN_IDENTITY_MISMATCH');
+  const origin = snapshotFromRevision(originPair.revision, read.origin, originTarget.number);
+  if (!origin.snapshot) return hold(origin.cause === 'SUBJECT_DRIFT' ? 'ORIGIN_DRIFT' : 'ORIGIN_IDENTITY_MISMATCH');
+  if (subjectPair.nodeId !== read.subject.nodeId || typeof subjectPair.revision !== 'string') return hold('EXECUTOR_IDENTITY_MISMATCH');
+  const { snapshot, cause } = snapshotFromRevision(subjectPair.revision, read.subject, subjectTarget.number);
+  if (!snapshot) return hold(cause);
+  return { snapshot, originTarget: { repository: originTarget.repository, number: originTarget.number, nodeId: read.origin.nodeId },
+    target: { repository: subjectTarget.repository, number: subjectTarget.number } };
+}
+
+// N1 on the Issue route, English branch: the existing executor's admitted literal result for the caller's expected
+// command/run/runtime on the origin. Its top-level identity names the origin and identity.subject the evaluated Issue.
+export function issueSubjectIdentitySnapshot({ commentsReceipt, originIssueReceipt, subjectIssueReceipt, originTarget, subjectTarget, expected }) {
+  if (!targetValid(originTarget) || !subjectTargetValid(subjectTarget)) return hold('TARGET_INVALID');
+  if (!expectedValid(expected)) return hold('EXPECTED_ORIGIN_MISSING');
+  const read = readIssues(originIssueReceipt, originTarget, subjectIssueReceipt, subjectTarget);
+  if (read.status !== 'OK') return read;
+  const found = executorResult(commentsReceipt, expected);
+  if (found.status === 'HOLD') return found;
+  const { comment, envelope } = found, id = envelope.identity, s = id?.subject;
+  if (!exact(envelope, ['schema', 'requestDigest', 'identity', 'authority', 'result']) || envelope.schema !== 'ops.jev.issue-result.v1'
+    || envelope.authority !== false || id?.repository !== originTarget.repository || id.issue !== originTarget.number || Object.hasOwn(id, 'targetKind')
+    || id.observation !== COMMAND_OBSERVATION || id.run?.id !== expected.runId || id.executionSource !== expected.executionSource
+    || !exact(s, ['repository', 'repositoryId', 'kind', 'number', 'nodeId', 'revision']) || s.repository !== subjectTarget.repository
+    || s.repositoryId !== subjectTarget.repositoryId || s.kind !== 'issue' || s.number !== subjectTarget.number) return hold('EXECUTOR_IDENTITY_MISMATCH');
+  const bound = bindIssues(read, originTarget, subjectTarget, { nodeId: id.issueNodeId, revision: id.subjectRevision }, { nodeId: s.nodeId, revision: s.revision });
+  if (bound.status === 'HOLD') return bound;
+  return { status: 'VERIFIED', subjectKind: 'issue', originTarget: bound.originTarget, target: bound.target, snapshot: bound.snapshot,
+    readerDeclaredLive: [commentsReceipt, originIssueReceipt, subjectIssueReceipt].every(r => r.reader.mode === 'live'),
+    provenance: { kind: 'literal-result', originRevision: id.subjectRevision, subjectTarget: { ...subjectTarget },
+      origin: { resultCommentId: comment.id, requestDigest: envelope.requestDigest, runId: expected.runId, commandCommentId: expected.commandCommentId },
+      limits: [READER_LIMIT] } };
+}
+
+// S4: the closed Issue-route snapshot, recognised only in exactly this shape.
+const issueSnapshotValid = s => exact(s, ['status', 'subjectKind', 'originTarget', 'target', 'snapshot', 'readerDeclaredLive', 'provenance'])
+  && s.subjectKind === 'issue' && exact(s.originTarget, ['repository', 'number', 'nodeId']) && exact(s.target, ['repository', 'number'])
+  && exact(s.snapshot, ISSUE_KEYS) && typeof s.readerDeclaredLive === 'boolean'
+  && exact(s.provenance, ['kind', 'originRevision', 'subjectTarget', 'origin', 'limits']) && ['literal-result', ISSUE_REFUSAL_KIND].includes(s.provenance.kind)
+  && exact(s.provenance.subjectTarget, ['repository', 'repositoryId', 'number']) && s.provenance.subjectTarget.repository === s.target.repository
+  && s.provenance.subjectTarget.number === s.target.number;
 
 const unit = (fields, content) => ({ ...fields, content, sha256: sha256(content),
   evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(content, 'utf8') }, englishAuxiliary: null });
@@ -164,13 +251,18 @@ export function project(planValue, subject, { fidelity, englishAuxiliary, subjec
   // With no Core check the projection is decided without the subject: nothing reaches the wire, so no snapshot or
   // paid identity is awaited. This concludes only the projection, not an evaluation, Program result or posting.
   if (!checks.length) return hold('NOTHING_PROJECTED', base);
+  // A verified subject with a subjectKind marker is the Issue route, and only in its exact closed shape; any other marker
+  // or shape holds here. PR snapshots carry no marker.
+  const issueRoute = subject?.status === 'VERIFIED' && Object.hasOwn(subject, 'subjectKind');
+  if (issueRoute && !issueSnapshotValid(subject)) return hold('SUBJECT_KIND_UNSUPPORTED', base);
   if (subject?.status !== 'VERIFIED' || !exact(subject.target, ['repository', 'number']) || !REPOSITORY.test(subject.target.repository)
     || subject.target.number !== subject.snapshot?.number) return hold(subject?.cause ?? 'REVISION_UNOBSERVED', base);
   const { snapshot, target } = subject;
   // A declared subject observation must be the evaluated text byte for byte. Otherwise the plan's clauses and questions
   // describe other text, so the whole case holds, even when no remaining check names the observation.
   if (subjectRef !== undefined && observations.get(subjectRef) !== snapshot.body) return hold('SUBJECT_OBSERVATION_MISMATCH', base);
-  const subjectUnit = unit({ kind: 'log-entry', ref: `https://github.com/${target.repository}/pull/${target.number}`, revision: subjectRevision(snapshot), scope: SCOPE }, snapshot.body);
+  const subjectUnit = unit({ kind: 'log-entry', ref: `https://github.com/${target.repository}/${issueRoute ? 'issues' : 'pull'}/${target.number}`,
+    revision: subjectRevision(snapshot), scope: issueRoute ? ISSUE_SCOPE : SCOPE }, snapshot.body);
   // A supplied English rendering of the subject only, bound to the whole observed body. Core v14 auxiliary() requires it
   // to be null exactly when the selected text has no CJK, so an English body takes none.
   const rendering = englishAuxiliary !== undefined;
@@ -189,7 +281,8 @@ export function project(planValue, subject, { fidelity, englishAuxiliary, subjec
   // The runtime refuses a wire input over its raw budget before any claim (semlint's own validateJevBudget). The same
   // existing check runs here, on the exact object the envelope carries, so such a case holds instead of looking eligible.
   try { validateJevBudget(input, {}); } catch { return hold('WIRE_BUDGET_EXCEEDED', base); }
-  const envelope = REQUEST_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-request.v1', cases: [{ id: 'pull-request', input }] });
+  // The case id names the route by caller convention only; admission does not check it.
+  const envelope = REQUEST_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-request.v1', cases: [{ id: issueRoute ? 'issue' : 'pull-request', input }] });
   const envelopeSha256 = sha256(envelope);
   const review = fidelityOf(fidelity, envelopeSha256, checks.map(c => c.id), rendering);
   // All checks share one case and its context, so with carried K every projected mapping lists what was serialized for
@@ -208,6 +301,8 @@ const inputCause = receipt => 'INPUT_' + (receipt?.status ?? 'MISSING');
 // is only checked for internal digest consistency here; they never stand alone as proof. `accept` is PLANNED for the
 // old-literal result path, or REFUSED_CJK for the executor's literal CJK refusal in its exact closed shape: no claim, no
 // provider call, no request digest, and the executor's own subject observation. A post-stage echo is never a plan receipt.
+// REFUSED_CJK_SUBJECT is the Issue route's refusal: the same shape with exactly one more observed key, the evaluated
+// subject's own {nodeId, revision}. Each route accepts only its own observation shape.
 const REFUSAL_RECEIPT_KEYS = ['schema', 'stage', 'outcome', 'cause', 'claimed', 'providerCalls', 'authority', 'commentId', 'run', 'observed'];
 function planStageReceipt(log, accept) {
   if (!exact(log, ['ref', 'route', 'observedAt', 'bytes', 'sha256', 'content', 'providerDigest']) || log.route !== 'p-transported-job-log'
@@ -217,10 +312,12 @@ function planStageReceipt(log, accept) {
     .filter(x => x?.schema === 'ops.jev.issue-actions-receipt.v1' && x.stage === 'plan');
   if (plans.length !== 1) return { cause: plans.length ? 'PLAN_RECEIPT_AMBIGUOUS' : 'PLAN_RECEIPT_MISSING' };
   const [p] = plans;
-  if (accept === 'REFUSED_CJK') {
+  if (accept === 'REFUSED_CJK' || accept === 'REFUSED_CJK_SUBJECT') {
+    const issueRoute = accept === 'REFUSED_CJK_SUBJECT';
     if (!exact(p, REFUSAL_RECEIPT_KEYS) || p.outcome !== 'NONE' || p.cause !== 'UNSUPPORTED_CJK' || p.claimed !== false || p.providerCalls !== 0
       || p.authority !== false || !positive(p.commentId) || !exact(p.run, ['id', 'number', 'attempt', 'workflowId'])
-      || !exact(p.observed, ['issueNodeId', 'subjectRevision']) || !text(p.observed.issueNodeId) || !text(p.observed.subjectRevision)) {
+      || !exact(p.observed, ['issueNodeId', 'subjectRevision', ...(issueRoute ? ['subject'] : [])]) || !text(p.observed.issueNodeId) || !text(p.observed.subjectRevision)
+      || (issueRoute && (!exact(p.observed.subject, ['nodeId', 'revision']) || !text(p.observed.subject.nodeId) || !text(p.observed.subject.revision)))) {
       return { cause: 'PLAN_RECEIPT_NOT_REFUSED_CJK' };
     }
     return { plan: p };
@@ -319,14 +416,17 @@ export function expectedOrigin(args) {
 // C1: the origin of a literal CJK refusal. The executor refused before any claim or result comment, so the only record
 // of the subject state it observed is its plan receipt's `observed`. The same N-a bindings apply and the approved command
 // must be the literal one. The result is a distinct kind with no request digest and no `expected`, so it cannot stand in
-// for expectedOrigin, and refusalIdentitySnapshot accepts nothing else.
-export function refusalOrigin(args) {
-  const bound = bindRun(args, 'REFUSED_CJK');
+// for expectedOrigin, and refusalIdentitySnapshot accepts nothing else. issueRefusalOrigin is the same for the Issue
+// route's refusal: its own kind, and a plan observation that also carries the evaluated subject's own pair.
+function boundRefusal(args, accept, kind) {
+  const bound = bindRun(args, accept);
   if (!bound.plan) return bound;
   const { plan, run } = bound, { approved, postingResponse, commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt, planLog } = args;
   if (approved.commandBody !== LITERAL_COMMAND) return hold('COMMAND_NOT_LITERAL');
-  return { status: 'BOUND', kind: REFUSAL_KIND, target: { repository: approved.repository, number: approved.number },
-    planObservation: { issueNodeId: plan.observed.issueNodeId, subjectRevision: plan.observed.subjectRevision },
+  const { observed } = plan;
+  return { status: 'BOUND', kind, target: { repository: approved.repository, number: approved.number },
+    planObservation: { issueNodeId: observed.issueNodeId, subjectRevision: observed.subjectRevision,
+      ...(kind === ISSUE_REFUSAL_KIND ? { subject: { nodeId: observed.subject.nodeId, revision: observed.subject.revision } } : {}) },
     // Repeats the caller's reader-port declarations for the public reads only; the job log has no reader and stays weak.
     readerDeclaredLive: [commandReceipt, runReceipt, workflowReceipt, activationWorkflowReceipt].every(r => r.reader.mode === 'live'),
     origin: { commandCommentId: postingResponse.id, runId: run.id, runNumber: run.run_number, runHeadSha: run.head_sha,
@@ -335,6 +435,8 @@ export function refusalOrigin(args) {
       'the observation is the executor\'s subject state when it refused, not a later read: a public read cannot see an edit that restores the same body, and only a later provided admission recomputes the revision',
       'a refusal does not show that the body is CJK; that the activated runtime prints this receipt is a phase fact this code cannot certify'] };
 }
+export function refusalOrigin(args) { return boundRefusal(args, 'REFUSED_CJK', REFUSAL_KIND); }
+export function issueRefusalOrigin(args) { return boundRefusal(args, 'REFUSED_CJK_SUBJECT', ISSUE_REFUSAL_KIND); }
 
 // N1 for a literal CJK refusal: node and body come only from the public PR, the edit signals only from the refusal's
 // observation, through the same revision parser as the result path. Node equality is required three ways.
@@ -351,6 +453,23 @@ export function refusalIdentitySnapshot({ origin, pullRequestReceipt, target }) 
   return { status: 'VERIFIED', target: { ...target }, snapshot,
     readerDeclaredLive: origin.readerDeclaredLive === true && pullRequestReceipt.reader.mode === 'live',
     origin: { kind: REFUSAL_KIND, ...origin.origin } };
+}
+
+// N1 on the Issue route, JA branch: the Issue route's refusal origin and its approved origin Issue, plus the approved
+// subject Issue. The subject snapshot comes only from the observation's subject pair; the origin pair binds the origin.
+export function issueRefusalSubjectSnapshot({ origin, originIssueReceipt, subjectIssueReceipt, subjectTarget }) {
+  if (!subjectTargetValid(subjectTarget)) return hold('TARGET_INVALID');
+  if (origin?.status !== 'BOUND' || origin.kind !== ISSUE_REFUSAL_KIND || !targetValid(origin.target) || !Array.isArray(origin.limits)) return hold('ORIGIN_KIND_MISMATCH');
+  const read = readIssues(originIssueReceipt, origin.target, subjectIssueReceipt, subjectTarget);
+  if (read.status !== 'OK') return read;
+  const observed = origin.planObservation;
+  if (!exact(observed, ['issueNodeId', 'subjectRevision', 'subject']) || !exact(observed.subject, ['nodeId', 'revision'])) return hold('EXECUTOR_IDENTITY_MISMATCH');
+  const bound = bindIssues(read, origin.target, subjectTarget, { nodeId: observed.issueNodeId, revision: observed.subjectRevision }, observed.subject);
+  if (bound.status === 'HOLD') return bound;
+  return { status: 'VERIFIED', subjectKind: 'issue', originTarget: bound.originTarget, target: bound.target, snapshot: bound.snapshot,
+    readerDeclaredLive: origin.readerDeclaredLive === true && [originIssueReceipt, subjectIssueReceipt].every(r => r.reader.mode === 'live'),
+    provenance: { kind: ISSUE_REFUSAL_KIND, originRevision: observed.subjectRevision, subjectTarget: { ...subjectTarget }, origin: { ...origin.origin },
+      limits: [...origin.limits, READER_LIMIT] } };
 }
 
 const FIDELITY_MARKER = '<!-- semlint-fidelity-v1 -->';

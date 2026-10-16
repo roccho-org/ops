@@ -7,7 +7,7 @@ import { JEV_MODEL } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
 import { ENTRY_LIMITS, preparePlan, runPlan, executeOwnerPlan, snapshotJson } from '../semlint-entry.mjs';
 import { REQUEST_PREFIX, RESULT_PREFIX, admitIssueComment, nextIssueEffect, composeResultComment, verifyResultReadback,
-  admitIssueCommand, subjectRevision } from '../github-comment.mjs';
+  admitIssueCommand, subjectRevision, validateActionsConfig } from '../github-comment.mjs';
 
 const copy = (x) => JSON.parse(JSON.stringify(x));
 const hash = (x) => createHash('sha256').update(x).digest('hex');
@@ -558,6 +558,149 @@ for (const program of [entry, compatibility]) {
   const plain = await admitIssueCommand(legacy(OPS, 483, 377399991, 'issue'), shipped);
   assert.equal(Object.hasOwn(plain.identity, 'subject'), false);
   assert.equal(plain.identity.subjectRevision, plain.prepared.plan.cases[0].input.subject.revision);
+
+  // Legacy admission bytes, recorded on unmodified M f7095de4 before the first edit with these exact fixtures: the 2-key
+  // PR refusal, PR literal and PR536 provided (plain and rendered), the no-grant Issue literal, the subject-grant literal
+  // without an Issue provided grant (passthrough with identity.subject), its provided refusal, and a retired PR grant.
+  const h = (x) => hash(JSON.stringify(x));
+  const originRun = { id: 77, number: 900, attempt: 1, workflowId: 377399991, path: WFP };
+  const issueLiteral = (over = {}) => { const value = literal({ issue: originIssue, run: originRun, ...over }); delete value.targetKind; return value; };
+  const appsOf = (over = {}) => ({ repository: 'fixture-user/apps', repositoryId: '321', isPrivate: false, ...subject({ number: 94, nodeId: 'I_fixture94', ...over }) });
+  const unit = (fields, content) => ({ ...fields, content, sha256: hash(content), evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(content) }, englishAuxiliary: null });
+  const check = { id: 'fixture.goal', axis: 'Aligned', concern: 'Goal-derived fixture question.', requiredRoles: [], crossLinks: [],
+    predicate: { question: 'Does the subject miss the declared goal?', true: 'It misses the goal.', false: 'It meets the goal.' } };
+  const envelope = (ref, revision, scope, body, aux = null) => REQUEST_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-request.v1', cases: [{ id: 'fixture',
+    input: { schema: 'ops.semlint.input.v14', subject: { ...unit({ kind: 'log-entry', ref, revision, scope }, body), englishAuxiliary: aux },
+      context: [unit({ role: 'goal', ref: 'fixture:goal', revision: 'r1' }, 'Confirm completion from the delivery receipt.')], checks: [check] } }] });
+  const PR_SCOPE = 'entire body of the approved pull request at the observed revision';
+  const prProvided = (issue, aux) => { const body = envelope(`https://github.com/${OPS}/pull/536`, subjectRevision(issue), PR_SCOPE, issue.body, aux);
+    return literal({ issue, eventBody: body, command: commandOf(body) }); };
+  const view = (r) => ({ status: r.status, cause: r.cause ?? null, identity: r.identity ?? null, requestDigest: r.requestDigest ?? null, plan: r.prepared?.plan ?? null });
+  const subjectBody = envelope('https://github.com/fixture-user/apps/issues/94', subjectRevision(appsOf({ body: EN })), shipped.subjectScope, EN);
+  const retired = copy(shipped); retired.providedRequestTargets = [{ repository: OPS, repositoryId: '1275606595', pullRequest: 511 }];
+  assert.deepEqual({
+    prRefusal: h(await admitIssueCommand(literal(), shipped)),
+    prLiteral: h(view(await admitIssueCommand(literal({ issue: english }), shipped))),
+    pr536Provided: h(view(await admitIssueCommand(prProvided(english), shipped))),
+    pr536Rendered: h(view(await admitIssueCommand(prProvided(subject(), { text: EN, sourceSha256: hash(JA) }), shipped))),
+    noGrantIssueLiteral: h(view(await admitIssueCommand(issueLiteral({ run: { ...originRun, number: 50 } }), shipped))),
+    subjectPassthrough: h(view(await admitIssueCommand(issueLiteral({ subject: appsOf() }), granted))),
+    subjectPassthroughEnglish: h(view(await admitIssueCommand(issueLiteral({ subject: appsOf({ body: EN }) }), granted))),
+    providedWithSubject: h(view(await admitIssueCommand(issueLiteral({ subject: appsOf({ body: EN }), eventBody: subjectBody, command: commandOf(subjectBody) }), granted))),
+    retired511: h(view(await admitIssueCommand(literal({ issue: english }), retired))) }, {
+    prRefusal: 'a0e7533232963bb332d17d7e86ede6ba3d8bf47ebbb61e02835bd7143b98449e',
+    prLiteral: '89b129f0fd85d269677c23a4ac4af3aa10c8c08fffe32d8bc92dd519035099a1',
+    pr536Provided: '67b2e455701738ade31bf29159e1b6c534d884a7411dccaaccae50ecba81db80',
+    pr536Rendered: '086865d91ce76e719016deb5c9cae6c6cf0b5a4b089a6e9ed8219accf8814112',
+    noGrantIssueLiteral: '99b3c1fa7872b4124c2221fc1c5f70aafdaaedea6c762fd5ff1cb37335a71b53',
+    subjectPassthrough: '8820daedd7af7ce68702225340790edc3eab8bbbb026ced513af833859f57729',
+    subjectPassthroughEnglish: 'f40f467cd65747628e16b76fb3e002ac16ed4dd709570c3fa8d2bdd165cb95aa',
+    providedWithSubject: '3aca0ae28dc27f955c637dd60b7ebbe707766946a7111ff6aa5a9f8bfc933d0c',
+    retired511: '17f3ae69deefae4ae139f035e519e713bbc08ec9e8efc1e9629dee3a1911115d' });
+
+  // Issue provided grant (fixture only, the shipped file is unchanged): the origin ops#483 with its subject grant and its
+  // own scoped range. It is the one provided grant in total, so it replaces the PR536 grant in this fixture.
+  const issueGrant = { repository: OPS, repositoryId: '1275606595', issue: 483 };
+  const issueGranted = copy(granted); issueGranted.providedRequestTargets = [{ ...issueGrant }];
+  const valid = (settings) => { let checked; assert.doesNotThrow(() => { checked = validateActionsConfig(settings); }); return checked; };
+  assert.deepEqual(valid(issueGranted).providedRequestTargets.map((g) => ({ ...g })), [issueGrant]);
+  // RETIRED_PROVIDED names PR numbers only: an Issue grant whose Issue number is 511 is valid.
+  const issue511 = copy(issueGranted);
+  issue511.targets.find((t) => t.repository === OPS && t.issue === 483).issue = 511;
+  issue511.runRanges.at(-1).target = { issue: 511 }; issue511.providedRequestTargets = [{ ...issueGrant, issue: 511 }];
+  assert.equal(valid(issue511).providedRequestTargets[0].issue, 511);
+  for (const alter of [
+    (c) => { c.providedRequestTargets.push({ repository: OPS, repositoryId: '1275606595', pullRequest: 536 }); }, // two grants in total
+    (c) => { c.providedRequestTargets = [{ repository: ENVS, repositoryId: '1391871347', issue: 52 }]; }, // a target without a subject
+    (c) => { delete c.targets.find((t) => t.issue === 483).subject; }, // the origin without its subject grant
+    (c) => { c.providedRequestTargets[0].issue = 484; }, (c) => { c.providedRequestTargets[0].issue = '483'; },
+    (c) => { c.providedRequestTargets[0].repositoryId = '1391871347'; }, (c) => { c.providedRequestTargets[0].subject = { number: 94 }; },
+    (c) => { c.providedRequestTargets[0].pullRequest = 536; },
+  ]) {
+    const bad = copy(issueGranted); alter(bad);
+    assert.throws(() => validateActionsConfig(bad), /INVALID_ACTIONS_CONFIG/);
+  }
+
+  // Issue-route provided admission: the evaluated subject is the granted Issue (its own ref, revision, whole body) at the
+  // configured scope. The origin keeps the top-level triple; its body, revision and digest never stand in for the subject.
+  // The subject text differs from the origin's (EN) so that substituting one for the other is observable.
+  const SUBJECT_EN = 'Confirm each delivery from its stored destination receipt, not from the send call.';
+  const englishApps = appsOf({ body: SUBJECT_EN }), jaApps = appsOf();
+  const issueProvided = (body, apps = englishApps) => issueLiteral({ subject: apps, eventBody: body, command: commandOf(body) });
+  const subjectRef = 'https://github.com/fixture-user/apps/issues/94';
+  const issueBody = envelope(subjectRef, subjectRevision(englishApps), shipped.subjectScope, SUBJECT_EN);
+  const accepted = await admitIssueCommand(issueProvided(issueBody), issueGranted);
+  assert.equal(accepted.status, 'ADMITTED', accepted.cause);
+  assert.deepEqual([accepted.identity.observation, accepted.identity.issue, accepted.identity.issueNodeId, accepted.identity.subjectRevision],
+    ['ACTIONS_TRUSTED_PROVIDED_REQUEST', 483, 'I_fixture483', subjectRevision(originIssue)]);
+  assert.deepEqual(accepted.identity.subject, { repository: 'fixture-user/apps', repositoryId: '321', kind: 'issue', number: 94, nodeId: 'I_fixture94',
+    revision: subjectRevision(englishApps) });
+  assert.equal(Object.hasOwn(accepted.identity, 'targetKind'), false);
+  assert.deepEqual([accepted.prepared.plan.cases[0].input.subject.ref, accepted.prepared.plan.cases[0].input.subject.content], [subjectRef, SUBJECT_EN]);
+  // A rendered JA subject, bound to the subject body, is admitted the same way.
+  const renderedBody = envelope(subjectRef, subjectRevision(jaApps), shipped.subjectScope, JA, { text: EN, sourceSha256: hash(JA) });
+  assert.equal((await admitIssueCommand(issueProvided(renderedBody, jaApps), issueGranted)).status, 'ADMITTED');
+  const originRevision = subjectRevision(originIssue), originBody = originIssue.body, revision = subjectRevision(englishApps), scope = shipped.subjectScope;
+  for (const [label, body, apps, cause] of [
+    ['PR ref', envelope(`https://github.com/${OPS}/pull/483`, revision, scope, SUBJECT_EN), englishApps, 'INVALID_PROVIDED_REQUEST'],
+    ['origin ref', envelope(`https://github.com/${OPS}/issues/483`, revision, scope, SUBJECT_EN), englishApps, 'INVALID_PROVIDED_REQUEST'],
+    ['origin revision', envelope(subjectRef, originRevision, scope, SUBJECT_EN), englishApps, 'INVALID_PROVIDED_REQUEST'],
+    ['PR scope', envelope(subjectRef, revision, PR_SCOPE, SUBJECT_EN), englishApps, 'INVALID_PROVIDED_REQUEST'],
+    ['origin body', envelope(subjectRef, revision, scope, originBody), englishApps, 'INVALID_PROVIDED_REQUEST'],
+    ['other body', envelope(subjectRef, revision, scope, SUBJECT_EN + ' Edited.'), englishApps, 'INVALID_PROVIDED_REQUEST'],
+    ['later edit', issueBody, appsOf({ body: SUBJECT_EN, userContentEditsTotal: 1, lastEditedAt: '2026-10-16T01:00:00Z' }), 'INVALID_PROVIDED_REQUEST'],
+    ['aux on origin body', envelope(subjectRef, subjectRevision(jaApps), scope, JA, { text: EN, sourceSha256: hash(originBody) }), jaApps, 'INVALID_PROVIDED_REQUEST'],
+    ['JA without a rendering (Core refuses)', envelope(subjectRef, subjectRevision(jaApps), scope, JA), jaApps, 'INVALID_REQUEST_OR_ADMISSION'],
+  ]) {
+    const refused = await admitIssueCommand(issueProvided(body, apps), issueGranted);
+    assert.deepEqual([refused.status, refused.cause], ['NOT_ADMITTED', cause], label);
+  }
+  // Span, digest and a context auxiliary are checked as on the PR route.
+  for (const change of [(v) => { v.subject.evaluationSpan.endByte--; }, (v) => { v.subject.sha256 = '0'.repeat(64); },
+    (v) => { v.context[0].englishAuxiliary = { text: 'x', sourceSha256: v.context[0].sha256 }; }]) {
+    const payload = JSON.parse(issueBody.slice(REQUEST_PREFIX.length)); change(payload.cases[0].input);
+    const body = REQUEST_PREFIX + JSON.stringify(payload);
+    assert.equal((await admitIssueCommand(issueProvided(body), issueGranted)).cause, 'INVALID_PROVIDED_REQUEST');
+  }
+  // Without the Issue grant the legacy refusal stays, and the PR536 route has no grant in this fixture.
+  assert.equal((await admitIssueCommand(issueProvided(issueBody), granted)).cause, 'PROVIDED_WITH_SUBJECT_UNSUPPORTED');
+  assert.equal((await admitIssueCommand(prProvided(english), issueGranted)).cause, 'PROVIDED_REQUEST_NOT_AUTHORIZED');
+  assert.equal((await admitIssueCommand(prProvided(english), shipped)).status, 'ADMITTED');
+
+  // Issue-route literal: English stays the admitted passthrough with identity.subject; CJK anywhere in the input is
+  // refused before claim with the origin pair plus the evaluated subject's own pair, never a body.
+  const englishLiteral = await admitIssueCommand(issueLiteral({ subject: englishApps }), issueGranted);
+  assert.deepEqual([englishLiteral.status, englishLiteral.identity.observation, englishLiteral.identity.subject.revision],
+    ['ADMITTED', 'ACTIONS_TRUSTED_LITERAL_COMMAND', subjectRevision(englishApps)]);
+  const issueRefusal = (apps) => ({ status: 'NOT_ADMITTED', cause: 'UNSUPPORTED_CJK', authority: false,
+    observed: { issueNodeId: 'I_fixture483', subjectRevision: originRevision, subject: { nodeId: apps.nodeId, revision: subjectRevision(apps) } } });
+  const jaRefused = await admitIssueCommand(issueLiteral({ subject: jaApps }), issueGranted);
+  assert.deepEqual(jaRefused, issueRefusal(jaApps));
+  assert.notEqual(jaRefused.observed.subject.revision, jaRefused.observed.subjectRevision);
+  assert.equal(JSON.stringify(jaRefused).includes(JA) || JSON.stringify(jaRefused).includes(EN), false);
+  assert.deepEqual(await admitIssueCommand(issueLiteral({ subject: englishApps, context: contextOf('日本語の契約') }), issueGranted), issueRefusal(englishApps));
+  // A subject grant alone keeps the exact legacy passthrough (no refusal, no observation), as the M bytes above show.
+  const passthrough = await admitIssueCommand(issueLiteral({ subject: jaApps }), granted);
+  assert.deepEqual([passthrough.status, Object.hasOwn(passthrough, 'observed')], ['ADMITTED', false]);
+
+  // The Issue grant binds its origin repository, not only the Issue number (R's finding A1 on #559). A valid config with two
+  // origins numbered 483, Ops and envs, each with its own subject grant and scoped range; only Ops holds the Issue grant.
+  const twoOrigins = copy(issueGranted);
+  Object.assign(twoOrigins.targets.find((t) => t.repository === ENVS), { issue: 483,
+    subject: { repository: 'fixture-user/apps', repositoryId: '321', kind: 'issue', number: 94 } });
+  twoOrigins.runRanges.push({ repository: ENVS, workflowId: 377400122, path: WFP, first: 900, last: 900, reservedCallsPerRun: 1, target: { issue: 483 } });
+  assert.deepEqual(valid(twoOrigins).providedRequestTargets.map((g) => ({ ...g })), [issueGrant]);
+  const envsInput = (over) => issueLiteral({ repository: ENVS, issue: subject({ number: 483, nodeId: 'I_fixtureEnvs483', body: EN }),
+    run: { ...originRun, workflowId: 377400122 }, ...over });
+  // Positive controls on the granted Ops origin, under the same two-origin config.
+  assert.equal((await admitIssueCommand(issueProvided(issueBody), twoOrigins)).status, 'ADMITTED');
+  assert.deepEqual(await admitIssueCommand(issueLiteral({ subject: jaApps }), twoOrigins), issueRefusal(jaApps));
+  // The ungranted envs origin: its provided request keeps the legacy refusal, and its CJK literal the legacy passthrough.
+  assert.deepEqual(await admitIssueCommand(envsInput({ subject: englishApps, eventBody: issueBody, command: commandOf(issueBody) }), twoOrigins),
+    { status: 'NOT_ADMITTED', cause: 'PROVIDED_WITH_SUBJECT_UNSUPPORTED', authority: false });
+  const envsLiteral = await admitIssueCommand(envsInput({ subject: jaApps }), twoOrigins);
+  assert.deepEqual([envsLiteral.status, Object.hasOwn(envsLiteral, 'observed'), envsLiteral.identity?.repository, envsLiteral.identity?.subject?.revision],
+    ['ADMITTED', false, ENVS, subjectRevision(jaApps)], envsLiteral.cause);
 }
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
   githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,

@@ -5,11 +5,12 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { RESULT_PREFIX, REQUEST_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { semlint } from '../../packages/jev-review/semlint.mjs';
-import { preparePlan } from '../../packages/jev-review/semlint-entry.mjs';
-import { validateJevBudget } from '../../packages/jev-review/core.mjs';
-import { planIssueCommand, PULL_REQUEST_QUERY, COMMENT_QUERY } from '../../packages/jev-review/issue-executor.mjs';
+import { preparePlan, executeOwnerPlan } from '../../packages/jev-review/semlint-entry.mjs';
+import { validateJevBudget, JEV_MODEL } from '../../packages/jev-review/core.mjs';
+import { planIssueCommand, postIssueCommand, PULL_REQUEST_QUERY, ISSUE_QUERY, SUBJECT_QUERY, COMMENT_QUERY, CLAIM, EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { plan } from './core.mjs';
-import { acquire, executorIdentitySnapshot, project as projectPlan, expectedOrigin, fidelityFromReview, refusalOrigin, refusalIdentitySnapshot } from './prepare.mjs';
+import { acquire, executorIdentitySnapshot, project as projectPlan, expectedOrigin, fidelityFromReview, refusalOrigin, refusalIdentitySnapshot,
+  issueSubjectIdentitySnapshot, issueRefusalOrigin, issueRefusalSubjectSnapshot } from './prepare.mjs';
 
 // Every fixture plan here supplies the evaluated subject text as the observation 'target' and declares it, as a caller
 // must. Tests of the declaration itself call projectPlan directly.
@@ -177,6 +178,7 @@ test('emittable requires an external fidelity record of all FAITHFUL for the exa
 
 test('the projected request is admitted by existing admission and refused after a later edit', async () => {
   const out = project(await goalPlan(), await snapshotOf());
+  assert.equal(out.status, 'ELIGIBLE', out.cause);
   assert.equal(out.envelopeSha256, sha256(out.envelope));
   const admitted = await admitIssueCommand(admissionInput(out.envelope, issue(), 4300), SETTINGS);
   assert.equal(admitted.status, 'ADMITTED', admitted.cause);
@@ -748,6 +750,7 @@ test('a check named subject.englishAuxiliary stays a check: rendering and check 
   const live = await refusalSnapshotOf({ origin: await refusedOf({ mode: 'live' }), mode: 'live' });
   const value = await jaGoalPlan([question('subject.englishAuxiliary'), question('q2', { clauseIds: ['g-confirm'] })]);
   const out = project(value, live, { englishAuxiliary: AUX });
+  assert.equal(out.status, 'ELIGIBLE', out.cause);
   assert.deepEqual([out.checks.map(c => c.id), out.fidelity.verdicts], [['subject.englishAuxiliary', 'q2'], { 'subject.englishAuxiliary': 'UNREVIEWED', q2: 'UNREVIEWED' }]);
   const record = (check, renderingVerdict) => ({ reviewRef: 'test:r', envelopeSha256: out.envelopeSha256,
     verdicts: { 'subject.englishAuxiliary': check, q2: 'FAITHFUL' }, renderingVerdict });
@@ -1229,4 +1232,424 @@ test('the intended new-option deltas: LIMIT slots, carried K checks in HOLD reco
   assert.equal(await preflight(over), 'ENTRY_PREFLIGHT_FAILED');
   const attempts = (await semlint(over, async () => { throw new Error('NO_CALL_IN_TEST'); })).accounting.callbackAttempts;
   assert.equal(attempts, 0);
+});
+
+// The PR route's outputs, recorded on unmodified M f7095de4 before the first edit with these exact fixtures (development
+// fixtures, not Gold). The Issue route below adds a closed variant; none of these gains a key.
+test('PR snapshots, origins, projections, fidelity and admission keep the bytes recorded on unmodified M f7095de4', async () => {
+  const h = x => sha256(JSON.stringify(x));
+  const value = await goalPlan(), english = project(value, await snapshotOf());
+  const refused = await refusedOf(), refusalSubject = await refusalSnapshotOf({ origin: refused });
+  const rendered = project(await jaGoalPlan(), refusalSubject, { englishAuxiliary: AUX });
+  const live = await snapshotOf({ mode: 'live' }), unreviewed = project(value, live), ids = unreviewed.checks.map(c => c.id);
+  const fid = fidelityFromReview({ approved: APPROVED_REVIEW, reviewReceipt: await reviewOf(reviewJson(fidelityBody(unreviewed.envelopeSha256,
+    Object.fromEntries(ids.map(id => [id, 'FAITHFUL']))))), envelopeSha256: unreviewed.envelopeSha256, checkIds: ids });
+  const kOut = project(await CONTROL(), verifiedBody(BODY), { contextRefs: ['k1'] });
+  const admitted = await admitIssueCommand(admissionInput(english.envelope, issue(), 4300), SETTINGS);
+  assert.deepEqual([english.status, rendered.status, admitted.status], ['ELIGIBLE', 'ELIGIBLE', 'ADMITTED']);
+  assert.deepEqual({ executorSnapshot: h(await snapshotOf()), expectedOrigin: h(await originOf()), refusalOrigin: h(refused),
+    refusalSnapshot: h(refusalSubject), english: h(english), rendered: h(rendered), fidelity: h(fid), contextK: h(kOut),
+    admitted: h({ status: admitted.status, identity: admitted.identity, requestDigest: admitted.requestDigest, plan: admitted.prepared.plan }) }, {
+    executorSnapshot: '67c6dd446781f0a136b53b9f02e4c57cad6e54b11b312b60a685a19092bd51b8',
+    expectedOrigin: '363c65ca3287a680dab0c7c512246b809475113009904f85e2f7d272c9f752fe',
+    refusalOrigin: '05c2d7e92e19b0851a7cd778874cc3781d0edd60298ab122663c830c1c6cd54a',
+    refusalSnapshot: '9fb5fdd526b852938794b22cd4407acf8a3b3cf127f333334e5766e2d7bad421',
+    english: '3dd86aa21b3716f517b96709a3345f8d13c22eeaaf69e0fea2f76303114e8faf',
+    rendered: 'a9e71937aa94e41e7d743a9a8eb4883c563213a3528966e25650dd8899e807d4',
+    fidelity: '367750ac30e9509b18e97a76efd6bf51d15fc10156b7d5186394d30bec6bb797',
+    contextK: '4014523fcde9062ba8112c883c2ae73523461deb7b64ab894dd880f7b20a85d9',
+    admitted: '32c7e8d5d63c3f1af79f14aedd262a2774119b618b64a13d87a8636d0f56d1de' });
+  for (const pr of [await snapshotOf(), refusalSubject]) assert.equal(Object.hasOwn(pr, 'subjectKind'), false);
+});
+
+// The Issue route. The invocation origin ops#483 holds the command, run, claim and result sink; a separately approved
+// public subject Issue is evaluated. Fixture settings only: the shipped settings plus a subject grant, its scoped range and
+// an Issue provided grant, which as the one provided grant replaces PR536's here. Nothing on disk changes.
+const ORIGIN_NUMBER = 483, SUBJECT_REPO = 'fixture-user/apps', SUBJECT_NUMBER = 94, ORIGIN_NODE = 'I_test483', SUBJECT_NODE = 'I_test94';
+const ORIGIN = { repository: REPO, number: ORIGIN_NUMBER }, SUBJECT = { repository: SUBJECT_REPO, repositoryId: '321', number: SUBJECT_NUMBER };
+const ISSUE_SCOPE = 'entire body of the approved Issue at the observed revision';
+const ORIGIN_BODY = 'Invocation origin for the delivery review. The evaluated text is the approved subject Issue, not this body.';
+const ORIGIN_EDITS = { lastEditedAt: '2026-10-13T00:00:00Z', includesCreatedEdit: true, userContentEditsTotal: 1 };
+const originIssue = (body = ORIGIN_BODY, edits = ORIGIN_EDITS) => ({ number: ORIGIN_NUMBER, nodeId: ORIGIN_NODE, body, ...edits });
+const subjectIssue = (body = BODY, edits = EDITS) => ({ number: SUBJECT_NUMBER, nodeId: SUBJECT_NODE, body, ...edits });
+const ISSUE_SETTINGS = (() => {
+  const settings = structuredClone(SETTINGS), origin = settings.targets.find(t => t.repository === REPO && t.issue === ORIGIN_NUMBER);
+  origin.subject = { repository: SUBJECT_REPO, repositoryId: SUBJECT.repositoryId, kind: 'issue', number: SUBJECT_NUMBER };
+  settings.runRanges.push({ repository: REPO, workflowId: RUN.workflowId, path: RUN.path, first: 900, last: 900, reservedCallsPerRun: 1, target: { issue: ORIGIN_NUMBER } });
+  settings.providedRequestTargets = [{ repository: REPO, repositoryId: origin.repositoryId, issue: ORIGIN_NUMBER }];
+  return settings;
+})();
+const issueAdmissionInput = (eventBody, subject = subjectIssue(), commandId, origin = originIssue()) => ({ repository: REPO, owner: 'roccho-org', sha: SHA,
+  eventBody, run: { ...RUN, number: 900 }, issue: origin, command: command(eventBody, commandId),
+  context: SETTINGS.context.map(c => ({ role: c.role, path: c.path, content: repoFile(c.path) })),
+  subject: { repository: SUBJECT_REPO, repositoryId: SUBJECT.repositoryId, isPrivate: false, ...subject } });
+// The English literal on the Issue route, as the existing admission builds it: a passthrough whose identity names the
+// origin at the top level and the evaluated subject in identity.subject.
+const issueLiteral = await admitIssueCommand(issueAdmissionInput('/jev-evaluate'), ISSUE_SETTINGS);
+const issueResult = (identity = issueLiteral.identity, extra = {}) => ({ id: 910, user: { login: 'github-actions[bot]' },
+  body: RESULT_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-result.v1', requestDigest: issueLiteral.requestDigest, identity, authority: false, result: {}, ...extra }) + '\n' });
+const ISSUE_URLS = { origin: `https://api.github.com/repos/${REPO}/issues/${ORIGIN_NUMBER}`, subject: `https://api.github.com/repos/${SUBJECT_REPO}/issues/${SUBJECT_NUMBER}`,
+  comments: `https://api.github.com/repos/${REPO}/issues/${ORIGIN_NUMBER}/comments?per_page=100` };
+const issueJson = (number, nodeId, body, repository, extra = {}) => JSON.stringify({ number, node_id: nodeId, body,
+  repository_url: `https://api.github.com/repos/${repository}`, ...extra });
+// Receipts for the comments list and both Issues. `pages` adds or replaces reader pages; `urls` chooses what each receipt reads.
+const issueReceipts = async ({ comments = [issueResult()], originBody = ORIGIN_BODY, subjectBody = BODY, mode, pages = {}, urls = {} } = {}) => {
+  const r = reader({ [ISSUE_URLS.origin]: { status: 200, text: issueJson(ORIGIN_NUMBER, ORIGIN_NODE, originBody, REPO) },
+    [ISSUE_URLS.subject]: { status: 200, text: issueJson(SUBJECT_NUMBER, SUBJECT_NODE, subjectBody, SUBJECT_REPO) },
+    [ISSUE_URLS.comments]: { status: 200, text: JSON.stringify(comments), link: '' }, ...pages }, mode);
+  const clock = () => '2026-10-16T00:00:00.000Z', at = { ...ISSUE_URLS, ...urls };
+  return { commentsReceipt: await acquire({ ref: 'results', url: at.comments, list: true }, r, clock),
+    originIssueReceipt: await acquire({ ref: 'origin', url: at.origin }, r, clock), subjectIssueReceipt: await acquire({ ref: 'subject', url: at.subject }, r, clock) };
+};
+const issueSnapshotOf = async (options, { expected = EXPECTED, originTarget = ORIGIN, subjectTarget = SUBJECT } = {}) =>
+  issueSubjectIdentitySnapshot({ ...(await issueReceipts(options)), originTarget, subjectTarget, expected });
+const withSubject = over => ({ ...issueLiteral.identity, subject: { ...issueLiteral.identity.subject, ...over } });
+// The Issue route's refusal: the #547 receipt shape with the subject's own pair as a third observed key, at run 900.
+const JA_SUBJECT = subjectIssue(JA_BODY);
+const ISSUE_OBSERVED = { issueNodeId: ORIGIN_NODE, subjectRevision: subjectRevision(originIssue()), subject: { nodeId: SUBJECT_NODE, revision: subjectRevision(JA_SUBJECT) } };
+const ISSUE_APPROVED = { ...APPROVED, number: ORIGIN_NUMBER, runRange: { first: 900, last: 900 } };
+const issueRefusalLine = (extra = {}, stage = 'plan') => refusalLine({ run: { id: RUN.id, number: 900, attempt: 1, workflowId: RUN.workflowId }, observed: ISSUE_OBSERVED, ...extra }, stage);
+const issueRefusedOf = (options = {}) => originOf({ approved: ISSUE_APPROVED, command: commandJson({ issue_url: ISSUE_URLS.origin }), run: runJson({ run_number: 900 }),
+  log: refusalLog([issueRefusalLine(), issueRefusalLine({}, 'post')]), bind: issueRefusalOrigin, ...options });
+const issueRefusalSnapshotOf = async ({ origin, subjectBody = JA_BODY, subjectTarget = SUBJECT, ...options } = {}) => {
+  const { originIssueReceipt, subjectIssueReceipt } = await issueReceipts({ subjectBody, ...options });
+  return issueRefusalSubjectSnapshot({ origin: origin ?? await issueRefusedOf(), originIssueReceipt, subjectIssueReceipt, subjectTarget });
+};
+// A closed Issue-route snapshot for projection-only tests (projection does not re-verify its provenance).
+const issueVerifiedBody = body => ({ status: 'VERIFIED', subjectKind: 'issue', originTarget: { ...ORIGIN, nodeId: ORIGIN_NODE },
+  target: { repository: SUBJECT_REPO, number: SUBJECT_NUMBER }, snapshot: subjectIssue(body, UNEDITED), readerDeclaredLive: false,
+  provenance: { kind: 'literal-result', originRevision: subjectRevision(originIssue()), subjectTarget: { ...SUBJECT }, origin: {}, limits: [] } });
+const READER_NOTE = /not evidence that an actual read happened/;
+
+test('Issue route, English N1: a literal result yields the closed Issue snapshot, origin and subject bound separately (S1-S5)', async () => {
+  assert.equal(ISSUE_SETTINGS.subjectScope, ISSUE_SCOPE, 'the caller supports only the shipped subject scope');
+  assert.deepEqual([issueLiteral.status, issueLiteral.identity.observation], ['ADMITTED', 'ACTIONS_TRUSTED_LITERAL_COMMAND'], issueLiteral.cause);
+  const got = await issueSnapshotOf();
+  assert.equal(got.status, 'VERIFIED', got.cause);
+  assert.deepEqual(Object.keys(got), ['status', 'subjectKind', 'originTarget', 'target', 'snapshot', 'readerDeclaredLive', 'provenance']);
+  assert.deepEqual([got.subjectKind, got.originTarget, got.target, got.snapshot, got.readerDeclaredLive],
+    ['issue', { ...ORIGIN, nodeId: ORIGIN_NODE }, { repository: SUBJECT_REPO, number: SUBJECT_NUMBER }, subjectIssue(), false]);
+  const { limits, ...provenance } = got.provenance;
+  assert.deepEqual(provenance, { kind: 'literal-result', originRevision: subjectRevision(originIssue()), subjectTarget: SUBJECT,
+    origin: { resultCommentId: 910, requestDigest: issueLiteral.requestDigest, runId: RUN.id, commandCommentId: EXPECTED.commandCommentId } });
+  assert.deepEqual([limits.length, READER_NOTE.test(limits[0])], [1, true]);
+  // The origin revision is provenance only; the evaluated snapshot is the subject's.
+  assert.notEqual(got.provenance.originRevision, subjectRevision(got.snapshot));
+  // readerDeclaredLive needs every used public receipt declared live; it repeats declarations, nothing more.
+  const live = await issueReceipts({ mode: 'live' }), double = await issueReceipts();
+  const snap = receipts => issueSubjectIdentitySnapshot({ ...receipts, originTarget: ORIGIN, subjectTarget: SUBJECT, expected: EXPECTED }).readerDeclaredLive;
+  assert.deepEqual([snap(live), snap({ ...live, commentsReceipt: double.commentsReceipt }), snap({ ...live, originIssueReceipt: double.originIssueReceipt }),
+    snap({ ...live, subjectIssueReceipt: double.subjectIssueReceipt })], [true, false, false, false]);
+  // Bodies pass exactly as observed: leading and trailing whitespace is not trimmed.
+  const padded = '  ' + BODY + '\n';
+  const exactBytes = await issueSnapshotOf({ subjectBody: padded, comments: [issueResult(withSubject({ revision: subjectRevision(subjectIssue(padded)) }))] });
+  assert.deepEqual([exactBytes.status, exactBytes.snapshot?.body], ['VERIFIED', padded]);
+});
+
+test('Issue route, English N1: origin-only or subject-only tampering, missing bodies, readers and targets hold (S2-S4)', async () => {
+  const origin = subjectRevision(originIssue()), id = issueLiteral.identity;
+  const { subject: _subject, ...withoutSubject } = id;
+  const cases = [
+    // Origin pair: node, digest and malformed revisions; and an edited public origin body.
+    ['origin node', { comments: [issueResult({ ...id, issueNodeId: 'I_other' })] }, 'ORIGIN_IDENTITY_MISMATCH'],
+    ['origin digest', { comments: [issueResult({ ...id, subjectRevision: origin.replace(sha256(ORIGIN_BODY), sha256('other')) })] }, 'ORIGIN_DRIFT'],
+    ['origin revision node', { comments: [issueResult({ ...id, subjectRevision: origin.replace(ORIGIN_NODE, 'I_other') })] }, 'ORIGIN_IDENTITY_MISMATCH'],
+    ['origin malformed', { comments: [issueResult({ ...id, subjectRevision: origin.replace('|1|', '|one|') })] }, 'ORIGIN_IDENTITY_MISMATCH'],
+    ['origin extra part', { comments: [issueResult({ ...id, subjectRevision: origin + '|x' })] }, 'ORIGIN_IDENTITY_MISMATCH'],
+    ['origin edited', { originBody: ORIGIN_BODY + ' Edited.' }, 'ORIGIN_DRIFT'],
+    // Subject pair: the origin pair standing in for it, another node, an edited public subject body.
+    ['origin revision as subject', { comments: [issueResult(withSubject({ revision: origin }))] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['origin node as subject', { comments: [issueResult(withSubject({ nodeId: ORIGIN_NODE }))] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['subject edited', { subjectBody: BODY + ' Edited.' }, 'SUBJECT_DRIFT'],
+    // identity.subject must be the approved subject, exactly; a top-level-only (no-grant) or PR identity is refused.
+    ['no identity.subject', { comments: [issueResult(withoutSubject)] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['other repository id', { comments: [issueResult(withSubject({ repositoryId: '999' }))] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['other number', { comments: [issueResult(withSubject({ number: 95 }))] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['other kind', { comments: [issueResult(withSubject({ kind: 'pull-request' }))] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['extra subject key', { comments: [issueResult(withSubject({ body: BODY }))] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['targetKind', { comments: [issueResult({ ...id, targetKind: 'pull-request' })] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['provided observation', { comments: [issueResult({ ...id, observation: PROVIDED_COMMAND_OBSERVATION })] }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    // S3: a null, empty or non-text body holds, on either side; nothing is coerced.
+    ...[null, '', 5].flatMap(body => [[`origin body ${JSON.stringify(body)}`, { originBody: body }, 'ORIGIN_BODY_UNOBSERVED'],
+      [`subject body ${JSON.stringify(body)}`, { subjectBody: body }, 'SUBJECT_BODY_UNOBSERVED']]),
+    // S3: exact canonical receipt URL and repository_url; an Issue payload with its own pull_request key is not an Issue.
+    ...[`https://api.github.com/repos/x/${SUBJECT_REPO}/issues/${SUBJECT_NUMBER}`, `${ISSUE_URLS.subject}?per_page=1`, ISSUE_URLS.subject.replace('https:', 'http:'),
+      `https://api.github.com/repos/${SUBJECT_REPO}/issues/0${SUBJECT_NUMBER}`].map(url => [url, { urls: { subject: url },
+      pages: { [url]: { status: 200, text: issueJson(SUBJECT_NUMBER, SUBJECT_NODE, BODY, SUBJECT_REPO) } } }, 'ISSUE_MISMATCH']),
+    ['fork repository_url', { pages: { [ISSUE_URLS.subject]: { status: 200, text: issueJson(SUBJECT_NUMBER, SUBJECT_NODE, BODY, SUBJECT_REPO + '-fork') } } }, 'ISSUE_MISMATCH'],
+    ['other number in body', { pages: { [ISSUE_URLS.subject]: { status: 200, text: issueJson(95, SUBJECT_NODE, BODY, SUBJECT_REPO) } } }, 'ISSUE_MISMATCH'],
+    ['subject is a pull request', { pages: { [ISSUE_URLS.subject]: { status: 200, text: issueJson(SUBJECT_NUMBER, SUBJECT_NODE, BODY, SUBJECT_REPO, { pull_request: { url: 'x' } }) } } }, 'NOT_AN_ISSUE'],
+    ['pull_request key null', { pages: { [ISSUE_URLS.subject]: { status: 200, text: issueJson(SUBJECT_NUMBER, SUBJECT_NODE, BODY, SUBJECT_REPO, { pull_request: null }) } } }, 'NOT_AN_ISSUE'],
+    ['origin is a pull request', { pages: { [ISSUE_URLS.origin]: { status: 200, text: issueJson(ORIGIN_NUMBER, ORIGIN_NODE, ORIGIN_BODY, REPO, { pull_request: {} }) } } }, 'NOT_AN_ISSUE'],
+    ['subject 404', { pages: { [ISSUE_URLS.subject]: { status: 404, text: 'Not Found' } } }, 'INPUT_NOT_FOUND'],
+    ['origin 403', { pages: { [ISSUE_URLS.origin]: { status: 403, text: 'rate limit' } } }, 'INPUT_UNKNOWN'],
+  ];
+  for (const [label, options, cause] of cases) {
+    const got = await issueSnapshotOf(options);
+    assert.deepEqual([got.status, got.cause, Object.hasOwn(got, 'snapshot')], ['HOLD', cause, false], label);
+  }
+  // S4 inputs: exact 2-field origin target and exact 3-field subject target; the caller's expected origin is required.
+  for (const [targets, cause] of [[{ originTarget: { ...ORIGIN, nodeId: ORIGIN_NODE } }, 'TARGET_INVALID'], [{ subjectTarget: { repository: SUBJECT_REPO, number: SUBJECT_NUMBER } }, 'TARGET_INVALID'],
+    [{ subjectTarget: { ...SUBJECT, repositoryId: 321 } }, 'TARGET_INVALID'], [{ subjectTarget: { ...SUBJECT, repositoryId: '0321' } }, 'TARGET_INVALID'],
+    [{ subjectTarget: { ...SUBJECT, repositoryId: '322' } }, 'EXECUTOR_IDENTITY_MISMATCH'], [{ originTarget: { repository: 'roccho-org/envs', number: 52 } }, 'ISSUE_MISMATCH'],
+    [{ expected: { ...EXPECTED, runId: undefined } }, 'EXPECTED_ORIGIN_MISSING']]) {
+    assert.equal((await issueSnapshotOf({}, targets)).cause, cause, JSON.stringify(targets));
+  }
+  // The PR API takes no Issue receipt in place of its PR read.
+  const { commentsReceipt, subjectIssueReceipt } = await issueReceipts();
+  assert.equal(executorIdentitySnapshot({ commentsReceipt, pullRequestReceipt: subjectIssueReceipt, target: TARGET, expected: EXPECTED }).status, 'HOLD');
+});
+
+test('Issue route, JA N1: only the exact 3-key refusal binds, and only its subject pair becomes the snapshot (S1-S5)', async () => {
+  const refused = await issueRefusedOf();
+  assert.equal(refused.status, 'BOUND', refused.cause);
+  assert.deepEqual([refused.kind, refused.target, refused.planObservation], ['literal-cjk-refusal-issue-subject', ORIGIN, ISSUE_OBSERVED]);
+  // The same N-a bindings and origin record as the PR refusal origin, with the same limits.
+  const prRefused = await refusedOf();
+  assert.deepEqual([Object.keys(refused), Object.keys(refused.origin), refused.limits], [Object.keys(prRefused), Object.keys(prRefused.origin), prRefused.limits]);
+  const got = await issueRefusalSnapshotOf({ origin: refused });
+  assert.equal(got.status, 'VERIFIED', got.cause);
+  assert.deepEqual([got.subjectKind, got.originTarget, got.target, got.snapshot, got.readerDeclaredLive],
+    ['issue', { ...ORIGIN, nodeId: ORIGIN_NODE }, { repository: SUBJECT_REPO, number: SUBJECT_NUMBER }, JA_SUBJECT, false]);
+  assert.deepEqual(got.provenance, { kind: 'literal-cjk-refusal-issue-subject', originRevision: ISSUE_OBSERVED.subjectRevision, subjectTarget: SUBJECT,
+    origin: refused.origin, limits: [...refused.limits, got.provenance.limits.at(-1)] });
+  assert.match(got.provenance.limits.at(-1), READER_NOTE);
+  assert.match(got.provenance.limits.join(' '), /P-transported job log without a provider digest/);
+  assert.match(got.provenance.limits.join(' '), /cannot see an edit that restores the same body/);
+  // readerDeclaredLive: every public receipt on both sides; the job log never counts as live.
+  const live = await issueRefusedOf({ mode: 'live' });
+  assert.deepEqual([(await issueRefusalSnapshotOf({ origin: live, mode: 'live' })).readerDeclaredLive, (await issueRefusalSnapshotOf({ origin: live })).readerDeclaredLive,
+    (await issueRefusalSnapshotOf({ origin: refused, mode: 'live' })).readerDeclaredLive], [true, false, false]);
+  // Each route accepts only its own observation shape; echoes, duplicates, digests and a dropped observation hold.
+  const { subject: _subject, ...twoKeys } = ISSUE_OBSERVED;
+  for (const [label, options, cause] of [
+    ['2-key on the Issue route', { log: refusalLog([issueRefusalLine({ observed: twoKeys })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    ['dropped observation', { log: refusalLog([issueRefusalLine({ observed: undefined })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    ['extra subject key', { log: refusalLog([issueRefusalLine({ observed: { ...ISSUE_OBSERVED, subject: { ...ISSUE_OBSERVED.subject, body: JA_BODY } } })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    ['empty subject revision', { log: refusalLog([issueRefusalLine({ observed: { ...ISSUE_OBSERVED, subject: { nodeId: SUBJECT_NODE, revision: '' } } })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    ['fourth key', { log: refusalLog([issueRefusalLine({ observed: { ...ISSUE_OBSERVED, repositoryId: '321' } })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    ['request digest', { log: refusalLog([issueRefusalLine({ requestDigest: literal.requestDigest })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    ['claimed', { log: refusalLog([issueRefusalLine({ claimed: true })]) }, 'PLAN_RECEIPT_NOT_REFUSED_CJK'],
+    ['post echo only', { log: refusalLog([issueRefusalLine({}, 'post')]) }, 'PLAN_RECEIPT_MISSING'],
+    ['duplicate plan', { log: refusalLog([issueRefusalLine(), issueRefusalLine()]) }, 'PLAN_RECEIPT_AMBIGUOUS'],
+    ['provided command', { approved: { ...ISSUE_APPROVED, commandBody: '/jev-evaluate\n{}' }, command: commandJson({ issue_url: ISSUE_URLS.origin, body: '/jev-evaluate\n{}' }) }, 'COMMAND_NOT_LITERAL'],
+    ['wrong origin', { command: commandJson() }, 'TARGET_MISMATCH'],
+  ]) {
+    const out = await issueRefusedOf(options);
+    assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'planObservation')], ['HOLD', cause, false], label);
+  }
+  // The PR route still accepts 2 keys only: the Issue receipt is refused there, and the PR receipt binds there as before.
+  assert.equal((await refusedOf({ log: refusalLog([refusalLine({ observed: ISSUE_OBSERVED })]) })).cause, 'PLAN_RECEIPT_NOT_REFUSED_CJK');
+  assert.equal((await refusedOf()).status, 'BOUND');
+});
+
+test('Issue route, JA N1: the snapshot binds each pair to its own public Issue; swapped, mixed or drifted pairs hold (S2, S3)', async () => {
+  const refused = await issueRefusedOf(), observed = over => ({ ...refused, planObservation: { ...ISSUE_OBSERVED, ...over } });
+  const cases = [
+    ['PR refusal origin', { origin: await refusedOf() }, 'ORIGIN_KIND_MISMATCH'],
+    ['English result kind', { origin: { ...refused, kind: 'literal-result' } }, 'ORIGIN_KIND_MISMATCH'],
+    ['held origin', { origin: await issueRefusedOf({ commandStatus: 403 }) }, 'ORIGIN_KIND_MISMATCH'],
+    ['no subject pair', { origin: { ...refused, planObservation: { issueNodeId: ORIGIN_NODE, subjectRevision: ISSUE_OBSERVED.subjectRevision } } }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['origin pair as subject', { origin: observed({ subject: { nodeId: ORIGIN_NODE, revision: ISSUE_OBSERVED.subjectRevision } }) }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['origin revision as subject', { origin: observed({ subject: { nodeId: SUBJECT_NODE, revision: ISSUE_OBSERVED.subjectRevision } }) }, 'EXECUTOR_IDENTITY_MISMATCH'],
+    ['subject pair of another read', { origin: observed({ subject: { nodeId: SUBJECT_NODE, revision: subjectRevision(subjectIssue(JA_BODY + '追記')) } }) }, 'SUBJECT_DRIFT'],
+    ['origin digest', { origin: observed({ subjectRevision: ISSUE_OBSERVED.subjectRevision.replace(sha256(ORIGIN_BODY), sha256('other')) }) }, 'ORIGIN_DRIFT'],
+    ['origin node', { origin: observed({ issueNodeId: 'I_other' }) }, 'ORIGIN_IDENTITY_MISMATCH'],
+    ['origin edited', { originBody: ORIGIN_BODY + ' Edited.' }, 'ORIGIN_DRIFT'],
+    ['subject edited', { subjectBody: JA_BODY + ' 追記' }, 'SUBJECT_DRIFT'],
+    ['origin body null', { originBody: null }, 'ORIGIN_BODY_UNOBSERVED'],
+    ['subject body empty', { subjectBody: '' }, 'SUBJECT_BODY_UNOBSERVED'],
+    ['subject is a pull request', { pages: { [ISSUE_URLS.subject]: { status: 200, text: issueJson(SUBJECT_NUMBER, SUBJECT_NODE, JA_BODY, SUBJECT_REPO, { pull_request: {} }) } } }, 'NOT_AN_ISSUE'],
+    ['subject target without id', { subjectTarget: { repository: SUBJECT_REPO, number: SUBJECT_NUMBER } }, 'TARGET_INVALID'],
+  ];
+  for (const [label, options, cause] of cases) {
+    const got = await issueRefusalSnapshotOf(options);
+    assert.deepEqual([got.status, got.cause, Object.hasOwn(got, 'snapshot')], ['HOLD', cause, false], label);
+  }
+  // The PR snapshot takes no Issue refusal origin either.
+  assert.equal((await refusalSnapshotOf({ origin: refused })).cause, 'ORIGIN_KIND_MISMATCH');
+});
+
+test('Issue route projection: /issues/ ref, the Issue scope and case id issue; unknown markers or shapes hold after Core0 (S4)', async () => {
+  const subject = await issueSnapshotOf(), value = await goalPlan(), out = project(value, subject);
+  assert.equal(out.status, 'ELIGIBLE');
+  const payload = JSON.parse(out.envelope.slice(REQUEST_PREFIX.length)), input = payload.cases[0].input;
+  assert.equal(payload.cases[0].id, 'issue', 'a caller convention only: admission does not check the case id');
+  assert.deepEqual(input.subject, { kind: 'log-entry', ref: `https://github.com/${SUBJECT_REPO}/issues/${SUBJECT_NUMBER}`, revision: subjectRevision(subjectIssue()),
+    scope: ISSUE_SCOPE, content: BODY, sha256: sha256(BODY), evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(BODY) }, englishAuxiliary: null });
+  // Everything the wire does not carry equals the PR route's for the same plan and text.
+  const pr = project(value, await snapshotOf());
+  assert.equal(pr.status, 'ELIGIBLE', pr.cause);
+  for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(out[key], pr[key], key);
+  assert.deepEqual(input.checks, wireInput(pr).checks);
+  const admitted = await admitIssueCommand(issueAdmissionInput(out.envelope, subjectIssue(), 4300), ISSUE_SETTINGS);
+  assert.deepEqual([admitted.status, admitted.identity?.subject?.revision, admitted.identity?.subjectRevision],
+    ['ADMITTED', issueLiteral.identity.subject.revision, issueLiteral.identity.subjectRevision], admitted.cause);
+  // The PR ref, the PR scope or the origin's revision on this route are refused by the real admission.
+  for (const change of [s => { s.ref = `https://github.com/${SUBJECT_REPO}/pull/${SUBJECT_NUMBER}`; }, s => { s.scope = 'entire body of the approved pull request at the observed revision'; },
+    s => { s.revision = subjectRevision(originIssue()); }]) {
+    const changed = structuredClone(payload); change(changed.cases[0].input.subject);
+    const r = await admitIssueCommand(issueAdmissionInput(REQUEST_PREFIX + JSON.stringify(changed), subjectIssue(), 4301), ISSUE_SETTINGS);
+    assert.deepEqual([r.status, r.cause], ['NOT_ADMITTED', 'INVALID_PROVIDED_REQUEST']);
+  }
+  // Unknown markers and non-exact Issue shapes hold at the subject step with every local record; PR snapshots carry no marker.
+  const { provenance: _provenance, ...noProvenance } = subject;
+  for (const [label, bad] of [['pull-request marker', { ...subject, subjectKind: 'pull-request' }], ['repository marker', { ...subject, subjectKind: 'repository' }],
+    ['null marker', { ...subject, subjectKind: null }], ['extra outer key', { ...subject, origin: {} }], ['missing provenance', noProvenance],
+    ['extra provenance key', { ...subject, provenance: { ...subject.provenance, expected: EXPECTED } }],
+    ['unknown provenance kind', { ...subject, provenance: { ...subject.provenance, kind: 'literal-cjk-refusal' } }],
+    ['extra originTarget key', { ...subject, originTarget: { ...subject.originTarget, repositoryId: '1275606595' } }],
+    ['provenance names another subject', { ...subject, provenance: { ...subject.provenance, subjectTarget: { ...SUBJECT, number: 95 } } }],
+    ['extra snapshot key', { ...subject, snapshot: { ...subject.snapshot, repository: SUBJECT_REPO } }],
+    ['marker on a PR snapshot', { ...(await snapshotOf()), subjectKind: 'pull-request' }], ['issue marker on a PR snapshot', { ...(await snapshotOf()), subjectKind: 'issue' }]]) {
+    const held = project(value, bad);
+    assert.deepEqual([held.status, held.cause, Object.hasOwn(held, 'envelope')], ['HOLD', 'SUBJECT_KIND_UNSUPPORTED', false], label);
+    for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(held[key], out[key], `${label}: ${key}`);
+  }
+  // Core0 and NEED_CLARIFICATION still conclude first, without looking at the subject.
+  const needsOnly = await goalPlan([question('q1', { needs: ['destination log'] })]);
+  assert.equal(project(needsOnly, { ...subject, subjectKind: 'pull-request' }).cause, 'NOTHING_PROJECTED');
+  assert.equal(project(await goalPlan([], GOAL, []), { ...subject, subjectKind: 'pull-request' }).cause, 'NEED_CLARIFICATION');
+});
+
+test('Issue route projection keeps English K, withholds JA K, refuses a context aux and keeps both budget rules (C4)', async () => {
+  const kObs = (body, extra = []) => [{ ref: 'target', content: body }, K_OBS[1], ...extra];
+  // Selected English K: one full unit per required ref, shared context recorded, admitted by the real admission.
+  const value = await kPlan([question('q1'), kq('qK', ['target', 'k1'])], kObs(BODY));
+  const out = project(value, issueVerifiedBody(BODY), { contextRefs: ['k1'] }), wire = wireInput(out);
+  assert.equal(out.status, 'ELIGIBLE');
+  assert.deepEqual(wire.context.slice(1), [kUnit('k1', K_RUNBOOK)]);
+  assert.deepEqual(out.mapping.map(m => m.sharedContextRefs), [[GOAL.ref, 'k1'], [GOAL.ref, 'k1']]);
+  const admit = async (envelope, id, subject = subjectIssue(BODY, UNEDITED)) => {
+    const r = await admitIssueCommand(issueAdmissionInput(envelope, subject, id), ISSUE_SETTINGS); return r.cause ?? r.status; };
+  assert.equal(await admit(out.envelope, 4601), 'ADMITTED');
+  assert.equal(await admit(withEnvelope(wire, w => { w.context[1].englishAuxiliary = { text: 'x', sourceSha256: w.context[1].sha256 }; }), 4602), 'INVALID_PROVIDED_REQUEST');
+  // JA K is withheld and reported, never translated.
+  const ja = await kPlan([question('q1'), kq('qJ', ['target', 'kja'])], kObs(BODY, [{ ref: 'kja', content: '配信ジョブの再送を記録する。' }]));
+  const withheld = project(ja, issueVerifiedBody(BODY), { contextRefs: ['kja'] });
+  assert.deepEqual([withheld.status, withheld.contextNotCarried, wireInput(withheld).context.map(c => c.ref)], ['ELIGIBLE', [{ ref: 'kja', reason: 'CJK_CONTEXT_NOT_ADMITTED' }], [GOAL.ref]]);
+  // The raw budget holds locally; the model-state budget is still the offline preparePlan's (step B), refused before any call.
+  heldForBudget(project(await goalPlan(undefined, GOAL, clauses, { maxBytes: 60000 }, BIG), issueVerifiedBody(BIG), { maxBytes: 60000 }), 'Issue raw budget');
+  const sentences = 'Adds a retry. '.repeat(1300).trimEnd(), dense = project(await goalPlan(undefined, GOAL, clauses, {}, sentences), issueVerifiedBody(sentences));
+  assert.equal(dense.status, 'ELIGIBLE');
+  assert.deepEqual([withinBudget(wireInput(dense)), await preflight(wireInput(dense))], [true, 'ENTRY_PREFLIGHT_FAILED']);
+  assert.equal(await admit(dense.envelope, 4603, subjectIssue(sentences, UNEDITED)), 'INVALID_REQUEST_OR_ADMISSION');
+});
+
+// Stub GitHub ports for the real executor on the Issue route: run and workflow, the origin and subject GraphQL reads, the
+// command comments with their claim reactions, and create-then-read of result comments on the origin. No network.
+function issueWorld({ subjectBody = BODY } = {}) {
+  const target = ISSUE_SETTINGS.targets.find(t => t.repository === REPO && t.issue === ORIGIN_NUMBER), org = ISSUE_SETTINGS.provider.receipt.target;
+  const commands = new Map(), posted = [], calls = [];
+  const node = i => ({ id: i.nodeId, number: i.number, body: i.body, lastEditedAt: i.lastEditedAt, includesCreatedEdit: i.includesCreatedEdit,
+    userContentEdits: { totalCount: i.userContentEditsTotal } });
+  const deps = {
+    github: async (method, route, body) => {
+      calls.push(`${method} ${route}`);
+      let m;
+      if (method === 'GET' && route === `repos/${REPO}/actions/runs/${RUN.id}`) return { status: 200, json: { id: RUN.id, repository: { full_name: REPO },
+        workflow_id: RUN.workflowId, path: WORKFLOW_PATH, run_number: 900, run_attempt: 1, head_sha: RUN_HEAD } };
+      if (method === 'GET' && route === `repos/${REPO}/actions/workflows/${RUN.workflowId}`) return { status: 200, json: { id: RUN.workflowId, state: 'active' } };
+      if (method === 'POST' && (m = /^repos\/roccho-org\/ops\/issues\/comments\/(\d+)\/reactions$/.exec(route))) {
+        commands.get(Number(m[1])).claims.push(EXECUTOR_LOGIN); return { status: 201, json: { user: { login: EXECUTOR_LOGIN }, content: 'eyes' } };
+      }
+      if (method === 'POST' && route === `repos/${REPO}/issues/${ORIGIN_NUMBER}/comments`) {
+        posted.push({ id: 9100 + posted.length, user: { login: EXECUTOR_LOGIN }, body: body.body }); return { status: 201, json: { id: posted.at(-1).id } };
+      }
+      if (method === 'GET' && (m = /^repos\/roccho-org\/ops\/issues\/comments\/(\d+)$/.exec(route))) {
+        const c = posted.find(p => p.id === Number(m[1])); return c ? { status: 200, json: { ...c, issue_url: ISSUE_URLS.origin } } : { status: 404, json: null };
+      }
+      return { status: 404, json: null };
+    },
+    graphql: async (query, vars) => {
+      if (query === ISSUE_QUERY) return { data: { repository: { issue: node(originIssue()) } } };
+      if (query === SUBJECT_QUERY) return { data: { repository: { databaseId: Number(SUBJECT.repositoryId), nameWithOwner: SUBJECT_REPO, isPrivate: false,
+        issue: node(subjectIssue(subjectBody)) } } };
+      if (query === COMMENT_QUERY) {
+        const c = [...commands.values()].find(x => x.nodeId === vars.id);
+        return { data: { node: { id: c.nodeId, fullDatabaseId: String(c.id), author: { login: 'roccho-dev' }, body: c.body, lastEditedAt: null, includesCreatedEdit: false,
+          userContentEdits: { totalCount: 0 }, reactions: { totalCount: c.claims.length, nodes: c.claims.map(login => ({ content: CLAIM.graphql, user: { login } })) } } } };
+      }
+      return { errors: ['unexpected query'] };
+    },
+    readFile: path => repoFile(path),
+  };
+  const ctx = (id, body) => {
+    commands.set(id, { id, nodeId: 'IC_' + id, body, claims: [] });
+    return { repository: REPO, sha: RUN_HEAD, executionSource: SHA, runId: RUN.id, runAttempt: 1, event: { comment: { id, node_id: 'IC_' + id, body, user: { login: 'roccho-dev' } },
+      issue: { number: ORIGIN_NUMBER }, repository: { full_name: REPO, id: Number(target.repositoryId), owner: { login: org.organization, id: Number(org.organization_id), type: 'Organization' } } } };
+  };
+  return { deps, ctx, posted, calls };
+}
+const timestamped = receipt => planLog(['2026-10-16T00:00:00.0000000Z ##[group]Run plan', '2026-10-16T00:00:01.0000000Z ' + JSON.stringify(receipt)].join('\n'));
+
+// Composition, English branch, on this tree: the real executor plans, runs (fixture provider) and posts a literal command
+// at the origin; the caller binds its plan receipt and result comment; the projection with English K is admitted by the
+// real admission and planned again by the real executor. Not a workflow run, an actual acquisition or an effect.
+test('Issue route composition, English: executor literal result -> expectedOrigin -> Issue snapshot -> project with K -> admission and executor plan', async () => {
+  const world = issueWorld(), cmd = world.ctx(EXPECTED.commandCommentId, '/jev-evaluate');
+  const planned = await planIssueCommand(cmd, ISSUE_SETTINGS, world.deps);
+  assert.equal(planned.receipt.outcome, 'PLANNED', planned.receipt.cause);
+  const prepared = await preparePlan(planned.plan);
+  const result = await executeOwnerPlan(prepared, 'synthetic-fixture-key', async (url, init) => new Response(JSON.stringify({ model: JEV_MODEL,
+    answers: Object.fromEntries(Object.keys(JSON.parse(init.body).questions).map(k => [k, { type: 'noul', noul: 0.4 }])) }), { status: 200 }));
+  const posted = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), { status: 0, stdout: JSON.stringify(result) + '\n' }, ISSUE_SETTINGS, world.deps);
+  assert.deepEqual([posted.receipt.outcome, posted.receipt.cause], ['APPENDED', 'READBACK_EXACT']);
+  // The result sink is the origin only; nothing is written to the subject's repository.
+  assert.deepEqual(world.calls.filter(c => c.startsWith('POST ')), [`POST repos/${REPO}/issues/comments/${EXPECTED.commandCommentId}/reactions`, `POST repos/${REPO}/issues/${ORIGIN_NUMBER}/comments`]);
+  const origin = await originOf({ approved: ISSUE_APPROVED, command: commandJson({ issue_url: ISSUE_URLS.origin }), run: runJson({ run_number: 900 }), log: timestamped(planned.receipt) });
+  assert.equal(origin.status, 'BOUND', origin.cause);
+  const subject = issueSubjectIdentitySnapshot({ ...(await issueReceipts({ comments: world.posted })), originTarget: ORIGIN, subjectTarget: SUBJECT, expected: origin.expected });
+  assert.equal(subject.status, 'VERIFIED', subject.cause);
+  const identity = JSON.parse(world.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+  assert.deepEqual([subject.snapshot, subject.provenance.originRevision, subjectRevision(subject.snapshot), subject.provenance.origin.requestDigest],
+    [subjectIssue(), identity.subjectRevision, identity.subject.revision, origin.origin.planRequestDigest]);
+  const value = await kPlan([question('q1'), kq('qK', ['target', 'k1'])], [{ ref: 'target', content: BODY }, K_OBS[1]]);
+  const out = project(value, subject, { contextRefs: ['k1'] }), wire = wireInput(out);
+  assert.equal(out.status, 'ELIGIBLE');
+  assert.deepEqual([wire.subject.ref, wire.subject.revision, wire.context.map(c => c.role), wire.checks.map(c => c.requiredRoles)],
+    [`https://github.com/${SUBJECT_REPO}/issues/${SUBJECT_NUMBER}`, identity.subject.revision, ['goal', 'observation:k1'], [[], ['observation:k1']]]);
+  assert.deepEqual(out.mapping.map(m => m.sharedContextRefs), [[GOAL.ref, 'k1'], [GOAL.ref, 'k1']]);
+  const admitted = await admitIssueCommand(issueAdmissionInput(out.envelope, subjectIssue(), 4300), ISSUE_SETTINGS);
+  assert.deepEqual([admitted.status, admitted.identity?.observation, admitted.identity?.subject?.revision, admitted.identity?.subjectRevision],
+    ['ADMITTED', PROVIDED_COMMAND_OBSERVATION, identity.subject.revision, identity.subjectRevision], admitted.cause);
+  const providedPlan = await planIssueCommand(world.ctx(4300, out.envelope), ISSUE_SETTINGS, world.deps);
+  assert.equal(providedPlan.receipt.outcome, 'PLANNED', providedPlan.receipt.cause);
+  assert.equal(JSON.stringify(providedPlan.plan.cases), JSON.stringify(JSON.parse(out.envelope.slice(REQUEST_PREFIX.length)).cases));
+  // Without the Issue provided grant the same envelope is the legacy refusal; a later subject edit is refused.
+  const { providedRequestTargets: _grant, ...subjectOnly } = ISSUE_SETTINGS;
+  assert.equal((await admitIssueCommand(issueAdmissionInput(out.envelope, subjectIssue(), 4301), subjectOnly)).cause, 'PROVIDED_WITH_SUBJECT_UNSUPPORTED');
+  assert.equal((await admitIssueCommand(issueAdmissionInput(out.envelope, subjectIssue(BODY, { ...EDITS, userContentEditsTotal: 3 }), 4302), ISSUE_SETTINGS)).status, 'NOT_ADMITTED');
+});
+
+// Composition, JA branch, on this tree: the real executor refuses a literal command on a CJK subject before any claim,
+// with its own 3-key observation; the caller binds it and the supplied rendering projects; the real admission admits it
+// and the real executor plans it. Provider calls for the refusal: 0. Not a rendering, R fidelity or an effect.
+test('Issue route composition, JA: executor 3-key refusal -> issueRefusalOrigin -> refusal snapshot -> project with aux and K -> admission', async () => {
+  const world = issueWorld({ subjectBody: JA_BODY });
+  const planned = await planIssueCommand(world.ctx(EXPECTED.commandCommentId, '/jev-evaluate'), ISSUE_SETTINGS, world.deps);
+  assert.deepEqual(planned.receipt, { schema: 'ops.jev.issue-actions-receipt.v1', stage: 'plan', outcome: 'NONE', cause: 'UNSUPPORTED_CJK', claimed: false,
+    providerCalls: 0, authority: false, commentId: EXPECTED.commandCommentId, run: { id: RUN.id, number: 900, attempt: 1, workflowId: RUN.workflowId }, observed: ISSUE_OBSERVED });
+  assert.deepEqual(world.calls.filter(c => !c.startsWith('GET ')), []);
+  const origin = await issueRefusedOf({ log: timestamped(planned.receipt) });
+  assert.deepEqual([origin.status, origin.kind, origin.planObservation], ['BOUND', 'literal-cjk-refusal-issue-subject', planned.receipt.observed], origin.cause);
+  const subject = await issueRefusalSnapshotOf({ origin });
+  assert.deepEqual([subject.status, subject.snapshot], ['VERIFIED', JA_SUBJECT], subject.cause);
+  const value = await kPlan([question('q1'), kq('qK', ['target', 'k1'])], [{ ref: 'target', content: JA_BODY }, K_OBS[1]]);
+  const out = project(value, subject, { englishAuxiliary: AUX, contextRefs: ['k1'] }), wire = wireInput(out);
+  assert.equal(out.status, 'ELIGIBLE');
+  assert.deepEqual([wire.subject.content, wire.subject.revision, wire.subject.englishAuxiliary, wire.subject.scope, wire.context.map(c => c.ref)],
+    [JA_BODY, planned.receipt.observed.subject.revision, AUX, ISSUE_SCOPE, [GOAL.ref, 'k1']]);
+  assert.deepEqual([out.fidelity.renderingVerdict, out.emittable, out.postingAuthorized], ['UNREVIEWED', false, false]);
+  const admitted = await admitIssueCommand(issueAdmissionInput(out.envelope, JA_SUBJECT, 4300), ISSUE_SETTINGS);
+  assert.deepEqual([admitted.status, admitted.identity?.subject?.revision, admitted.identity?.subjectRevision],
+    ['ADMITTED', planned.receipt.observed.subject.revision, planned.receipt.observed.subjectRevision], admitted.cause);
+  const providedPlan = await planIssueCommand(world.ctx(4300, out.envelope), ISSUE_SETTINGS, world.deps);
+  assert.equal(providedPlan.receipt.outcome, 'PLANNED', providedPlan.receipt.cause);
+  // A rendering bound to the origin body, or a later subject edit, is refused.
+  const toOrigin = project(value, subject, { englishAuxiliary: { ...AUX, sourceSha256: sha256(ORIGIN_BODY) }, contextRefs: ['k1'] });
+  assert.equal(toOrigin.cause, 'AUXILIARY_INVALID');
+  const tampered = JSON.parse(out.envelope.slice(REQUEST_PREFIX.length)); tampered.cases[0].input.subject.englishAuxiliary.sourceSha256 = sha256(ORIGIN_BODY);
+  assert.equal((await admitIssueCommand(issueAdmissionInput(REQUEST_PREFIX + JSON.stringify(tampered), JA_SUBJECT, 4301), ISSUE_SETTINGS)).status, 'NOT_ADMITTED');
+  assert.equal((await admitIssueCommand(issueAdmissionInput(out.envelope, subjectIssue(JA_BODY, { ...EDITS, userContentEditsTotal: 3 }), 4302), ISSUE_SETTINGS)).status, 'NOT_ADMITTED');
 });

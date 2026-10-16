@@ -175,10 +175,17 @@ export async function planIssueCommand(ctx, configValue, deps) {
   if (request.status !== 'ADMITTED') {
     // Only the granted-literal CJK refusal carries an observation, and it is kept only when it is exactly this run's
     // snapshot (node ID and 5-part revision). It is printed in the receipt/state, never claimed, posted or sent.
+    // A third key (the evaluated subject's own pair) is kept only under an explicit Issue provided grant for this origin,
+    // and only when it equals this run's own subject read; a subject grant alone never retains one.
     const o = request.observed;
-    const exactObservation = request.cause === 'UNSUPPORTED_CJK' && o !== null && typeof o === 'object' && Object.keys(o).length === 2
-      && o.issueNodeId === seen.issue.nodeId && o.subjectRevision === subjectRevision(seen.issue);
-    return end('NONE', request.cause, exactObservation ? { observed: { issueNodeId: o.issueNodeId, subjectRevision: o.subjectRevision } } : {});
+    const issueGrant = grant !== undefined && config.providedRequestTargets?.some((g) => g.repository === ctx.repository
+      && g.issue === e.issue.number) === true;
+    const exactObservation = request.cause === 'UNSUPPORTED_CJK' && o !== null && typeof o === 'object'
+      && Object.keys(o).length === (issueGrant ? 3 : 2) && o.issueNodeId === seen.issue.nodeId && o.subjectRevision === subjectRevision(seen.issue)
+      && (!issueGrant || (o.subject !== null && typeof o.subject === 'object' && Object.keys(o.subject).length === 2
+        && o.subject.nodeId === subject.nodeId && o.subject.revision === subjectRevision(subject)));
+    return end('NONE', request.cause, exactObservation ? { observed: { issueNodeId: o.issueNodeId, subjectRevision: o.subjectRevision,
+      ...(issueGrant ? { subject: { nodeId: o.subject.nodeId, revision: o.subject.revision } } : {}) } } : {});
   }
   if (seen.claims === null) return end('NONE', 'CLAIMS_INCOMPLETE');
   // Only EXECUTOR_LOGIN's reaction is a claim; known other logins are ignored, unattributable ones held.
