@@ -29,13 +29,34 @@ test("single typed POST, fixed model/endpoint, no redirect/retry, exact normaliz
     assert.equal(wire.context, "fixture");
     assert.equal(wire.model, "typellm-latest");
     assert.deepEqual(wire.options, { temperature: 0 });
-    assert.equal(wire.questions.parts.thinking, false);
+    assert.equal(wire.questions.enough.thinking, false);
+    assert.equal(Object.hasOwn(wire.questions.parts, "thinking"), false);
     assert.equal(wire.timeout, 30);
     return response(raw());
   } });
   assert.equal(calls, 1);
   assert.deepEqual(value, { result: raw().result, usage: raw().usage, elapsed: 0.5 });
   assert.ok(!JSON.stringify(value).includes("canary"));
+});
+
+test("hosted schema admits object/array containers without scalar-only thinking keys", async () => {
+  const typed = { context: "fixture", questions: { profile: { type: "object", properties: {
+    label: { type: "string" }, nested: { type: "object", properties: { ready: { type: "boolean" } } },
+  } }, parts: request.questions.parts } };
+  const result = { profile: { label: "fixture", nested: { ready: true } }, parts: [] };
+  let calls = 0;
+  const value = await generateTyped({ request: typed, provider: bindTypeLLM({ apiKey: "key-canary", fetch: async (_url, init) => {
+    calls++;
+    const wire = JSON.parse(init.body);
+    // Regression from a real hosted400 and official TypeLLM0.7.2 schema.py:
+    // thinking is scalar-only; array-item properties cannot take it either.
+    assert.deepEqual(wire.questions, typed.questions);
+    assert.equal(Object.hasOwn(wire.questions.profile, "thinking"), false);
+    assert.equal(Object.hasOwn(wire.questions.parts, "thinking"), false);
+    assert.equal(Object.hasOwn(wire.questions.parts.items.properties.label, "thinking"), false);
+    return response({ result });
+  } }) });
+  assert.equal(calls, 1); assert.deepEqual(value.result, result);
 });
 
 test("invalid/unsupported input refuses before transport", async () => {
@@ -47,7 +68,11 @@ test("invalid/unsupported input refuses before transport", async () => {
     x => { x.questions.parts.maxItems = 51; }, x => { x.questions.parts.items.type = "array"; },
     x => { x.questions.parts.items.properties.label.maxLength = 10; },
     x => { x.questions.enough.when = { other: true }; },
+    x => { x.questions.parts.thinking = true; }, x => { x.questions.parts.items.properties.label.thinking = false; },
     x => { x.questions.parts.items.properties.kind.enum = ["group", "group"]; },
+    x => { x.questions.parts.items.properties.kind.enum = ["group"]; },
+    x => { x.questions.parts.items.properties.kind.enum = Array.from({ length: 27 }, (_, i) => "kind" + i); },
+    x => { x.questions.enough = { type: "string", enum: ["one"] }; },
     x => { x.questions = Object.fromEntries(Array.from({ length: 65 }, (_, i) => ["q" + i, { type: "boolean" }])); },
     x => { x.questions.constructor = { type: "boolean" }; },
   ];
@@ -55,6 +80,18 @@ test("invalid/unsupported input refuses before transport", async () => {
     await refuse(() => generateTyped({ request: x, provider }), "input_invalid"); }
   await refuse(() => generateTyped({ request, provider: bindTypeLLM() }), "auth_missing");
   assert.equal(calls, 0);
+});
+
+test("enum boundaries admit 26 array-item choices and 64 top-level choices", async () => {
+  const typed = { context: "fixture", questions: {
+    kind: { type: "string", enum: Array.from({ length: 64 }, (_, i) => "top" + i) },
+    items: { type: "array", minItems: 0, maxItems: 1,
+      items: { type: "string", enum: Array.from({ length: 26 }, (_, i) => "item" + i) } },
+  } };
+  const result = { kind: "top63", items: ["item25"] };
+  const value = await generateTyped({ request: typed, provider: bindTypeLLM({ apiKey: "key-canary",
+    fetch: async () => response({ result }) }) });
+  assert.deepEqual(value.result, result);
 });
 
 test("wrong/missing/extra typed answers never become application data", async () => {

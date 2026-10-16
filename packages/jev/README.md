@@ -144,6 +144,13 @@ deadline includes response reading. Model/endpoint are fixed, thinking is off,
 redirects are refused and each invocation sends at most once. Typed validity is
 not evidence of semantic correctness or drawing quality.
 
+Thinking is explicitly disabled on top-level scalar questions. Object/array
+containers omit that scalar-only option and retain the API's default off on
+their properties/items; callers cannot supply thinking options anywhere.
+String enums accept 2–64 choices, or at most 26 inside an array item. These
+bounds and container rules follow the
+[upstream schema compiler](https://github.com/TypeLLM/TypeLLM/blob/deac4f40830a561adbbe5498d96aeb55107c7bbb/typellm/schema.py).
+
 The existing `.#jev` package also installs `bin/typellm`. It takes one JSON request
 on stdin and writes one JSON line. Only the CLI reads `TYPELLM_API_KEY`. Its exit
 codes match the existing CLI classes: input 1, missing auth 2, provider 3,
