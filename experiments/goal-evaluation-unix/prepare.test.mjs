@@ -3,8 +3,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { RESULT_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
+import { RESULT_PREFIX, REQUEST_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { semlint } from '../../packages/jev-review/semlint.mjs';
+import { preparePlan } from '../../packages/jev-review/semlint-entry.mjs';
+import { validateJevBudget } from '../../packages/jev-review/core.mjs';
 import { planIssueCommand, PULL_REQUEST_QUERY, COMMENT_QUERY } from '../../packages/jev-review/issue-executor.mjs';
 import { plan } from './core.mjs';
 import { acquire, executorIdentitySnapshot, project as projectPlan, expectedOrigin, fidelityFromReview, refusalOrigin, refusalIdentitySnapshot } from './prepare.mjs';
@@ -925,5 +927,147 @@ test('the subject declaration is checked before any question or subject and bind
     const out = project(english, subject, options);
     assert.deepEqual([out.status, out.cause, Object.hasOwn(out, 'envelope')], ['HOLD', 'SUBJECT_OBSERVATION_MISMATCH', false], JSON.stringify(options));
     for (const key of ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal']) assert.deepEqual(out[key], faithfulOut[key], key);
+  }
+});
+
+// Raw wire budget. The runtime refuses a v14 input over 28000 raw bytes before any claim (semlint validateJevBudget, run by
+// preparePlan in admission). This is its first check only; its second, on the model-facing state, is a residual below. W1-W3 are W's witnesses recorded on unmodified M 9c270086 with its own API before the change
+// (development fixtures, not Gold): project returned ELIGIBLE for inputs the runtime could never admit.
+const FILLER = 'Adds a retry for the delivery job and records each attempt before reading back the destination state. ';
+const longBody = n => FILLER.repeat(Math.ceil(n / FILLER.length)).slice(0, n);
+const UNEDITED = { lastEditedAt: null, includesCreatedEdit: false, userContentEditsTotal: 0 };
+const verifiedBody = body => ({ status: 'VERIFIED', target: TARGET, readerDeclaredLive: false, snapshot: issue(body, UNEDITED) });
+const BUDGET_KEYS = ['checks', 'mapping', 'notProjected', 'unprojectedClauses', 'unquotedGoalText', 'missing', 'goal'];
+const BIG = longBody(31500), W3_BODY = longBody(26818), SMALL = longBody(20000);
+const M_BUDGET = {
+  W1: { output: 'c95ce1f84730300f1fab10204ad9d4209d6d369894f9d92b6f3c3e5197c2f338', raw: 'ae36412373e5a831ec63fdcf110d98c8ba1797237b099988ffc7c2bdfeb7169b', rawBytes: 32735 },
+  W2: { output: '7dd352e70fff830f9b73571cc35fb6f0b3a0b1ac2835e0914fc2767db6b71067', raw: '4b11b81db37fccc90485e1840a1fd4822ff9e3ef76aa8cfb8076a7592a160926', rawBytes: 33105 },
+  W3: { output: 'd0195f817a114ed925ef25d51c6f1f022996428ca0283a689f85b23a51013bac', raw: '324e7f354d9eaefffa6b26022b28bf496531c56e200328f6988bbc465b21752e', rawBytes: 28423 },
+  control: { output: '33dda4be1ea5a13f9c5237e2dc483b837344c26c35f66672d1733a65bd0802f9', envelope: '9322185c4417499012575b66578bd69993fa2ed8bad352ca6d92a8105b7ee00b' },
+};
+// The would-be wire of an oversized case: the eligible wire of a budget-valid twin (same plan questions) with only the
+// subject's body-dependent fields replaced. It is checked byte-for-byte against M's recorded wire, so it is not a model.
+const swapBody = (input, body) => ({ ...input, subject: { ...input.subject, revision: subjectRevision(issue(body, UNEDITED)), content: body,
+  sha256: sha256(body), evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(body) } } });
+const envelopeOf = input => REQUEST_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-request.v1', cases: [{ id: 'pull-request', input }] });
+const preflight = input => preparePlan({ schema: 'ops.semlint.real-input.v1', cases: [{ id: 'pull-request', input }] }, { ...SETTINGS.limits, maxCases: 1, maxCalls: 1 })
+  .then(() => 'PREPARED', error => error.message);
+const withinBudget = input => { try { validateJevBudget(input, {}); return true; } catch { return false; } };
+const heldForBudget = (out, label) => {
+  assert.deepEqual([out.status, out.cause, out.emittable], ['HOLD', 'WIRE_BUDGET_EXCEEDED', false], label);
+  for (const key of ['envelope', 'envelopeSha256', 'fidelity', 'postingAuthorized']) assert.equal(Object.hasOwn(out, key), false, `${label}: ${key}`);
+};
+
+test('a wire input over the runtime raw budget holds locally instead of looking eligible (W1-W3 recorded on M)', async () => {
+  const w1Plan = await goalPlan([question('q1', { requiredRefs: [], basisRefs: [GOAL.ref] })], GOAL, clauses, {}, 'not the subject');
+  const cases = [
+    ['W1', w1Plan, projectPlan(w1Plan, verifiedBody(SMALL)), BIG, () => projectPlan(w1Plan, verifiedBody(BIG))],
+    ['W2', await goalPlan(undefined, GOAL, clauses, { maxBytes: 60000 }, BIG), project(await goalPlan(undefined, GOAL, clauses, {}, SMALL), verifiedBody(SMALL)), BIG,
+      async () => project(await goalPlan(undefined, GOAL, clauses, { maxBytes: 60000 }, BIG), verifiedBody(BIG), { maxBytes: 60000 })],
+    ['W3', await goalPlan(undefined, GOAL, clauses, {}, W3_BODY), project(await goalPlan(undefined, GOAL, clauses, {}, SMALL), verifiedBody(SMALL)), W3_BODY,
+      async () => project(await goalPlan(undefined, GOAL, clauses, {}, W3_BODY), verifiedBody(W3_BODY))],
+  ];
+  assert.equal(Buffer.byteLength(JSON.stringify(cases[2][1])), 28000, 'W3 is a default-limits plan at exactly the Plan cap');
+  let id = 4400;
+  for (const [name, value, twin, body, run] of cases) {
+    assert.equal(twin.status, 'ELIGIBLE', `${name}: the budget-valid twin`);
+    const wire = swapBody(wireInput(twin), body), raw = JSON.stringify(wire);
+    assert.deepEqual([sha256(raw), Buffer.byteLength(raw)], [M_BUDGET[name].raw, M_BUDGET[name].rawBytes], `${name}: the same wire M emitted`);
+    // The runtime refuses it before any claim: the existing preflight and the real provided admission.
+    assert.equal(withinBudget(wire), false, name);
+    assert.equal(await preflight(wire), 'ENTRY_PREFLIGHT_FAILED', name);
+    const admitted = await admitIssueCommand(admissionInput(envelopeOf(wire), issue(body, UNEDITED), id++), SETTINGS);
+    assert.deepEqual([admitted.status, admitted.cause], ['NOT_ADMITTED', 'INVALID_REQUEST_OR_ADMISSION'], name);
+    // project now holds it, with every local record and no envelope; M's ELIGIBLE output changes on purpose.
+    const out = await run();
+    heldForBudget(out, name);
+    assert.notEqual(sha256(JSON.stringify(out)), M_BUDGET[name].output, name);
+    const unverified = projectPlan(value, undefined, name === 'W1' ? {} : { subjectRef: 'target', ...(name === 'W2' ? { maxBytes: 60000 } : {}) });
+    for (const key of BUDGET_KEYS) assert.deepEqual(out[key], unverified[key], `${name}: ${key}`);
+  }
+  // The budget-valid control keeps M's bytes and is admitted.
+  const control = project(await goalPlan(undefined, GOAL, clauses, {}, SMALL), verifiedBody(SMALL));
+  assert.deepEqual([sha256(JSON.stringify(control)), control.envelopeSha256], [M_BUDGET.control.output, M_BUDGET.control.envelope]);
+  assert.equal(await preflight(wireInput(control)), 'PREPARED');
+  assert.equal((await admitIssueCommand(admissionInput(control.envelope, issue(SMALL, UNEDITED), 4409), SETTINGS)).status, 'ADMITTED');
+});
+
+test('the raw boundary is the runtime\'s first check: 28000 raw UTF-8 bytes stay eligible, one more byte holds (English and rendered CJK)', async () => {
+  // Fit a body so the wire is exactly 28000 bytes, then replace its last ASCII character with a 2-byte one: the same
+  // JavaScript length, one more UTF-8 byte. The Goal context unit and, in the second case, the English rendering are counted.
+  // PREPARED at exactly 28000 bytes holds for these few-piece fixtures only, not in general (see the residual test below).
+  const fit = async (prefix, options) => {
+    // The probe already has a 5-digit span end, so adding filler moves the wire size byte for byte.
+    const probe = prefix + 'a'.repeat(20000), at = project(await goalPlan(undefined, GOAL, clauses, {}, probe), verifiedBody(probe), options(probe));
+    assert.equal(at.status, 'ELIGIBLE', 'the probe is within budget');
+    const body =prefix + 'a'.repeat(20000 + 28000 - Buffer.byteLength(JSON.stringify(wireInput(at))));
+    return [body, body.slice(0, -1) + 'é'];
+  };
+  const english = () => ({});
+  const rendered = body => ({ englishAuxiliary: { text: AUX.text, sourceSha256: sha256(body) } });
+  for (const [label, prefix, options] of [['English', 'Adds a retry. ', english], ['CJK with rendering', JA_BODY, rendered]]) {
+    const [fits, over] = await fit(prefix, options);
+    assert.equal(fits.length, over.length);
+    assert.equal(Buffer.byteLength(over), Buffer.byteLength(fits) + 1);
+    const inBudget = project(await goalPlan(undefined, GOAL, clauses, {}, fits), verifiedBody(fits), options(fits));
+    assert.equal(inBudget.status, 'ELIGIBLE', label);
+    const wire = wireInput(inBudget);
+    assert.equal(Buffer.byteLength(JSON.stringify(wire)), 28000, label);
+    assert.equal(wire.context[0].role, 'goal', label);
+    assert.deepEqual([withinBudget(wire), await preflight(wire)], [true, 'PREPARED'], label);
+    const overWire = swapBody(wire, over);
+    if (label !== 'English') overWire.subject.englishAuxiliary = { text: AUX.text, sourceSha256: sha256(over) };
+    assert.equal(Buffer.byteLength(JSON.stringify(overWire)), 28001, label);
+    assert.deepEqual([withinBudget(overWire), await preflight(overWire)], [false, 'ENTRY_PREFLIGHT_FAILED'], label);
+    heldForBudget(project(await goalPlan(undefined, GOAL, clauses, {}, over), verifiedBody(over), options(over)), label);
+  }
+});
+
+test('residual, not closed here: a raw-valid ELIGIBLE can still be refused by the runtime\'s budget on its larger model-facing state', async () => {
+  // The runtime applies the same budget again to the state it builds for the model (the subject split into pieces, with
+  // per-piece indices), before any call. project only mirrors the raw check, so sentence-rich text can look eligible here.
+  const sentences = n => 'Adds a retry. '.repeat(n).trimEnd();
+  const eligible = async body => {
+    const out = project(await goalPlan(undefined, GOAL, clauses, {}, body), verifiedBody(body));
+    assert.equal(out.status, 'ELIGIBLE');
+    return out;
+  };
+  const run = async wire => {
+    const states = [];
+    const result = await semlint(wire, async state => { states.push(Buffer.byteLength(JSON.stringify(state))); throw new Error('NO_CALL_IN_TEST'); });
+    return { states, attempts: result.accounting.callbackAttempts, causes: result.records.map(r => r.cause) };
+  };
+  // 1270 sentences: the model-facing state reaches the callback and is over 8000 bytes larger than the raw input.
+  const fits = wireInput(await eligible(sentences(1270))), fitsRaw = Buffer.byteLength(JSON.stringify(fits)), seen = await run(fits);
+  assert.deepEqual([seen.attempts, seen.states.length], [1, 1]);
+  assert.ok(seen.states[0] <= 28000 && seen.states[0] - fitsRaw > 8000, `${fitsRaw} raw, ${seen.states[0]} state`);
+  // 1300 sentences: under 20000 raw bytes and ELIGIBLE here, yet refused before any call, by the preflight and admission.
+  const body = sentences(1300), out = await eligible(body), wire = wireInput(out);
+  assert.ok(Buffer.byteLength(JSON.stringify(wire)) < 20000 && withinBudget(wire));
+  assert.deepEqual(await run(wire), { states: [], attempts: 0, causes: ['EVALUATION_PREFLIGHT_FAILED', 'EVALUATION_PREFLIGHT_FAILED'] });
+  assert.equal(await preflight(wire), 'ENTRY_PREFLIGHT_FAILED');
+  const admitted = await admitIssueCommand(admissionInput(out.envelope, issue(body, UNEDITED), 4410), SETTINGS);
+  assert.deepEqual([admitted.status, admitted.cause], ['NOT_ADMITTED', 'INVALID_REQUEST_OR_ADMISSION']);
+});
+
+test('earlier outcomes keep priority over the budget, and an oversized fidelity record no longer throws', async () => {
+  const big = { maxBytes: 60000 }, plan60k = body => goalPlan(undefined, GOAL, clauses, big, body);
+  const jaBig = JA_BODY + 'a'.repeat(31000);
+  const cases = [
+    ['NEED_CLARIFICATION', project(await goalPlan([], GOAL, [], big, BIG), verifiedBody(BIG), big)],
+    ['NOTHING_PROJECTED', project(await goalPlan([question('q1', { needs: ['destination log'] })], GOAL, clauses, big, BIG), verifiedBody(BIG), big)],
+    ['REVISION_UNOBSERVED', project(await plan60k(BIG), undefined, big)],
+    ['INPUT_UNKNOWN', project(await plan60k(BIG), { status: 'HOLD', cause: 'INPUT_UNKNOWN' }, big)],
+    ['SUBJECT_OBSERVATION_MISMATCH', project(await plan60k(BIG), verifiedBody(BIG + ' Edited.'), big)],
+    ['AUXILIARY_INVALID', project(await plan60k(jaBig), verifiedBody(jaBig), { ...big, englishAuxiliary: {} })],
+    ['RENDERING_NOT_NEEDED', project(await plan60k(BIG), verifiedBody(BIG), { ...big, englishAuxiliary: { text: 'Adds a retry.', sourceSha256: sha256(BIG) } })],
+    ['UNSUPPORTED_CJK', project(await plan60k(jaBig), verifiedBody(jaBig), big)],
+  ];
+  for (const [cause, out] of cases) assert.equal(out.cause ?? out.status, cause, cause);
+  // A supplied fidelity record, well-formed or not, is not evaluated for an oversized input (it used to throw
+  // FIDELITY_RECORD_MISMATCH after an ELIGIBLE-looking envelope). Budget-valid fidelity behaviour is tested above unchanged.
+  const w3 = await goalPlan(undefined, GOAL, clauses, {}, W3_BODY);
+  for (const fidelity of [{ reviewRef: 'test:r', envelopeSha256: '0'.repeat(64), verdicts: { q1: 'FAITHFUL', q2: 'FAITHFUL' } }, { reviewRef: '' }]) {
+    heldForBudget(project(w3, verifiedBody(W3_BODY), { fidelity }), JSON.stringify(fidelity));
   }
 });

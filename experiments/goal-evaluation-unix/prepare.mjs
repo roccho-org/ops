@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { REQUEST_PREFIX, RESULT_PREFIX, COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { exact } from '../../packages/jev-review/semlint-entry.mjs';
+import { validateJevBudget } from '../../packages/jev-review/core.mjs';
 import { checkPlan, unquotedGoalText } from './core.mjs';
 
 const sha256 = text => createHash('sha256').update(text, 'utf8').digest('hex');
@@ -171,6 +172,9 @@ export function project(planValue, subject, { fidelity, englishAuxiliary, subjec
     checks };
   // Without a rendering any CJK makes the case unsupported; with one, CJK may remain only in the original subject content.
   if (CJK.test(JSON.stringify(rendering ? { ...input, subject: { ...subjectUnit, content: '' } } : input))) return { status: 'UNSUPPORTED_CJK', emittable: false, ...base };
+  // The runtime refuses a wire input over its raw budget before any claim (semlint's own validateJevBudget). The same
+  // existing check runs here, on the exact object the envelope carries, so such a case holds instead of looking eligible.
+  try { validateJevBudget(input, {}); } catch { return hold('WIRE_BUDGET_EXCEEDED', base); }
   const envelope = REQUEST_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-request.v1', cases: [{ id: 'pull-request', input }] });
   const envelopeSha256 = sha256(envelope);
   const review = fidelityOf(fidelity, envelopeSha256, checks.map(c => c.id), rendering);
