@@ -37,7 +37,7 @@ function validateRequest(request) {
     if (s.instructions !== undefined && (typeof s.instructions !== "string" || s.instructions.length > 8192))
       fail("input_invalid");
     if (!["string", "boolean", "integer", "number", "object", "array"].includes(s.type)) fail("input_invalid");
-    if (s.enum !== undefined && (s.type !== "string" || !Array.isArray(s.enum) || !s.enum.length || s.enum.length > 64
+    if (s.enum !== undefined && (s.type !== "string" || !Array.isArray(s.enum) || s.enum.length < 2 || s.enum.length > (inArray ? 26 : 64)
         || s.enum.some(x => typeof x !== "string" || !x.length || x.length > 2048)
         || new Set(s.enum).size !== s.enum.length)) fail("input_invalid");
     if (s.type === "object") fields(s.properties, depth + 1, inArray);
@@ -53,7 +53,10 @@ function validateRequest(request) {
   let body;
   try {
     body = JSON.stringify({ context: request.context,
-      questions: Object.fromEntries(Object.entries(request.questions).map(([key, s]) => [key, { ...s, thinking: false }])),
+      // TypeLLM rejects even thinking:false on object/array containers. Their
+      // properties/items retain the API's default off; callers cannot enable it.
+      questions: Object.fromEntries(Object.entries(request.questions).map(([key, s]) => [key,
+        ["object", "array"].includes(s.type) ? s : { ...s, thinking: false }])),
       model: "typellm-latest", options: { temperature: 0 }, timeout: 30 });
   } catch { fail("input_invalid"); }
   if (encoder.encode(body).byteLength > MAX_REQUEST) fail("input_invalid");
