@@ -931,7 +931,7 @@ test('the subject declaration is checked before any question or subject and bind
 });
 
 // Raw wire budget. The runtime refuses a v14 input over 28000 raw bytes before any claim (semlint validateJevBudget, run by
-// preparePlan in admission). W1-W3 are W's witnesses recorded on unmodified M 9c270086 with its own API before the change
+// preparePlan in admission). This is its first check only; its second, on the model-facing state, is a residual below. W1-W3 are W's witnesses recorded on unmodified M 9c270086 with its own API before the change
 // (development fixtures, not Gold): project returned ELIGIBLE for inputs the runtime could never admit.
 const FILLER = 'Adds a retry for the delivery job and records each attempt before reading back the destination state. ';
 const longBody = n => FILLER.repeat(Math.ceil(n / FILLER.length)).slice(0, n);
@@ -992,9 +992,10 @@ test('a wire input over the runtime raw budget holds locally instead of looking 
   assert.equal((await admitIssueCommand(admissionInput(control.envelope, issue(SMALL, UNEDITED), 4409), SETTINGS)).status, 'ADMITTED');
 });
 
-test('the boundary is the runtime\'s own: 28000 raw UTF-8 bytes stay eligible, one more byte holds (English and rendered CJK)', async () => {
+test('the raw boundary is the runtime\'s first check: 28000 raw UTF-8 bytes stay eligible, one more byte holds (English and rendered CJK)', async () => {
   // Fit a body so the wire is exactly 28000 bytes, then replace its last ASCII character with a 2-byte one: the same
   // JavaScript length, one more UTF-8 byte. The Goal context unit and, in the second case, the English rendering are counted.
+  // PREPARED at exactly 28000 bytes holds for these few-piece fixtures only, not in general (see the residual test below).
   const fit = async (prefix, options) => {
     // The probe already has a 5-digit span end, so adding filler moves the wire size byte for byte.
     const probe = prefix + 'a'.repeat(20000), at = project(await goalPlan(undefined, GOAL, clauses, {}, probe), verifiedBody(probe), options(probe));
@@ -1020,6 +1021,33 @@ test('the boundary is the runtime\'s own: 28000 raw UTF-8 bytes stay eligible, o
     assert.deepEqual([withinBudget(overWire), await preflight(overWire)], [false, 'ENTRY_PREFLIGHT_FAILED'], label);
     heldForBudget(project(await goalPlan(undefined, GOAL, clauses, {}, over), verifiedBody(over), options(over)), label);
   }
+});
+
+test('residual, not closed here: a raw-valid ELIGIBLE can still be refused by the runtime\'s budget on its larger model-facing state', async () => {
+  // The runtime applies the same budget again to the state it builds for the model (the subject split into pieces, with
+  // per-piece indices), before any call. project only mirrors the raw check, so sentence-rich text can look eligible here.
+  const sentences = n => 'Adds a retry. '.repeat(n).trimEnd();
+  const eligible = async body => {
+    const out = project(await goalPlan(undefined, GOAL, clauses, {}, body), verifiedBody(body));
+    assert.equal(out.status, 'ELIGIBLE');
+    return out;
+  };
+  const run = async wire => {
+    const states = [];
+    const result = await semlint(wire, async state => { states.push(Buffer.byteLength(JSON.stringify(state))); throw new Error('NO_CALL_IN_TEST'); });
+    return { states, attempts: result.accounting.callbackAttempts, causes: result.records.map(r => r.cause) };
+  };
+  // 1270 sentences: the model-facing state reaches the callback and is over 8000 bytes larger than the raw input.
+  const fits = wireInput(await eligible(sentences(1270))), fitsRaw = Buffer.byteLength(JSON.stringify(fits)), seen = await run(fits);
+  assert.deepEqual([seen.attempts, seen.states.length], [1, 1]);
+  assert.ok(seen.states[0] <= 28000 && seen.states[0] - fitsRaw > 8000, `${fitsRaw} raw, ${seen.states[0]} state`);
+  // 1300 sentences: under 20000 raw bytes and ELIGIBLE here, yet refused before any call, by the preflight and admission.
+  const body = sentences(1300), out = await eligible(body), wire = wireInput(out);
+  assert.ok(Buffer.byteLength(JSON.stringify(wire)) < 20000 && withinBudget(wire));
+  assert.deepEqual(await run(wire), { states: [], attempts: 0, causes: ['EVALUATION_PREFLIGHT_FAILED', 'EVALUATION_PREFLIGHT_FAILED'] });
+  assert.equal(await preflight(wire), 'ENTRY_PREFLIGHT_FAILED');
+  const admitted = await admitIssueCommand(admissionInput(out.envelope, issue(body, UNEDITED), 4410), SETTINGS);
+  assert.deepEqual([admitted.status, admitted.cause], ['NOT_ADMITTED', 'INVALID_REQUEST_OR_ADMISSION']);
 });
 
 test('earlier outcomes keep priority over the budget, and an oversized fidelity record no longer throws', async () => {
