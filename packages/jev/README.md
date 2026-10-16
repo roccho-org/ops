@@ -98,14 +98,15 @@ No retry occurs. Fixture tests are mechanical evidence, not live Jev success.
 
 `nix build .#jev-worker-esm` produces one deterministic ZIP containing only
 `batch.mjs` (producer-bundled core and adapter) and a manifest
-(`jev-provider/1`, `named-choices/2`, entry,
+(`jev-provider/1`, `named-choices-and-typed/1`, entry,
 exports, empty import closure and the entry's byte length/SHA256).
 Consumers verify locator/digest/contract/merged proof before import; refusal
 must not fall back to source checkout, ambient resolution or a credential read.
 Source input digests, the completed ESM digest, and a later app Worker digest
 are distinct. Provenance records the core, batch adapter and assembly definition
 as source inputs, never claims that bundled bytes equal source bytes. Old
-`named-choices/1` assets are retained and are not silently accepted as /2.
+Earlier `named-choices/1` and `named-choices/2` releases are retained. A consumer
+must explicitly admit the new contract; old pins never silently gain generation.
 
 The narrow `jev-provider-release.yml` verifies the actual ZIP entry, preserves
 old CLI tests, and reuses unchanged reviewed-merge proof/selftest/workflow lint.
@@ -123,3 +124,54 @@ no Nix build and compares a re-download byte-for-byte; existing assets are never
 overwritten. This is unsigned, shared-principal review/provenance evidence,
 not a provider signature or host immutability guarantee. A PR build is not
 formal supply. Old artifacts/real receipts do not transfer to a new identity.
+# TypeLLM typed completion
+
+`src/typellm.mjs` owns the TypeLLM transport and typed-answer contract. `bindTypeLLM`
+captures one credential; `generateTyped({request, provider, signal})` returns only
+validated `result`, optional token usage and elapsed seconds. The existing Worker
+artifact exports `bindTypeLLM`, `generateTyped`, and `TypedProviderError` beside
+its three existing Jev exports, with the explicit `named-choices-and-typed/1`
+contract and TypeLLM source digest. The consumer supplies
+the questions and their meaning. No generated operator, diagram mutation, retry,
+environment lookup or credential is part of that domain API.
+
+The intentionally small subset is a complete batch of string/enum, boolean,
+integer, number, object and top-level bounded array questions. All object fields
+are required, extra answer fields are refused, and arrays require `minItems` and
+`maxItems` (at most 32). Conditional/resumable calls and nested arrays are outside
+this contract. Requests are limited to 128 KiB; responses to 1 MiB; the 35 s
+deadline includes response reading. Model/endpoint are fixed, thinking is off,
+redirects are refused and each invocation sends at most once. Typed validity is
+not evidence of semantic correctness or drawing quality.
+
+The existing `.#jev` package also installs `bin/typellm`. It takes one JSON request
+on stdin and writes one JSON line. Only the CLI reads `TYPELLM_API_KEY`. Its exit
+codes match the existing CLI classes: input 1, missing auth 2, provider 3,
+typed-answer contract 4, internal failure 5. Error output contains closed codes
+and, for HTTP failures, a numeric status; no upstream body or exception text.
+
+## Local envs handoff
+
+Author `TYPELLM_API_KEY` through the `dev.typellm-authoring` target in
+[`roccho-org/envs`](https://github.com/roccho-org/envs). The OCI ciphertext is
+`ciphertexts/dev-typellm-api.oci-dev.sops.yaml`, encrypted for the existing own
+target identity. The private key stays on that target, mode 0600, owned by the
+caller. Do not copy its value or the API key to the Windows workspace.
+
+The sibling `jev.typellm` tool in `roccho-dev/windows/oci/dev/nix.nix` builds
+`ops-typellm` explicitly; it is not added to a global profile. On the existing
+own target, build it from a reviewed Windows commit with that commit's pinned
+Nixpkgs, then feed a public request to:
+
+```sh
+/nix/store/<built-launcher>/bin/ops-typellm \
+  --envs-sha <current-ciphertext-commit> --ops-sha <exact-ops-commit> < request.json
+```
+
+The launcher verifies envs ancestry/current ciphertext, the single field and
+recipient, and the target identity. It builds the exact ops program before
+decryption. Descriptor 3 hands the credential into one child, which has only
+stdio descriptors, an absent HOME and a closed environment. The caller's stdin
+remains the request; launcher diagnostics go to stderr. `ops-jev` keeps its own
+credential and command. Source tests and this handoff do not establish API
+availability, semantic effect or acceptance; those require separate live records.

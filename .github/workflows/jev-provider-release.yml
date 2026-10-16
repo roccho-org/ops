@@ -58,6 +58,7 @@ jobs:
           digest="$(cut -d' ' -f1 "$out/jev-provider.zip.sha256")"
           python3 tools/jev-provider-artifact.py verify --archive "$out/jev-provider.zip" --sha256 "$digest" --extract "$RUNNER_TEMP/jev-entry"
           nix shell --inputs-from . nixpkgs#nodejs -c env JEV_PROVIDER_ENTRY="$RUNNER_TEMP/jev-entry/batch.mjs" node --test packages/jev/tests/batch.test.mjs
+          nix shell --inputs-from . nixpkgs#nodejs -c env TYPELLM_PROVIDER_ENTRY="$RUNNER_TEMP/jev-entry/batch.mjs" node --test packages/jev/tests/typellm.test.mjs
       - name: Bind current canonical check and merged review proof
         if: env.PUBLISH == 'true'
         env:
@@ -137,7 +138,7 @@ jobs:
           cmp "$RUNNER_TEMP/current-proof.json" "$dir/merged-pr-proof.json"
           tag="jev-provider-$EXACT_SHA"
           if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create "$tag" "$dir/jev-provider.zip" "$dir/jev-provider.zip.sha256" "$dir/merged-pr-proof.json" "$dir/provenance.json" --repo "$GITHUB_REPOSITORY" --target "$EXACT_SHA" --latest=false --title "$tag" --notes 'Worker-compatible named-choice provider; reviewed source, not live-provider evidence.'
+            gh release create "$tag" "$dir/jev-provider.zip" "$dir/jev-provider.zip.sha256" "$dir/merged-pr-proof.json" "$dir/provenance.json" --repo "$GITHUB_REPOSITORY" --target "$EXACT_SHA" --latest=false --title "$tag" --notes 'Worker-compatible named choices and typed generation; reviewed source, not live-provider evidence.'
           fi
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/jev-readback"
           python3 tools/jev-provider-artifact.py verify-release --dir "$RUNNER_TEMP/jev-readback" --sha "$EXACT_SHA"

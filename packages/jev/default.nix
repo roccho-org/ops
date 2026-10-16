@@ -45,5 +45,7 @@ stdenvNoCC.mkDerivation {
     mkdir -p $out/bin
     makeWrapper ${nodejs}/bin/node $out/bin/jev \
       --add-flags "$out/lib/cli/index.mjs"
+    makeWrapper ${nodejs}/bin/node $out/bin/typellm \
+      --add-flags "$out/lib/cli/typellm.mjs"
   '';
 }
