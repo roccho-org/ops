@@ -95,7 +95,10 @@ function responseStream(text: string) {
 function mockRemote(replies: string[], revoked = false) {
   const inference: { authorization: string | null; body: unknown }[] = [];
   let rotations = 0;
-  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+  // Do not use vi.fn here: its call/result history retains DO-owned Signal and
+  // Response objects, which can themselves prevent a real instance eviction.
+  // Record only detached request evidence and counts, not I/O-bearing objects.
+  vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
     if (input instanceof Request) throw new Error("Unexpected Request transport: inspect the pinned SDK seam");
     const url = String(input);
     expect(init?.method).toBe("POST");
@@ -120,7 +123,7 @@ function mockRemote(replies: string[], revoked = false) {
     const reply = replies.shift();
     if (reply === undefined) throw new Error("Unexpected extra mock inference");
     return responseStream(reply);
-  }));
+  });
   return { inference, rotations: () => rotations };
 }
 
