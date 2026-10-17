@@ -20,6 +20,43 @@ export class TypedProviderError extends Error {
 }
 const fail = (code, status) => { throw new TypedProviderError(code, status); };
 
+// Resolve sibling names before sending; the service executes the resulting DAG.
+// Object dependencies apply to every scalar property, including nested objects.
+function validateDependencies(questions) {
+  const leaves = [];
+  const walk = (definitions, inherited) => {
+    const scope = new Map(Object.entries(definitions).map(([key, field]) => [key, { field, leaves: [] }]));
+    for (const entry of scope.values()) {
+      const { field } = entry;
+      let rules = inherited;
+      if (field.depends_on !== undefined) {
+        const names = field.depends_on;
+        if (!Array.isArray(names) || names.length > 64 || new Set(names).size !== names.length
+            || names.some(key => typeof key !== "string" || !scope.has(key) || scope.get(key).field.type === "array"))
+          fail("input_invalid");
+        rules = [...inherited, { scope, names }];
+      }
+      if (field.type === "object") entry.leaves.push(...walk(field.properties, rules));
+      else if (field.type !== "array") {
+        const leaf = { rules, dependencies: new Set() };
+        entry.leaves.push(leaf); leaves.push(leaf);
+      }
+    }
+    return [...scope.values()].flatMap(entry => entry.leaves);
+  };
+  walk(questions, []);
+  for (const leaf of leaves)
+    for (const { scope, names } of leaf.rules)
+      for (const key of names)
+        for (const dependency of scope.get(key).leaves) leaf.dependencies.add(dependency);
+  const pending = new Set(leaves);
+  while (pending.size) {
+    const ready = [...pending].filter(leaf => [...leaf.dependencies].every(dependency => !pending.has(dependency)));
+    if (!ready.length) fail("input_invalid");
+    for (const leaf of ready) pending.delete(leaf);
+  }
+}
+
 function validateRequest(request) {
   if (!keys(request, ["context", "questions"]) || typeof request.context !== "string"
       || !request.context.trim() || !object(request.questions)) fail("input_invalid");
@@ -32,8 +69,9 @@ function validateRequest(request) {
     }
   };
   const schema = (s, depth, inArray) => {
-    if (depth > 6 || !keys(s, ["type", "instructions", "enum", "properties", "items", "minItems", "maxItems"]))
+    if (depth > 6 || !keys(s, ["type", "instructions", "enum", "properties", "items", "minItems", "maxItems", "depends_on"]))
       fail("input_invalid");
+    if (s.depends_on !== undefined && (inArray || s.type === "array")) fail("input_invalid");
     if (s.instructions !== undefined && (typeof s.instructions !== "string" || s.instructions.length > 8192))
       fail("input_invalid");
     if (!["string", "boolean", "integer", "number", "object", "array"].includes(s.type)) fail("input_invalid");
@@ -50,6 +88,7 @@ function validateRequest(request) {
     } else if (["items", "minItems", "maxItems"].some(k => s[k] !== undefined)) fail("input_invalid");
   };
   fields(request.questions, 0);
+  validateDependencies(request.questions);
   let body;
   try {
     body = JSON.stringify({ context: request.context,

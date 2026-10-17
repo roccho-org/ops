@@ -144,6 +144,19 @@ deadline includes response reading. Model/endpoint are fixed, thinking is off,
 redirects are refused and each invocation sends at most once. Typed validity is
 not evidence of semantic correctness or drawing quality.
 
+Scalar and object questions may specify `depends_on: ["sibling_name", ...]`.
+Names resolve in the same question map or containing object's properties;
+forward references are allowed. Depending on an object includes all its scalar
+properties, and an object's dependencies apply to all its nested properties.
+The provider checks unknown names, duplicate references, self-dependencies and
+cycles across the expanded scalar graph before sending. Existing 64-field and
+depth-six bounds apply. Array dependencies, dependencies inside array items,
+and arbitrary dotted paths are outside this subset; existing dependency-free
+arrays retain their behavior. The service evaluates the dependencies within
+the same single HTTP request; this core does not issue per-field calls or add
+application meaning. See the [upstream workflow contract](https://typellm.ai/docs/workflows).
+This capability alone does not prove a caller's candidate-generation quality.
+
 Thinking is explicitly disabled on top-level scalar questions. Object/array
 containers omit that scalar-only option and retain the API's default off on
 their properties/items; callers cannot supply thinking options anywhere.
