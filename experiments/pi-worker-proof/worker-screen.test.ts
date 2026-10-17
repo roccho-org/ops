@@ -24,6 +24,7 @@ describe("Worker URL to unchanged Pi OAuth, screen only", () => {
   it("shows an honest landing and creates a fresh valid redirect without network/token exchange", async () => {
     const page = await exports.default.fetch(`${origin}/auth`);
     expect(page.status).toBe(200);
+    expect(page.headers.get("referrer-policy")).toBe("same-origin");
     expect(await page.text()).toContain("接続は完了しません");
     const first = checkTarget(await start());
     const second = checkTarget(await start());
@@ -40,10 +41,12 @@ describe("Worker URL to unchanged Pi OAuth, screen only", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
   it("fails closed for missing identity and an aborted request; never reflects input", async () => {
-    const response = await oauthScreen(new Request(`${origin}/auth/start`, { method: "POST", headers: { origin } }), { PI_OAUTH_HOST_ID: "private-input-must-not-escape" });
-    expect(response.status).toBe(503);
-    expect(response.headers.has("location")).toBe(false);
-    expect((await response.text()).includes("private-input")).toBe(false);
+    for (const PI_OAUTH_HOST_ID of ["", "private-input-must-not-escape"]) {
+      const response = await oauthScreen(new Request(`${origin}/auth/start`, { method: "POST", headers: { origin } }), { PI_OAUTH_HOST_ID });
+      expect(response.status).toBe(503);
+      expect(response.headers.has("location")).toBe(false);
+      expect((await response.text()).includes("private-input")).toBe(false);
+    }
     const controller = new AbortController(); controller.abort();
     expect((await oauthScreen(new Request(`${origin}/auth/start`, { method: "POST", headers: { origin }, signal: controller.signal }), {})).status).toBe(503);
     expect(fetch).not.toHaveBeenCalled();

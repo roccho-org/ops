@@ -5,7 +5,9 @@ declare global { interface Env { PI_OAUTH_HOST_ID?: string } }
 const headers = {
   "content-type": "text/html; charset=utf-8",
   "cache-control": "no-store",
-  "referrer-policy": "no-referrer",
+  // A no-referrer document makes native form POST Origin:null. Preserve same-origin
+  // form checks here, then suppress Referer on the external redirect below.
+  "referrer-policy": "same-origin",
   "x-content-type-options": "nosniff",
   "content-security-policy": "default-src 'none'; form-action 'self' https://auth.openai.com; frame-ancestors 'none'; base-uri 'none'",
 };
@@ -42,7 +44,7 @@ export async function oauthScreen(request: Request, env: { PI_OAUTH_HOST_ID?: st
     if (error === ended && target && !request.signal.aborted) {
       const destination = new URL(target);
       if (destination.origin === "https://auth.openai.com" && destination.pathname === "/api/accounts/authorize") {
-        return reply("", 303, { location: target });
+        return reply("", 303, { location: target, "referrer-policy": "no-referrer" });
       }
     }
   }
