@@ -1,4 +1,4 @@
-name: Pi Worker proof (mock only)
+name: Pi Worker proof (mock inference, OAuth screen)
 
 on:
   push:
@@ -71,7 +71,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 ../ops/experiments/pi-worker-proof/apply.py
-          git add -N src/worker-oauth.ts src/oauth-module.d.ts worker-oauth.alias.ts vitest.proof.config.ts test/worker-proof.setup.ts test/worker-auth.test.ts test/worker-app.test.ts
+          git add -N src/worker-oauth.ts src/worker-screen.ts src/oauth-module.d.ts worker-oauth.alias.ts vitest.proof.config.ts test/worker-proof.setup.ts test/worker-auth.test.ts test/worker-app.test.ts test/worker-screen.test.ts
           git diff > "$RUNNER_TEMP/pi-worker-proof/app-overlay.patch"
           git diff --exit-code -- package.json pnpm-lock.yaml
       - name: Type-check, build and dry-run the integrated Worker (not test aliases only)
@@ -89,6 +89,33 @@ jobs:
         run: |
           set -euo pipefail
           pnpm exec vitest run --config vitest.proof.config.ts --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/pi-worker-proof/tests.json" 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/runtime.log"
+      - name: Package and exercise the actual screen-only Worker over HTTP
+        id: screen
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          screen="$RUNNER_TEMP/pi-worker-screen"
+          proof="$RUNNER_TEMP/pi-worker-proof"
+          python3 ../ops/experiments/pi-worker-proof/package-screen.py "$screen"
+          pnpm exec wrangler deploy --config "$screen/wrangler.json" --dry-run --outdir "$RUNNER_TEMP/screen-dry-run" 2>&1 | tee "$proof/screen-build.log"
+          pnpm exec wrangler dev --config "$screen/wrangler.json" --ip 127.0.0.1 --port 8799 --var PI_OAUTH_HOST_ID:00000000-0000-4000-8000-000000000563 > "$proof/screen-worker.log" 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          python3 ../ops/experiments/pi-worker-proof/screen-http.py http://127.0.0.1:8799 "$proof/screen-http.json"
+          python3 -m pip install --disable-pip-version-check playwright==1.63.0 > "$RUNNER_TEMP/screen-browser-install.log" 2>&1
+          python3 -m playwright install --with-deps chromium >> "$RUNNER_TEMP/screen-browser-install.log" 2>&1
+          python3 ../ops/experiments/pi-worker-proof/screen-browser.py http://127.0.0.1:8799 "$proof"
+          # No credentials, personal browser state, OAuth query or installation logs are packaged.
+          cp ../ops/experiments/pi-worker-proof/SCREEN.md "$screen/SCREEN.md"
+      - name: Preserve screen-only deployment bytes (no deployment)
+        if: ${{ !cancelled() && steps.screen.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi-worker-screen-${{ github.sha }}
+          path: ${{ runner.temp }}/pi-worker-screen/
+          if-no-files-found: error
+          retention-days: 14
       - name: Record scope, exact execution identity and evidence hashes
         if: always()
         shell: bash
@@ -98,6 +125,7 @@ jobs:
           OVERLAY_OUTCOME: ${{ steps.overlay.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
+          SCREEN_OUTCOME: ${{ steps.screen.outcome }}
         run: |
           mkdir -p "$RUNNER_TEMP/pi-worker-proof"
           python3 - <<'PY'
@@ -108,9 +136,10 @@ jobs:
               except (OSError, subprocess.CalledProcessError):
                   return None
           root = pathlib.Path(os.environ['RUNNER_TEMP'], 'pi-worker-proof')
+          screen = root / 'screen-browser.json'
           receipt = {
-              'schema': 'pi-worker-proof.v2',
-              'scope': 'MOCK_ONLY_WORKER_APP_INTEGRATION',
+              'schema': 'pi-worker-proof.v3',
+              'scope': 'MOCK_INFERENCE_AND_REAL_PI_OAUTH_SCREEN_ENTRY',
               'ops_sha': head('ops'),
               'upstream_sha': head('upstream'),
               'run_id': os.environ['GITHUB_RUN_ID'],
@@ -121,12 +150,14 @@ jobs:
               'app_overlay': os.environ['OVERLAY_OUTCOME'],
               'integrated_app_build_dry_run': os.environ['BUILD_OUTCOME'],
               'workerd_tests': os.environ['RUNTIME_OUTCOME'],
-              'credentials': 'SYNTHETIC_ONLY',
-              'remote_responses': 'MOCK_ONLY',
+              'screen_package_and_http': os.environ['SCREEN_OUTCOME'],
+              'external_auth_screen': json.loads(screen.read_text())['screen'] if screen.exists() else 'NOT_RUN',
+              'credentials': 'SYNTHETIC_ONLY_IN_REGRESSION_TESTS_NONE_IN_SCREEN',
+              'remote_inference_responses': 'MOCK_ONLY',
               'real_credentials_used': False,
               'live_subscription_inference': 'NOT_RUN',
               'live_oauth_refresh': 'NOT_RUN',
-              'cloudflare_deploy': 'NOT_RUN',
+              'cloudflare_deploy': 'NOT_RUN_ROOT_OWNED',
               'production_auth_persistence': 'NOT_AUTHORIZED_OR_PROVEN',
               'merge_authorized': False,
           }
