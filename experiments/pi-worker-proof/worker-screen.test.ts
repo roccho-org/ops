@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import { oauthScreen } from "../src/worker-screen.ts";
 
 const origin = "https://example.com";
-const start = (headers: HeadersInit = { origin }) => exports.default.fetch(`${origin}/auth/start`, { method: "POST", headers });
+// The service binding otherwise follows the redirect against this Worker again.
+const start = (headers: HeadersInit = { origin }) => exports.default.fetch(`${origin}/auth/start`, { method: "POST", headers, redirect: "manual" });
 const checkTarget = (response: Response) => {
   expect(response.status).toBe(303);
   const url = new URL(response.headers.get("location")!);
