@@ -1,4 +1,4 @@
-import { evictDurableObject, runInDurableObject } from "cloudflare:test";
+import { abortAllDurableObjects, evictDurableObject, runInDurableObject } from "cloudflare:test";
 import { env, exports } from "cloudflare:workers";
 import { BACKGROUND_CONTEXT } from "@earendil-works/chord/context";
 import type { OAuthCredential } from "@earendil-works/pi-ai";
@@ -7,7 +7,10 @@ import { openDurableObjectSqliteStorage } from "@earendil-works/pi-durable/stora
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bootstrapWorkerCredential, createWorkerModels, WorkerCredentialStore } from "../src/worker-oauth.ts";
 
-vi.setConfig({ testTimeout: 25_000, hookTimeout: 25_000 });
+// Two graceful evictions can each drain for 30s. This bound includes both;
+// assertion polling stays 10s. Cleanup is a forced reset, never a storage reset.
+// https://developers.cloudflare.com/workers/testing/vitest-integration/test-apis/#durable-objects
+vi.setConfig({ testTimeout: 80_000, hookTimeout: 10_000 });
 const nativeFetch = globalThis.fetch;
 const fixture = (): OAuthCredential =>
   JSON.parse((env as unknown as { PI_PROOF_AUTH: string }).PI_PROOF_AUTH);
@@ -15,28 +18,21 @@ const bootstrapSession: string = JSON.parse(
   (env as unknown as { PI_CHATGPT_BOOTSTRAP: string }).PI_CHATGPT_BOOTSTRAP,
 ).session;
 const wait = { timeout: 10_000, interval: 20 };
-const sockets = new Set<WebSocket>();
-const sessions = new Set<string>();
 
 async function closeSocket(socket: WebSocket) {
-  if (socket.readyState === WebSocket.CLOSED) { sockets.delete(socket); return; }
+  if (socket.readyState === WebSocket.CLOSED) return;
   const closed = new Promise<void>((resolve) =>
     socket.addEventListener("close", () => resolve(), { once: true }),
   );
   socket.close(1000, "proof complete");
   await closed;
-  sockets.delete(socket);
 }
 
 afterEach(async () => {
-  const pending = [...sessions];
-  sessions.clear();
-  for (const socket of [...sockets]) await closeSocket(socket);
-  for (const session of pending) await evictDurableObject(env.SESSIONS.getByName(session));
+  await abortAllDurableObjects();
 });
 
 async function seed(session: string, credential: OAuthCredential) {
-  sessions.add(session);
   const stub = env.SESSIONS.getByName(session);
   await runInDurableObject(stub, async (_instance, state) => {
     await state.blockConcurrencyWhile(async () => {});
@@ -52,14 +48,12 @@ async function saved(session: string) {
 }
 
 async function connect(session: string) {
-  sessions.add(session);
   const response = await exports.default.fetch(
     `https://example.com/api/sessions/${session}?username=Owner`,
     { headers: { Upgrade: "websocket" } },
   );
   expect(response.status).toBe(101);
   const socket = response.webSocket!;
-  sockets.add(socket);
   const messages: unknown[] = [];
   socket.addEventListener("message", (event) => { messages.push(JSON.parse(String(event.data))); });
   socket.accept();
@@ -185,6 +179,7 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
     expect(JSON.stringify(third.messages)).toContain('"stopReason":"stop"');
     expect(await saved(session)).toMatchObject({ refresh: "fixture-refresh-rotated" });
     await closeSocket(third.socket);
+    console.info("fixture-stage", "two-evictions-history-and-rotated-auth-read-back");
   });
 
   it("denies native network access and does not copy the bootstrap grant into another DO", async () => {
@@ -250,7 +245,6 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
 
   it("rejects malformed bootstrap data and never resurrects a consumed binding after deletion", async () => {
     const session = "oauth-bootstrap-guards";
-    sessions.add(session);
     await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
       await state.blockConcurrencyWhile(async () => {
         for (const raw of ["not-json-secret-must-not-escape", JSON.stringify({ session, credential: { ...fixture(), expires: null } })]) {
