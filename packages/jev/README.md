@@ -126,7 +126,8 @@ No retry occurs. Fixture tests are mechanical evidence, not live Jev success.
 `named-questions/1`, with exact exports, empty import closure and byte digest.
 The exports are the four ask functions, `bindJev`, `JevError`,
 `JevContractError`, `judgeNamedChoices`, and `JudgeProviderError`.
-Neither the entry nor its source inputs include TypeLLM. The archive verifier
+The runtime module closure and completed ESM contain no TypeLLM implementation.
+The explicit legacy CLI composition is separate. The archive verifier
 checks the exact member set and refuses an unexpected contract, export or hash.
 
 [TypeLLM](../typellm/README.md) owns generation, its credential, CLI, tests and
