@@ -34,7 +34,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "24.21.0"
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: upstream/package.json
@@ -42,8 +42,23 @@ jobs:
       - name: Install upstream locked dependencies
         id: install
         working-directory: upstream
-        run: pnpm install --frozen-lockfile
-      - name: Check and dry-run the unmodified upstream Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pi-worker-proof"
+          # Keep strict build review enabled. These two hooks stay DISALLOWED;
+          # only upstream-approved esbuild/workerd can run install scripts.
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('pnpm-workspace.yaml')
+          text = path.read_text()
+          assert text.count('allowBuilds:\n') == 1
+          path.write_text(text.replace('allowBuilds:\n', 'allowBuilds:\n  "@google/genai@2.21.0": false\n  protobufjs@7.6.6: false\n', 1))
+          PY
+          git diff -- pnpm-workspace.yaml > "$RUNNER_TEMP/pi-worker-proof/install-policy.patch"
+          pnpm install --frozen-lockfile 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/install.log"
+          git diff --exit-code -- package.json pnpm-lock.yaml
+      - name: Check and dry-run the upstream Worker
         id: build
         working-directory: upstream
         shell: bash
@@ -87,6 +102,7 @@ jobs:
               'run_id': os.environ['GITHUB_RUN_ID'],
               'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
               'install': os.environ['INSTALL_OUTCOME'],
+              'install_policy_overlay': {'denied_builds': ['@google/genai@2.21.0', 'protobufjs@7.6.6']},
               'upstream_build_dry_run': os.environ['BUILD_OUTCOME'],
               'workerd_tests': os.environ['RUNTIME_OUTCOME'],
               'real_credentials_used': False,
