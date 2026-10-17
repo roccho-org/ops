@@ -254,7 +254,9 @@
                   --source ${packages.${system}.typellm-worker-esm}/typellm.mjs
                 cmp ${packages.${system}.typellm}/share/typellm/artifact.jsonl ${self}/packages/typellm/artifact.jsonl
                 test "$(readlink ${packages.${system}.jev}/bin/typellm)" = "${packages.${system}.typellm}/bin/typellm"
-                printf '{}' | ${packages.${system}.jev}/bin/typellm > compat || test "$?" -eq 1
+                rc=0
+                printf '{}' | ${packages.${system}.jev}/bin/typellm > compat || rc=$?
+                test "$rc" -eq 1
                 grep -q '"input_invalid"' compat
                 echo "typellm: source, standalone ESM and installed legacy CLI composition PASS" > $out
               '';
