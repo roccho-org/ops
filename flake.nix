@@ -69,7 +69,10 @@
           };
           cdp-tty = nixpkgs.legacyPackages.${system}.callPackage ./packages/cdp-tty { };
           hayamimi-web = nixpkgs.legacyPackages.${system}.callPackage ./packages/hayamimi-web { };
-          jev = nixpkgs.legacyPackages.${system}.callPackage ./packages/jev/default.nix { };
+          typellm = nixpkgs.legacyPackages.${system}.callPackage ./packages/typellm/default.nix { };
+          jev = nixpkgs.legacyPackages.${system}.callPackage ./packages/jev/default.nix {
+            typellm = packages.${system}.typellm;
+          };
           semcmp = nixpkgs.legacyPackages.${system}.callPackage ./packages/semcmp/default.nix { };
           mail-routing-tofu =
             let
@@ -84,6 +87,7 @@
             in
             envsPkgs.opentofu.withPlugins (p: [ p.cloudflare_cloudflare ]);
           jev-worker-esm = packages.${system}.jev.workerESM;
+          typellm-worker-esm = packages.${system}.typellm.workerESM;
           gosh = nixpkgs.legacyPackages.${system}.buildGoModule {
             pname = "gosh";
             version = "0.1.0";
@@ -207,16 +211,20 @@
                 ${pkgs.nodejs}/bin/node --test tests/*.test.mjs
                 JEV_PROVIDER_ENTRY=${
                   packages.${system}.jev-worker-esm
-                }/batch.mjs ${pkgs.nodejs}/bin/node --test tests/batch.test.mjs
-                TYPELLM_PROVIDER_ENTRY=${
+                }/jev.mjs ${pkgs.nodejs}/bin/node --test tests/batch.test.mjs
+                JEV_QUESTIONS_ENTRY=${
                   packages.${system}.jev-worker-esm
-                }/batch.mjs ${pkgs.nodejs}/bin/node --test tests/typellm.test.mjs
-                python3 ${self}/tools/jev-provider-artifact.py selftest --source ${
+                }/jev.mjs ${pkgs.nodejs}/bin/node --test tests/questions.test.mjs
+                JEV_PROVIDER_ENTRY=${packages.${system}.jev-worker-esm}/jev.mjs \
+                  TYPELLM_PROVIDER_ENTRY=${packages.${system}.typellm-worker-esm}/typellm.mjs \
+                  ${pkgs.nodejs}/bin/node --test tests/distribution.test.mjs
+                python3 ${self}/tools/jev-provider-artifact.py --provider jev selftest --source ${
                   packages.${system}.jev-worker-esm
-                }/batch.mjs
+                }/jev.mjs
                 yq -o=json . ${self}/.github/workflows/jev-provider-release.yml | python3 ${self}/packages/hayamimi-web/build/check-release-workflow.py
                 python3 ${self}/packages/hayamimi-web/build/check-release-workflow.py --selftest
                 python3 ${self}/packages/hayamimi-web/build/release-provenance.py selftest
+                python3 ${self}/tools/test_jev_provider_artifact.py
                 cd "$TMPDIR"
                 unset JEV_API_KEY
                 BIN=${packages.${system}.jev}/bin/jev
@@ -231,6 +239,24 @@
                 done
                 cmp "${packages.${system}.jev}/share/jev/artifact.jsonl" "${self}/packages/jev/artifact.jsonl"
                 echo "jev check: unit tests; installed CLI direct+symlink: invalid=1, nokey=2, 1 stdout line, empty stderr; artifact verified" > $out
+              '';
+          typellm =
+            let
+              pkgs = nixpkgs.legacyPackages.${system};
+            in
+            pkgs.runCommand "typellm-test"
+              { nativeBuildInputs = [ pkgs.nodejs pkgs.python3 ]; }
+              ''
+                node --test ${self}/packages/typellm/tests/typellm.test.mjs
+                TYPELLM_PROVIDER_ENTRY=${packages.${system}.typellm-worker-esm}/typellm.mjs \
+                  node --test ${self}/packages/typellm/tests/typellm.test.mjs
+                python3 ${self}/tools/jev-provider-artifact.py --provider typellm selftest \
+                  --source ${packages.${system}.typellm-worker-esm}/typellm.mjs
+                cmp ${packages.${system}.typellm}/share/typellm/artifact.jsonl ${self}/packages/typellm/artifact.jsonl
+                test "$(readlink ${packages.${system}.jev}/bin/typellm)" = "${packages.${system}.typellm}/bin/typellm"
+                printf '{}' | ${packages.${system}.jev}/bin/typellm > compat || test "$?" -eq 1
+                grep -q '"input_invalid"' compat
+                echo "typellm: source, standalone ESM and installed legacy CLI composition PASS" > $out
               '';
           hq-modeling-runtime = packages.${system}.hq-modeling-runtime;
           issue-116-shiftleft-proof =

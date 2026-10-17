@@ -1,4 +1,4 @@
-// TypeLLM's bounded, complete typed-answer subset. Application meaning stays with the caller.
+// Independent TypeLLM typed generation. Application meaning stays with the caller.
 const ENDPOINT = "https://api.typellm.ai/v1/generate";
 const MAX_REQUEST = 128 * 1024;
 const MAX_RESPONSE = 1024 * 1024;
