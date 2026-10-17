@@ -59,6 +59,70 @@ test("hosted schema admits object/array containers without scalar-only thinking 
   assert.equal(calls, 1); assert.deepEqual(value.result, result);
 });
 
+const dependentRequest = () => {
+  const item = () => ({ type: "object", properties: {
+    label: { type: "string", depends_on: ["kind"] },
+    kind: { type: "string", enum: ["a", "b"] },
+    quantity: { type: "string", enum: ["0", "1", "2"], depends_on: ["kind", "label"] },
+  } });
+  return { context: "dependency fixture", questions: {
+    first: item(), second: { ...item(), depends_on: ["first"] },
+    third: { ...item(), depends_on: ["first", "second"] },
+  } };
+};
+
+test("sibling and inherited object dependencies reach one POST with unchanged answer paths", async () => {
+  const typed = dependentRequest(), result = {
+    first: { label: "one", kind: "a", quantity: "1" },
+    second: { label: "two", kind: "b", quantity: "2" },
+    third: { label: "", kind: "a", quantity: "0" },
+  };
+  let calls = 0;
+  const value = await generateTyped({ request: typed, provider: bindTypeLLM({ apiKey: "key-canary", fetch: async (_url, init) => {
+    calls++;
+    assert.deepEqual(JSON.parse(init.body).questions, typed.questions);
+    return response({ result });
+  } }) });
+  assert.equal(calls, 1); assert.deepEqual(value, { result });
+});
+
+test("invalid dependency scope, inherited cycles and array dependencies refuse before transport", async () => {
+  let calls = 0;
+  const provider = bindTypeLLM({ apiKey: "key-canary", fetch: async () => { calls++; throw Error("must not send"); } });
+  const array = () => ({ type: "array", minItems: 0, maxItems: 1, items: { type: "string" } });
+  const mutations = [
+    x => { x.questions.first.depends_on = "second"; },
+    x => { x.questions.first.depends_on = ["missing"]; },
+    x => { x.questions.first.depends_on = ["first"]; },
+    x => { x.questions.first.depends_on = ["third"]; },
+    x => { x.questions.first.properties.kind.depends_on = ["kind"]; },
+    x => { x.questions.first.properties.kind.depends_on = ["quantity"]; },
+    x => { x.questions.first.properties.label.depends_on = ["kind", "kind"]; },
+    x => { x.questions.first.properties.label.depends_on = ["first.kind"]; },
+    x => { x.questions.second.properties.kind.depends_on = ["first"]; },
+    x => { x.questions.first.depends_on = Array(65).fill("second"); },
+    x => { x.questions.extra = array(); x.questions.first.depends_on = ["extra"]; },
+    x => { x.questions.extra = { ...array(), depends_on: [] }; },
+    x => { x.questions.extra = array(); x.questions.extra.items.depends_on = []; },
+  ];
+  for (const change of mutations) {
+    const typed = dependentRequest(); change(typed);
+    await refuse(() => generateTyped({ request: typed, provider }), "input_invalid");
+  }
+  assert.equal(calls, 0);
+});
+
+test("bounded scalar graph accepts forward references at the existing field limit", async () => {
+  const questions = Object.fromEntries(Array.from({ length: 64 }, (_, i) => ["q" + i, {
+    type: "boolean", ...(i ? {} : { depends_on: Array.from({ length: 63 }, (_, j) => "q" + (j + 1)) }),
+  }]));
+  const result = Object.fromEntries(Object.keys(questions).map(key => [key, false]));
+  let calls = 0;
+  const value = await generateTyped({ request: { context: "fixture", questions },
+    provider: bindTypeLLM({ apiKey: "key-canary", fetch: async () => { calls++; return response({ result }); } }) });
+  assert.equal(calls, 1); assert.deepEqual(value.result, result);
+});
+
 test("invalid/unsupported input refuses before transport", async () => {
   let calls = 0;
   const provider = bindTypeLLM({ apiKey: "key-canary", fetch: async () => { calls++; return response(raw()); } });
