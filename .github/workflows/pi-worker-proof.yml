@@ -1,0 +1,108 @@
+name: Pi Worker proof (mock only)
+
+on:
+  push:
+    branches: [poc/pi-worker-oauth-20261017]
+    paths:
+      - experiments/pi-worker-proof/**
+      - .github/workflows/pi-worker-proof.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pi-worker-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      CI: "true"
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ops
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: earendil-works/pi-durable-cloudflare
+          ref: dcb56ce2d174babb3f00112ac5b8cd597e58ab45
+          path: upstream
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: upstream/package.json
+          run_install: false
+      - name: Install upstream locked dependencies
+        id: install
+        working-directory: upstream
+        run: pnpm install --frozen-lockfile
+      - name: Check and dry-run the unmodified upstream Worker
+        id: build
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pi-worker-proof"
+          pnpm check 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/build.log"
+      - name: Workerd tests with network denied and synthetic credentials
+        id: runtime
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pi-worker-proof"
+          cp ../ops/experiments/pi-worker-proof/vitest.proof.config.ts .
+          cp ../ops/experiments/pi-worker-proof/worker-proof.setup.ts test/
+          cp ../ops/experiments/pi-worker-proof/worker-auth.test.ts test/
+          pnpm exec vitest run --config vitest.proof.config.ts --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/pi-worker-proof/tests.json" 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/runtime.log"
+      - name: Record scope and exact execution identity
+        if: always()
+        shell: bash
+        env:
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/pi-worker-proof"
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess
+          def head(path):
+              try:
+                  return subprocess.check_output(['git','-C',path,'rev-parse','HEAD'], text=True).strip()
+              except (OSError, subprocess.CalledProcessError):
+                  return None
+          receipt = {
+              'schema': 'pi-worker-proof.v1',
+              'scope': 'MOCK_ONLY_WORKER_COMPATIBILITY',
+              'ops_sha': head('ops'),
+              'upstream_sha': head('upstream'),
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'install': os.environ['INSTALL_OUTCOME'],
+              'upstream_build_dry_run': os.environ['BUILD_OUTCOME'],
+              'workerd_tests': os.environ['RUNTIME_OUTCOME'],
+              'real_credentials_used': False,
+              'live_subscription_inference': 'NOT_RUN',
+              'live_oauth_refresh': 'NOT_RUN',
+              'cloudflare_deploy': 'NOT_RUN',
+              'production_auth_persistence': 'NOT_PROVEN',
+              'merge_authorized': False,
+          }
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'pi-worker-proof', 'receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
+          PY
+      - name: Preserve proof evidence (no credentials)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi-worker-mock-proof-${{ github.sha }}
+          path: ${{ runner.temp }}/pi-worker-proof/
+          if-no-files-found: error
+          retention-days: 14
