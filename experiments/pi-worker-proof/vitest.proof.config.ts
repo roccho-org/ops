@@ -1,18 +1,9 @@
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { cloudflareTest } from "@cloudflare/vitest-plugin";
 import { defineConfig } from "vitest/config";
-
-// Copied beside upstream's config by CI. Reuse the installed implementation;
-// this alias is a bundling seam, not a new OAuth protocol implementation.
-const aiDist = dirname(fileURLToPath(import.meta.resolve("@earendil-works/pi-ai")));
+import { oauthAlias } from "./worker-oauth.alias.ts";
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      "pi-proof-openai-oauth": join(aiDist, "auth/oauth/openai-chatgpt.js"),
-    },
-  },
+  resolve: { alias: oauthAlias },
   test: {
     fsModuleCache: false,
     setupFiles: ["./test/worker-proof.setup.ts"],

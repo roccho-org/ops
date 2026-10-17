@@ -6,6 +6,7 @@ on:
     paths:
       - experiments/pi-worker-proof/**
       - .github/workflows/pi-worker-proof.yml
+      - ci.intent.v1.jsonl
 
 permissions:
   contents: read
@@ -46,8 +47,6 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/pi-worker-proof"
-          # Keep strict build review enabled. These two hooks stay DISALLOWED;
-          # only upstream-approved esbuild/workerd can run install scripts.
           python3 - <<'PY'
           from pathlib import Path
           path = Path('pnpm-workspace.yaml')
@@ -58,61 +57,81 @@ jobs:
           git diff -- pnpm-workspace.yaml > "$RUNNER_TEMP/pi-worker-proof/install-policy.patch"
           pnpm install --frozen-lockfile 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/install.log"
           git diff --exit-code -- package.json pnpm-lock.yaml
-      - name: Check and dry-run the upstream Worker
+      - name: Check and dry-run the unchanged upstream Worker
+        id: baseline
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm check 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/baseline-build.log"
+      - name: Apply the bounded runtime integration
+        id: overlay
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ../ops/experiments/pi-worker-proof/apply.py
+          git add -N src/worker-oauth.ts src/worker-oauth.d.ts worker-oauth.alias.ts vitest.proof.config.ts test/worker-proof.setup.ts test/worker-auth.test.ts test/worker-app.test.ts
+          git diff > "$RUNNER_TEMP/pi-worker-proof/app-overlay.patch"
+          git diff --exit-code -- package.json pnpm-lock.yaml
+      - name: Type-check, build and dry-run the integrated Worker (not test aliases only)
         id: build
         working-directory: upstream
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/pi-worker-proof"
-          pnpm check 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/build.log"
-      - name: Workerd tests with network denied and synthetic credentials
+          { pnpm exec tsc && pnpm exec tsc -p tsconfig.client.json && pnpm build && pnpm exec wrangler deploy --dry-run --outdir .wrangler/dry-run; } 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/app-build.log"
+      - name: Workerd app and regression tests with remote network denied
         id: runtime
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.overlay.outcome == 'success' }}
         working-directory: upstream
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/pi-worker-proof"
-          cp ../ops/experiments/pi-worker-proof/vitest.proof.config.ts .
-          cp ../ops/experiments/pi-worker-proof/worker-proof.setup.ts test/
-          cp ../ops/experiments/pi-worker-proof/worker-auth.test.ts test/
           pnpm exec vitest run --config vitest.proof.config.ts --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/pi-worker-proof/tests.json" 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/runtime.log"
-      - name: Record scope and exact execution identity
+      - name: Record scope, exact execution identity and evidence hashes
         if: always()
         shell: bash
         env:
           INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          BASELINE_OUTCOME: ${{ steps.baseline.outcome }}
+          OVERLAY_OUTCOME: ${{ steps.overlay.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
         run: |
           mkdir -p "$RUNNER_TEMP/pi-worker-proof"
           python3 - <<'PY'
-          import json, os, pathlib, subprocess
+          import hashlib, json, os, pathlib, subprocess
           def head(path):
               try:
                   return subprocess.check_output(['git','-C',path,'rev-parse','HEAD'], text=True).strip()
               except (OSError, subprocess.CalledProcessError):
                   return None
+          root = pathlib.Path(os.environ['RUNNER_TEMP'], 'pi-worker-proof')
           receipt = {
-              'schema': 'pi-worker-proof.v1',
-              'scope': 'MOCK_ONLY_WORKER_COMPATIBILITY',
+              'schema': 'pi-worker-proof.v2',
+              'scope': 'MOCK_ONLY_WORKER_APP_INTEGRATION',
               'ops_sha': head('ops'),
               'upstream_sha': head('upstream'),
               'run_id': os.environ['GITHUB_RUN_ID'],
               'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
               'install': os.environ['INSTALL_OUTCOME'],
               'install_policy_overlay': {'denied_builds': ['@google/genai@2.21.0', 'protobufjs@7.6.6']},
-              'upstream_build_dry_run': os.environ['BUILD_OUTCOME'],
+              'upstream_build_dry_run': os.environ['BASELINE_OUTCOME'],
+              'app_overlay': os.environ['OVERLAY_OUTCOME'],
+              'integrated_app_build_dry_run': os.environ['BUILD_OUTCOME'],
               'workerd_tests': os.environ['RUNTIME_OUTCOME'],
+              'credentials': 'SYNTHETIC_ONLY',
+              'remote_responses': 'MOCK_ONLY',
               'real_credentials_used': False,
               'live_subscription_inference': 'NOT_RUN',
               'live_oauth_refresh': 'NOT_RUN',
               'cloudflare_deploy': 'NOT_RUN',
-              'production_auth_persistence': 'NOT_PROVEN',
+              'production_auth_persistence': 'NOT_AUTHORIZED_OR_PROVEN',
               'merge_authorized': False,
           }
-          pathlib.Path(os.environ['RUNNER_TEMP'], 'pi-worker-proof', 'receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
+          (root / 'receipt.json').write_text(json.dumps(receipt, indent=2)+'\n')
+          (root / 'SHA256SUMS').write_text(''.join(f'{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n' for p in sorted(root.iterdir()) if p.is_file() and p.name != 'SHA256SUMS'))
           PY
       - name: Preserve proof evidence (no credentials)
         if: always()
