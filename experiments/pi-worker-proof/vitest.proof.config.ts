@@ -12,6 +12,9 @@ export default defineConfig({
     cloudflareTest({
       wrangler: { configPath: "./wrangler.jsonc" },
       miniflare: {
+        // Deny native fetch too, including an SDK that captured it before stubs.
+        outboundService: async () =>
+          new Response("MOCK_ONLY: native outbound denied", { status: 401 }),
         bindings: {
           OPENAI_API_KEY: "",
           PI_PROOF_AUTH: JSON.stringify({

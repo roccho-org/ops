@@ -15,8 +15,9 @@ def replace_once(path, before, after):
     file.write_text(text.replace(before, after, 1))
 
 
-for name in ("worker-oauth.ts", "worker-oauth.d.ts"):
-    shutil.copyfile(source / name, Path("src") / name)
+shutil.copyfile(source / "worker-oauth.ts", "src/worker-oauth.ts")
+# A .d.ts sharing a .ts basename is shadowed by TypeScript source discovery.
+shutil.copyfile(source / "worker-oauth.d.ts", "src/oauth-module.d.ts")
 shutil.copyfile(source / "worker-oauth.alias.ts", "worker-oauth.alias.ts")
 shutil.copyfile(source / "vitest.proof.config.ts", "vitest.proof.config.ts")
 for name in ("worker-proof.setup.ts", "worker-auth.test.ts", "worker-app.test.ts"):
