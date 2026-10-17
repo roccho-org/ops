@@ -57,7 +57,8 @@ ops/
 │  │  ├─ src/
 │  │  │  ├─ core.mjs        # T + J_wire: one binding, snapshot, one POST
 │  │  │  ├─ client.mjs      # J: Noul/Choice/Score; |Q| >= 1; single wrappers
-│  │  │  └─ batch.mjs       # B = adapt -> J_wire -> normalize; compatibility
+│  │  │  ├─ batch.mjs       # B = adapt -> J_wire -> normalize; compatibility
+│  │  │  └─ worker.mjs      # explicit independent Jev ESM exports
 │  │  ├─ cli/index.mjs      # stdin -> J -> one stdout line; old exit classes
 │  │  ├─ tests/             # J contract + legacy CLI/Worker counterexamples
 │  │  ├─ package.json      # Jev public module surface

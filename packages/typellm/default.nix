@@ -10,13 +10,19 @@ stdenvNoCC.mkDerivation {
   pname = "typellm";
   version = "1.0.0";
   src = ./.;
-  nativeBuildInputs = [ nodejs makeWrapper ];
+  nativeBuildInputs = [
+    nodejs
+    makeWrapper
+  ];
 
   passthru.workerESM = stdenvNoCC.mkDerivation {
     pname = "typellm-worker-esm";
     version = "1.0.0";
     src = ./.;
-    nativeBuildInputs = [ python3 esbuild ];
+    nativeBuildInputs = [
+      python3
+      esbuild
+    ];
     dontBuild = true;
     installPhase = ''
       esbuild src/typellm.mjs --bundle --format=esm --platform=neutral --target=es2022 --outfile="$TMPDIR/typellm.mjs" --log-level=error

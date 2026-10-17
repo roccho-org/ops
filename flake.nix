@@ -245,7 +245,12 @@
               pkgs = nixpkgs.legacyPackages.${system};
             in
             pkgs.runCommand "typellm-test"
-              { nativeBuildInputs = [ pkgs.nodejs pkgs.python3 ]; }
+              {
+                nativeBuildInputs = [
+                  pkgs.nodejs
+                  pkgs.python3
+                ];
+              }
               ''
                 node --test ${self}/packages/typellm/tests/typellm.test.mjs
                 TYPELLM_PROVIDER_ENTRY=${packages.${system}.typellm-worker-esm}/typellm.mjs \
