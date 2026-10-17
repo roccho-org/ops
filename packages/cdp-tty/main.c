@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     if (curl_global_init(CURL_GLOBAL_DEFAULT)) return 1;
     Cdp *c=NULL; int r=cdp_attach(&c,argv[observe ? 2:1],&stop);
     if (!r) r=tty_run(c,observe,&stop);
+    else fputs("cdp-tty: stage=attach completion=not-sent; explicit page connection rejected\n",stderr);
     cdp_detach(c); curl_global_cleanup();
-    if (r) fputs("cdp-tty: connection, terminal or frame rejected; no input replay; see supported scope\n",stderr);
     return r ? 1:0;
 }
