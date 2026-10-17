@@ -4,14 +4,25 @@ import { BACKGROUND_CONTEXT } from "@earendil-works/chord/context";
 import type { OAuthCredential } from "@earendil-works/pi-ai";
 import { ROOT_CONVERSATION_ID } from "@earendil-works/pi-durable";
 import { openDurableObjectSqliteStorage } from "@earendil-works/pi-durable/storage/sqlite/cloudflare";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createWorkerModels, WorkerCredentialStore } from "../src/worker-oauth.ts";
 
+vi.setConfig({ testTimeout: 25_000, hookTimeout: 25_000 });
 const fixture = (): OAuthCredential =>
   JSON.parse((env as unknown as { PI_PROOF_AUTH: string }).PI_PROOF_AUTH);
-const wait = { timeout: 2_000, interval: 20 };
+// Includes the first lazy load of the unchanged OpenAI SDK under workerd/Vite.
+const wait = { timeout: 10_000, interval: 20 };
+const sockets = new Set<WebSocket>();
+const sessions = new Set<string>();
+afterEach(async () => {
+  for (const socket of sockets) socket.close(1000, "test-cleanup");
+  sockets.clear();
+  for (const session of sessions) await evictDurableObject(env.SESSIONS.getByName(session));
+  sessions.clear();
+});
 
 async function seed(session: string, credential: OAuthCredential) {
+  sessions.add(session);
   console.info("fixture-stage", session, "seed");
   const stub = env.SESSIONS.getByName(session);
   await runInDurableObject(stub, async (_instance, state) => {
@@ -29,12 +40,14 @@ async function saved(session: string) {
 }
 
 async function connect(session: string) {
+  sessions.add(session);
   const response = await exports.default.fetch(
     `https://example.com/api/sessions/${session}?username=Owner`,
     { headers: { Upgrade: "websocket" } },
   );
   expect(response.status).toBe(101);
   const socket = response.webSocket!;
+  sockets.add(socket);
   const messages: unknown[] = [];
   socket.addEventListener("message", (event) => { messages.push(JSON.parse(String(event.data))); });
   socket.accept();
@@ -85,8 +98,7 @@ function mockRemote(replies: string[], revoked = false) {
   const inference: { authorization: string | null; body: unknown }[] = [];
   let rotations = 0;
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    // Both installed transports supply URL + RequestInit. Inspect their bytes
-    // directly: creating a Request introduces an unrelated workerd body stream.
+    // Inspect installed transport bytes without introducing a workerd body stream.
     if (input instanceof Request) throw new Error("Unexpected Request transport: inspect the pinned SDK seam");
     const url = String(input);
     expect(init?.method).toBe("POST");
