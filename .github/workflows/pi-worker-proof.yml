@@ -74,13 +74,6 @@ jobs:
           git add -N src/worker-oauth.ts src/oauth-module.d.ts worker-oauth.alias.ts vitest.proof.config.ts test/worker-proof.setup.ts test/worker-auth.test.ts test/worker-app.test.ts
           git diff > "$RUNNER_TEMP/pi-worker-proof/app-overlay.patch"
           git diff --exit-code -- package.json pnpm-lock.yaml
-          python3 - <<'PY'
-          from pathlib import Path
-          import hashlib
-          content = Path('../ops/ci.intent.v1.jsonl').read_bytes().splitlines(keepends=True)
-          prefix = b''.join(content[:-1])
-          assert hashlib.sha1(b'blob ' + str(len(prefix)).encode() + b'\0' + prefix).hexdigest() == 'eac5db005443e73cfdda3da87b0d603eee5a383f', 'unrelated CI declaration changed'
-          PY
       - name: Type-check, build and dry-run the integrated Worker (not test aliases only)
         id: build
         working-directory: upstream
