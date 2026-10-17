@@ -2,6 +2,32 @@
 
 Ask Jev a question about text. The CLI reads one JSON request on stdin and writes one JSON line.
 
+The [refactor design and phase gates](REFACTOR.md) describe the completed
+Jev/TypeLLM split and the separate provider and consumer migration phases.
+
+## Named questions (source API)
+
+`askJevQuestions({state, questions, provider, signal?, deadlineMs?})` sends a
+nonempty named map of Noul, Choice and Score questions in one POST. `state` is
+a nonempty string or JSON object. Each question has `type`, `instructions` and,
+for Choice/Score, the same `criteria` shape as the single-question client.
+The caller supplies an already bound provider; this API reads no environment
+or per-operation key and performs no retry. A deadline is optional and explicit
+(an integer from 1 to 2,147,483,647 ms, within the native timer range).
+
+The result is `{model, answers, usage?}`. Answers retain their names and types;
+missing/extra names and invalid typed values are refused. Choice uses the
+strict single-question contract (all probability keys, each in `[0,1]`), and
+Score preserves the existing fractional range and exact legend contract.
+Usage is limited to finite nonnegative `input_tokens`, `output_tokens`, and
+`total_tokens`. Transport failures expose closed codes; `JevError` represents
+input/auth errors and `JevContractError` invalid typed responses.
+
+This is the first source slice: the old Worker ZIP still exposes its existing
+named-choice/TypeLLM contract. The new named API becomes a distributed Worker
+capability only in the later explicit artifact-contract phase. Its existence
+does not mean apps has migrated or started using Noul.
+
 Intentionally narrow subset: string `text` and `question` fields; choice questions support 2-255 string-valued options; score questions support 2-10 string-valued levels. The underlying API may support richer data types; CLI constrains input to string values only.
 
 ```sh
