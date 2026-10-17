@@ -25,7 +25,7 @@ for name in ("worker-proof.setup.ts", "worker-auth.test.ts", "worker-app.test.ts
 
 replace_once("src/chat.ts", "const models = createModels();\nmodels.setProvider(openaiProvider());", "const defaultModels = createModels();\ndefaultModels.setProvider(openaiProvider());")
 replace_once("src/chat.ts", "  ensureWakeupAt: (timestamp: number) => Promise<void>,\n", "  ensureWakeupAt: (timestamp: number) => Promise<void>,\n  models = defaultModels,\n")
-replace_once("src/session.ts", 'import { createChatHarnessOptions } from "./chat.ts";', 'import { createChatHarnessOptions } from "./chat.ts";\nimport { createWorkerModels } from "./worker-oauth.ts";')
-replace_once("src/session.ts", "    const chatOptions = createChatHarnessOptions((timestamp) =>\n      this.#setAlarmNoLaterThan(timestamp),\n    );", "    const chatOptions = createChatHarnessOptions(\n      (timestamp) => this.#setAlarmNoLaterThan(timestamp),\n      createWorkerModels(this.ctx.storage),\n    );")
+replace_once("src/session.ts", 'import { createChatHarnessOptions } from "./chat.ts";', 'import { createChatHarnessOptions } from "./chat.ts";\nimport { bootstrapWorkerCredential, createWorkerModels } from "./worker-oauth.ts";')
+replace_once("src/session.ts", "    const chatOptions = createChatHarnessOptions((timestamp) =>\n      this.#setAlarmNoLaterThan(timestamp),\n    );", "    await bootstrapWorkerCredential(this.ctx, this.env);\n    const chatOptions = createChatHarnessOptions(\n      (timestamp) => this.#setAlarmNoLaterThan(timestamp),\n      createWorkerModels(this.ctx.storage),\n    );")
 replace_once("vite.config.ts", 'import { defineConfig } from "vite";', 'import { defineConfig } from "vite";\nimport { oauthAlias } from "./worker-oauth.alias.ts";')
 replace_once("vite.config.ts", "export default defineConfig({\n", "export default defineConfig({\n  resolve: { alias: oauthAlias },\n")

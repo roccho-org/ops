@@ -5,32 +5,44 @@ import type { OAuthCredential } from "@earendil-works/pi-ai";
 import { ROOT_CONVERSATION_ID } from "@earendil-works/pi-durable";
 import { openDurableObjectSqliteStorage } from "@earendil-works/pi-durable/storage/sqlite/cloudflare";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createWorkerModels, WorkerCredentialStore } from "../src/worker-oauth.ts";
+import { bootstrapWorkerCredential, createWorkerModels, WorkerCredentialStore } from "../src/worker-oauth.ts";
 
 vi.setConfig({ testTimeout: 25_000, hookTimeout: 25_000 });
+const nativeFetch = globalThis.fetch;
 const fixture = (): OAuthCredential =>
   JSON.parse((env as unknown as { PI_PROOF_AUTH: string }).PI_PROOF_AUTH);
-// Includes the first lazy load of the unchanged OpenAI SDK under workerd/Vite.
+const bootstrapSession: string = JSON.parse(
+  (env as unknown as { PI_CHATGPT_BOOTSTRAP: string }).PI_CHATGPT_BOOTSTRAP,
+).session;
 const wait = { timeout: 10_000, interval: 20 };
 const sockets = new Set<WebSocket>();
 const sessions = new Set<string>();
+
+async function closeSocket(socket: WebSocket) {
+  if (socket.readyState === WebSocket.CLOSED) { sockets.delete(socket); return; }
+  const closed = new Promise<void>((resolve) =>
+    socket.addEventListener("close", () => resolve(), { once: true }),
+  );
+  socket.close(1000, "proof complete");
+  await closed;
+  sockets.delete(socket);
+}
+
 afterEach(async () => {
-  for (const socket of sockets) socket.close(1000, "test-cleanup");
-  sockets.clear();
-  for (const session of sessions) await evictDurableObject(env.SESSIONS.getByName(session));
+  const pending = [...sessions];
   sessions.clear();
+  for (const socket of [...sockets]) await closeSocket(socket);
+  for (const session of pending) await evictDurableObject(env.SESSIONS.getByName(session));
 });
 
 async function seed(session: string, credential: OAuthCredential) {
   sessions.add(session);
-  console.info("fixture-stage", session, "seed");
   const stub = env.SESSIONS.getByName(session);
   await runInDurableObject(stub, async (_instance, state) => {
     await state.blockConcurrencyWhile(async () => {});
     await new WorkerCredentialStore(state.storage).modify("openai", async () => credential);
   });
   await evictDurableObject(stub);
-  console.info("fixture-stage", session, "seeded-and-evicted");
 }
 
 async function saved(session: string) {
@@ -52,7 +64,6 @@ async function connect(session: string) {
   socket.addEventListener("message", (event) => { messages.push(JSON.parse(String(event.data))); });
   socket.accept();
   await vi.waitFor(() => expect(messages.length).toBeGreaterThanOrEqual(4), wait);
-  console.info("fixture-stage", session, "connected");
   return {
     socket,
     messages,
@@ -64,19 +75,12 @@ async function connect(session: string) {
 // OpenAI wire events, not fauxProvider or a replacement for the inference code.
 function responseStream(text: string) {
   const item = {
-    id: "fixture-message",
-    type: "message",
-    role: "assistant",
-    status: "completed",
+    id: "fixture-message", type: "message", role: "assistant", status: "completed",
     content: [{ type: "output_text", text, annotations: [] }],
   };
   const response = {
-    id: "fixture-response",
-    object: "response",
-    created_at: 1,
-    model: "gpt-6-luna",
-    status: "completed",
-    output: [item],
+    id: "fixture-response", object: "response", created_at: 1,
+    model: "gpt-6-luna", status: "completed", output: [item],
     usage: { input_tokens: 7, output_tokens: 3, total_tokens: 10 },
   };
   const events = [
@@ -98,33 +102,27 @@ function mockRemote(replies: string[], revoked = false) {
   const inference: { authorization: string | null; body: unknown }[] = [];
   let rotations = 0;
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    // Inspect installed transport bytes without introducing a workerd body stream.
     if (input instanceof Request) throw new Error("Unexpected Request transport: inspect the pinned SDK seam");
     const url = String(input);
     expect(init?.method).toBe("POST");
     const rawBody = String(init?.body ?? "");
     if (url === "https://auth.openai.com/api/accounts/oauth/token") {
       rotations++;
-      console.info("fixture-stage", "refresh-request");
       const body = new URLSearchParams(rawBody);
       expect(body.get("grant_type")).toBe("refresh_token");
       expect(body.get("client_id")).toBe(fixture().clientId);
       expect(body.get("refresh_token")).toBe(fixture().refresh);
       expect(body.get("resource")).toBe("https://api.openai.com/v1");
       if (revoked) return new Response("fixture-invalid-grant", { status: 401 });
-      console.info("fixture-stage", "refresh-response");
       return Response.json({
-        access_token: "fixture-access-rotated",
-        refresh_token: "fixture-refresh-rotated",
-        expires_in: 3600,
-        scope: "chatgpt.tokens.use.direct",
+        access_token: "fixture-access-rotated", refresh_token: "fixture-refresh-rotated",
+        expires_in: 3600, scope: "chatgpt.tokens.use.direct",
       });
     }
     expect(url).toBe("https://api.openai.com/v1/responses");
     const body: unknown = JSON.parse(rawBody);
     expect(body).toMatchObject({ stream: true, model: "gpt-6-luna" });
     inference.push({ authorization: new Headers(init?.headers).get("authorization"), body });
-    console.info("fixture-stage", "inference-request");
     const reply = replies.shift();
     if (reply === undefined) throw new Error("Unexpected extra mock inference");
     return responseStream(reply);
@@ -132,67 +130,74 @@ function mockRemote(replies: string[], revoked = false) {
   return { inference, rotations: () => rotations };
 }
 
-async function unanswered(session: string, requestId: string) {
+async function submissionStatus(session: string, requestId: string, expected: string) {
   await vi.waitFor(async () => {
     const status = await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
       const storage = await openDurableObjectSqliteStorage(state.storage);
       return (await storage.submissionByRequest(ROOT_CONVERSATION_ID, requestId, BACKGROUND_CONTEXT))?.status;
     });
-    expect(status).toBe("unanswered");
+    expect(status).toBe(expected);
   }, wait);
 }
 
 describe("real Worker app path with synthetic OAuth and mocked remote responses", () => {
-  it("completes chat, persists rotation, evicts the DO, and continues the same conversation", async () => {
-    const session = "oauth-app-resume";
-    await seed(session, { ...fixture(), expires: 0 });
+  it("imports the binding, completes chat, persists rotation, evicts, and continues with old history", async () => {
+    const session = bootstrapSession;
     const remote = mockRemote(["fixture-first-answer", "fixture-second-answer"]);
+    // No internal credential seeding: the real Session constructor consumes the binding.
     const first = await connect(session);
+    expect(await saved(session)).toMatchObject({ ...fixture(), expires: 0 });
     first.submit("oauth-first", "Remember fixture-plan");
     await vi.waitFor(() => {
-      expect(JSON.stringify(first.messages)).toContain("fixture-first-answer");
-      expect(JSON.stringify(first.messages)).toContain('"stopReason":"stop"');
+      const frames = JSON.stringify(first.messages);
+      expect(frames).toContain("fixture-first-answer");
+      expect(frames).toContain('"stopReason":"stop"');
+      expect(frames).toContain('"type":"run_end"');
     }, wait);
-    console.info("fixture-stage", session, "first-answer");
     expect(await saved(session)).toMatchObject({ access: "fixture-access-rotated", refresh: "fixture-refresh-rotated" });
-    first.socket.close(1000, "recreate");
+    console.info("fixture-stage", "first-response-and-rotation-saved");
+    await closeSocket(first.socket);
+    console.info("fixture-stage", "first-socket-closed");
     await evictDurableObject(env.SESSIONS.getByName(session));
+    console.info("fixture-stage", "first-DO-evicted");
 
     const second = await connect(session);
     expect(JSON.stringify(second.messages)).toContain("fixture-first-answer");
     expect(JSON.stringify(second.messages)).toContain("Remember fixture-plan");
     second.submit("oauth-second", "Continue fixture-plan");
-    await vi.waitFor(() => expect(JSON.stringify(second.messages)).toContain("fixture-second-answer"), wait);
+    await vi.waitFor(() => {
+      expect(JSON.stringify(second.messages)).toContain("fixture-second-answer");
+      expect(JSON.stringify(second.messages)).toContain('"type":"run_end"');
+    }, wait);
     expect(remote.rotations()).toBe(1);
     expect(remote.inference).toHaveLength(2);
     expect(remote.inference.map((item) => item.authorization)).toEqual([
       "Bearer fixture-access-rotated", "Bearer fixture-access-rotated",
     ]);
     const history = JSON.stringify(remote.inference[1].body);
-    for (const text of ["Remember fixture-plan", "fixture-first-answer", "Continue fixture-plan"]) {
-      expect(history).toContain(text);
-    }
+    for (const text of ["Remember fixture-plan", "fixture-first-answer", "Continue fixture-plan"]) expect(history).toContain(text);
     const publicFrames = JSON.stringify([...first.messages, ...second.messages]);
-    for (const token of [fixture().access, fixture().refresh, "fixture-access-rotated", "fixture-refresh-rotated"]) {
-      expect(publicFrames).not.toContain(token);
-    }
-    second.socket.close(1000, "complete");
+    for (const token of [fixture().access, fixture().refresh, "fixture-access-rotated", "fixture-refresh-rotated"]) expect(publicFrames).not.toContain(token);
+    await closeSocket(second.socket);
     await evictDurableObject(env.SESSIONS.getByName(session));
     const third = await connect(session);
     expect(JSON.stringify(third.messages)).toContain("fixture-second-answer");
     expect(JSON.stringify(third.messages)).toContain('"stopReason":"stop"');
     expect(await saved(session)).toMatchObject({ refresh: "fixture-refresh-rotated" });
-    third.socket.close(1000, "verified");
+    await closeSocket(third.socket);
   });
 
-  it("does not infer or invent credentials when the app's DO has no grant", async () => {
+  it("denies native network access and does not copy the bootstrap grant into another DO", async () => {
+    const denied = await nativeFetch("https://pi-proof-no-network.invalid/");
+    expect(denied.status).toBe(401);
+    expect(await denied.text()).toBe("MOCK_ONLY: native outbound denied");
     const session = "oauth-app-missing";
     const client = await connect(session);
     client.submit("missing-grant", "Do not bill an API key");
-    await unanswered(session, "missing-grant");
+    await submissionStatus(session, "missing-grant", "unanswered");
     expect(fetch).not.toHaveBeenCalled();
     expect(await saved(session)).toBeUndefined();
-    client.socket.close(1000, "verified");
+    await closeSocket(client.socket);
   });
 
   it("fails closed on revoked refresh and preserves state across recreation", async () => {
@@ -202,11 +207,11 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
     const remote = mockRemote([], true);
     const client = await connect(session);
     client.submit("revoked-grant", "Do not fall back");
-    await unanswered(session, "revoked-grant");
+    await submissionStatus(session, "revoked-grant", "unanswered");
     expect(remote.rotations()).toBe(1);
     expect(remote.inference).toHaveLength(0);
     expect(await saved(session)).toEqual(expired);
-    client.socket.close(1000, "recreate");
+    await closeSocket(client.socket);
     await evictDurableObject(env.SESSIONS.getByName(session));
     expect(await saved(session)).toEqual(expired);
   });
@@ -218,7 +223,6 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
     await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
       const models = createWorkerModels(state.storage);
       const result = await Promise.all([models.getAuth("openai"), models.getAuth("openai")]);
-      console.info("fixture-stage", session, "both-auth-results");
       expect(result.map((value) => value?.auth.apiKey)).toEqual(["fixture-access-rotated", "fixture-access-rotated"]);
       expect(await new WorkerCredentialStore(state.storage).list()).toEqual([{ providerId: "openai", type: "oauth" }]);
     });
@@ -235,16 +239,32 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
     await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
       const write = vi.spyOn(state.storage, "put").mockRejectedValueOnce(new Error("fixture-write-failure"));
       try {
-        await expect(createWorkerModels(state.storage).getAuth("openai")).rejects.toMatchObject({
-          cause: { message: "fixture-write-failure" },
-        });
+        await expect(createWorkerModels(state.storage).getAuth("openai")).rejects.toMatchObject({ cause: { message: "fixture-write-failure" } });
         expect(write).toHaveBeenCalledTimes(1);
-      } finally {
-        write.mockRestore();
-      }
+      } finally { write.mockRestore(); }
     });
     expect(remote.rotations()).toBe(1);
     expect(remote.inference).toHaveLength(0);
     expect(await saved(session)).toEqual(expired);
+  });
+
+  it("rejects malformed bootstrap data and never resurrects a consumed binding after deletion", async () => {
+    const session = "oauth-bootstrap-guards";
+    sessions.add(session);
+    await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
+      await state.blockConcurrencyWhile(async () => {
+        for (const raw of ["not-json-secret-must-not-escape", JSON.stringify({ session, credential: { ...fixture(), expires: null } })]) {
+          await expect(bootstrapWorkerCredential(state, { SESSIONS: env.SESSIONS, PI_CHATGPT_BOOTSTRAP: raw })).rejects.toThrow("Invalid Pi subscription bootstrap");
+          expect(await new WorkerCredentialStore(state.storage).read("openai")).toBeUndefined();
+        }
+        const configured = { SESSIONS: env.SESSIONS, PI_CHATGPT_BOOTSTRAP: JSON.stringify({ session, credential: fixture() }) };
+        await bootstrapWorkerCredential(state, configured);
+        const store = new WorkerCredentialStore(state.storage);
+        expect(await store.read("openai")).toEqual(fixture());
+        await store.delete("openai");
+        await bootstrapWorkerCredential(state, configured);
+        expect(await store.read("openai")).toBeUndefined();
+      });
+    });
   });
 });
