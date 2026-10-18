@@ -35,6 +35,10 @@ per-run directory prevents a second dispatch even across factories/processes.
 The claim, bounded original stdout/stderr and receipt are created with exclusive
 writes and retained after failure. A local child timeout/output limit does not
 prove a remote enqueue did not happen. Failed/unknown calls are never retried.
+After close grace expires, surviving local child and pipe handles are detached;
+their observed detachment and absent physical close remain explicit. Late events
+cannot mutate a finalized receipt. Stream hashes identify the actual bounded
+retained files; an I/O failure never becomes a complete-stream claim.
 
 Exit zero and the matching CLI ACK are recorded as `QUEUED_NOT_CONSUMED`.
 `consumptionStatus` remains `NOT_OBSERVED`: an unloaded or interrupted target may
@@ -43,6 +47,9 @@ the same current P to become idle and actually consume the queued item in a
 later turn, with the source/run/result/transport/nonce receipt matched. Manual
 resumption, a new agent/session, queue acceptance, tests, CI and source
 publication are not that proof. G1, G2 and runtime identity remain separate.
+The notice, claim and receipt carry the delivery expiry. The consuming P must
+recheck current source/refs, expiry and still-valid authorization before acting;
+a queued notice grants no scope and never permits replay of consumed calls.
 
 Unit tests use explicit `test-double` mode and synthetic scalar events. Live mode
 rejects injected runtimes. These tests make no model/SSH/queue/network calls and

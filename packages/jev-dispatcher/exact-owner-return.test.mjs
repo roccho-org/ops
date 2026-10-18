@@ -16,9 +16,10 @@ const sha = value => createHash('sha256').update(value).digest('hex');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'owner-return-test-'));
 let serial = 0;
 const fixture = ({ output = `Queued message ${queued} for thread ${owner}.\n`, exit = 0,
-  hang = false, noClose = false, spawnThrows = false, currentOwner = owner, now = Date.now } = {}) => {
+  hang = false, noClose = false, spawnThrows = false, killThrows = false,
+  killReturn = true, currentOwner = owner, now = Date.now } = {}) => {
   const ledgerDir = path.join(root, String(++serial)); fs.mkdirSync(ledgerDir);
-  const observations = { spawns: [], kills: 0 };
+  const observations = { spawns: [], kills: 0, unrefs: 0 };
   const options = { mode: 'test-double', codexPath: path.join(root, 'codex.exe'),
     endpoint: 'unix://' + path.join(root, 'existing.sock'), ownerThread: owner, runId: run,
     sourceSha: 'a'.repeat(40), ledgerDir, expiresAt: new Date(Date.now() + 60000).toISOString(), timeoutMs: 1000 };
@@ -27,7 +28,14 @@ const fixture = ({ output = `Queued message ${queued} for thread ${owner}.\n`, e
       observations.spawns.push({ exe, argv, spawnOptions });
       if (spawnThrows) throw new Error('synthetic spawn failure');
       const child = new EventEmitter(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
-      child.kill = () => { observations.kills++; if (!noClose) queueMicrotask(() => child.emit('close', null, 'SIGKILL')); return true; };
+      observations.child = child;
+      child.unref = () => { observations.unrefs++; };
+      child.kill = () => {
+        observations.kills++;
+        if (killThrows) throw new Error('synthetic kill failure');
+        if (!noClose) queueMicrotask(() => child.emit('close', null, 'SIGKILL'));
+        return killReturn;
+      };
       queueMicrotask(() => {
         if (output) child.stdout.write(output);
         if (!hang) { child.stdout.end(); child.stderr.end(); child.emit('close', exit, null); }
@@ -45,12 +53,14 @@ test('exact owner return uses the explicit official remote queue and records ACK
   assert.equal(receipt.status, 'QUEUED_NOT_CONSUMED');
   assert.equal(receipt.enqueueStatus, 'ACK_OBSERVED'); assert.equal(receipt.consumptionStatus, 'NOT_OBSERVED');
   assert.equal(receipt.queuedSubmissionId, queued); assert.equal(receipt.physicalCloseObserved, true);
+  assert.equal(receipt.expiresAt, f.options.expiresAt);
   const call = f.observations.spawns[0];
   assert.deepEqual(call.argv.slice(0, 6), ['queue', '--remote', f.options.endpoint, '--thread', owner, '--message']);
   assert.equal(call.spawnOptions.shell, false); assert.equal(call.spawnOptions.windowsHide, true);
   assert.deepEqual(call.spawnOptions.stdio, ['ignore', 'pipe', 'pipe']);
   assert.ok(!call.argv.some(a => ['--no-daemon', '--remote-auth-token-env', '--model', '-c'].includes(a)));
   assert.match(call.argv[6], new RegExp('OWNER_RETURN_CONSUMED ' + run + ' ' + nonce));
+  assert.ok(call.argv[6].includes('Delivery expiry UTC: ' + f.options.expiresAt));
   assert.ok(receipt.noticeBytes <= 2048 && receipt.argvUpperBound < 32767);
   const persisted = JSON.parse(fs.readFileSync(path.join(f.options.ledgerDir, run, 'receipt.json')));
   assert.deepEqual(persisted, receipt);
@@ -77,7 +87,8 @@ test('expiry and malformed options fail before effects, including forbidden live
   const expired = bindExactOwnerReturn({ ...f.options, expiresAt: '2000-01-01T00:00:00.000Z' }, f.runtime);
   await assert.rejects(expired.deliver(f.event), /OWNER_RETURN_EXPIRED/);
   for (const patch of [{ endpoint: 'ws://localhost:4000' }, { endpoint: 'unix://' },
-    { timeoutMs: 30001 }, { codexPath: null }, { ledgerDir: null }, { extra: true }])
+    { timeoutMs: 30001 }, { codexPath: null }, { ledgerDir: null },
+    { expiresAt: '2027-01-01' }, { extra: true }])
     assert.throws(() => bindExactOwnerReturn({ ...f.options, ...patch }, f.runtime), /INVALID_OWNER_RETURN_BINDING/);
   assert.throws(() => bindExactOwnerReturn({ ...f.options, mode: 'live' }, f.runtime), /LIVE_RUNTIME_OVERRIDE/);
   assert.equal(f.observations.spawns.length, 0);
@@ -135,4 +146,22 @@ test('terminal description failures and promises never replace the product resul
     assert.equal(f.receiver.receipts()[0].status, 'NOT_SENT_OR_UNKNOWN');
   }
   await assert.rejects(withProductOwnerReturn(() => null, () => ({}), {}), /INVALID_OWNER_RETURN_CALLER/);
+});
+
+test('no-close kill failure detaches handles; late close/error/data cannot mutate frozen receipt', async () => {
+  for (const failure of [{ killReturn: false }, { killThrows: true }]) {
+    const f = fixture({ output: '', hang: true, noClose: true, ...failure });
+    const receiver = bindExactOwnerReturn({ ...f.options, timeoutMs: 1 }, f.runtime);
+    const receipt = await receiver.deliver(f.event), before = JSON.stringify(receipt);
+    assert.equal(receipt.physicalCloseObserved, false); assert.equal(receipt.childUnrefObserved, true);
+    assert.equal(f.observations.unrefs, 1);
+    assert.equal(receipt.stdoutDetached, true); assert.equal(receipt.stderrDetached, true);
+    assert.equal(receipt.enqueueStatus, 'UNKNOWN'); assert.equal(receipt.consumptionStatus, 'NOT_OBSERVED');
+    assert.doesNotThrow(() => f.observations.child.emit('close', 0, null));
+    assert.doesNotThrow(() => f.observations.child.emit('error', new Error('late synthetic error')));
+    assert.doesNotThrow(() => f.observations.child.stdout.emit('error', new Error('late synthetic pipe error')));
+    assert.doesNotThrow(() => f.observations.child.stdout.emit('data', Buffer.from('late data')));
+    assert.equal(JSON.stringify(receipt), before);
+    assert.equal(f.observations.spawns.length, 1); assert.equal(receipt.retries, 0);
+  }
 });

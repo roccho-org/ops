@@ -31,6 +31,7 @@ export function bindExactOwnerReturn(options, testRuntime) {
       || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30000
       || typeof expiresAt !== 'string' || !Number.isFinite(Date.parse(expiresAt)))
     fail('INVALID_OWNER_RETURN_BINDING');
+  if (new Date(Date.parse(expiresAt)).toISOString() !== expiresAt) fail('INVALID_OWNER_RETURN_BINDING');
   if (mode === 'live' && testRuntime !== undefined) fail('LIVE_RUNTIME_OVERRIDE');
   const runtime = mode === 'test-double' ? testRuntime : {
     spawn, now: Date.now, ownerThread: () => process.env.CODEX_THREAD_ID, nonce: randomUUID
@@ -63,11 +64,13 @@ export function bindExactOwnerReturn(options, testRuntime) {
       'Outcome: ' + event.outcome, 'Result SHA256: ' + event.resultSha256,
       'Transport receipt SHA256: ' + event.transportReceiptSha256,
       'Event SHA256: ' + eventSha256,
+      'Delivery expiry UTC: ' + expiresAt,
       'Receipt nonce: ' + nonce,
       'This queue notice alone proves neither G1/G2 nor automatic consumption.',
       'After this same thread actually consumes the queued turn, verify the bound local receipt',
       'and record OWNER_RETURN_CONSUMED ' + runId + ' ' + nonce + '.',
-      'Continue the already authorized project scope; web.chat and periodic automation stay paused.'
+      'Recheck current source/refs, expiry and authorization before acting; this notice grants no scope.',
+      'Never replay consumed calls. web.chat and periodic automation stay paused.'
     ].join('\n');
     const argv = ['queue', '--remote', endpoint, '--thread', ownerThread, '--message', notice];
     const argvUpperBound = 2 * (codexPath.length + argv.join(' ').length) + 2 * argv.length + 8;
@@ -79,10 +82,12 @@ export function bindExactOwnerReturn(options, testRuntime) {
       sourceSha, bindingSha256: binding, bindingAuthority: 'DECLARED_ONLY', eventSha256,
       resultSha256: event.resultSha256, transportReceiptSha256: event.transportReceiptSha256,
       outcome: event.outcome, noticeSha256: hash(notice), noticeBytes: Buffer.byteLength(notice),
-      nonce, startedAt: new Date(runtime.now()).toISOString(), completedAt: null,
+      nonce, expiresAt, startedAt: new Date(runtime.now()).toISOString(), completedAt: null,
       spawnInvocations: 0, childExitCode: null, childSignal: null, physicalCloseObserved: false,
       errorCode: null, status: 'CLAIMED', enqueueStatus: 'UNKNOWN', queuedSubmissionId: null,
       consumptionStatus: 'NOT_OBSERVED', remoteEffects: 'UNKNOWN',
+      childKillReturn: null, childKillError: false, childUnrefObserved: false,
+      stdoutDetached: false, stderrDetached: false,
       stdoutKeptBytes: 0, stdoutSha256: null, stdoutObservedBytesLowerBound: 0,
       stderrKeptBytes: 0, stderrSha256: null, stderrObservedBytesLowerBound: 0,
       stdoutComplete: false, stderrComplete: false, argvUpperBound, retries: 0 };
@@ -93,15 +98,34 @@ export function bindExactOwnerReturn(options, testRuntime) {
       if (finalized) return records.at(-1);
       finalized = true;
       clearTimeout(timer); clearTimeout(graceTimer);
+      if (child && !record.physicalCloseObserved) {
+        try { child.unref(); record.childUnrefObserved = true; } catch {}
+        for (const [kind, stream] of [['stdout', child.stdout], ['stderr', child.stderr]]) {
+          try { stream?.unref?.(); } catch {}
+          try { stream?.destroy(); } catch {}
+          record[kind + 'Detached'] = stream?.destroyed === true;
+        }
+      }
       for (const fd of [outFd, errFd]) if (fd !== undefined) {
         try { fs.closeSync(fd); } catch { stopped ??= 'QUEUE_LEDGER_IO'; }
       }
       record.completedAt = new Date(runtime.now()).toISOString();
-      Object.assign(record, { stdoutKeptBytes: outKept, stderrKeptBytes: errKept,
-        stdoutObservedBytesLowerBound: outSeen, stderrObservedBytesLowerBound: errSeen,
-        stdoutSha256: hash(Buffer.concat(stdout)), stderrSha256: hash(Buffer.concat(stderr)),
-        stdoutComplete: record.physicalCloseObserved && outSeen <= outputLimit,
-        stderrComplete: record.physicalCloseObserved && errSeen <= outputLimit });
+      record.stdoutObservedBytesLowerBound = outSeen;
+      record.stderrObservedBytesLowerBound = errSeen;
+      for (const [kind, memory, seen] of [['stdout', stdout, outSeen], ['stderr', stderr, errSeen]]) {
+        let actual;
+        try {
+          const file = path.join(claim, 'response.' + kind), stat = fs.lstatSync(file);
+          if (!stat.isFile() || stat.isSymbolicLink() || stat.size > outputLimit) throw new Error('LEDGER_IDENTITY');
+          actual = fs.readFileSync(file);
+        } catch { stopped ??= 'QUEUE_LEDGER_IO'; }
+        const matches = actual !== undefined && actual.equals(Buffer.concat(memory));
+        if (!matches) stopped ??= 'QUEUE_LEDGER_IO';
+        record[kind + 'KeptBytes'] = actual?.length ?? null;
+        record[kind + 'Sha256'] = actual === undefined ? null : hash(actual);
+        record[kind + 'Complete'] = record.physicalCloseObserved && seen <= outputLimit
+          && matches && actual.length === seen && stopped !== 'QUEUE_LEDGER_IO';
+      }
       if (!stopped && record.physicalCloseObserved && record.childExitCode === 0) {
         const raw = Buffer.concat(stdout), text = raw.toString('utf8');
         const match = /^Queued message ([a-f0-9-]{36}) for thread ([a-f0-9-]{36})\.(?:\r?\n)?$/.exec(text);
@@ -118,13 +142,17 @@ export function bindExactOwnerReturn(options, testRuntime) {
       const stop = code => {
         if (stopped || finalized) return;
         stopped = code;
-        if (child) { try { child.kill('SIGKILL'); } catch {} }
+        if (child) {
+          try { const killed = child.kill('SIGKILL'); record.childKillReturn = typeof killed === 'boolean' ? killed : null; }
+          catch { record.childKillError = true; }
+        }
         graceTimer = setTimeout(() => resolve(finish()), 3000);
       };
       const capture = (kind, value) => {
         if (finalized) return;
         const bytes = Buffer.from(value);
         const seen = kind === 'stdout' ? (outSeen += bytes.length) : (errSeen += bytes.length);
+        if (stopped) return;
         const kept = kind === 'stdout' ? outKept : errKept;
         const slice = bytes.subarray(0, Math.max(0, outputLimit - kept));
         try {
@@ -135,7 +163,7 @@ export function bindExactOwnerReturn(options, testRuntime) {
         if (seen > outputLimit) stop('QUEUE_OUTPUT_LIMIT');
       };
       try {
-        fs.writeFileSync(path.join(claim, 'claim.json'), JSON.stringify({ ...event, eventSha256, nonce }) + '\n', { flag: 'wx', mode: 0o600 });
+        fs.writeFileSync(path.join(claim, 'claim.json'), JSON.stringify({ ...event, eventSha256, nonce, expiresAt }) + '\n', { flag: 'wx', mode: 0o600 });
         outFd = fs.openSync(path.join(claim, 'response.stdout'), 'wx', 0o600);
         errFd = fs.openSync(path.join(claim, 'response.stderr'), 'wx', 0o600);
         const dispatchRemaining = Date.parse(expiresAt) - runtime.now();
@@ -148,8 +176,11 @@ export function bindExactOwnerReturn(options, testRuntime) {
         child = runtime.spawn(codexPath, argv, { shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
         child.stdout.on('data', value => capture('stdout', value));
         child.stderr.on('data', value => capture('stderr', value));
+        child.stdout.on('error', () => { if (!finalized) stop('QUEUE_PIPE_ERROR'); });
+        child.stderr.on('error', () => { if (!finalized) stop('QUEUE_PIPE_ERROR'); });
         child.once('error', () => stop('QUEUE_CHILD_ERROR'));
         child.once('close', (code, signal) => {
+          if (finalized) return;
           record.physicalCloseObserved = true; record.childExitCode = code; record.childSignal = signal;
           resolve(finish());
         });
