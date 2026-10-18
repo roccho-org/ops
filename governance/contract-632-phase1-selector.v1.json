@@ -1,0 +1,41 @@
+{
+  "kind": "governance.packageContractPhase1Selector.v1",
+  "selectorId": "adrs-632-phase1-v2",
+  "authority": false,
+  "claimCeiling": "BOUNDED_PHASE1_SELECTION_NOT_ORGANIZATION_ADMISSION",
+  "designVersion": "CONTRACT_W_632_CLOSURE_DESIGN_V3",
+  "source": {
+    "rAcceptance": "https://github.com/roccho-dev/adrs/issues/632#issuecomment-6155858486",
+    "pBoundary": "https://github.com/roccho-dev/adrs/issues/632#issuecomment-6155896655"
+  },
+  "acceptedDecision": {
+    "decisionId": "01K0E1CM000000000000000234",
+    "decisionDigest": "cc7ac3d6618b31eb0a0979b8aa0e2bfaf6abd95646e45c740d154c8204cd00d1",
+    "acceptedMerge": "458ab4267882083de0593754d1bf9766bf8d54da",
+    "source": "roccho-dev/adrs#234",
+    "release": "recursive-contract-modeling-v1.0.1",
+    "status": "accepted"
+  },
+  "governanceSource": {
+    "repository": "roccho-dev/governance",
+    "revision": "7160e56aa8dbafaff4b98cc21fc4842d6600daf6",
+    "treeSha": "eebaa9ca7b85d63c405eb107f68d5546f26e50ab"
+  },
+  "selection": {
+    "subjectKey": "request:02-semantic",
+    "before": {
+      "ledger": "L0",
+      "rowId": "request:02-semantic"
+    },
+    "accepted": {
+      "ledger": "L1",
+      "rowId": "request:02-semantic:v2",
+      "supersedes": "request:02-semantic"
+    },
+    "candidate": {
+      "ledger": "L2",
+      "rowId": "request:02-semantic:v3",
+      "supersedes": "request:02-semantic:v2"
+    }
+  }
+}

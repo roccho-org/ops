@@ -45,3 +45,4 @@
 {"deps":["nodejs","contract-diff"],"kind":"check","name":"contract-diff-source-integration","script":"packages/contract-diff/tests/source-integration.mjs"}
 {"deps":["nodejs"],"kind":"check","name":"goal-evaluation-unix","script":"experiments/goal-evaluation-unix/core.test.mjs"}
 {"deps":["nodejs","semlint-core"],"kind":"check","name":"semlint-core","script":"packages/semlint-core/tests/run.mjs"}
+{"deps":["nodejs","ops-package-contract-bridge"],"kind":"check","name":"ops-package-contract-bridge","script":"packages/ops-package-contract-bridge/tests/e2e.mjs"}

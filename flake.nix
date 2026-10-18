@@ -266,6 +266,39 @@
                 echo "typellm: source, standalone ESM and installed legacy CLI composition PASS" > $out
               '';
           hq-modeling-runtime = packages.${system}.hq-modeling-runtime;
+          ops-package-contract-bridge-phase1 =
+            let
+              pkgs = nixpkgs.legacyPackages.${system};
+              python = pkgs.python3.withPackages (ps: [ ps.jsonschema ]);
+            in
+            pkgs.runCommand "ops-package-contract-bridge-phase1-check"
+              {
+                nativeBuildInputs = [
+                  pkgs.jq
+                  python
+                  packages.${system}.cue-append-contract-core
+                  packages.${system}.ops-package-contract-bridge
+                ];
+              }
+              ''
+                set -euo pipefail
+                for run in 1 2; do
+                  ${python}/bin/python3 ${./tools/contract-632-phase1-proof.py} \
+                    --governance-source ${governance} \
+                    --governance-revision ${governance.rev or "unknown-governance-revision"} \
+                    --ops-source ${self} \
+                    --ops-candidate-sha ${self.rev or "working-tree"} \
+                    --contractcheck ${packages.${system}.cue-append-contract-core}/bin/contractcheck \
+                    --bridge ${packages.${system}.ops-package-contract-bridge}/bin/ops-package-contract-bridge \
+                    --out "$out/run$run"
+                done
+                cmp "$out/run1/phase1-receipt.json" "$out/run2/phase1-receipt.json"
+                cmp "$out/run1/bridge-verification.json" "$out/run2/bridge-verification.json"
+                jq -e '.status == "PASS" and .authority == false and .phaseClosed == false' \
+                  "$out/run1/phase1-receipt.json" >/dev/null
+                jq -e '.status == "PASS" and .authority == false and .phaseClosed == false' \
+                  "$out/run1/bridge-verification.json" >/dev/null
+              '';
           issue-116-shiftleft-proof =
             let
               pkgs = nixpkgs.legacyPackages.${system};
