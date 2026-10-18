@@ -18,7 +18,10 @@ CI. The standalone Python source is not a deployable package or user command.
 The existing runtime purity checker and its package-declaration rules are not
 weakened or given a cdp-tty path exemption.
 
-The PTY oracle validates protocol bytes against a real Chrome and native viewer;
-it does not prove a physical terminal renderer, Windows, SSH, a user account,
-full IME, drag/modifier keys, or atomic interaction with another CDP controller.
-Those residuals remain explicitly NOT_RUN in the emitted evidence.
+The PTY oracle validates protocol bytes against a real Chrome and native viewer.
+Separate proof cases exercise the actual Linux Kitty/X11 renderer, committed
+Japanese input, modifiers, and bounded endpoint drag; a protocol-sink pass is not
+renderer evidence. These cases do not prove physical keyboard/display operation,
+Windows/SSH, real service authentication, full IME composition, or atomic
+interaction with another CDP controller. The emitted residuals distinguish
+PASS_LINUX_X11 and PASS_BOUNDED_ENDPOINT from those unproved scopes.
