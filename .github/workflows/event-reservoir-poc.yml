@@ -34,7 +34,7 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: Check interoperability, persistence, failure and reconnect behavior
-        run: node --test verification/event-reservoir-poc/tests/proof.test.mjs
+        run: node --test verification/event-reservoir-poc/tests/proof.test.mjs verification/event-reservoir-poc/tests/setup.test.mjs
       - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
       - name: Prepare pinned standard tools and bundle the real Worker
         shell: bash
