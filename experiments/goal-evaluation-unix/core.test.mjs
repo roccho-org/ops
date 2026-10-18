@@ -686,3 +686,5 @@ import './typellm-ssh-executor.test.mjs';
 import './typellm-structured-proposal.test.mjs';
 
 import './native-caller.test.mjs';
+
+import './semlint-owner-ssh-executor.test.mjs';
