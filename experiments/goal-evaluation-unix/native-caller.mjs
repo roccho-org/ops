@@ -446,6 +446,16 @@ export async function runFiniteNativeHostBridge(options, value, testRuntime) {
       if (!command) break;
       const issued = performance.now(), issuedAt = Date.now();
       if (phase === 1) statusIssuedAt = issuedAt;
+      let receiverFreshUntil = Infinity;
+      if (phase === 2) {
+        const status = caller.returnReceipts().at(-1);
+        if (status?.status !== 'HOST_SEND_PENDING' || status.idleStatus !== 'HOST_PORT_REPORTED_IDLE'
+            || !utc(status.statusObservedAt)) fail('HOST_PACKET_INVALID');
+        receiverFreshUntil = Date.parse(status.statusObservedAt) + host.timeoutMs;
+      }
+      const commandExpiresAt = Math.min(Date.parse(binding.expiresAt),
+        statusIssuedAt + host.timeoutMs, receiverFreshUntil);
+      if (!Number.isFinite(commandExpiresAt) || commandExpiresAt <= issuedAt) fail('HOST_PACKET_INVALID');
       const remaining = Math.floor(binding.exchangeTimeoutMs - (issued - started));
       if (remaining < 1) fail('HOST_EXCHANGE_TIMEOUT');
       for (let future = phase; future <= 2; future++) for (const suffix of ['', '.pending']) {
@@ -456,7 +466,7 @@ export async function runFiniteNativeHostBridge(options, value, testRuntime) {
         ownerThread: binding.ownerThread, runId: binding.runId, sourceSha: binding.sourceSha,
         bindingSha256: binding.bindingSha256, eventSha256: command.eventSha256,
         commandSha256: sha(JSON.stringify(command)), expiresAt: binding.expiresAt,
-        commandExpiresAt: new Date(Math.min(Date.parse(binding.expiresAt), statusIssuedAt + host.timeoutMs)).toISOString(),
+        commandExpiresAt: new Date(commandExpiresAt).toISOString(),
         runnerModuleSha256: binding.runnerModuleSha256, command };
       const wait = awaitBridgePacket(dir, phase, remaining);
       let observation;

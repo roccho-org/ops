@@ -651,3 +651,40 @@ test('finite bridge publication and duplicate responses are exclusive with no co
   await assert.rejects(runFiniteNativeHostBridge({ ...forbidden.config,
     callerOptions: { ...forbidden.options, mode: 'live' } }, {}, { ownerReturn: forbidden.runtime }), /LIVE_RUNTIME_OVERRIDE/);
 });
+
+test('finite bridge clamps phase2 to the receiver observation origin across a measured 7ms issue gap', async t => {
+  const c = finiteBridgeFixture(t, { exchangeTimeoutMs: 30010 }), origin = Date.now();
+  let clock = origin, phase1Expires;
+  c.runtime.now = () => clock;
+  t.mock.method(Date, 'now', () => clock);
+  const write = fs.writeFileSync;
+  t.mock.method(fs, 'writeFileSync', (file, ...args) => {
+    const returned = write(file, ...args);
+    if (String(file).endsWith('host-status.command.json')) clock += 7;
+    return returned;
+  });
+  const driver = finiteDriver(t, c, (packet, phase) => {
+    const startedAt = new Date(clock).toISOString();
+    if (phase === 1) {
+      phase1Expires = Date.parse(packet.commandExpiresAt);
+      assert.equal(phase1Expires, origin + 30007);
+      submitFiniteNativeHostToolResult({ ...c.packetOptions(phase),
+        toolStartedAt: startedAt, toolCompletedAt: startedAt }, finiteListResult());
+    } else {
+      assert.equal(Date.parse(packet.commandExpiresAt), origin + 30000);
+      assert.equal(phase1Expires - Date.parse(packet.commandExpiresAt), 7);
+      assert.doesNotThrow(() => readFiniteNativeHostCommand(c.packetOptions(phase)));
+      clock = origin + 30000;
+      // The driver cannot begin another tool call in the old extra 7ms window.
+      assert.throws(() => readFiniteNativeHostCommand(c.packetOptions(phase)), /NATIVE_HOST_PACKET_EXPIRED/);
+      // A tool already started inside the bound may complete later; no new tool is invoked here.
+      submitFiniteNativeHostToolResult({ ...c.packetOptions(phase), toolStartedAt: startedAt,
+        toolCompletedAt: new Date(clock).toISOString() }, { content: [], isError: false });
+    }
+  });
+  const result = await c.run();
+  assert.equal(result.judgments[0].status, 'INCOMPLETE'); assert.deepEqual(driver.errors, []);
+  assert.deepEqual([...driver.seen], [1, 2]);
+  assert.equal(finiteReceipt(c).consumptionStatus, 'NOT_OBSERVED');
+  assert.equal(c.queue.length, 0); assert.equal(c.ssh.length, 0);
+});

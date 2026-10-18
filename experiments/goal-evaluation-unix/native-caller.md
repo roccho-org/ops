@@ -84,6 +84,9 @@ The exchange ceiling does not extend observation freshness. `timeoutMs` stays
 1..30000. The native command issue time conservatively precedes a sample taken
 during the normal tool request. Both source elapsed checks and a per-command
 `commandExpiresAt` retain that bound, including time spent returning a send result.
+Phase 2 also clamps that deadline to the receiver's own `statusObservedAt` plus
+`timeoutMs`; in finite mode this is its earlier command-take origin. Missing or
+invalid receiver evidence yields HOLD rather than an inferred replacement time.
 The fixed driver must check this deadline immediately before calling the tool.
 An observed 135-second list request therefore yields HOLD, not a fresh idle claim.
 Tool start/completion are host-port reports; internal `runtimeSampledAt` remains
