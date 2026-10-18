@@ -122,8 +122,10 @@ test('owner validator rejects result/digest/record/projection/accounting weakeni
 test('fixed owner SSH sends exact protocol once and retains local bytes without a TypeLLM frame', async t => {
   const c = context(t), prepared = await preparePlan(syntheticOwnerInput()), result = await syntheticOwnerResult(prepared);
   const child = fakeOwnerChild(JSON.stringify(result) + '\n'), calls = [];
-  const env = { PATH: 'synthetic path' };
-  for (const key of ['TYPELLM_API_KEY', 'JEV_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY'])
+  const env = { PATH: 'synthetic path', TYPELLM_ENDPOINT: 'synthetic allowed value' };
+  for (const key of ['TYPELLM_API_KEY', 'JEV_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY',
+    'typellm_api_key', 'jev_api_key', 'openai_api_key', 'anthropic_api_key',
+    'TypeLlm_Api_Key', 'Jev_Api_Key', 'OpenAi_Api_Key', 'Anthropic_Api_Key'])
     Object.defineProperty(env, key, { enumerable: true, get() { throw new Error('provider value must not be read'); } });
   t.mock.property(process, 'env', env);
   t.mock.method(childProcess, 'spawn', (...args) => { calls.push(args); return child; });
@@ -133,7 +135,7 @@ test('fixed owner SSH sends exact protocol once and retains local bytes without 
   assert.deepEqual(calls[0][1], ['-T', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes', '--',
     c.options.host, c.options.remoteLauncherPath, '--envs-sha', c.options.envsSha, '--ops-sha', c.options.opsSha]);
   assert.equal(calls[0][2].shell, false);
-  assert.deepEqual(calls[0][2].env, { PATH: 'synthetic path' });
+  assert.deepEqual(calls[0][2].env, { PATH: 'synthetic path', TYPELLM_ENDPOINT: 'synthetic allowed value' });
   assert.ok(child.input.equals(Buffer.from(JSON.stringify(prepared.plan) + '\n')));
   const record = port.receipts()[0];
   assert.equal(record.status, 'RETURNED'); assert.equal(record.spawnInvocations, 1);
