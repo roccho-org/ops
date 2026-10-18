@@ -504,3 +504,6 @@ export function fidelityFromReview({ approved, reviewReceipt, envelopeSha256, ch
     rOriginDeclared: { ...approved.rOrigin },
     limits: ['shared GitHub author; R origin is a caller-declared reference until the live R readback'] };
 }
+
+// Explicit finite native product caller; importing does not start an operation.
+export { bindNativeProductCaller } from './native-caller.mjs';
