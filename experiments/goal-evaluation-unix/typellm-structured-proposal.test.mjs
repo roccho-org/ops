@@ -322,3 +322,141 @@ test('structured proposal: unsupported explicit timeout is refused before any ex
   }
   assert.equal(executions, 0);
 });
+
+
+const dependentFormat = 'typed-relations-dependent-v1';
+const dependentKeys = ['questionClauseLinks', 'basisLinks', 'requiredLinks', 'needs', 'missing'];
+
+test('dependent structured proposal: exact two-layer DAG preserves full context, fields and uncertainty instructions', async () => {
+  for (const withCore of [false, true]) {
+    const p = prompt();
+    if (withCore) p.cores = [{ id: 'supplied', question: 'Question', criteria: criteria() }];
+    const old = buildTypeLLMStructuredProposalRequest(p);
+    const built = buildTypeLLMStructuredProposalRequest(p, dependentFormat);
+    assert.equal(built.request.context, old.request.context);
+    assert.equal(built.request.questions.clauses.depends_on, undefined);
+    assert.equal(built.request.questions.questions.depends_on, undefined);
+    for (const key of dependentKeys) assert.deepEqual(built.request.questions[key].depends_on, ['clauses', 'questions']);
+    const noDependencies = clone(built.request.questions);
+    for (const key of dependentKeys) delete noDependencies[key].depends_on;
+    assert.equal(fieldCount(noDependencies), withCore ? 29 : 27);
+    for (const key of Object.keys(old.request.questions)) {
+      assert.equal(built.request.questions[key].minItems, 0);
+      assert.equal(built.request.questions[key].maxItems, old.request.questions[key].maxItems);
+      assert.equal(built.request.questions[key].instructions, old.request.questions[key].instructions);
+    }
+    assert.match(built.request.questions.clauses.items.properties.quote.instructions, /decoded original ref.content/);
+    assert.match(built.request.questions.clauses.items.properties.quote.instructions, /Do not stitch/);
+    let posts = 0;
+    await generateTyped({ request: built.request, provider: { available: true, post: async body => {
+      posts++; assert.deepEqual(JSON.parse(body).questions, built.request.questions);
+      return response(wire(withCore));
+    } } });
+    assert.equal(posts, 1);
+  }
+  assert.throws(() => buildTypeLLMStructuredProposalRequest(prompt(), 'unknown-format'), /INVALID_STRUCTURED_PROPOSAL_INPUT/);
+});
+
+test('dependent structured proposal: both old modes retain pre-edit request and prepared-wire bytes', async () => {
+  const cases = [
+    ['json-string', buildTypeLLMProposalRequest(prompt()).request, { proposal: '{}' }, 1070,
+      'a117f1a252039ff6079a9e29ae03f99a748bcef72ced5c048ff384eb63d63ceb', 1153,
+      '12bc18a80ecb054fe53dfcd29ee05979370470d84a86e2993bb76e801fe324c0'],
+    ['typed-relations-v1', buildTypeLLMStructuredProposalRequest(prompt()).request,
+      { clauses: [], questions: [], questionClauseLinks: [], basisLinks: [], requiredLinks: [], needs: [], missing: [] }, 3850,
+      '4d89d2e88e0499bc5d6581a589a629574084c068e0974df4ae07b7175f10c190', 3916,
+      'caba827a009d6d900cfebdac2e3cd14fa5744d5bec3aee66c6ee10647c911daf'],
+  ];
+  for (const [format, request, result, bytes, digest, preparedBytes, preparedDigest] of cases) {
+    const encoded = JSON.stringify(request);
+    assert.equal(Buffer.byteLength(encoded), bytes); assert.equal(sha(encoded), digest);
+    let posts = 0;
+    await generateTyped({ request, provider: { available: true, post: async body => {
+      posts++; assert.equal(Buffer.byteLength(body), preparedBytes); assert.equal(sha(body), preparedDigest);
+      return { result };
+    } } });
+    assert.equal(posts, 1);
+    const bound = port(async actual => {
+      assert.equal(JSON.stringify(actual), encoded);
+      return { result };
+    }, { proposalFormat: format });
+    await bound.propose(prompt());
+    assert.equal(bound.receipts()[0].typedRequestSha256, digest);
+  }
+});
+
+test('dependent structured proposal: native Core roundtrip keeps relations and receipt uncertainty', async () => {
+  let calls = 0;
+  const bound = port(async (request, options) => {
+    calls++;
+    assert.ok(Object.isFrozen(request));
+    assert.equal(options.callId, '11111111-2222-4333-8444-555555555555/proposal/1');
+    assert.equal(request.timeout, 60);
+    for (const key of dependentKeys) {
+      assert.deepEqual(request.questions[key].depends_on, ['clauses', 'questions']);
+      assert.ok(Object.isFrozen(request.questions[key].depends_on));
+    }
+    return response(wire());
+  }, { proposalFormat: dependentFormat, requestTimeoutSeconds: 60 });
+  const value = await plan(input(), { propose: bound.propose });
+  assert.deepEqual(checkPlan(value), value);
+  assert.deepEqual(value.questions[0].clauseIds, ['c2', 'c1']);
+  assert.deepEqual(value.questions[1].clauseIds, ['c1']);
+  assert.equal(value.questions[0].core, null);
+  assert.equal(calls, 1);
+  const receipt = bound.receipts()[0];
+  assert.equal(receipt.proposalFormat, dependentFormat);
+  assert.equal(receipt.status, 'STRUCTURED_ASSEMBLED');
+  assert.equal(receipt.structuredCoverage, 'UNKNOWN');
+  assert.equal(receipt.structuredFieldCount, 27);
+  assert.equal(receipt.saturatedArrays, 0);
+  assert.equal(receipt.executorInvocations, 1);
+  assert.equal(receipt.remoteEffects, 'UNKNOWN');
+  assert.equal(receipt.httpFetchAttempts, null);
+  assert.equal(receipt.wireRequestSha256, null);
+});
+
+test('dependent structured proposal: all-missing remains legal and saturation never certifies coverage', async () => {
+  const empty = { clauses: [], questions: [], questionClauseLinks: [], basisLinks: [], requiredLinks: [], needs: [],
+    missing: Array.from({ length: 32 }, (_, i) => ({ need: 'Unobserved item ' + i, reason: 'Not supplied.' })) };
+  const bound = port(async () => response(empty), { proposalFormat: dependentFormat });
+  const value = await plan(input(), { propose: bound.propose });
+  assert.deepEqual(checkPlan(value), value);
+  assert.equal(value.questions.length, 0);
+  assert.equal(value.missing.length, 32);
+  assert.equal(bound.receipts()[0].saturatedArrays, 1);
+  assert.equal(bound.receipts()[0].structuredCoverage, 'UNKNOWN');
+});
+
+test('dependent structured proposal: no invented obligation links, original refs or quote repairs', async () => {
+  for (const [mutate, code] of [
+    [x => { x.questionClauseLinks = []; }, 'INVALID_QUESTION'],
+    [x => { x.requiredLinks[0].ref = 'not-supplied'; }, 'REQUIRED_REF_NOT_SUPPLIED'],
+    [x => { x.clauses[0].quote = 'Invented contiguous content.'; }, 'CLAUSE_QUOTE_NOT_FOUND'],
+  ]) {
+    const supplied = wire(); mutate(supplied);
+    const original = clone(supplied);
+    const bound = port(async () => response(supplied), { proposalFormat: dependentFormat });
+    await assert.rejects(plan(input(), { propose: bound.propose }), error => error.message === code);
+    assert.deepEqual(supplied, original);
+    // The port assembled a candidate; Core rejected it. Neither is a coverage/fidelity success.
+    assert.equal(bound.receipts()[0].status, 'STRUCTURED_ASSEMBLED');
+    assert.equal(bound.receipts()[0].structuredCoverage, 'UNKNOWN');
+  }
+});
+
+test('dependent structured proposal: orphan relations and native bounds preserve fail-closed receipts', async () => {
+  const supplied = wire(); supplied.questionClauseLinks[0].questionId = 'q-orphan';
+  const bound = port(async () => response(supplied), { proposalFormat: dependentFormat });
+  await assert.rejects(bound.propose(prompt()), error => error.code === 'INVALID_STRUCTURED_PROPOSAL');
+  assert.equal(bound.receipts()[0].status, 'FAILED');
+  assert.equal(bound.receipts()[0].errorCode, 'INVALID_STRUCTURED_PROPOSAL');
+  assert.equal(bound.receipts()[0].structuredCoverage, 'UNKNOWN');
+  let executions = 0;
+  const guarded = port(async () => { executions++; throw Error('must not execute'); }, { proposalFormat: dependentFormat });
+  const tooMany = prompt(); tooMany.maxClauses = 33;
+  await assert.rejects(guarded.propose(tooMany), error => error.code === 'STRUCTURED_PROPOSAL_LIMIT');
+  assert.equal(executions, 0);
+  assert.equal(guarded.receipts()[0].executorInvocations, 0);
+  assert.equal(guarded.receipts()[0].errorCode, 'STRUCTURED_PROPOSAL_LIMIT');
+});

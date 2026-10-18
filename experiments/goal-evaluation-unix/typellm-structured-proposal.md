@@ -25,3 +25,45 @@ Any future finite experiment must separately pin its local builder/executor sour
 The CLI consumes that same typed request: an explicit 60-second provider timeout selects a 65,000 ms local provider deadline; an omitted timeout retains 35,000 ms. Existing output and opt-in metadata frames are unchanged. Remote CLI/SDK source must support the option: changing the local caller alone does not update the remote body. Pin and accept the actual rebuilt remote source/output separately, and repeat offline typed-request/body identity checks before a new finite live call.
 
 This does not alter Core input or Plan limits, seven-array limits, per-string limits, request size, Jev provided admission, model identity or coverage status. A 65-second provider deadline leaves only a finite interval inside the existing 95-second outer limit; successful completion is not guaranteed. A 90-second option is unsupported. HTTP 504 remains a reported provider HTTP error, with backend execution, its precise timeout cause, billing and remote effects unproven; no automatic retry is added.
+
+
+## Opt-in dependent relations
+
+Set the existing executor port's proposalFormat to typed-relations-dependent-v1,
+which calls buildTypeLLMStructuredProposalRequest(prompt,
+ 'typed-relations-dependent-v1'). Omitting this option keeps json-string;
+typed-relations-v1 and both existing request/wire encodings are unchanged.
+The new format keeps the same seven arrays, native assembly and 27/29 field
+counts. It adds exactly two dependency layers:
+
+- clauses and questions independently read the complete original context/Goal.
+- questionClauseLinks, basisLinks, requiredLinks, needs and missing each depend
+  on both actual clauses and questions. No item-level or nested-array dependency
+  is introduced. missing does not see the other relation answers.
+
+The SDK treats a top-level array as one atomic dependency node, and accepts it
+as a target. Unknown names, duplicate dependencies and scalar/object/array
+cycles are rejected before transport. Existing 32-item, 64-field, 2048 UTF16
+answer, 8192 UTF16 instruction and 131072-byte request guards remain unchanged.
+The optional timeout remains 60 seconds for the whole request; dependency
+layers do not reset that deadline. Old defaults remain 30/35 seconds.
+
+The new quote instruction asks for an unchanged contiguous substring of the
+decoded original ref.content, rather than JSON serialization escapes. This
+does not certify semantic selection or coverage. Nothing normalizes, repairs,
+clips, substitutes refs, invents links or reaccepts a prior failed candidate.
+Core still validates exact quotes, supplied refs and obligation links. Empty
+questions/all-missing remain legal; relation minItems remains zero. A question
+without a legitimate obligation link is rejected, rather than given one by
+the assembler. The exception/alternative/unknown and missing-limit instructions
+remain intact.
+
+This addresses a source capability gap: without depends_on, independent
+service fields do not see sibling answers. It does not establish the sole
+cause of any prior failed response. Successful assembly, unsaturated arrays,
+or a dependency declaration never proves coverage/fidelity/utility. Saturation
+and structuredCoverage: UNKNOWN remain in receipts. Real service execution,
+per-layer latency, backend inference count and total cost require separate
+finite evidence; one HTTP request does not establish those counts or fit.
+Sources: https://typellm.ai/docs/workflows and
+https://typellm.ai/docs/output-types (top-level arrays and their dependencies).

@@ -39,7 +39,7 @@ export function bindTypeLLMExecutorPorts(options = {}) {
       || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(runId)
       || !Number.isInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 95000
       || !Number.isInteger(maxCalls) || maxCalls < 1 || maxCalls > 4
-      || !['json-string', 'typed-relations-v1'].includes(proposalFormat)
+      || !['json-string', 'typed-relations-v1', 'typed-relations-dependent-v1'].includes(proposalFormat)
       || (Object.hasOwn(options, 'requestTimeoutSeconds') && requestTimeoutSeconds !== 60)
       || (signal !== undefined && !(signal instanceof AbortSignal)))
     throw new Error('INVALID_TYPELLM_EXECUTOR_PORT');
@@ -102,14 +102,14 @@ export function bindTypeLLMExecutorPorts(options = {}) {
       usageInputTokens: null, usageThinkingTokens: null, providerElapsed: null,
       clientElapsedMs: null, errorCode: null, upstreamStatus: null
     };
-    if (kind === 'proposal' && proposalFormat === 'typed-relations-v1') {
+    if (kind === 'proposal' && proposalFormat !== 'json-string') {
       record.proposalFormat = proposalFormat;
       record.structuredCoverage = 'UNKNOWN';
       record.saturatedArrays = null;
     }
     try {
-      const built = kind === 'proposal' ? (proposalFormat === 'typed-relations-v1'
-        ? buildTypeLLMStructuredProposalRequest(value) : buildTypeLLMProposalRequest(value))
+      const built = kind === 'proposal' ? (proposalFormat !== 'json-string'
+        ? buildTypeLLMStructuredProposalRequest(value, proposalFormat) : buildTypeLLMProposalRequest(value))
         : buildTypeLLMNativeQuestionRequest(value);
       const request = freeze(requestTimeoutSeconds === 60 ? { ...built.request, timeout: 60 } : built.request);
       const serialized = JSON.stringify(request);
@@ -128,7 +128,7 @@ export function bindTypeLLMExecutorPorts(options = {}) {
       record.usageThinkingTokens = generated.usage?.thinking_tokens ?? null;
       record.providerElapsed = generated.elapsed ?? null;
       let answer;
-      if (kind === 'proposal' && proposalFormat === 'typed-relations-v1') {
+      if (kind === 'proposal' && proposalFormat !== 'json-string') {
         const assembled = assembleTypeLLMStructuredProposal(generated.result, built.captured);
         answer = assembled.candidate;
         Object.assign(record, assembled.metadata);
@@ -153,7 +153,7 @@ export function bindTypeLLMExecutorPorts(options = {}) {
     } catch (error) {
       record.status = 'FAILED';
       const known = code => codes.has(code) || (kind === 'proposal'
-        && proposalFormat === 'typed-relations-v1' && structuredCodes.has(code));
+        && proposalFormat !== 'json-string' && structuredCodes.has(code));
       const code = error instanceof TypedProviderError && known(error.code) ? error.code
         : known(error?.message) ? error.message : 'executor_failed';
       record.errorCode = code;
