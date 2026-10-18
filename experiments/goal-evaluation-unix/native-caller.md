@@ -348,3 +348,67 @@ function projectFiniteHostToolResultForDriver(response, ownerThread, phase) {
   return output;
 }
 ```
+
+## Explicit fixed JEV owner evaluation
+
+`bindNativeProductCaller` additionally accepts `operation:'evaluate'`. Existing
+plan/judge defaults, TypeLLM ports, Core and receiver event v2 stay unchanged.
+This branch accepts `ownerLimits` using the five existing `ENTRY_LIMITS` keys;
+they can only reduce 24 cases/24 provider callbacks/1048576 input bytes/15000ms
+per call/60000ms entry deadline. Core/TypeLLM options (`maxCalls`, `maxBytes`,
+`maxQuestions`, `maxClauses`, `cores`, `proposalFormat`, `requestTimeoutSeconds`)
+are rejected here rather than reinterpreted. The SSH deadline is separately
+1..95000ms. Raw transport bytes are not a provider token-fit claim.
+
+The source operation runs existing `preparePlan`, requires explicit v16 cases,
+sends complete `prepared.plan` once to the fixed remote owner entry, and validates
+actual output with `validateOwnerResult(prepared,output,'owner-v16')`. No generic
+product callback, engine, executable selector or credential is injected.
+An all-missing admitted plan still invokes the actual remote owner once; zero
+provider work is accepted only from its validated source report. Structural
+preflight synthetic answers are never execution results.
+
+`bindSemlintOwnerSSHExecutor` requires absolute `sshPath`, strict `host`, exact
+lowercase `envsSha`, `opsSha` and `resourcesSha`, UUID `runId`, existing absolute
+non-symlink `ledgerDir`, and the closed immutable launcher path
+`/nix/store/<32-lower-alnum>-ops-semlint-owner/bin/ops-semlint-owner`.
+The only remote arguments are `--envs-sha` and `--ops-sha`; resources SHA stays
+declared binding metadata, not another flag. Exports are `executePlan(plan,
+{callId:runId+'/evaluate/1',signal?})`, `receipts()` and `bindingSha256`.
+One SSH attempt is durably claimed per run; crash/duplicate/rebind is not replayed.
+Shell execution is disabled; four provider API environment values are excluded
+without reading them. Path grammar alone does not prove actual SSH config,
+host-key, target, launcher, ciphertext or source identity.
+
+Exact JSON snapshot plus LF must be <=1048576 bytes. Separate CreateNew private
+stdin/stdout/stderr/receipt files retain bytes and SHA. Stdout is capped at
+1048576 bytes and stderr at 16384; overflow preserves a prefix, incomplete status
+and failure, never clipped success. Stdout must be one canonical UTF8 JSON line
+of `ops.semlint.real-result.v3`. No TypeLLM frame, API key or fake HTTP bridge is
+used. Public build diagnostics may occupy stderr. Timeout/cancel attempts local
+SSH termination. After 250ms without close, handles are released and close remains
+unproved; neither kill nor local receipt proves remote stop or zero cost.
+
+The validator extracts all prior returned-plan identity, projection, record,
+cause and accounting predicates. Copied/unadmitted prepared values are refused.
+Default `github-legacy` keeps v1/v14; the composer still requires its requests
+WeakSet and unchanged 32768-byte comment cap. Only explicit owner-v16 admits
+v16 and requires actual v3 per-case owner reports; `provider:null` synthetic
+results are refused there. Existing GitHub admission and comment wire stay fixed.
+
+The caller verifies its actual result artifact before terminal/return commands.
+INCOMPLETE remains HOLD; execution/evidence errors remain failed. Settled output
+is not semantic usefulness or Goal coverage. Local caller source SHA, declared
+remote Ops pin, resources pin and launcher output are separate fields. A pinned
+historical remote entry need not contain the new local validator export;
+logical schema compatibility and actual source/store identity need separate
+admission. Local SSH counts are distinct from remote source-reported provider
+HTTP/callback counts. Backend identity and cost remain unknown. Local stdin SHA
+is not remote raw-byte observation; returned planDigest binds canonical identity.
+
+Real execution requires the genuine owner-native environment; a NodeREPL child
+is not assumed to inherit exact P identity. Environment identity rewriting is
+forbidden. Normal host approval and the admitted thin driver remain required.
+Sender ACK is not consumption; no consumed API is added. G1/G2, idle return and
+utility require separate real evidence. These tests use neutral synthetic source
+and child pipes only, never case/Gold, actual SSH or a provider.

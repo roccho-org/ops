@@ -946,3 +946,82 @@ test('command and event digest shapes are closed without equating receiver and c
   await c.run(); assert.deepEqual(driver.errors, []);
   assert.equal(finiteReceipt(c).phases, 1);
 });
+
+import { syntheticOwnerInput, syntheticOwnerResult, fakeOwnerChild } from './semlint-owner-ssh-executor.test.mjs';
+import { preparePlan as prepareOwnerPlan } from '../../packages/jev-review/semlint-entry.mjs';
+
+function ownerEvaluateFixture(t) {
+  const c = finiteBridgeFixture(t, { exchangeTimeoutMs: 10000 });
+  c.options.operation = 'evaluate';
+  c.options.ssh.remoteLauncherPath = '/nix/store/' + 'a'.repeat(32) + '-ops-semlint-owner/bin/ops-semlint-owner';
+  c.options.ssh.resourcesSha = 'd'.repeat(40);
+  c.options.ownerLimits = { maxCases: 1, maxCalls: 1, maxInputBytes: 1048576, timeoutMs: 15000, deadlineMs: 60000 };
+  return c;
+}
+
+test('evaluate owns validated owner output before return and separates remote reports from local SSH counts', async t => {
+  const c = ownerEvaluateFixture(t), input = syntheticOwnerInput(), prepared = await prepareOwnerPlan(input, c.options.ownerLimits);
+  const expected = await syntheticOwnerResult(prepared), spawned = [];
+  t.mock.method(childProcess, 'spawn', (exe, argv, options) => {
+    const child = fakeOwnerChild(JSON.stringify(expected) + '\n'); spawned.push({ exe, argv, options, child }); return child;
+  });
+  const driver = finiteDriver(t, c, (_packet, phase) => {
+    const engine = path.join(c.options.ledgerDir, c.options.runId + '.engine');
+    const terminal = JSON.parse(fs.readFileSync(path.join(engine, 'terminal.json')));
+    const artifact = fs.readFileSync(path.join(engine, 'engine.result.json'));
+    assert.equal(terminal.resultArtifactStatus, 'VERIFIED_READBACK');
+    assert.equal(hash(artifact), terminal.resultArtifactSha256); assert.deepEqual(JSON.parse(artifact), expected);
+    assert.equal(terminal.outcome, 'COMPLETED'); assert.equal(terminal.goalCoverage, 'NOT_CERTIFIED');
+    assert.equal(terminal.localCallerSourceSha, source);
+    assert.equal(terminal.declaredRemoteOpsSha, c.options.ssh.opsSha);
+    assert.equal(terminal.declaredResourcesSha, c.options.ssh.resourcesSha);
+    assert.equal(terminal.ownerReportedHttpCalls, 1); assert.equal(terminal.sshSpawnInvocations, 1);
+    assert.equal(terminal.providerAccountingAuthority, 'REMOTE_OWNER_SOURCE_REPORTED');
+    assert.equal(terminal.coreLogicalCalls, null);
+    submitFiniteSynthetic(c, phase, finiteListResult('active'));
+  });
+  const result = await runFiniteNativeHostBridge(c.config, input, { ownerReturn: c.runtime });
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), expected); assert.deepEqual(driver.errors, []);
+  assert.equal(spawned.length, 1); assert.equal(c.queue.length, 0);
+  assert.ok(spawned[0].child.input.equals(Buffer.from(JSON.stringify(prepared.plan) + '\n')));
+  assert.equal(spawned[0].argv.includes('--response-metadata'), false);
+  assert.deepEqual(spawned[0].argv.slice(-4), ['--envs-sha', c.options.ssh.envsSha, '--ops-sha', c.options.ssh.opsSha]);
+  assert.equal(finiteReceipt(c).consumptionStatus, 'NOT_OBSERVED');
+});
+
+test('evaluate retains legitimate INCOMPLETE and zero reported provider calls after one owner SSH', async t => {
+  const c = ownerEvaluateFixture(t), input = syntheticOwnerInput({ needs: true });
+  const expected = await syntheticOwnerResult(await prepareOwnerPlan(input, c.options.ownerLimits));
+  t.mock.method(childProcess, 'spawn', () => fakeOwnerChild(JSON.stringify(expected) + '\n'));
+  const driver = finiteDriver(t, c, (_packet, phase) => submitFiniteSynthetic(c, phase, finiteListResult('active')));
+  const result = await runFiniteNativeHostBridge(c.config, input, { ownerReturn: c.runtime });
+  assert.equal(result.cases[0].result.records[0].status, 'INCOMPLETE');
+  const terminal = JSON.parse(fs.readFileSync(path.join(c.options.ledgerDir, c.options.runId + '.engine', 'terminal.json')));
+  assert.equal(terminal.outcome, 'HOLD'); assert.equal(terminal.incompleteCount, 1);
+  assert.equal(terminal.ownerReportedHttpCalls, 0); assert.equal(terminal.sshSpawnInvocations, 1);
+  assert.equal(terminal.executorInvocations, 1); assert.equal(terminal.physicalCloseObserved, true);
+  assert.equal(terminal.portReceiptSha256, hash('[]')); assert.deepEqual(driver.errors, []);
+});
+
+test('evaluate rejects Core options/input before SSH and forged returned accounting after close', async t => {
+  const invalid = ownerEvaluateFixture(t);
+  assert.throws(() => bindNativeProductCaller({ ...invalid.options, maxCalls: 1 }, { ownerReturn: invalid.runtime }), /INVALID_NATIVE_PRODUCT_CALLER/);
+  assert.throws(() => bindNativeProductCaller({ ...invalid.options, proposalFormat: 'json-string' }, { ownerReturn: invalid.runtime }), /INVALID_NATIVE_PRODUCT_CALLER/);
+  let spawns = 0;
+  const mock = t.mock.method(childProcess, 'spawn', () => { spawns++; throw new Error('forbidden'); });
+  const driver = finiteDriver(t, invalid, (_packet, phase) => submitFiniteSynthetic(invalid, phase, finiteListResult('active')));
+  await assert.rejects(runFiniteNativeHostBridge(invalid.config, {}, { ownerReturn: invalid.runtime }), /INVALID_ENTRY_PLAN/);
+  assert.equal(spawns, 0); assert.deepEqual(driver.errors, []);
+  const failed = JSON.parse(fs.readFileSync(path.join(invalid.options.ledgerDir, invalid.options.runId + '.engine', 'terminal.json')));
+  assert.equal(failed.transportLifecycle, 'NO_EXECUTOR_INVOCATION'); assert.equal(failed.executorInvocations, 0);
+  assert.equal(failed.outcome, 'FAILED'); mock.mock.restore();
+  const c = ownerEvaluateFixture(t), input = syntheticOwnerInput();
+  const bad = await syntheticOwnerResult(await prepareOwnerPlan(input, c.options.ownerLimits)); bad.accounting.providerHttpCalls = 0;
+  t.mock.method(childProcess, 'spawn', () => fakeOwnerChild(JSON.stringify(bad) + '\n'));
+  const returned = finiteDriver(t, c, (_packet, phase) => submitFiniteSynthetic(c, phase, finiteListResult('active')));
+  await assert.rejects(runFiniteNativeHostBridge(c.config, input, { ownerReturn: c.runtime }), /INVALID_PROVIDER_ACCOUNTING/);
+  assert.deepEqual(returned.errors, []);
+  const terminal = JSON.parse(fs.readFileSync(path.join(c.options.ledgerDir, c.options.runId + '.engine', 'terminal.json')));
+  assert.equal(terminal.outcome, 'FAILED'); assert.equal(terminal.physicalCloseObserved, true);
+  assert.equal(terminal.ownerReportedHttpCalls, null); assert.equal(terminal.errorCode, 'INVALID_PROVIDER_ACCOUNTING');
+});

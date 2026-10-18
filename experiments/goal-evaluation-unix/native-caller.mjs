@@ -5,6 +5,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { performance } from 'node:perf_hooks';
 import { snapshotJson, exact } from '../../packages/jev-review/semlint-entry.mjs';
 import { plan, judge } from './core.mjs';
+import { preparePlan, entryLimits, ENTRY_LIMITS, validateOwnerResult } from '../../packages/jev-review/semlint-entry.mjs';
+import { bindSemlintOwnerSSHExecutor } from './semlint-owner-ssh-executor.mjs';
 import { bindTypeLLMSSHExecutor } from './typellm-ssh-executor.mjs';
 import { bindTypeLLMExecutorPorts } from './typellm-executor-ports.mjs';
 import { bindExactOwnerReturn, bindExactOwnerHostReturn, withProductOwnerReturn } from '../../packages/jev-dispatcher/exact-owner-return.mjs';
@@ -20,10 +22,17 @@ const ownCodes = new Set(['BYTE_LIMIT', 'INVALID_REQUEST', 'INVALID_PLAN', 'INVA
   'INVALID_PORT', 'INVALID_CORE', 'CORE_MISMATCH', 'INVALID_LIMITS', 'INVALID_ENTRY_INPUT',
   'INVALID_CLAUSE', 'CLAUSE_QUOTE_NOT_FOUND', 'CLAUSE_LIMIT_OR_ID', 'QUESTION_LIMIT_OR_ID',
   'INVALID_QUESTION', 'REQUIRED_REF_NOT_SUPPLIED', 'INVALID_CRITERIA', 'INVALID_MISSING']);
-const safeCode = error => ownCodes.has(error?.message) ? error.message : 'NATIVE_OPERATION_FAILED';
+const ownerCodes = new Set(['INVALID_ENTRY_INPUT', 'INVALID_ENTRY_PLAN', 'INVALID_ENTRY_LIMITS',
+  'INVALID_ENTRY_CASE', 'INVALID_ENTRY_SEMLINT', 'ENTRY_PREFLIGHT_FAILED', 'ENTRY_CALL_BUDGET_EXCEEDED',
+  'ENTRY_INPUT_TOO_LARGE', 'ENTRY_NOT_ADMITTED', 'INVALID_OWNER_RESULT_POLICY',
+  'RESULT_IDENTITY_MISMATCH', 'INVALID_RESULT_RECORD', 'INVALID_RESULT_ACCOUNTING',
+  'INVALID_RESULT_BATCH', 'INVALID_PROVIDER_ACCOUNTING', 'executor_failed',
+  'executor_contract_error', 'executor_timeout', 'cancelled']);
+const safeCode = (error, owner = false) => ownCodes.has(error?.message)
+  || (owner && ownerCodes.has(error?.message)) ? error.message : 'NATIVE_OPERATION_FAILED';
 const keys = ['id', 'mode', 'operation', 'runId', 'sourceSha', 'ledgerDir', 'ssh', 'ownerReturn',
   'deadlineMs', 'maxCalls', 'maxBytes', 'maxQuestions', 'maxClauses', 'cores',
-  'proposalFormat', 'requestTimeoutSeconds'];
+  'proposalFormat', 'requestTimeoutSeconds', 'ownerLimits'];
 const sshKeys = ['sshPath', 'host', 'envsSha', 'opsSha', 'ledgerDir'];
 const returnKeys = ['codexPath', 'endpoint', 'ownerThread', 'ledgerDir', 'expiresAt', 'timeoutMs'];
 const hostReturnKeys = ['transport', 'hostId', 'ownerThread', 'ledgerDir', 'expiresAt', 'timeoutMs'];
@@ -48,10 +57,15 @@ export function bindNativeProductCaller(options, testRuntime) {
   const { id, mode, operation, runId, sourceSha, ledgerDir, ssh, ownerReturn,
     deadlineMs, proposalFormat = 'json-string', requestTimeoutSeconds } = input;
   const hostReturn = ownerReturn?.transport === 'host-mcp';
+  const evaluating = operation === 'evaluate';
+  if (evaluating && ['maxCalls', 'maxBytes', 'maxQuestions', 'maxClauses', 'cores', 'proposalFormat', 'requestTimeoutSeconds']
+      .some(key => Object.hasOwn(input, key))) fail('INVALID_NATIVE_PRODUCT_CALLER');
+  if (!evaluating && Object.hasOwn(input, 'ownerLimits')) fail('INVALID_NATIVE_PRODUCT_CALLER');
   if (typeof id !== 'string' || !id.trim() || !['live', 'test-double'].includes(mode)
-      || !['plan', 'judge'].includes(operation) || !uuid.test(runId)
+      || !['plan', 'judge', 'evaluate'].includes(operation) || !uuid.test(runId)
       || typeof sourceSha !== 'string' || !/^[a-f0-9]{40}$/.test(sourceSha)
-      || !ssh || !exact(ssh, sshKeys.concat(Object.hasOwn(ssh, 'remoteLauncherPath') ? ['remoteLauncherPath'] : []))
+      || !ssh || !exact(ssh, sshKeys.concat(Object.hasOwn(ssh, 'remoteLauncherPath') ? ['remoteLauncherPath'] : [],
+        evaluating ? ['resourcesSha'] : []))
       || !exact(ownerReturn, hostReturn ? hostReturnKeys.concat(
         ['statusListLimit', 'exchangeTimeoutMs'].filter(key => Object.hasOwn(ownerReturn, key))) : returnKeys)
       || !Number.isSafeInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 95000
@@ -64,8 +78,9 @@ export function bindNativeProductCaller(options, testRuntime) {
   const owner = mode === 'live' ? () => process.env.CODEX_THREAD_ID : testRuntime.ownerReturn?.ownerThread;
   if (typeof owner !== 'function' || owner() !== ownerReturn.ownerThread) fail('OWNER_THREAD_MISMATCH');
   directory(ledgerDir);
-  const maxCalls = bounded(input.maxCalls, operation === 'plan' ? 1 : 4, operation === 'plan' ? 1 : 4);
-  const limits = {
+  const maxCalls = evaluating ? 1 : bounded(input.maxCalls, operation === 'plan' ? 1 : 4, operation === 'plan' ? 1 : 4);
+  const ownerLimits = evaluating ? entryLimits(input.ownerLimits ?? ENTRY_LIMITS) : null;
+  const limits = evaluating ? { ownerLimits, maxTransportCalls: 1 } : {
     maxBytes: bounded(input.maxBytes, 28000, 65536),
     maxQuestions: bounded(input.maxQuestions, 4, 4),
     maxClauses: bounded(input.maxClauses, 16, 16), maxCalls
@@ -80,7 +95,8 @@ export function bindNativeProductCaller(options, testRuntime) {
     : bindExactOwnerReturn({
       ...ownerReturn, mode, runId, sourceSha, requireEndpointPresence: true
     }, testRuntime?.ownerReturn);
-  const transport = bindTypeLLMSSHExecutor({ ...ssh, runId, deadlineMs, maxCalls });
+  const transport = evaluating ? bindSemlintOwnerSSHExecutor({ ...ssh, runId, deadlineMs })
+    : bindTypeLLMSSHExecutor({ ...ssh, runId, deadlineMs, maxCalls });
   const invocationIds = [];
   let pending = 0, consumed = false, latched = false;
   const executeTyped = async (request, callOptions) => {
@@ -89,7 +105,7 @@ export function bindNativeProductCaller(options, testRuntime) {
     try { return await transport.executeTyped(request, callOptions); }
     finally { pending--; }
   };
-  const ports = bindTypeLLMExecutorPorts({
+  const ports = evaluating ? null : bindTypeLLMExecutorPorts({
     id, mode, runId, deadlineMs, maxCalls, executeTyped,
     executorId: id + '/ssh', bindingSha256: transport.bindingSha256,
     proposalFormat, ...(requestTimeoutSeconds === undefined ? {} : { requestTimeoutSeconds })
@@ -101,6 +117,18 @@ export function bindNativeProductCaller(options, testRuntime) {
     if (latched) fail('NATIVE_TRANSPORT_LATCHED');
     try { return await ports.which(question); }
     catch (error) { latched = true; throw error; }
+  };
+
+  const evaluate = async value => {
+    const prepared = await preparePlan(value, ownerLimits);
+    if (prepared.plan.cases.some(row => row.input.schema !== 'ops.semlint.input.v16')) fail('INVALID_ENTRY_SEMLINT');
+    const callId = runId + '/evaluate/1';
+    invocationIds.push(callId); pending++;
+    let output;
+    try { output = await transport.executePlan(prepared.plan, { callId }); }
+    catch (error) { latched = true; throw error; }
+    finally { pending--; }
+    return validateOwnerResult(prepared, output, 'owner-v16');
   };
 
   const run = async value => {
@@ -116,7 +144,7 @@ export function bindNativeProductCaller(options, testRuntime) {
     }) + '\n', { flag: 'wx', mode: 0o600 });
     let terminal;
     const describeTerminal = ({ rejected, value: result, error }) => {
-      const actual = transport.receipts(), portRecords = ports.receipts();
+      const actual = transport.receipts(), portRecords = ports?.receipts() ?? [];
       const actualIds = actual.map(record => record.callId);
       const corresponding = actual.length === invocationIds.length
         && new Set(invocationIds).size === invocationIds.length
@@ -128,11 +156,13 @@ export function bindNativeProductCaller(options, testRuntime) {
       const lifecycle = none ? 'NO_EXECUTOR_INVOCATION' : closed ? 'LOCAL_SSH_CLOSED' : 'UNPROVED';
       const operationFailed = rejected || actual.some(record => record.status !== 'RETURNED')
         || portRecords.some(record => record.status === 'FAILED');
-      const outcome = operationFailed ? 'FAILED' : operation === 'judge'
+      const ownerRows = evaluating && !rejected ? result.cases.flatMap(row => row.result.records) : [];
+      const outcome = operationFailed || ownerRows.some(row => ['EXECUTION_ERROR', 'EVIDENCE_INVALID'].includes(row.status))
+        ? 'FAILED' : evaluating && ownerRows.some(row => row.status === 'INCOMPLETE') ? 'HOLD' : operation === 'judge'
         && (result.missing.length || result.judgments.some(row => row.status !== 'OBSERVED' || row.label === 'unknown'))
         ? 'HOLD' : 'COMPLETED';
       const resultBody = JSON.stringify(rejected ? {
-        schema: 'ops.native-product-error.v1', errorCode: safeCode(error)
+        schema: 'ops.native-product-error.v1', errorCode: safeCode(error, evaluating)
       } : result);
       const receiptBody = JSON.stringify(actual);
       terminal = {
@@ -155,7 +185,18 @@ export function bindNativeProductCaller(options, testRuntime) {
           ? result.judgments.filter(row => row.status === 'INCOMPLETE').length : null,
         unknownCount: operation === 'judge' && !rejected
           ? result.judgments.filter(row => row.status === 'OBSERVED' && row.label === 'unknown').length : null,
-        latchedTransportFailure: latched, errorCode: rejected ? safeCode(error) : null,
+        ...(evaluating ? {
+          localCallerSourceSha: sourceSha, declaredRemoteOpsSha: ssh.opsSha,
+          declaredResourcesSha: ssh.resourcesSha, declaredRemoteLauncherPath: ssh.remoteLauncherPath,
+          ownerCallbackAttempts: rejected ? null : result.accounting.callbackAttempts,
+          ownerReportedHttpCalls: rejected ? null : result.accounting.providerHttpCalls,
+          ownerReportedCompletedHttpCalls: rejected ? null : result.accounting.completedHttpCalls,
+          ownerReportedValidatedResponses: rejected ? null : result.accounting.validatedResponses,
+          ownerReportedUnknownHttpCalls: rejected ? null : result.accounting.unknownHttpCalls,
+          providerAccountingAuthority: 'REMOTE_OWNER_SOURCE_REPORTED', backendIdentityStatus: 'UNKNOWN',
+          incompleteCount: rejected ? null : ownerRows.filter(row => row.status === 'INCOMPLETE').length
+        } : {}),
+        latchedTransportFailure: latched, errorCode: rejected ? safeCode(error, evaluating) : null,
         remoteEffects: none ? 'NOT_DISPATCHED_BY_CALLER' : 'UNKNOWN'
       };
       // The owned result must already be readable before a queued P can consume the notice.
@@ -190,7 +231,7 @@ export function bindNativeProductCaller(options, testRuntime) {
     };
     try {
       return await withProductOwnerReturn(
-        () => operation === 'plan'
+        () => evaluating ? evaluate(value) : operation === 'plan'
           ? plan(value, { propose: ports.propose, cores, ...limits })
           : judge(value, { id, mode, which }, limits),
         describeTerminal, receiver
