@@ -13,5 +13,5 @@ assert.equal(ready, true, 'LOCAL_WORKERD_NOT_READY');
 const response = await fetch(`${base}/proof`, { method: 'POST' });
 const body = await response.json();
 assert.equal(response.status, 200, body.code ?? 'LOCAL_WORKERD_PROOF_FAILED');
-assert.deepEqual(body, { http: true, webpush: true });
-console.log(JSON.stringify({ workerdRequestHttp: true, workerdRequestWebsocket: true, localR2Replay: true, realX: false }));
+assert.deepEqual(body, { http: true, webpush: true, rss: true });
+console.log(JSON.stringify({ workerdRequestHttp: true, workerdRequestWebsocket: true, localR2Replay: true, realX: false, realRss: false }));
