@@ -4,6 +4,138 @@ import { readFile } from 'node:fs/promises';
 import { plan, judge, report, unquotedGoalText } from './core.mjs';
 // The existing goal-evaluation-unix CI check runs this file; it also runs the preparer tests.
 import './prepare.test.mjs';
+import { bindJevChoicePort } from './jev-port.mjs';
+import { checkPlan } from './core.mjs';
+import { bindJev } from '../../packages/jev/src/client.mjs';
+
+function jevPortPlan(needs = []) {
+  return checkPlan({
+    schema: 'ops.goal-evaluation.plan.v2',
+    request: {
+      goal: { ref: 'goal', content: 'Retain every record. Exceptions remain unknown. Alternate observations may be supplied.' },
+      observations: [
+        { ref: 'record', content: 'The recorded count is two.' },
+        { ref: 'qualifier', content: 'The unit has not been supplied.' },
+      ],
+    },
+    clauses: [
+      { id: 'keep', kind: 'obligation', ref: 'goal', quote: 'Retain every record.' },
+      { id: 'exception', kind: 'exception', ref: 'goal', quote: 'Exceptions remain unknown.' },
+      { id: 'alternative', kind: 'alternative', ref: 'goal', quote: 'Alternate observations may be supplied.' },
+    ],
+    questions: [{
+      id: 'check', core: null, question: 'Are the record and its qualifier retained?',
+      criteria: { problem: 'A supplied part is omitted.', ok: 'Both supplied parts are retained.', unknown: 'Cannot assess the retention.' },
+      clauseIds: ['keep', 'exception', 'alternative'], basisRefs: ['goal', 'record', 'qualifier'],
+      requiredRefs: ['record', 'qualifier'], needs,
+    }],
+    missing: [],
+  });
+}
+
+function jevPortAnswer(label, model = 'observed-response-model') {
+  return { model, answers: { answer: { type: 'choice', choice: label, confidence: 0.7,
+    probabilities: { problem: 0.2, ok: 0.5, unknown: 0.3 } } } };
+}
+
+test('Jev port preserves native input, all three labels and response model through report', async t => {
+  for (const label of ['problem', 'ok', 'unknown']) await t.test(label, async () => {
+    const plan = jevPortPlan(), before = JSON.stringify(plan), controller = new AbortController();
+    let calls = 0;
+    const port = bindJevChoicePort({ id: 'named-questions-port', mode: 'test-double', deadlineMs: 100,
+      signal: controller.signal, provider: { available: true, post: async (body, options) => {
+        calls++;
+        assert.deepEqual(body, { model: 'jev-latest', state: JSON.stringify({ ...plan.request, clauses: plan.clauses }),
+          questions: { answer: { type: 'choice', instructions: plan.questions[0].question, criteria: plan.questions[0].criteria } } });
+        assert.equal(options.deadlineMs, 100);
+        assert.equal(options.signal, controller.signal);
+        body.questions.answer.criteria.ok = 'Provider-owned copy';
+        return jevPortAnswer(label);
+      } } });
+    assert.ok(Object.isFrozen(port));
+    const result = await judge(plan, port, { maxCalls: 1 });
+    assert.equal(calls, 1);
+    assert.equal(result.calls, 1);
+    assert.deepEqual(result.port, { id: 'named-questions-port', mode: 'test-double' });
+    assert.deepEqual(result.judgments[0], { id: 'check', status: 'OBSERVED', label,
+      model: 'observed-response-model', rationale: null });
+    const output = report(plan, result);
+    assert.equal(output.goalCoverage, 'NOT_CERTIFIED');
+    assert.equal(output.authority, false);
+    assert.equal(JSON.stringify(plan), before);
+    assert.ok(!JSON.stringify(output).includes('probabilities'));
+    assert.ok(!JSON.stringify(output).includes('confidence'));
+  });
+});
+
+test('Jev port leaves malformed or rejected answers as reportable execution errors', async t => {
+  const cases = {
+    missing: { model: 'response-model', answers: {} },
+    extra: { model: 'response-model', answers: { ...jevPortAnswer('ok').answers, extra: { type: 'noul', noul: 1 } } },
+    unknownLabel: jevPortAnswer('outside'),
+    invalidModel: jevPortAnswer('ok', 7),
+    blankModel: jevPortAnswer('ok', ' '),
+    rejected: null,
+  };
+  for (const [name, response] of Object.entries(cases)) await t.test(name, async () => {
+    let calls = 0;
+    const plan = jevPortPlan(), port = bindJevChoicePort({ id: 'invalid-answer-port', mode: 'test-double', deadlineMs: 100,
+      provider: { available: true, post: async () => { calls++; if (response === null) throw Error('REJECTED'); return response; } } });
+    const result = await judge(plan, port);
+    assert.equal(calls, 1);
+    assert.equal(result.calls, 1);
+    assert.equal(result.judgments[0].status, 'EXECUTION_ERROR');
+    assert.equal(result.missing.length, 1);
+    assert.doesNotThrow(() => report(plan, result));
+  });
+});
+
+test('Jev port does not call a provider when the Plan declares a need', async () => {
+  let calls = 0;
+  const plan = jevPortPlan(['A further recorded observation is needed.']);
+  const port = bindJevChoicePort({ id: 'unused-port', mode: 'test-double', deadlineMs: 100,
+    provider: { available: true, post: async () => { calls++; throw Error('UNEXPECTED_CALL'); } } });
+  const result = await judge(plan, port);
+  assert.equal(calls, 0);
+  assert.equal(result.calls, 0);
+  assert.equal(result.judgments[0].status, 'INCOMPLETE');
+  assert.deepEqual(report(plan, result).nextObservations, ['A further recorded observation is needed.']);
+});
+
+test('Jev port requires explicit provenance and a finite per-call deadline before use', () => {
+  const valid = { id: 'finite-port', mode: 'test-double', deadlineMs: 100,
+    provider: { available: true, post: async () => jevPortAnswer('ok') } };
+  for (const override of [{ mode: undefined }, { mode: 'jev' }, { deadlineMs: undefined },
+    { deadlineMs: 0 }, { deadlineMs: 2_147_483_648 }, { provider: { available: false } }]) {
+    assert.throws(() => bindJevChoicePort({ ...valid, ...override }), /INVALID_JEV_PORT/);
+  }
+});
+
+test('Jev port passes its deadline to bindJev, including a fetch that never settles', async () => {
+  let fetchCalls = 0, transportSignal;
+  const provider = bindJev({ apiKey: 'test-double-no-secret', fetch: async (_url, options) => {
+    fetchCalls++; transportSignal = options.signal; return new Promise(() => {});
+  } });
+  const plan = jevPortPlan(), port = bindJevChoicePort({ id: 'timeout-port', mode: 'test-double', provider, deadlineMs: 10 });
+  const result = await judge(plan, port);
+  assert.equal(fetchCalls, 1);
+  assert.equal(transportSignal.aborted, true);
+  assert.equal(result.judgments[0].status, 'EXECUTION_ERROR');
+  assert.doesNotThrow(() => report(plan, result));
+});
+
+test('Jev port passes cancellation to bindJev without starting an aborted fetch', async () => {
+  let fetchCalls = 0;
+  const controller = new AbortController(); controller.abort();
+  const provider = bindJev({ apiKey: 'test-double-no-secret', fetch: async () => { fetchCalls++; throw Error('UNEXPECTED_FETCH'); } });
+  const plan = jevPortPlan(), port = bindJevChoicePort({ id: 'cancelled-port', mode: 'test-double', provider,
+    signal: controller.signal, deadlineMs: 100 });
+  const result = await judge(plan, port);
+  assert.equal(fetchCalls, 0);
+  assert.equal(result.calls, 1);
+  assert.equal(result.judgments[0].status, 'EXECUTION_ERROR');
+  assert.doesNotThrow(() => report(plan, result));
+});
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const request = () => ({ goal: { ref: 'goal:original', content: 'Keep every material condition while shortening this explanation.' },
