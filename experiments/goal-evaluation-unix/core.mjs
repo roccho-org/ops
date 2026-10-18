@@ -119,8 +119,10 @@ export async function judge(value, model, options = {}) {
     calls++;
     try {
       const answer = await model.which(question);
-      if (!answer || !Object.hasOwn(q.criteria, answer.label) || !text(answer.model)) fail('INVALID_ANSWER');
-      judgments.push({ id: q.id, status: 'OBSERVED', label: answer.label, model: answer.model, rationale: answer.rationale ?? null });
+      const rationale = answer?.rationale ?? null;
+      if (!answer || !Object.hasOwn(q.criteria, answer.label) || !text(answer.model)
+        || !(rationale === null || text(rationale))) fail('INVALID_ANSWER');
+      judgments.push({ id: q.id, status: 'OBSERVED', label: answer.label, model: answer.model, rationale });
     } catch { judgments.push({ id: q.id, status: 'EXECUTION_ERROR' }); missing.push({ need: q.id, reason: FAILED }); }
   }
   // planDigest binds raw answers to the exact Plan (request, clauses, questions) they answered.

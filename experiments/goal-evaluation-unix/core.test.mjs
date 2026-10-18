@@ -2,6 +2,44 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { plan, judge, report, unquotedGoalText } from './core.mjs';
+test('judge results remain reportable across rationale shapes', async t => {
+  const cases = [
+    ['absent', undefined, true], ['null', null, true], ['text', '  Explanation retained.  ', true],
+    ['number', 0, false], ['boolean', false, false], ['object', {}, false], ['array', [], false],
+    ['empty', '', false], ['whitespace', ' \t\n', false],
+  ];
+  for (const [name, rationale, valid] of cases) await t.test(name, async () => {
+    const input = {
+      schema: 'ops.goal-evaluation.plan.v2',
+      request: { goal: { ref: 'g', content: 'Preserve values.' }, observations: [] },
+      clauses: [{ id: 'c', kind: 'obligation', ref: 'g', quote: 'Preserve values.' }],
+      questions: [{ id: 'q', core: null, question: 'Is the value preserved?',
+        criteria: { problem: 'Changed.', ok: 'Preserved.', unknown: 'Not observed.' },
+        clauseIds: ['c'], basisRefs: ['g'], requiredRefs: [], needs: [] }],
+      missing: [],
+    };
+    const before = structuredClone(input);
+    let calls = 0;
+    const result = await judge(input, { id: 'roundtrip-test', mode: 'test-double', which: async () => {
+      calls++;
+      return { label: 'ok', model: 'test-double', ...(rationale === undefined ? {} : { rationale }) };
+    } });
+    const view = report(input, result);
+    assert.equal(result.judgments[0].status, valid ? 'OBSERVED' : 'EXECUTION_ERROR');
+    assert.equal(view.questions[0].result.status, result.judgments[0].status);
+    assert.equal(calls, 1);
+    assert.equal(result.calls, calls);
+    if (valid) {
+      assert.equal(result.judgments[0].rationale, rationale ?? null);
+      assert.deepEqual(result.missing, []);
+    } else {
+      assert.deepEqual(result.missing, [{ need: 'q', reason: 'Model operation failed or answer invalid' }]);
+    }
+    assert.deepEqual(input, before);
+    assert.equal(view.goalCoverage, 'NOT_CERTIFIED');
+    assert.equal(view.authority, false);
+  });
+});
 // The existing goal-evaluation-unix CI check runs this file; it also runs the preparer tests.
 import './prepare.test.mjs';
 
