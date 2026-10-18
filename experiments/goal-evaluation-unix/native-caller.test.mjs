@@ -468,3 +468,186 @@ test('host caller artifact write failure prevents commands while preserving need
   assert.equal(caller.returnReceipts().at(-1).status, 'NOT_SENT_OR_UNKNOWN');
   assert.equal(c.queue.length, 0);
 });
+
+import { runFiniteNativeHostBridge, readFiniteNativeHostCommand, submitFiniteNativeHostToolResult } from './native-caller.mjs';
+
+function finiteBridgeFixture(t, patch = {}) {
+  const c = context(t, 'judge');
+  const packetDir = path.join(c.root, 'packets'); fs.mkdirSync(packetDir);
+  c.runtime.now = Date.now;
+  c.options.ownerReturn = { transport: 'host-mcp', hostId: 'local', ownerThread: owner,
+    ledgerDir: path.join(c.root, 'return'), expiresAt: new Date(Date.now() + 120000).toISOString(),
+    timeoutMs: 30000, exchangeTimeoutMs: 1000, statusListLimit: 50, ...patch };
+  const config = { callerOptions: c.options, packetDir };
+  const dir = path.join(packetDir, c.options.runId + '.bridge');
+  const packetOptions = phase => ({ packetDir, runId: c.options.runId, phase });
+  return { ...c, packetDir, config, dir, packetOptions,
+    run: (value = planFixture(1, ['synthetic missing evidence'])) =>
+      runFiniteNativeHostBridge(config, value, { ownerReturn: c.runtime }) };
+}
+function finiteListResult(status = 'idle', rowPatch = {}, extra = []) {
+  return { content: [{ type: 'text', text: JSON.stringify({ schemaVersion: 1,
+    sidebarPreferences: {}, untrustedDataNotice: 'synthetic', pinnedThreads: [],
+    threads: [{ id: owner, hostId: 'local', status, title: 'must not be projected', ...rowPatch }, ...extra],
+    sections: [], unavailableHosts: [], unavailableSources: [] }) }], isError: false };
+}
+function finiteDriver(t, c, handle) {
+  const errors = [], seen = new Set(); let inner;
+  const check = () => {
+    try {
+      if (!inner && fs.existsSync(c.dir)) inner = fs.watch(c.dir, check);
+      for (const phase of [1, 2]) {
+        if (seen.has(phase) || !fs.existsSync(path.join(c.dir, 'phase-' + phase + '.command.json'))) continue;
+        seen.add(phase);
+        const packet = readFiniteNativeHostCommand(c.packetOptions(phase));
+        Promise.resolve().then(() => handle(packet, phase)).catch(error => errors.push(error));
+      }
+    } catch (error) { errors.push(error); }
+  };
+  const outer = fs.watch(c.packetDir, check);
+  t.after(() => { outer.close(); inner?.close(); });
+  return { errors, seen };
+}
+function submitFiniteSynthetic(c, phase, result) {
+  const at = new Date().toISOString();
+  return submitFiniteNativeHostToolResult({ ...c.packetOptions(phase), toolStartedAt: at, toolCompletedAt: at }, result);
+}
+function finiteReceipt(c) { return JSON.parse(fs.readFileSync(path.join(c.dir, 'receipt.json'), 'utf8')); }
+
+test('finite native bridge owns needs-only terminal artifact before its two packet commands', async t => {
+  const c = finiteBridgeFixture(t), originals = [];
+  t.mock.method(childProcess, 'spawn', () => { throw new Error('external child forbidden'); });
+  const driver = finiteDriver(t, c, (packet, phase) => {
+    const engineDir = path.join(c.options.ledgerDir, c.options.runId + '.engine');
+    const terminal = JSON.parse(fs.readFileSync(path.join(engineDir, 'terminal.json'), 'utf8'));
+    const original = fs.readFileSync(path.join(engineDir, 'engine.result.json'));
+    assert.equal(hash(original), terminal.resultArtifactSha256);
+    originals.push(original);
+    assert.equal(packet.command.arguments.model, undefined);
+    assert.equal(packet.command.arguments.thinking, undefined);
+    assert.equal(packet.command.commandId, c.options.runId + '/host-return/' + phase);
+    assert.equal(packet.runtimeSampledAt, undefined);
+    submitFiniteSynthetic(c, phase, phase === 1 ? finiteListResult() : { content: [], isError: false });
+  });
+  const result = await c.run();
+  assert.deepEqual(driver.errors, []); assert.deepEqual([...driver.seen], [1, 2]);
+  assert.equal(result.judgments[0].status, 'INCOMPLETE');
+  assert.equal(originals.length, 2); assert.ok(originals[0].equals(originals[1]));
+  const record = finiteReceipt(c);
+  assert.equal(record.phases, 2); assert.equal(record.status, 'HOLD');
+  assert.equal(record.errorCode, 'HOST_SEND_UNKNOWN');
+  assert.equal(record.consumptionStatus, 'NOT_OBSERVED'); assert.equal(record.runtimeSampledAt, null);
+  assert.equal(record.remoteEffects, 'UNKNOWN');
+  const observation = JSON.parse(fs.readFileSync(path.join(c.dir, 'phase-1.observation.json'), 'utf8'));
+  assert.equal(observation.runtimeSampledAt, null);
+  assert.equal(observation.classification, 'HOST_PORT_REPORTED_STATUS_REQUEST_INTERVAL');
+  assert.equal(JSON.stringify(observation).includes('must not be projected'), false);
+  assert.equal(c.queue.length, 0); assert.equal(c.ssh.length, 0);
+});
+
+test('finite native bridge rejects active, absent host, duplicate identity and oversized normal tool results', async t => {
+  for (const kind of ['active', 'host-missing', 'duplicate', 'oversize']) {
+    const c = finiteBridgeFixture(t);
+    const driver = finiteDriver(t, c, (_packet, phase) => {
+      let response = finiteListResult();
+      if (kind === 'active') response = finiteListResult('active');
+      if (kind === 'host-missing') response = finiteListResult('idle', { hostId: null });
+      if (kind === 'duplicate') response = finiteListResult('idle', {}, [{ id: owner, hostId: 'local', status: 'idle' }]);
+      if (kind === 'oversize') response = { content: [{ type: 'text', text: 'x'.repeat(262145) }], isError: false };
+      submitFiniteSynthetic(c, phase, response);
+    });
+    const result = await c.run();
+    assert.equal(result.judgments[0].status, 'INCOMPLETE'); assert.deepEqual(driver.errors, []);
+    assert.deepEqual([...driver.seen], [1]);
+    assert.equal(finiteReceipt(c).errorCode, 'OWNER_IDLE_NOT_ESTABLISHED');
+    assert.equal(fs.existsSync(path.join(c.dir, 'phase-2.command.json')), false);
+  }
+});
+
+test('finite native bridge packet identity is closed and a malformed input is never retried', async t => {
+  for (const change of ['nonce', 'sourceSha', 'commandSha256', 'extra', 'partial']) {
+    const c = finiteBridgeFixture(t);
+    const driver = finiteDriver(t, c, (packet, phase) => {
+      const { command, schema, ...identity } = packet;
+      const at = new Date().toISOString();
+      const observation = { schema: 'ops.native-host-observation.v1', ...identity,
+        toolStartedAt: at, toolCompletedAt: at, runtimeSampledAt: null, toolResultBytes: 2,
+        toolResultSha256: hash('{}'), classification: 'HOST_PORT_REPORTED_STATUS_REQUEST_INTERVAL',
+        observation: { schema: 'jev.host-owner-status.v1', ownerThread: owner, hostId: 'local',
+          status: 'idle', observedAt: at, statusMeaning: 'RUNTIME_TURN_STATUS' } };
+      if (change === 'nonce') observation.nonce = randomUUID();
+      if (change === 'sourceSha') observation.sourceSha = 'e'.repeat(40);
+      if (change === 'commandSha256') observation.commandSha256 = 'e'.repeat(64);
+      if (change === 'extra') observation.unexpected = true;
+      fs.writeFileSync(path.join(c.dir, 'phase-' + phase + '.observation.json'),
+        change === 'partial' ? '{' : JSON.stringify(observation) + '\n', { flag: 'wx', mode: 0o600 });
+    });
+    await c.run(); assert.deepEqual(driver.errors, []);
+    assert.equal(finiteReceipt(c).status, 'HOLD'); assert.equal(finiteReceipt(c).phases, 1);
+    assert.equal(fs.existsSync(path.join(c.dir, 'phase-2.command.json')), false);
+  }
+});
+
+test('finite bridge timeout closes its watch and late packets cannot mutate the original receipt', async t => {
+  const c = finiteBridgeFixture(t, { exchangeTimeoutMs: 25 });
+  const originalWatch = fs.watch, watchers = [];
+  t.mock.method(fs, 'watch', (...args) => {
+    const watcher = originalWatch(...args), close = watcher.close.bind(watcher), row = { closed: false };
+    watcher.close = () => { row.closed = true; return close(); }; watchers.push(row); return watcher;
+  });
+  const result = await c.run();
+  assert.equal(result.judgments[0].status, 'INCOMPLETE');
+  const before = fs.readFileSync(path.join(c.dir, 'receipt.json'));
+  assert.equal(finiteReceipt(c).errorCode, 'HOST_EXCHANGE_TIMEOUT');
+  assert.ok(watchers.length > 0 && watchers.every(row => row.closed));
+  assert.doesNotThrow(() => submitFiniteSynthetic(c, 1, finiteListResult()));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.ok(fs.readFileSync(path.join(c.dir, 'receipt.json')).equals(before));
+});
+
+test('finite bridge rejects early phase inputs and preserves the valid engine result', async t => {
+  const c = finiteBridgeFixture(t), mkdir = fs.mkdirSync;
+  t.mock.method(fs, 'mkdirSync', (dir, ...args) => {
+    const result = mkdir(dir, ...args);
+    if (dir === c.dir) fs.writeFileSync(path.join(dir, 'phase-2.observation.json'), '{}\n', { flag: 'wx' });
+    return result;
+  });
+  const value = await c.run();
+  assert.equal(value.judgments[0].status, 'INCOMPLETE');
+  assert.equal(finiteReceipt(c).errorCode, 'HOST_PACKET_INVALID'); assert.equal(finiteReceipt(c).phases, 0);
+});
+
+test('finite bridge handles artifact failure and original engine errors without inventing a result', async t => {
+  const c = finiteBridgeFixture(t);
+  const driver = finiteDriver(t, c, (_packet, phase) => submitFiniteSynthetic(c, phase, finiteListResult('active')));
+  await assert.rejects(c.run({}), /INVALID_PLAN/);
+  assert.deepEqual(driver.errors, []);
+  assert.equal(finiteReceipt(c).status, 'HOLD');
+  const envelope = JSON.parse(fs.readFileSync(path.join(c.options.ledgerDir, c.options.runId + '.engine', 'engine.result.json'), 'utf8'));
+  assert.equal(envelope.schema, 'ops.native-product-error.v1');
+  const failed = finiteBridgeFixture(t), write = fs.writeFileSync;
+  t.mock.method(fs, 'writeFileSync', (file, ...args) => {
+    if (String(file).endsWith('engine.result.json')) throw new Error('synthetic I/O');
+    return write(file, ...args);
+  });
+  const value = await failed.run(); assert.equal(value.judgments[0].status, 'INCOMPLETE');
+  assert.equal(finiteReceipt(failed).phases, 0);
+  assert.equal(fs.existsSync(path.join(failed.dir, 'phase-1.command.json')), false);
+});
+
+test('finite bridge publication and duplicate responses are exclusive with no copy fallback', async t => {
+  const c = finiteBridgeFixture(t);
+  const driver = finiteDriver(t, c, (_packet, phase) => {
+    submitFiniteSynthetic(c, phase, finiteListResult('active'));
+    assert.throws(() => submitFiniteSynthetic(c, phase, finiteListResult()), /EEXIST/);
+    const complete = fs.lstatSync(path.join(c.dir, 'phase-1.observation.json'));
+    const pending = fs.lstatSync(path.join(c.dir, 'phase-1.observation.json.pending'));
+    assert.equal(complete.ino, pending.ino); assert.ok(complete.isFile() && !complete.isSymbolicLink());
+  });
+  await c.run(); assert.deepEqual(driver.errors, []); assert.equal(finiteReceipt(c).phases, 1);
+  await assert.rejects(c.run(), /EEXIST/);
+  const forbidden = finiteBridgeFixture(t);
+  assert.throws(() => readFiniteNativeHostCommand({ ...forbidden.packetOptions(1), phase: 3 }), /INVALID_NATIVE_HOST_PACKET/);
+  await assert.rejects(runFiniteNativeHostBridge({ ...forbidden.config,
+    callerOptions: { ...forbidden.options, mode: 'live' } }, {}, { ownerReturn: forbidden.runtime }), /LIVE_RUNTIME_OVERRIDE/);
+});

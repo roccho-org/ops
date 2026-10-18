@@ -252,15 +252,21 @@ export async function withProductOwnerReturn(runProduct, describeTerminal, recei
 // The approved host driver, not this Node module, owns actual tool provenance.
 export function bindExactOwnerHostReturn(options, testRuntime) {
   const keys = ['mode', 'ownerThread', 'hostId', 'runId', 'sourceSha', 'ledgerDir', 'expiresAt', 'timeoutMs'];
+  const optionalKeys = ['statusListLimit', 'exchangeTimeoutMs'].filter(key => Object.hasOwn(options ?? {}, key));
   const ownData = (value, names) => exact(value, names) && Reflect.ownKeys(value).length === names.length
     && names.every(key => { const d = Object.getOwnPropertyDescriptor(value, key);
       return Object.hasOwn(d, 'value') && (d.value === null || ['string', 'number', 'boolean'].includes(typeof d.value)); });
-  if (!ownData(options, keys)) fail('INVALID_HOST_OWNER_RETURN_BINDING');
+  if (!ownData(options, keys.concat(optionalKeys))) fail('INVALID_HOST_OWNER_RETURN_BINDING');
   const { mode, ownerThread, hostId, runId, sourceSha, ledgerDir, expiresAt, timeoutMs } = options;
+  const statusListLimit = Object.hasOwn(options, 'statusListLimit') ? options.statusListLimit : 1;
+  const exchangeTimeoutMs = Object.hasOwn(options, 'exchangeTimeoutMs') ? options.exchangeTimeoutMs : timeoutMs;
+  const finiteExchange = Object.hasOwn(options, 'exchangeTimeoutMs');
   if (!['live', 'test-double'].includes(mode) || !uuid.test(ownerThread) || !uuid.test(runId)
       || !sha40.test(sourceSha) || hostId !== 'local' || typeof ledgerDir !== 'string'
       || !path.isAbsolute(ledgerDir) || /[\0\r\n]/u.test(ledgerDir)
       || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30000
+      || !Number.isSafeInteger(statusListLimit) || statusListLimit < 1 || statusListLimit > 50
+      || !Number.isSafeInteger(exchangeTimeoutMs) || exchangeTimeoutMs < 1 || exchangeTimeoutMs > 600000
       || typeof expiresAt !== 'string' || !Number.isFinite(Date.parse(expiresAt))
       || new Date(Date.parse(expiresAt)).toISOString() !== expiresAt)
     fail('INVALID_HOST_OWNER_RETURN_BINDING');
@@ -273,7 +279,8 @@ export function bindExactOwnerHostReturn(options, testRuntime) {
   let directory;
   try { directory = fs.lstatSync(ledgerDir); } catch { fail('INVALID_OWNER_RETURN_LEDGER'); }
   if (!directory.isDirectory() || directory.isSymbolicLink()) fail('INVALID_OWNER_RETURN_LEDGER');
-  const binding = Object.freeze({ mode, ownerThread, hostId, runId, sourceSha, ledgerDir, expiresAt, timeoutMs });
+  const binding = Object.freeze({ mode, ownerThread, hostId, runId, sourceSha, ledgerDir, expiresAt, timeoutMs,
+    ...Object.fromEntries(optionalKeys.map(key => [key, options[key]])) });
   const bindingSha256 = hash(JSON.stringify(binding));
   const records = [];
   const note = value => { records.push(Object.freeze(value)); return records.at(-1); };
@@ -297,6 +304,9 @@ export function bindExactOwnerHostReturn(options, testRuntime) {
     const current = now();
     if (current < Date.parse(record.startedAt)) { finish('HOLD', 'HOST_CLOCK_REWIND'); return false; }
     if (current >= Date.parse(expiresAt)) { finish('HOLD', 'OWNER_RETURN_EXPIRED'); return false; }
+    if (finiteExchange && current - Date.parse(record.startedAt) > exchangeTimeoutMs) {
+      finish('HOLD', 'HOST_EXCHANGE_TIMEOUT'); return false;
+    }
     if (record.statusObservedAt !== null && (current < Date.parse(record.statusObservedAt)
         || current - Date.parse(record.statusObservedAt) > timeoutMs)) {
       finish('HOLD', 'STALE_HOST_OBSERVATION'); return false;
@@ -360,7 +370,7 @@ export function bindExactOwnerHostReturn(options, testRuntime) {
     try {
       fs.writeFileSync(path.join(claim, 'claim.json'), JSON.stringify({ ...event, eventSha256, nonce, expiresAt,
         bindingSha256, transport: 'host-mcp' }) + '\n', { flag: 'wx', mode: 0o600 });
-      pending = { value: command('OBSERVE_OWNER_STATUS', 'codex_app.list_threads', { limit: 1 }, 1), takenAt: null };
+      pending = { value: command('OBSERVE_OWNER_STATUS', 'codex_app.list_threads', { limit: statusListLimit }, 1), takenAt: null };
     } catch { return finish('HOLD', 'HOST_RETURN_LEDGER_IO'); }
     return Object.freeze({ ...record });
   };
@@ -398,7 +408,9 @@ export function bindExactOwnerHostReturn(options, testRuntime) {
     if (!observationValid(id, value, ['schema', 'ownerThread', 'hostId', 'status', 'observedAt', 'statusMeaning'],
       'jev.host-owner-status.v1', 'OBSERVE_OWNER_STATUS')) return records.at(-1) ?? null;
     record.statusObservationSha256 = hash(JSON.stringify(value));
-    record.statusObservedAt = value.observedAt;
+    // In the explicit finite mode, command issue is a conservative lower bound on
+    // a sample taken during the normal tool request. Never invent an internal timestamp.
+    record.statusObservedAt = finiteExchange ? new Date(pending.takenAt).toISOString() : value.observedAt;
     record.idleStatus = value.status === 'idle' ? 'HOST_PORT_REPORTED_IDLE' : 'NOT_IDLE_OR_UNKNOWN';
     try { fs.writeFileSync(path.join(claim, 'host-status.observation.json'), JSON.stringify(value) + '\n', { flag: 'wx', mode: 0o600 }); }
     catch { return finish('HOLD', 'HOST_RETURN_LEDGER_IO'); }
@@ -420,6 +432,11 @@ export function bindExactOwnerHostReturn(options, testRuntime) {
     return finish('HOLD', value.status === 'failed' ? 'HOST_SEND_FAILED_REPORTED' : 'HOST_SEND_UNKNOWN');
   };
   const receiver = Object.freeze({ deliver, takeHostCommand, acceptHostObservation, acceptHostSendResult,
+    ...(finiteExchange ? { holdHostReturn: code => {
+      if (!['HOST_EXCHANGE_TIMEOUT', 'HOST_PACKET_INVALID', 'HOST_PACKET_IO'].includes(code))
+        fail('INVALID_HOST_HOLD_CODE');
+      return record && !finalized ? finish('HOLD', code) : records.at(-1) ?? null;
+    } } : {}),
     receipts: () => { gate(); return Object.freeze(record && !finalized ? [...records, Object.freeze({ ...record })] : [...records]); }
   });
   states.set(receiver, { note });
