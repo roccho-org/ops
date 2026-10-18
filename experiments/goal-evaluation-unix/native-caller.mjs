@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { performance } from 'node:perf_hooks';
 import { snapshotJson, exact } from '../../packages/jev-review/semlint-entry.mjs';
 import { plan, judge } from './core.mjs';
@@ -234,6 +234,11 @@ const bridgeObservationKeys = ['schema', 'phase', 'nonce', 'ownerThread', 'runId
   'bindingSha256', 'eventSha256', 'commandSha256', 'expiresAt', 'commandExpiresAt', 'runnerModuleSha256',
   'toolStartedAt', 'toolCompletedAt', 'runtimeSampledAt', 'toolResultBytes', 'toolResultSha256',
   'classification', 'observation'];
+const projectionKeys = ['schema', 'status', 'classification', 'reportedRawJsonBytes',
+  'reportedRawJsonUnits', 'rawSizeStatus'];
+const projectedObservationKeys = bridgeObservationKeys.filter(key => !['toolResultBytes',
+  'toolResultSha256', 'classification', 'observation'].includes(key)).concat([
+  'rawToolResultSha256', 'rawIdentityStatus', 'projectionBytes', 'projectionSha256', 'projection']);
 const bridgeSourceHash = () => sha(fs.readFileSync(fileURLToPath(import.meta.url)));
 const canonicalBytes = value => Buffer.from(JSON.stringify(value) + '\n');
 const utc = value => typeof value === 'string' && Number.isFinite(Date.parse(value))
@@ -283,6 +288,7 @@ function publishBridgeJson(dir, basename, value) {
 function commandPacketValid(packet, binding, phase) {
   if (!packet || !exact(packet, bridgePacketKeys) || packet.schema !== 'ops.native-host-command.v1'
       || packet.phase !== phase || !uuid.test(packet.nonce)
+      || typeof packet.eventSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(packet.eventSha256)
       || !utc(packet.commandExpiresAt) || Date.parse(packet.commandExpiresAt) > Date.parse(packet.expiresAt)
       || packet.runnerModuleSha256 !== bridgeSourceHash()
       || ['ownerThread', 'runId', 'sourceSha', 'bindingSha256', 'runnerModuleSha256', 'expiresAt']
@@ -291,6 +297,7 @@ function commandPacketValid(packet, binding, phase) {
   if (!cmd || !exact(cmd, ['schema', 'kind', 'commandId', 'ownerThread', 'hostId', 'runId',
     'sourceSha', 'bindingSha256', 'eventSha256', 'expiresAt', 'tool', 'arguments'])
       || cmd.schema !== 'jev.host-owner-command.v1' || cmd.hostId !== 'local'
+      || typeof cmd.bindingSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(cmd.bindingSha256)
       || cmd.commandId !== packet.runId + '/host-return/' + phase
       || ['ownerThread', 'runId', 'sourceSha', 'eventSha256', 'expiresAt'].some(key => cmd[key] !== packet[key])
       || packet.commandSha256 !== sha(JSON.stringify(cmd))) return false;
@@ -305,17 +312,31 @@ function commandPacketValid(packet, binding, phase) {
 
 // Normal Node entry for the fixed functions driver: data only, no copied brand,
 // eval, tool callback injection, process-environment substitution or raw host RPC.
-function readHostCommandPacket(options, allowCompletedTool = false) {
-  const config = snapshotJson(options), dir = bridgeLocation(config);
+function readBridgeBinding(config, requiredFormat) {
+  const dir = bridgeLocation(config);
   const binding = readBridgeJson(path.join(dir, 'binding.json'));
+  const projected = binding.schema === 'ops.native-host-bridge.v2';
   if (!exact(binding, ['schema', 'ownerThread', 'runId', 'sourceSha', 'bindingSha256',
-    'runnerModuleSha256', 'expiresAt', 'exchangeTimeoutMs', 'statusListLimit'])
-      || binding.schema !== 'ops.native-host-bridge.v1' || binding.runId !== config.runId
+    'runnerModuleSha256', 'expiresAt', 'exchangeTimeoutMs', 'statusListLimit',
+    ...(projected ? ['observationFormat', 'callerBindingSha256'] : [])])
+      || (!projected && binding.schema !== 'ops.native-host-bridge.v1') || binding.runId !== config.runId
       || !uuid.test(binding.ownerThread) || !/^[a-f0-9]{40}$/.test(binding.sourceSha)
       || !/^[a-f0-9]{64}$/.test(binding.bindingSha256) || !utc(binding.expiresAt)
+      || binding.runnerModuleSha256 !== bridgeSourceHash()
       || !Number.isInteger(binding.exchangeTimeoutMs) || binding.exchangeTimeoutMs < 1 || binding.exchangeTimeoutMs > 600000
       || !Number.isInteger(binding.statusListLimit) || binding.statusListLimit < 1 || binding.statusListLimit > 50)
     fail('INVALID_NATIVE_HOST_PACKET');
+  if ((projected && (binding.observationFormat !== 'projection-v2'
+      || !/^[a-f0-9]{64}$/.test(binding.callerBindingSha256)
+      || binding.bindingSha256 !== sha(JSON.stringify({ callerBindingSha256: binding.callerBindingSha256,
+        observationFormat: binding.observationFormat }))))
+      || (requiredFormat && requiredFormat !== (projected ? 'projection-v2' : 'raw-v1')))
+    fail('INVALID_NATIVE_HOST_PACKET');
+  return { dir, binding, projected };
+}
+function readHostCommandPacket(options, allowCompletedTool = false, requiredFormat) {
+  const config = snapshotJson(options);
+  const { dir, binding } = readBridgeBinding(config, requiredFormat);
   const packet = readBridgeJson(path.join(dir, 'phase-' + config.phase + '.command.json'));
   if (!commandPacketValid(packet, binding, config.phase)) fail('INVALID_NATIVE_HOST_PACKET');
   if (!allowCompletedTool && Date.now() >= Math.min(Date.parse(packet.expiresAt), Date.parse(packet.commandExpiresAt)))
@@ -366,7 +387,7 @@ export function submitFiniteNativeHostToolResult(options, toolResult) {
       || Date.parse(config.toolStartedAt) > Date.parse(config.toolCompletedAt)
       || Date.parse(config.toolCompletedAt) > Date.now()) fail('INVALID_NATIVE_HOST_PACKET');
   const location = { packetDir: config.packetDir, runId: config.runId, phase: config.phase };
-  const packet = readHostCommandPacket(location, true), dir = bridgeLocation(location);
+  const packet = readHostCommandPacket(location, true, 'raw-v1'), dir = bridgeLocation(location);
   const result = snapshotJson(toolResult), raw = Buffer.from(JSON.stringify(result));
   const projection = raw.length <= bridgeResultLimit ? projectHostToolResult(packet, result, config.toolCompletedAt)
     : projectHostToolResult(packet, null, config.toolCompletedAt);
@@ -378,6 +399,153 @@ export function submitFiniteNativeHostToolResult(options, toolResult) {
   publishBridgeJson(dir, 'phase-' + config.phase + '.observation.json', observation);
   return Object.freeze({ phase: config.phase, bytes: canonicalBytes(observation).length,
     sha256: sha(canonicalBytes(observation)), classification: projection.classification });
+}
+
+// Self-contained normal-functions projection. No Node/FS/crypto, free text output,
+// dynamic tool lookup or raw-response transport. The doc's literal uses this code.
+export function projectFiniteHostToolResultForDriver(response, ownerThread, phase) {
+  const own = (value, key) => {
+    if (!value || typeof value !== 'object') return undefined;
+    const d = Object.getOwnPropertyDescriptor(value, key);
+    return d && Object.hasOwn(d, 'value') ? d.value : undefined;
+  };
+  const exactKeys = (value, names) => value && typeof value === 'object' && !Array.isArray(value)
+    && Reflect.ownKeys(value).length === names.length && names.every(name => Object.hasOwn(value, name));
+  const output = { schema: 'ops.host-tool-projection.v1', status: 'unknown',
+    classification: 'STATUS_SHAPE_OR_IDENTITY_UNKNOWN', reportedRawJsonBytes: null,
+    reportedRawJsonUnits: null, rawSizeStatus: 'NOT_MEASURED' };
+  if (phase === 2) {
+    output.classification = own(response, 'isError') === true ? 'HOST_TOOL_ERROR_REPORTED' : 'SEND_ACK_CONTRACT_UNKNOWN';
+    if (own(response, 'isError') === true) output.status = 'failed';
+    return output;
+  }
+  if (phase !== 1 || !exactKeys(response, ['content', 'isError']) || own(response, 'isError') !== false) return output;
+  const content = own(response, 'content'), block = own(content, '0');
+  if (!Array.isArray(content) || own(content, 'length') !== 1
+      || !exactKeys(block, ['type', 'text']) || own(block, 'type') !== 'text') return output;
+  const text = own(block, 'text');
+  if (typeof text !== 'string') return output;
+  if (text.length > 262144) { output.rawSizeStatus = 'OVER_REPORTED_BOUND'; return output; }
+  const json = JSON.stringify({ content: [{ type: 'text', text }], isError: false });
+  output.reportedRawJsonUnits = json.length;
+  let bytes = 0;
+  for (let i = 0; i < json.length; i++) {
+    const c = json.charCodeAt(i);
+    if (c < 128) bytes++;
+    else if (c < 2048) bytes += 2;
+    else if (c >= 0xd800 && c <= 0xdbff && i + 1 < json.length
+        && json.charCodeAt(i + 1) >= 0xdc00 && json.charCodeAt(i + 1) <= 0xdfff) { bytes += 4; i++; }
+    else bytes += 3;
+    if (bytes > 262144) { output.rawSizeStatus = 'OVER_REPORTED_BOUND'; return output; }
+  }
+  output.reportedRawJsonBytes = bytes; output.rawSizeStatus = 'WITHIN_REPORTED_BOUND';
+  let root;
+  try { root = JSON.parse(text); } catch { return output; }
+  if (!exactKeys(root, ['schemaVersion', 'sidebarPreferences', 'untrustedDataNotice',
+    'pinnedThreads', 'threads', 'sections', 'unavailableHosts', 'unavailableSources'])) return output;
+  const pinned = own(root, 'pinnedThreads'), threads = own(root, 'threads');
+  if (!Array.isArray(pinned) || !Array.isArray(threads) || pinned.length + threads.length > 1000) return output;
+  const matches = pinned.concat(threads).filter(row => own(row, 'id') === ownerThread && own(row, 'hostId') === 'local');
+  if (matches.length !== 1 || !['idle', 'active', 'notLoaded', 'systemError'].includes(own(matches[0], 'status'))) return output;
+  output.status = own(matches[0], 'status');
+  output.classification = 'HOST_PORT_REPORTED_STATUS_REQUEST_INTERVAL';
+  return output;
+}
+
+function validateHostProjection(value, phase) {
+  if (!value || !exact(value, projectionKeys) || value.schema !== 'ops.host-tool-projection.v1'
+      || !['NOT_MEASURED', 'OVER_REPORTED_BOUND', 'WITHIN_REPORTED_BOUND'].includes(value.rawSizeStatus)
+      || (value.reportedRawJsonBytes !== null && (!Number.isSafeInteger(value.reportedRawJsonBytes)
+        || value.reportedRawJsonBytes < 0 || value.reportedRawJsonBytes > bridgeResultLimit))
+      || (value.reportedRawJsonUnits !== null && (!Number.isSafeInteger(value.reportedRawJsonUnits) || value.reportedRawJsonUnits < 0))
+      || (value.rawSizeStatus === 'WITHIN_REPORTED_BOUND' && (value.reportedRawJsonBytes === null || value.reportedRawJsonUnits === null))
+      || (value.rawSizeStatus === 'NOT_MEASURED' && (value.reportedRawJsonBytes !== null || value.reportedRawJsonUnits !== null))
+      || (value.rawSizeStatus === 'OVER_REPORTED_BOUND' && value.reportedRawJsonBytes !== null))
+    fail('INVALID_NATIVE_HOST_PACKET');
+  const status = phase === 1 && value.classification === 'HOST_PORT_REPORTED_STATUS_REQUEST_INTERVAL'
+    && value.rawSizeStatus === 'WITHIN_REPORTED_BOUND' && ['idle', 'active', 'notLoaded', 'systemError'].includes(value.status);
+  const unknown = phase === 1 && value.classification === 'STATUS_SHAPE_OR_IDENTITY_UNKNOWN' && value.status === 'unknown';
+  const send = phase === 2 && ((value.classification === 'SEND_ACK_CONTRACT_UNKNOWN' && value.status === 'unknown')
+    || (value.classification === 'HOST_TOOL_ERROR_REPORTED' && value.status === 'failed'));
+  if (!status && !unknown && !send) fail('INVALID_NATIVE_HOST_PACKET');
+  return value;
+}
+function projectionObservation(packet, projection, completedAt) {
+  return { schema: packet.phase === 1 ? 'jev.host-owner-status.v1' : 'jev.host-owner-send-observation.v1',
+    ownerThread: packet.ownerThread, hostId: 'local', observedAt: completedAt, status: projection.status,
+    ...(packet.phase === 1 ? { statusMeaning: projection.classification === 'HOST_PORT_REPORTED_STATUS_REQUEST_INTERVAL'
+      ? 'RUNTIME_TURN_STATUS' : 'UNKNOWN' } : {}) };
+}
+export function submitFiniteNativeHostProjection(options, inputProjection) {
+  const config = snapshotJson(options);
+  if (!config || !exact(config, bridgeConfigKeys.concat(['toolStartedAt', 'toolCompletedAt']))
+      || !utc(config.toolStartedAt) || !utc(config.toolCompletedAt)
+      || Date.parse(config.toolStartedAt) > Date.parse(config.toolCompletedAt)
+      || Date.parse(config.toolCompletedAt) > Date.now()) fail('INVALID_NATIVE_HOST_PACKET');
+  const location = { packetDir: config.packetDir, runId: config.runId, phase: config.phase };
+  const packet = readHostCommandPacket(location, true, 'projection-v2');
+  const projection = validateHostProjection(snapshotJson(inputProjection), packet.phase);
+  const { command, schema, ...identity } = packet;
+  const data = { schema: 'ops.native-host-observation.v2', ...identity,
+    toolStartedAt: config.toolStartedAt, toolCompletedAt: config.toolCompletedAt, runtimeSampledAt: null,
+    rawToolResultSha256: null, rawIdentityStatus: 'NOT_OBSERVED_BY_NATIVE',
+    projectionBytes: canonicalBytes(projection).length, projectionSha256: sha(canonicalBytes(projection)), projection };
+  publishBridgeJson(bridgeLocation(location), 'phase-' + packet.phase + '.observation.json', data);
+  return Object.freeze({ phase: packet.phase, projectionBytes: data.projectionBytes,
+    projectionSha256: data.projectionSha256, rawToolResultSha256: null, rawIdentityStatus: data.rawIdentityStatus });
+}
+
+export function awaitFiniteNativeHostCommand(options) {
+  const input = snapshotJson(options);
+  if (!input || !exact(input, bridgeConfigKeys.concat(['waitMs']))
+      || !Number.isSafeInteger(input.waitMs) || input.waitMs < 1 || input.waitMs > 600000)
+    fail('INVALID_NATIVE_HOST_PACKET');
+  const config = { packetDir: input.packetDir, runId: input.runId, phase: input.phase };
+  const { dir, binding, projected } = readBridgeBinding(config);
+  return new Promise((resolve, reject) => {
+    let watcher, timer, settled = false;
+    const finish = (error, value) => {
+      if (settled) return; settled = true;
+      clearTimeout(timer);
+      try { watcher?.close(); } catch {
+        try { watcher?.unref(); } catch { /* Do not retry a failed watch cleanup. */ }
+        error = new Error('HOST_PACKET_IO');
+      }
+      if (error) reject(error); else resolve(value);
+    };
+    const check = () => {
+      if (settled) return;
+      try {
+        const receipt = readBridgeJson(path.join(dir, 'receipt.json'));
+        if (!exact(receipt, ['schema', 'ownerThread', 'runId', 'sourceSha', 'bindingSha256',
+          'runnerModuleSha256', 'phases', 'status', 'errorCode', 'exchangeElapsedMs', 'runtimeSampledAt',
+          'observationAuthority', 'hostLifetime', 'consumptionStatus', 'retries', 'remoteEffects',
+          ...(projected ? ['observationFormat', 'rawToolResultSha256', 'rawIdentityStatus'] : [])])
+            || receipt.schema !== 'ops.native-host-bridge-receipt.v1'
+            || ['ownerThread', 'runId', 'sourceSha', 'bindingSha256', 'runnerModuleSha256']
+              .some(key => receipt[key] !== binding[key])
+            || !Number.isInteger(receipt.phases) || receipt.phases < 0 || receipt.phases > 2
+            || receipt.consumptionStatus !== 'NOT_OBSERVED'
+            || (projected && (receipt.observationFormat !== 'projection-v2'
+              || receipt.rawToolResultSha256 !== null || receipt.rawIdentityStatus !== 'NOT_OBSERVED_BY_NATIVE')))
+          fail('INVALID_NATIVE_HOST_PACKET');
+        // A recorded bridge terminal only stops the driver; never echo arbitrary
+        // receipt strings or infer owner consumption from a sender's local state.
+        return finish(null, Object.freeze({ kind: 'TERMINAL', status: 'HOLD', consumptionStatus: 'NOT_OBSERVED' }));
+      } catch (error) { if (error?.code !== 'ENOENT') return finish(error); }
+      try { finish(null, Object.freeze({ kind: 'COMMAND', packet: readFiniteNativeHostCommand(config) })); }
+      catch (error) { if (error?.code !== 'ENOENT') finish(error); }
+    };
+    try {
+      watcher = fs.watch(dir, (_event, filename) => {
+        const name = filename?.toString();
+        if (!name || name === 'phase-' + input.phase + '.command.json' || name === 'receipt.json') check();
+      });
+      watcher.on('error', error => finish(error));
+      timer = setTimeout(() => finish(new Error('HOST_EXCHANGE_TIMEOUT')), input.waitMs);
+      check(); // Arm first: publication between watch and check cannot be missed.
+    } catch (error) { finish(error); }
+  });
 }
 
 function awaitBridgePacket(dir, phase, timeoutMs) {
@@ -417,7 +585,9 @@ function awaitBridgePacket(dir, phase, timeoutMs) {
 // The driver is outside this process and transports only the two typed packets.
 export async function runFiniteNativeHostBridge(options, value, testRuntime) {
   const input = snapshotJson(options);
-  if (!input || !exact(input, ['callerOptions', 'packetDir'])
+  const projected = input?.observationFormat === 'projection-v2';
+  if (!input || !exact(input, ['callerOptions', 'packetDir', ...(Object.hasOwn(input, 'observationFormat') ? ['observationFormat'] : [])])
+      || (Object.hasOwn(input, 'observationFormat') && !projected)
       || input.callerOptions?.ownerReturn?.transport !== 'host-mcp'
       || !Object.hasOwn(input.callerOptions.ownerReturn, 'exchangeTimeoutMs'))
     fail('INVALID_NATIVE_HOST_BRIDGE');
@@ -430,10 +600,12 @@ export async function runFiniteNativeHostBridge(options, value, testRuntime) {
   const dir = path.join(input.packetDir, callerOptions.runId + '.bridge');
   fs.mkdirSync(dir, { mode: 0o700 }); // Claim before engine execution, never resume/reuse.
   const binding = {
-    schema: 'ops.native-host-bridge.v1', ownerThread: host.ownerThread, runId: callerOptions.runId,
-    sourceSha: callerOptions.sourceSha, bindingSha256: caller.bindingSha256,
+    schema: projected ? 'ops.native-host-bridge.v2' : 'ops.native-host-bridge.v1', ownerThread: host.ownerThread, runId: callerOptions.runId,
+    sourceSha: callerOptions.sourceSha, bindingSha256: projected
+      ? sha(JSON.stringify({ callerBindingSha256: caller.bindingSha256, observationFormat: input.observationFormat })) : caller.bindingSha256,
     runnerModuleSha256: bridgeSourceHash(), expiresAt: host.expiresAt,
-    exchangeTimeoutMs: host.exchangeTimeoutMs, statusListLimit: host.statusListLimit ?? 1
+    exchangeTimeoutMs: host.exchangeTimeoutMs, statusListLimit: host.statusListLimit ?? 1,
+    ...(projected ? { observationFormat: input.observationFormat, callerBindingSha256: caller.bindingSha256 } : {})
   };
   publishBridgeJson(dir, 'binding.json', binding);
   let result, engineError, rejected = false;
@@ -478,19 +650,28 @@ export async function runFiniteNativeHostBridge(options, value, testRuntime) {
       } catch (error) { wait.cancel(); await wait.promise.catch(() => {}); throw error; }
       if (performance.now() - started > binding.exchangeTimeoutMs) fail('HOST_EXCHANGE_TIMEOUT');
       if (performance.now() - issued > host.timeoutMs) fail('HOST_PACKET_INVALID');
-      if (!exact(observation, bridgeObservationKeys) || observation.schema !== 'ops.native-host-observation.v1'
+      if (!exact(observation, projected ? projectedObservationKeys : bridgeObservationKeys)
+          || observation.schema !== (projected ? 'ops.native-host-observation.v2' : 'ops.native-host-observation.v1')
           || Object.keys(packet).filter(key => !['schema', 'command'].includes(key)).some(key => observation[key] !== packet[key])
           || observation.runtimeSampledAt !== null || !utc(observation.toolStartedAt) || !utc(observation.toolCompletedAt)
           || Date.parse(observation.toolStartedAt) < issuedAt
           || Date.parse(observation.toolStartedAt) >= Date.parse(packet.commandExpiresAt)
           || Date.parse(observation.toolCompletedAt) < Date.parse(observation.toolStartedAt)
           || Date.parse(observation.toolCompletedAt) > Date.now()
-          || !Number.isSafeInteger(observation.toolResultBytes) || observation.toolResultBytes < 0
-          || !/^[a-f0-9]{64}$/.test(observation.toolResultSha256)
-          || !['HOST_TOOL_ERROR_REPORTED', 'SEND_ACK_CONTRACT_UNKNOWN', 'STATUS_SHAPE_OR_IDENTITY_UNKNOWN',
-            'HOST_PORT_REPORTED_STATUS_REQUEST_INTERVAL'].includes(observation.classification)) fail('HOST_PACKET_INVALID');
-      if (phase === 1) caller.acceptHostObservation(command.commandId, observation.observation);
-      else caller.acceptHostSendResult(command.commandId, observation.observation);
+          || (!projected && (!Number.isSafeInteger(observation.toolResultBytes) || observation.toolResultBytes < 0
+            || !/^[a-f0-9]{64}$/.test(observation.toolResultSha256)
+            || !['HOST_TOOL_ERROR_REPORTED', 'SEND_ACK_CONTRACT_UNKNOWN', 'STATUS_SHAPE_OR_IDENTITY_UNKNOWN',
+              'HOST_PORT_REPORTED_STATUS_REQUEST_INTERVAL'].includes(observation.classification)))) fail('HOST_PACKET_INVALID');
+      let accepted = observation.observation;
+      if (projected) {
+        validateHostProjection(observation.projection, phase);
+        if (observation.rawToolResultSha256 !== null || observation.rawIdentityStatus !== 'NOT_OBSERVED_BY_NATIVE'
+            || observation.projectionBytes !== canonicalBytes(observation.projection).length
+            || observation.projectionSha256 !== sha(canonicalBytes(observation.projection))) fail('HOST_PACKET_INVALID');
+        accepted = projectionObservation(packet, observation.projection, observation.toolCompletedAt);
+      }
+      if (phase === 1) caller.acceptHostObservation(command.commandId, accepted);
+      else caller.acceptHostSendResult(command.commandId, accepted);
     }
   } catch (error) {
     errorCode = error?.message === 'HOST_EXCHANGE_TIMEOUT' ? 'HOST_EXCHANGE_TIMEOUT'
@@ -504,8 +685,50 @@ export async function runFiniteNativeHostBridge(options, value, testRuntime) {
     errorCode: errorCode ?? returned?.errorCode ?? null, exchangeElapsedMs: performance.now() - started,
     runtimeSampledAt: null, observationAuthority: 'HOST_PORT_REPORTED_NOT_AUTHENTICATED_BY_LIBRARY',
     hostLifetime: 'NOT_ESTABLISHED_BY_SOURCE', consumptionStatus: 'NOT_OBSERVED', retries: 0,
-    remoteEffects: returned?.remoteEffects ?? 'UNKNOWN' };
+    remoteEffects: returned?.remoteEffects ?? 'UNKNOWN',
+    ...(projected ? { observationFormat: 'projection-v2', rawToolResultSha256: null,
+      rawIdentityStatus: 'NOT_OBSERVED_BY_NATIVE' } : {}) };
   try { publishBridgeJson(dir, 'receipt.json', receipt); } catch { /* Preserve engine value/error and partial original artifacts. */ }
   if (rejected) throw engineError;
   return result;
+}
+
+// Closed, data-only ordinary-Node helper frontend. Never executes a product,
+// tool, source string or arbitrary export. No stdin/body/file wrapper transport.
+if (typeof process !== 'undefined' && process.argv[1]
+    && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href && process.argv.length > 2) {
+  try {
+    const [operation, ...args] = process.argv.slice(2);
+    if (!['host-command', 'host-observe-projection'].includes(operation)
+        || args.length % 2 || process.argv.join('\0').length > 8192) fail('INVALID_NATIVE_HOST_CLI');
+    const values = {};
+    for (let i = 0; i < args.length; i += 2) {
+      if (!/^--[a-z-]+$/.test(args[i]) || Object.hasOwn(values, args[i])) fail('INVALID_NATIVE_HOST_CLI');
+      values[args[i]] = args[i + 1];
+    }
+    const common = ['--packet-dir', '--run-id', '--phase'];
+    const flags = operation === 'host-command' ? common.concat('--wait-ms') : common.concat([
+      '--started-at', '--completed-at', '--status', '--classification', '--raw-bytes', '--raw-units', '--raw-size']);
+    if (!exact(values, flags) || /[\0\r\n]/.test(values['--packet-dir'])) fail('INVALID_NATIVE_HOST_CLI');
+    const integer = text => { if (!/^(0|[1-9][0-9]*)$/.test(text)) fail('INVALID_NATIVE_HOST_CLI');
+      const number = Number(text); if (!Number.isSafeInteger(number)) fail('INVALID_NATIVE_HOST_CLI'); return number; };
+    const config = { packetDir: values['--packet-dir'], runId: values['--run-id'], phase: integer(values['--phase']) };
+    let output;
+    if (operation === 'host-command') {
+      // This closed frontend is projection-only. Keep the exported raw-v1 APIs
+      // valid, but reject the wrong format before exposing a command to a tool.
+      readBridgeBinding(config, 'projection-v2');
+      output = await awaitFiniteNativeHostCommand({ ...config, waitMs: integer(values['--wait-ms']) });
+    }
+    else output = submitFiniteNativeHostProjection({ ...config, toolStartedAt: values['--started-at'],
+      toolCompletedAt: values['--completed-at'] }, { schema: 'ops.host-tool-projection.v1', status: values['--status'],
+      classification: values['--classification'], reportedRawJsonBytes: values['--raw-bytes'] === 'null' ? null : integer(values['--raw-bytes']),
+      reportedRawJsonUnits: values['--raw-units'] === 'null' ? null : integer(values['--raw-units']), rawSizeStatus: values['--raw-size'] });
+    const envelope = JSON.stringify({ schema: 'ops.native-host-cli.v1', status: 'OK', output }) + '\n';
+    if (Buffer.byteLength(envelope, 'utf8') > 8192) fail('INVALID_NATIVE_HOST_CLI');
+    process.stdout.write(envelope);
+  } catch {
+    process.stdout.write(JSON.stringify({ schema: 'ops.native-host-cli.v1', status: 'HOLD', errorCode: 'HOST_HELPER_FAILED' }) + '\n');
+    process.exitCode = 2;
+  }
 }
