@@ -7,7 +7,17 @@ const uaid = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const channel_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 export default {
   async fetch(request, env) {
-    if (new URL(request.url).pathname === '/health') return Response.json({ ready: true });
+    const path = new URL(request.url).pathname;
+    if (path === '/health') return Response.json({ ready: true });
+    // Integration fixture: actual public HTTPS -> real workerd fetch -> local R2 -> readback.
+    if (path === '/rss-live' && request.method === 'POST') {
+      try {
+        const rss = await collectRss(env, { proof: true });
+        const read = await readRss(env.RESERVOIR);
+        const ids = [...new Set(read.items.map(item => item.feed))].sort();
+        return Response.json({ live: rss.status === 'OK' && rss.verified && rss.replayVerified, fetched: rss.entries, saved: read.total, feeds: ids });
+      } catch (error) { return Response.json({ code: error?.code ?? 'RSS_LIVE_FAILED' }, { status: 500 }); }
+    }
     try {
       const http = await collectHttp(env, { proof: true, fetcher: async (url, options) => {
         // This is workerd's actual constructor, which rejects redirect:'error'.
