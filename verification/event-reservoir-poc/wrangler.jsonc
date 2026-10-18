@@ -1,0 +1,10 @@
+{
+  "name": "stg-event-reservoir-poc",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-05-01",
+  "workers_dev": true,
+  "r2_buckets": [{ "binding": "RESERVOIR", "bucket_name": "stg-event-reservoir-poc" }],
+  "triggers": { "crons": ["*/2 * * * *"] },
+  "vars": { "HTTP_POST_ID": "20", "APP_VERSION": "local" },
+  "observability": { "enabled": false }
+}

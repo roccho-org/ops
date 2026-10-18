@@ -1,0 +1,118 @@
+name: Event reservoir PoC
+
+on:
+  pull_request:
+    paths: ["verification/event-reservoir-poc/**", ".github/workflows/event-reservoir-poc.yml", "ci.intent.v1.jsonl", "contracts/secret-effect-boundary.v1.jsonl"]
+  push:
+    branches: ["codex/event-reservoir-poc-20261018", "proposals"]
+    paths: ["verification/event-reservoir-poc/**", ".github/workflows/event-reservoir-poc.yml"]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy only the dedicated PoC Worker and private R2 bucket
+        type: boolean
+        default: false
+      require_webpush:
+        description: Fail acceptance unless a real X notification is decrypted, saved, replayed and ACKed
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: event-reservoir-poc-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check interoperability, persistence, failure and reconnect behavior
+        run: node --test verification/event-reservoir-poc/tests/proof.test.mjs
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+      - name: Prepare pinned standard tools and bundle the real Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime="$(nix-build verification/event-reservoir-poc/dependencies.nix --no-out-link)"
+          PATH="$runtime/bin:$PATH" "$runtime/bin/node" tools/check-ci-intent-workflow-branches.mjs
+          "$runtime/bin/wrangler" deploy --dry-run --config verification/event-reservoir-poc/wrangler.jsonc --outdir "$RUNNER_TEMP/reservoir-bundle"
+
+  live:
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy
+    needs: check
+    environment: cloudflare-production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+      - name: Prepare exact source and standard tool closure before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          runtime="$(nix-build verification/event-reservoir-poc/dependencies.nix --no-out-link)"
+          echo "POC_TOOLS=$runtime" >> "$GITHUB_ENV"
+          proof_token="$($runtime/bin/node -e 'console.log(require("node:crypto").randomBytes(32).toString("hex"))')"
+          echo "::add-mask::$proof_token"
+          echo "PROOF_TOKEN=$proof_token" >> "$GITHUB_ENV"
+      - name: Deploy dedicated private resources and protect the operation endpoint
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          WEBPUSH_SUBSCRIPTION: ${{ secrets.EVENT_RESERVOIR_WEBPUSH_SUBSCRIPTION }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$POC_TOOLS/bin/node" --input-type=module <<'JS'
+          import { spawnSync } from 'node:child_process';
+          import { appendFileSync } from 'node:fs';
+          const bucket = 'stg-event-reservoir-poc';
+          const endpoint = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}`;
+          async function api(path) {
+            const response = await fetch(endpoint + path, { headers: { authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` } });
+            if (!response.ok) throw new Error('CLOUDFLARE_PREFLIGHT_FAILED');
+            const value = await response.json();
+            if (!value.success) throw new Error('CLOUDFLARE_PREFLIGHT_FAILED');
+            return value.result;
+          }
+          function wrangler(args, input) {
+            const child = spawnSync(`${process.env.POC_TOOLS}/bin/wrangler`, args, { input, encoding: 'utf8', env: { ...process.env, WRANGLER_SEND_METRICS: 'false' } });
+            if (child.status !== 0) throw new Error('DEDICATED_CLOUDFLARE_OPERATION_FAILED');
+            return child.stdout;
+          }
+          const listed = await api(`/r2/buckets?name_contains=${bucket}&per_page=1000`);
+          if (!listed.buckets.some(item => item.name === bucket)) wrangler(['r2', 'bucket', 'create', bucket]);
+          const managed = await api(`/r2/buckets/${bucket}/domains/managed`);
+          const custom = await api(`/r2/buckets/${bucket}/domains/custom`);
+          if (typeof managed.enabled !== 'boolean' || !Array.isArray(custom.domains) || managed.enabled || custom.domains.some(item => item.enabled)) throw new Error('BUCKET_MUST_BE_PRIVATE');
+          const config = 'verification/event-reservoir-poc/wrangler.jsonc';
+          const deployed = wrangler(['deploy', '--config', config, '--var', `APP_VERSION:${process.env.GITHUB_SHA}`]);
+          const url = deployed.match(/https:\/\/[a-z0-9.-]+\.workers\.dev/gi)?.[0];
+          if (!url) throw new Error('DEPLOYMENT_URL_MISSING');
+          wrangler(['secret', 'put', 'PROOF_TOKEN', '--config', config], process.env.PROOF_TOKEN);
+          if (process.env.WEBPUSH_SUBSCRIPTION) wrangler(['secret', 'put', 'WEBPUSH_SUBSCRIPTION', '--config', config], process.env.WEBPUSH_SUBSCRIPTION);
+          appendFileSync(process.env.GITHUB_ENV, `WORKER_URL=${url}\n`);
+          console.log(JSON.stringify({ worker: url, bucketPrivate: true, source: process.env.GITHUB_SHA, subscriptionProvidedThisRun: Boolean(process.env.WEBPUSH_SUBSCRIPTION) }));
+          JS
+      - name: Prove deployed retrieval, immutable R2 readback and two real Cron runs
+        env:
+          REQUIRE_WEBPUSH: ${{ inputs.require_webpush }}
+        run: '"$POC_TOOLS/bin/node" verification/event-reservoir-poc/scripts/prove.mjs "$RUNNER_TEMP/event-reservoir-proof.json"'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: event-reservoir-proof-${{ github.sha }}
+          path: ${{ runner.temp }}/event-reservoir-proof.json
+          if-no-files-found: error
+          retention-days: 30
