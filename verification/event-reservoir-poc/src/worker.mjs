@@ -1,12 +1,15 @@
 import { collectHttp } from './http.mjs';
 import { collectWebpush } from './webpush.mjs';
+import { collectRss, readRss } from './rss.mjs';
 import { PocError } from './store.mjs';
 
 const safeCode = error => error instanceof PocError ? error.code : 'INTERNAL_FAILURE';
 function json(body, status = 200) { return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } }); }
 
-export async function collect(env, { proof = false, trigger = 'manual', scheduledTime = null } = {}, adapters = { http: collectHttp, webpush: collectWebpush }) {
-  const result = await Promise.all(Object.entries(adapters).map(async ([name, run]) => {
+export async function collect(env, { proof = false, trigger = 'manual', scheduledTime = null } = {}, adapters = { http: collectHttp, webpush: collectWebpush, rss: collectRss }) {
+  const selected = trigger === 'scheduled' && new Date(scheduledTime).getUTCMinutes() !== 0
+    ? Object.entries(adapters).filter(([name]) => name !== 'rss') : Object.entries(adapters);
+  const result = await Promise.all(selected.map(async ([name, run]) => {
     try { return [name, await run(env, { proof })]; }
     catch (error) {
       return [name, { status: 'ERROR', code: safeCode(error), ...(error instanceof PocError && error.upstreamStatus ? { upstreamStatus: error.upstreamStatus } : {}) }];
@@ -15,6 +18,7 @@ export async function collect(env, { proof = false, trigger = 'manual', schedule
   const inputs = Object.fromEntries(result);
   const receipt = { schema: 'event-reservoir.run/1', version: env.APP_VERSION, trigger, scheduledTime, finishedAt: new Date().toISOString(), inputs };
   receipt.complete = inputs.http?.status === 'OK' && inputs.webpush?.status === 'OK';
+  if (inputs.rss) receipt.rssComplete = inputs.rss.status === 'OK' && inputs.rss.verified === true;
   // Receipts contain counts, public post IDs and error codes, never payloads or subscriptions.
   const key = `runs/${scheduledTime ?? Date.now()}-${crypto.randomUUID()}.json`;
   try { await env.RESERVOIR.put(key, JSON.stringify(receipt)); }
@@ -30,6 +34,7 @@ export default {
     try {
       if (url.pathname === '/proof' && request.method === 'POST') return json(await collect(env, { proof: true }));
       if (url.pathname === '/collect' && request.method === 'POST') return json(await collect(env));
+      if (url.pathname === '/rss' && request.method === 'GET') return json(await readRss(env.RESERVOIR));
       if (url.pathname === '/evidence' && request.method === 'GET') {
         const since = Number(url.searchParams.get('since') ?? Date.now() - 60 * 60_000);
         if (!Number.isSafeInteger(since) || since < 1_000_000_000_000 || since > Date.now() + 60_000) return json({ code: 'INVALID_SINCE' }, 400);

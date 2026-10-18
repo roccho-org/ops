@@ -200,7 +200,7 @@ test('real scheduled entrypoint performs save-without-ACK and reconnect replay t
     return { status: 101, webSocket: socket };
   };
   try {
-    await worker.scheduled({ scheduledTime: Date.now() }, env);
+    await worker.scheduled({ scheduledTime: Date.UTC(2026, 9, 18, 12, 2) }, env);
     assert.equal(sockets.length, 2);
     assert.equal(sockets[0].acknowledged, false);
     assert.equal(sockets[1].acknowledged, true);
