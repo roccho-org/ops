@@ -385,3 +385,11 @@ For this policy the public client captures the complete JSON request once, then 
 TypeSafe documents default limits in **tokens**: state plus any one question, and state plus all questions ([models](https://docs.typesafe.ai/models), [API](https://docs.typesafe.ai/api)). A byte bound is a finite local containment policy, not that provider contract or a byte-to-token ratio. Local v16 validation reports token admission as UNKNOWN. Only an actual fixed-provider response establishes provider acceptance; a synthetic preflight, a stub response or structural source equality does not.
 
 If the provider refuses, the original attempt and error remain evidence; the entry does not retry, shorten K, remove questions, switch a model or enable long context. A generic HTTP 400 alone is not proof of the precise token-limit cause. Real-case fidelity, utility, G1/G2 and exact-owner automatic return require their separate evidence.
+
+### Fixed owner stdin package
+
+The standalone `semlint-owner` package runs the existing `semlint-entry.mjs` directly, with no program-selection arguments. It reads the bounded owner stdin protocol and executes the admitted plan with the target-owned `JEV_API_KEY`. Credentials must be supplied by an admitted fixed target consumer, never by a reviewer or a caller-selected key path.
+
+The `semlint-owner-package` Nix check invokes the installed entry with malformed JSON and an extra program-selection argument, without credentials. These controls prove import closure and fixed entry activation only. They do not test provider acceptance, token fit, semantic usefulness, or exact-owner return.
+
+The current package materializer derives its source root from the entry path. For this root-level entry it copies the public `packages` source tree, and the declared Jev sibling is additionally included. This is broader than a minimal review-plus-Jev closure. It does not provide those unused sources to the model or grant them execution authority. Private case/Gold files must remain outside the Git source, and the extra store/transfer cost remains unknown until realization.
