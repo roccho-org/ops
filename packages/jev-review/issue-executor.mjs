@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { validateActionsConfig, selectActionsTarget, admitIssueCommand, selectRunRange, deriveIssuePrior, nextIssueEffect,
-  composeResultComment, verifyResultReadback } from './github-comment.mjs';
+  composeResultComment, verifyResultReadback, subjectRevision } from './github-comment.mjs';
 
 // GitHub-hosted Actions adapter for one trusted literal command (ops#483). `plan` and `post` run without the Jev
 // key; between them the workflow's single key-bearing step runs only the fixed semlint-entry.mjs on plan.json.
@@ -16,6 +16,11 @@ export const ISSUE_QUERY = 'query($owner:String!,$name:String!,$number:Int!){rep
   + '{issue(number:$number){id number body lastEditedAt includesCreatedEdit userContentEdits{totalCount}}}}';
 export const PULL_REQUEST_QUERY = 'query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name)'
   + '{pullRequest(number:$number){id number body lastEditedAt includesCreatedEdit userContentEdits{totalCount}}}}';
+// Granted subject only: the same Issue fields plus the repository identity and visibility from the same read, so a
+// renamed, transferred or private repository cannot pass as the grant. Repository.databaseId is a GraphQL Int: an ID
+// outside its range fails the read, and the subject then holds (fail closed). Never used without a grant.
+export const SUBJECT_QUERY = 'query($owner:String!,$name:String!,$number:Int!){repository(owner:$owner,name:$name)'
+  + '{databaseId nameWithOwner isPrivate issue(number:$number){id number body lastEditedAt includesCreatedEdit userContentEdits{totalCount}}}}';
 // IssueComment.databaseId is Int (signed 32-bit) and cannot represent real REST comment IDs; fullDatabaseId is
 // BigInt, whose wire encoding is a string. Only fullDatabaseId is requested.
 export const COMMENT_QUERY = 'query($id:ID!){node(id:$id){... on IssueComment{id fullDatabaseId author{login} body '
@@ -87,6 +92,20 @@ async function observe(deps, repository, issueNumber, commentNodeId, commentId, 
   };
 }
 
+// Observe a granted subject Issue in its own repository. Matching it to the grant is admission's job; any error,
+// missing or unrequested field, or another Issue number is undefined, and the caller holds.
+async function observeSubject(deps, grant) {
+  const [owner, name] = grant.repository.split('/');
+  let v;
+  try { v = await deps.graphql(SUBJECT_QUERY, { owner, name, number: grant.number }); } catch { return undefined; }
+  const repo = v?.data?.repository, i = repo?.issue;
+  if (!v || v.errors !== undefined || !keysAre(repo, ['databaseId', 'nameWithOwner', 'isPrivate', 'issue'])
+    || !positive(repo.databaseId) || typeof repo.nameWithOwner !== 'string' || typeof repo.isPrivate !== 'boolean'
+    || !keysAre(i, ['id', 'number', 'body', 'lastEditedAt', 'includesCreatedEdit', 'userContentEdits']) || i.number !== grant.number) return undefined;
+  return { repository: repo.nameWithOwner, repositoryId: String(repo.databaseId), isPrivate: repo.isPrivate, number: i.number,
+    nodeId: i.id, body: i.body, lastEditedAt: i.lastEditedAt, includesCreatedEdit: i.includesCreatedEdit, userContentEditsTotal: editsTotal(i) };
+}
+
 // Native workflow state (GET actions/workflows/{id}); disabling stops new runs and, at the next observed
 // checkpoint, running ones. An unreadable state is treated as not active.
 async function workflowState(deps, repository, workflowId) {
@@ -110,7 +129,7 @@ const RECEIPT = 'ops.jev.issue-actions-receipt.v1';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // Plan one event (no key). Order: settings -> native run identity and reservation -> active workflow ->
-// exact snapshot -> admission -> prior -> raw-201 claim -> re-read -> active. Outcomes: PLANNED, NONE
+// exact snapshot (plus a granted subject) -> admission -> prior -> raw-201 claim -> re-read -> active. Outcomes: PLANNED, NONE
 // (no provider call), UNKNOWN (claim effect not known). Only PLANNED yields a plan for the fixed entry.
 export async function planIssueCommand(ctx, configValue, deps) {
   const receipt = { schema: RECEIPT, stage: 'plan', outcome: null, cause: null, claimed: false, providerCalls: 0, authority: false };
@@ -136,20 +155,38 @@ export async function planIssueCommand(ctx, configValue, deps) {
   const run = { repository: rv.repository?.full_name, workflowId: rv.workflow_id, path: rv.path, number: rv.run_number, attempt: rv.run_attempt, id: rv.id };
   if (run.id !== ctx.runId || run.attempt !== ctx.runAttempt || rv.head_sha !== ctx.sha || run.repository !== ctx.repository) return end('NONE', 'RUN_IDENTITY_MISMATCH');
   receipt.run = { id: run.id, number: run.number, attempt: run.attempt, workflowId: run.workflowId };
-  const selected = selectRunRange(config, run);
+  // The event target was validated against trusted targets above; the snapshot re-checks it at admission.
+  const selected = selectRunRange(config, run, { kind: targetKind, number: e.issue.number });
   if (!selected.range) return end('NONE', selected.cause);
   if (await workflowState(deps, ctx.repository, run.workflowId) !== 'active') return end('NONE', 'WORKFLOW_NOT_ACTIVE');
 
   const seen = await observe(deps, ctx.repository, e.issue.number, e.comment.node_id, e.comment.id, targetKind);
   if (!seen) return end('NONE', 'SNAPSHOT_UNKNOWN');
+  const grant = target.subject;
+  const subject = grant ? await observeSubject(deps, grant) : undefined;
+  if (grant && !subject) return end('NONE', 'SUBJECT_UNKNOWN');
   let context;
   try { context = config.context.map((c) => ({ role: c.role, path: c.path, content: deps.readFile(c.path) })); }
   catch { return end('NONE', 'CONTEXT_UNKNOWN'); }
   const admission = { repository: ctx.repository, owner: e.repository.owner.login, sha: ctx.executionSource, eventBody: e.comment.body,
     run: { id: run.id, number: run.number, attempt: run.attempt, workflowId: run.workflowId, path: run.path },
-    issue: seen.issue, command: seen.command, context, ...(targetKind === 'pull-request' ? { targetKind } : {}) };
+    issue: seen.issue, command: seen.command, context, ...(targetKind === 'pull-request' ? { targetKind } : {}), ...(grant ? { subject } : {}) };
   const request = await admitIssueCommand(admission, config);
-  if (request.status !== 'ADMITTED') return end('NONE', request.cause);
+  if (request.status !== 'ADMITTED') {
+    // Only the granted-literal CJK refusal carries an observation, and it is kept only when it is exactly this run's
+    // snapshot (node ID and 5-part revision). It is printed in the receipt/state, never claimed, posted or sent.
+    // A third key (the evaluated subject's own pair) is kept only under an explicit Issue provided grant for this origin,
+    // and only when it equals this run's own subject read; a subject grant alone never retains one.
+    const o = request.observed;
+    const issueGrant = grant !== undefined && config.providedRequestTargets?.some((g) => g.repository === ctx.repository
+      && g.issue === e.issue.number) === true;
+    const exactObservation = request.cause === 'UNSUPPORTED_CJK' && o !== null && typeof o === 'object'
+      && Object.keys(o).length === (issueGrant ? 3 : 2) && o.issueNodeId === seen.issue.nodeId && o.subjectRevision === subjectRevision(seen.issue)
+      && (!issueGrant || (o.subject !== null && typeof o.subject === 'object' && Object.keys(o.subject).length === 2
+        && o.subject.nodeId === subject.nodeId && o.subject.revision === subjectRevision(subject)));
+    return end('NONE', request.cause, exactObservation ? { observed: { issueNodeId: o.issueNodeId, subjectRevision: o.subjectRevision,
+      ...(issueGrant ? { subject: { nodeId: o.subject.nodeId, revision: o.subject.revision } } : {}) } } : {});
+  }
   if (seen.claims === null) return end('NONE', 'CLAIMS_INCOMPLETE');
   // Only EXECUTOR_LOGIN's reaction is a claim; known other logins are ignored, unattributable ones held.
   const prior = deriveIssuePrior(request, { claims: seen.claims, results: [] }, EXECUTOR_LOGIN);
@@ -169,6 +206,11 @@ export async function planIssueCommand(ctx, configValue, deps) {
   if (!again) return end('NONE', 'REREAD_UNKNOWN');
   if (!same(again.issue, seen.issue) || !same(again.command, seen.command) || again.claims === null || again.claims.includes(null)
     || again.claims.filter((x) => x === EXECUTOR_LOGIN).length !== 1) return end('NONE', 'DRIFT_BEFORE_CALL');
+  if (grant) {
+    const subjectAgain = await observeSubject(deps, grant);
+    if (!subjectAgain) return end('NONE', 'REREAD_UNKNOWN');
+    if (!same(subjectAgain, subject)) return end('NONE', 'DRIFT_BEFORE_CALL');
+  }
   if (await workflowState(deps, ctx.repository, run.workflowId) !== 'active') return end('NONE', 'WORKFLOW_NOT_ACTIVE');
   const out = end('PLANNED', 'EVALUATE', { providerCalls: null, callsPerRun: selected.callsPerRun, requestDigest: request.requestDigest });
   return { receipt: out.receipt, state: { ...out.state, admission }, plan: request.prepared.plan };
@@ -204,6 +246,14 @@ export async function postIssueCommand(stateValue, entryOut, configValue, deps) 
   const now = await observe(deps, adm.repository, adm.issue.number, adm.command.nodeId, adm.command.databaseId, adm.targetKind);
   if (!now) return end('WITHHELD', 'REREAD_UNKNOWN');
   if (!same(now.issue, adm.issue) || !same(now.command, adm.command)) return end('WITHHELD', 'DRIFT_AFTER_CALL');
+  // Re-admission above bound adm.subject to the reviewed grant and to requestDigest; re-read it from the grant.
+  if (adm.subject) {
+    const grant = selectActionsTarget(validateActionsConfig(configValue), adm.repository, adm.issue.number, 'issue')?.subject;
+    const subjectNow = grant ? await observeSubject(deps, grant) : undefined;
+    if (!subjectNow) return end('WITHHELD', 'REREAD_UNKNOWN');
+    if (!same(subjectNow, adm.subject)) return end('WITHHELD', 'DRIFT_AFTER_CALL');
+  }
+  // The result is posted to and read back from the origin only; identity.subject names the evaluated Issue.
   const post = await call(deps, 'POST', `repos/${adm.repository}/issues/${adm.issue.number}/comments`, { body });
   const resultId = post?.json?.id;
   if (!post || post.status !== 201 || !positive(resultId)) return end('UNKNOWN', 'APPEND_UNKNOWN');

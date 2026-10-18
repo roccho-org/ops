@@ -1,4 +1,4 @@
-{ lib, stdenv, pkg-config, curl, json_c, chromium, python3, binutils, makeFontsConf, noto-fonts-cjk-sans }:
+{ lib, stdenv, pkg-config, curl, json_c, chromium, python3, binutils, makeFontsConf, noto-fonts-cjk-sans, kitty, xorg, xdotool, scrot, mesa, libglvnd, dbus, dejavu_fonts }:
 let
   # The exact nixpkgs curl defaults to websocketSupport = false. CDP requires
   # ws/wss at runtime; override only this package dependency, not the package set.
@@ -6,6 +6,8 @@ let
   # Test-owned browser/controller/proxy capabilities stay outside runtime source.
   # This source is a required Nix input, not an optional CI-side download.
   proofSource = ../../verification/cdp-tty/proof.py;
+  rendererSource = ../../verification/cdp-tty/renderer.py;
+  completionSource = ../../verification/cdp-tty/failure_completion.py;
 in
 stdenv.mkDerivation {
   pname = "cdp-tty";
@@ -15,25 +17,33 @@ stdenv.mkDerivation {
   strictDeps = true;
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [ curlWebsocket json_c ];
-  nativeCheckInputs = [ chromium (python3.withPackages (p: [ p.websocket-client ])) binutils ];
+  nativeCheckInputs = [ chromium (python3.withPackages (p: [ p.websocket-client p.pillow ])) binutils kitty xorg.xorgserver xdotool scrot dbus ];
   doCheck = true;
   checkPhase = ''
     runHook preCheck
     export HOME="$TMPDIR/home" XDG_RUNTIME_DIR="$TMPDIR/runtime"
     mkdir -p "$HOME" "$XDG_RUNTIME_DIR"
     chmod 700 "$XDG_RUNTIME_DIR"
+    export LIBGL_DRIVERS_PATH=${mesa}/lib/dri
+    export LIBGL_ALWAYS_SOFTWARE=1
+    export LD_LIBRARY_PATH=${lib.makeLibraryPath [ mesa libglvnd ]}
+    export __GLX_VENDOR_LIBRARY_NAME=mesa
     export CHROME_BIN=${chromium}/bin/chromium
     # Fonts are required by the test browser for visible text and real text input.
-    export FONTCONFIG_FILE=${makeFontsConf { fontDirectories = [ noto-fonts-cjk-sans ]; }}
+    export FONTCONFIG_FILE=${makeFontsConf { fontDirectories = [ noto-fonts-cjk-sans dejavu_fonts ]; }}
     test ! -e tests/proof.py
     cp ${proofSource} tests/proof.py
+    cp ${rendererSource} tests/renderer.py
+    cp ${completionSource} tests/failure_completion.py
     make probe
     set -o pipefail
     ${lib.getBin curlWebsocket}/bin/curl --version | tee curl-version.txt
     sed -n 's/^Protocols: //p' curl-version.txt | tr ' ' '\n' > curl-protocols.txt
     grep -Fx ws curl-protocols.txt
     grep -Fx wss curl-protocols.txt
-    CDP_TTY_PACKAGE="$PWD" python3 -u tests/proof.py | tee proof.jsonl
+    test -r ${dbus}/share/dbus-1/session.conf
+    CDP_TTY_PACKAGE="$PWD" python3 -u tests/failure_completion.py | tee proof.jsonl
+    CDP_TTY_PACKAGE="$PWD" dbus-run-session --config-file=${dbus}/share/dbus-1/session.conf -- python3 -u tests/proof.py | tee -a proof.jsonl
     runHook postCheck
   '';
   installPhase = ''
@@ -44,6 +54,8 @@ stdenv.mkDerivation {
     cp libcdp-tty.a "$dev/lib/"
     cp cdp.h "$dev/include/cdp-tty/"
     cp proof.jsonl "$proof/raws.jsonl"
+    test -s real-terminal.png
+    cp real-terminal.png "$proof/real-terminal.png"
     cp curl-protocols.txt "$proof/curl-protocols.txt"
     python3 <<'PYTHON' > "$proof/disruptives.jsonl"
     import json
@@ -54,10 +66,10 @@ stdenv.mkDerivation {
     assert checks and all(row["status"] == "PASS" for row in checks)
     assert len(residuals) == 1 and residuals[0]["status"] == "NOT_RUN"
     for row in checks:
-        if any(key in row["test"] for key in ("block", "rejected", "only", "generation", "wire-", "no-retry", "isolation")):
+        if any(key in row["test"] for key in ("block", "rejected", "only", "generation", "wire-", "no-retry", "isolation", "failure")):
             print(json.dumps(row))
     PYTHON
-    sha256sum cdp.c cdp.h tty.c tty.h main.c Makefile tests/probe.c tests/proof.py default.nix proof.nix > "$proof/source.sha256"
+    sha256sum cdp.c cdp.h tty.c tty.h main.c Makefile tests/probe.c tests/proof.py tests/renderer.py tests/failure_completion.py default.nix proof.nix > "$proof/source.sha256"
     ${chromium}/bin/chromium --version > "$proof/versions.txt"
     pkg-config --modversion libcurl json-c >> "$proof/versions.txt"
     runHook postInstall

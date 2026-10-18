@@ -1,6 +1,6 @@
 # Jev dispatcher reader
 
-`policy-select.mjs` is the deterministic read stage for a future Jev dispatcher. It reads an exact ADRS Git commit, validates every `policy/control.jsonl` row and the graph, runs the SQL embedded in that commit's `AGENTS.md` in memory, and resolves the selected R's `requires` to exact blobs. It does not call Jev, dispatch agents, or grant GO.
+`policy-select.mjs` is the deterministic read stage for a future Jev dispatcher. It reads an exact ADRS Git commit, validates every `policy/control.jsonl` row and the graph, runs the SQL embedded in that commit's `AGENTS.md`, or on request its `policy/entry.md`, in memory, and resolves the selected R's `requires` to exact blobs. It does not call Jev, dispatch agents, or grant GO.
 
 ```sh
 node packages/jev-dispatcher/policy-select.mjs \
@@ -13,9 +13,23 @@ node packages/jev-dispatcher/policy-select.mjs \
 
 `compact` (the default) prints validation counts, selected line/ID/body hashes, SQL hash and required blob IDs. `selected` pretty-prints only the selected rows so a model can read long JSONL lines; required documents are read separately from the same pinned commit. Both are JSON on stdout; a failure exits nonzero. External `requires` objects need an explicit `--authority NAME=REPO` mapping and keep their own exact commit.
 
+Current ADRS commits keep the SQL in `policy/entry.md`, and their `AGENTS.md` only links to it. Reading that SQL is an explicit opt-in: `--sql-source entry` on the command line, or `'sql-source': 'entry'` for an imported `select`. It requires `AGENTS.md` to have no SQL block and exactly one literal `](policy/entry.md)` link, and `policy/entry.md` at the same commit to have exactly one SQL block. The receipt then adds `entry: {path, oid, sha256}`. The default (`agents`, or no option) keeps the single `AGENTS.md` SQL block and its receipt keys unchanged, so it still fails on a delegating commit. `dispatcher.mjs` imports `select` without the option; its read capabilities do not include `policy/entry.md`, so it does not follow the delegation. An unknown mode, SQL in both places, a missing or other link, or zero or several entry SQL blocks fail, with no fallback.
+
+```sh
+node packages/jev-dispatcher/policy-select.mjs \
+  --repo C:/path/to/adrs \
+  --commit <40-hex-ADRS-commit> \
+  --r-id <actual-R-session-id> \
+  --git-bin C:/path/to/git/cmd/git.exe \
+  --sql-source entry \
+  --format compact
+```
+
+`--git-bin` accepts a path starting with `/` as before, and a Windows drive path written with forward slashes (`C:/...`). Backslashes, drive-relative paths such as `C:git`, UNC and device paths, and `.` or `..` segments in the Windows form are refused. On Windows, `/x` and `//server/share/x` still pass the unchanged prefix rule; that is not a guarantee that the path is absolute on the host.
+
 This command reads Git objects by commit and path; it does not read the checkout, create a database file, decide policy meaning, or replace an agent's own understanding. The caller must pin the Ops implementation commit and executable blob, compare output with an independent baseline, and separately gate any mutation or agent firing.
 
-A Node runtime that loads `node:sqlite` without extra flags is required. The OCI proof uses Node 24.19.0. Run the focused tests with `node --test packages/jev-dispatcher/test.mjs`.
+A Node runtime that loads `node:sqlite` without extra flags is required. The OCI proof uses Node 24.19.0. Run the focused tests with `node --test packages/jev-dispatcher/test.mjs`. The CI check has no Git and no ADRS repository, so it covers the source-choice table and the `--git-bin` rule only. Cases that read real commits, including entry provenance against working-tree edits and other commits, need `ADRS_REPO` and `GIT_BIN` and are skipped otherwise. This is selector support only: it is not a Windows dispatcher check mode, launch path or automatic resume.
 
 ## Staged OCI R/W proof
 

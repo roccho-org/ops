@@ -149,6 +149,15 @@ Each import uses the same authenticated native executable, private backend/encry
 
 ## Mandatory stages (3 flags cannot bypass verification)
 
+This M0 manages the zone apex. The DNS enable request uses `zone_id` and
+omits optional `name`, which selects a subdomain. Passing the apex as that
+payload has a reported HTTP422/code2007 failure; the failure of our earlier
+live attempt was not captured and is not asserted to have that code.
+See [Cloudflare's payload-free apex example](https://developers.cloudflare.com/api/resources/email_routing/subresources/dns/methods/create/)
+and [provider issue5890](https://github.com/cloudflare/terraform-provider-cloudflare/issues/5890).
+The mocked native plan checks that DNS `name` remains null and unrelated
+resources remain absent. No provider version or ownership flag changes.
+
 | Stage | Managed flags / state | Next-stage requirement |
 |---|---|---|
 | 0 read-only | all false for a new state; existing owned flags remain true | review DNS/zone MX, rules, account destinations, state identity, auth/Owner GO |

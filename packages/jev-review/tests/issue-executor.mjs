@@ -7,8 +7,9 @@ import { fileURLToPath } from 'node:url';
 import { JEV_MODEL, validateJevBudget } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
 import { ENTRY_LIMITS, preparePlan, executeOwnerPlan } from '../semlint-entry.mjs';
-import { REQUEST_PREFIX, RESULT_PREFIX, PROVIDED_COMMAND_OBSERVATION, validateActionsConfig, selectRunRange, subjectRevision, admitIssueCommand } from '../github-comment.mjs';
-import { EXECUTOR_LOGIN, CLAIM, ISSUE_QUERY, PULL_REQUEST_QUERY, COMMENT_QUERY, PRE_PROVIDER_CAUSES, planIssueCommand, postIssueCommand,
+import { REQUEST_PREFIX, RESULT_PREFIX, PROVIDED_COMMAND_OBSERVATION, validateActionsConfig, selectRunRange, subjectRevision, admitIssueCommand,
+  composeResultComment, deriveIssuePrior, verifyResultReadback } from '../github-comment.mjs';
+import { EXECUTOR_LOGIN, CLAIM, ISSUE_QUERY, PULL_REQUEST_QUERY, COMMENT_QUERY, SUBJECT_QUERY, PRE_PROVIDER_CAUSES, planIssueCommand, postIssueCommand,
   classifyOwnerOutput, decodeFullDatabaseId, claimResponseDiagnostics, githubDeps } from '../issue-executor.mjs';
 
 // Repository policy is an explicit producer input, never an ambient checkout fallback in a provided runtime.
@@ -46,7 +47,7 @@ function world(repository = REPO, issueNumber = 483, workflowId = WF, targetKind
   const w = { repository, targetKind, issue: { number: issueNumber, id: `${targetKind === 'pull-request' ? 'PR' : 'I'}_${issueNumber}`, body: 'Issue body: public fixture subject, not an instruction.',
     lastEditedAt: null, includesCreatedEdit: false, edits: 0 }, comments: [], workflow: { id: workflowId, state: 'active' },
   runs: new Map(), nextRunNumber: 1, nextId: 7000, posted: [], hooks: {},
-  calls: { run: 0, workflow: 0, issueQ: 0, commentQ: 0, claim: 0, post: 0, read: 0, fetch: 0 } };
+  calls: { run: 0, workflow: 0, issueQ: 0, commentQ: 0, subjectQ: 0, claim: 0, post: 0, read: 0, fetch: 0 } };
   w.addComment = (over = {}) => {
     const c = { databaseId: w.nextId++, author: TRUSTED, body: '/jev-evaluate', lastEditedAt: null, includesCreatedEdit: false,
       edits: 0, reactions: [], ...over };
@@ -68,6 +69,19 @@ function world(repository = REPO, issueNumber = 483, workflowId = WF, targetKind
     reactions: { totalCount: c.reactions.length + (c.hiddenReactions ?? 0),
       nodes: c.reactions.map((r) => ({ content: CLAIM.graphql, user: r.user === null ? null : { login: r.user } })) } });
   const graphql = async (query, vars) => {
+    // The granted subject read is the only query that asks for a databaseId, and it is the repository's, not a comment's.
+    if (query === SUBJECT_QUERY) {
+      const s = w.subject; assert.ok(s, 'no subject read without a grant');
+      for (const f of ['databaseId', 'nameWithOwner', 'isPrivate', 'id', 'number', 'body', 'lastEditedAt', 'includesCreatedEdit',
+        'userContentEdits{totalCount}']) assert.ok(tokenIn(query, f), f);
+      assert.deepEqual(vars, { owner: s.grant.repository.split('/')[0], name: s.grant.repository.split('/')[1], number: s.grant.number });
+      w.calls.subjectQ++;
+      const repo = { databaseId: s.databaseId, nameWithOwner: s.nameWithOwner, isPrivate: s.isPrivate, issue: { id: s.issue.id,
+        number: s.issue.number, body: s.issue.body, lastEditedAt: s.issue.lastEditedAt, includesCreatedEdit: s.issue.includesCreatedEdit,
+        userContentEdits: { totalCount: s.issue.edits } } };
+      const r = w.hooks.subjectQuery?.(w, repo); if (r !== undefined) return r;
+      return { data: { repository: repo } };
+    }
     // Independent of the exported constants: no Int32 databaseId and no generic updatedAt are ever requested.
     assert.equal(/\bdatabaseId\b/.test(query), false); assert.equal(/\bupdatedAt\b/.test(query), false);
     if (query === ISSUE_QUERY || query === PULL_REQUEST_QUERY) {
@@ -331,22 +345,103 @@ await check('reviewed-budget-addition', async () => {
     { repository: 'roccho-org/envs', workflowId: 377400122, path: WF_PATH, first: 2, last: 2, reservedCallsPerRun: 1 },
   ];
   assert.deepEqual(raw.runRanges.slice(0, 4), old);
-  const added = shipped.runRanges.slice(4);
+  const added = shipped.runRanges.slice(4, 6);
   assert.equal(added.length, 2);
   assert.equal(added.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 200);
-  assert.equal(shipped.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 204);
   assert.equal(shipped.limits.maxCalls, 1);
+  // Legacy unscoped records serve their existing targets; Ops runs past 103 fall into the PR536-only range.
+  const legacyTarget = { 'roccho-org/ops': { kind: 'issue', number: 483 }, 'roccho-org/envs': { kind: 'issue', number: 52 } };
   for (const r of added) {
-    assert.equal(r.last - r.first + 1, 100);
+    assert.equal(r.last - r.first + 1, 100); assert.equal(Object.hasOwn(r, 'target'), false);
     const run = (number, attempt = 1) => ({ repository: r.repository, workflowId: r.workflowId,
       path: r.path, number, attempt, id: 1 });
-    for (const number of [r.first, r.last]) assert.equal(selectRunRange(shipped, run(number)).callsPerRun, 1);
-    assert.equal(selectRunRange(shipped, run(r.last + 1)).cause, 'NO_RANGE');
-    assert.equal(selectRunRange(shipped, run(r.first, 2)).cause, 'RERUN_NOT_PAID');
-    assert.equal(selectRunRange(shipped, { ...run(r.first), workflowId: r.workflowId + 1 }).cause, 'NO_RANGE');
+    const target = legacyTarget[r.repository];
+    for (const number of [r.first, r.last]) assert.equal(selectRunRange(shipped, run(number), target).callsPerRun, 1);
+    assert.equal(selectRunRange(shipped, run(r.last + 1), target).cause, r.repository === 'roccho-org/ops' ? 'RANGE_TARGET_MISMATCH' : 'NO_RANGE');
+    assert.equal(selectRunRange(shipped, run(r.first, 2), target).cause, 'RERUN_NOT_PAID');
+    assert.equal(selectRunRange(shipped, { ...run(r.first), workflowId: r.workflowId + 1 }, target).cause, 'NO_RANGE');
   }
   assert.equal(selectRunRange(shipped, { repository: 'roccho-org/ops', workflowId: 377399991,
-    path: WF_PATH, number: 3, attempt: 1, id: 1 }).cause, 'NO_RANGE');
+    path: WF_PATH, number: 3, attempt: 1, id: 1 }, legacyTarget['roccho-org/ops']).cause, 'NO_RANGE');
+  // v12 candidate: two PR536-only slots after the observed ordinal 103; cumulative 204 -> 206, no reset.
+  assert.deepEqual(raw.runRanges.slice(6), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+    first: 104, last: 105, reservedCallsPerRun: 1, target: { pullRequest: 536 } }]);
+  assert.equal(shipped.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 206);
+  const ops = (number) => ({ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH, number, attempt: 1, id: 1 });
+  const pr536 = { kind: 'pull-request', number: 536 };
+  for (const number of [104, 105]) assert.equal(selectRunRange(shipped, ops(number), pr536).callsPerRun, 1);
+  assert.equal(selectRunRange(shipped, ops(106), pr536).cause, 'NO_RANGE');
+  for (const target of [{ kind: 'issue', number: 483 }, { kind: 'pull-request', number: 511 }, { kind: 'pull-request', number: 522 },
+    { kind: 'issue', number: 536 }]) assert.equal(selectRunRange(shipped, ops(104), target).cause, 'RANGE_TARGET_MISMATCH');
+  for (const number of [4, 103]) assert.equal(selectRunRange(shipped, ops(number), pr536).cause, 'RANGE_TARGET_MISMATCH');
+  for (const target of [undefined, null, {}, { kind: 'pull-request' }, { kind: 'pull-request', number: '536' },
+    { kind: 'repository', number: 536 }, { ...pr536, repository: 'roccho-org/ops' }]) {
+    assert.equal(selectRunRange(shipped, ops(104), target).cause, 'RANGE_TARGET_UNKNOWN');
+    assert.equal(selectRunRange(shipped, ops(50), target).cause, 'RANGE_TARGET_UNKNOWN');
+  }
+  // Envs has no scoped range, so its legacy behavior does not depend on a target observation.
+  assert.equal(selectRunRange(shipped, { repository: 'roccho-org/envs', workflowId: 377400122, path: WF_PATH,
+    number: 3, attempt: 1, id: 1 }).callsPerRun, 1);
+});
+
+const PR_NUMBER = 600;
+const prConfig = () => config({ targets: [...config().targets, { repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] });
+const prWorld = () => world(REPO, PR_NUMBER, WF, 'pull-request');
+
+// Target-scoped ranges: closed settings, the observed target selects, no fallback to unscoped legacy slots.
+await check('target-scoped-run-ranges', async () => {
+  const scopedConfig = (scopedTarget = { pullRequest: PR_NUMBER }) => ({ ...prConfig(),
+    runRanges: [range({ first: 1, last: 10 }), range({ first: 11, last: 12, target: scopedTarget })] });
+  assert.equal(validateActionsConfig(scopedConfig()).runRanges[1].target.pullRequest, PR_NUMBER);
+  assert.equal(validateActionsConfig(scopedConfig({ issue: 483 })).runRanges[1].target.issue, 483);
+  for (const bad of [
+    scopedConfig({}), scopedConfig({ pullRequest: PR_NUMBER, issue: 483 }), scopedConfig({ pullRequest: 0 }),
+    scopedConfig({ pullRequest: String(PR_NUMBER) }), scopedConfig({ pullRequest: PR_NUMBER, repository: REPO }),
+    scopedConfig({ pullRequest: PR_NUMBER + 1 }), scopedConfig({ issue: 484 }), scopedConfig({ issue: PR_NUMBER }),
+    scopedConfig(null), scopedConfig([PR_NUMBER]),
+    { ...scopedConfig(), runRanges: [range({ first: 1, last: 11 }), range({ first: 11, last: 12, target: { pullRequest: PR_NUMBER } })] },
+    { ...scopedConfig(), runRanges: [range({ first: 11, last: 12, target: { pullRequest: PR_NUMBER } }),
+      range({ first: 12, last: 13, target: { issue: 483 } })] },
+    { ...scopedConfig(), runRanges: [range({ repository: `${OWNER}/envs`, first: 11, last: 12, target: { pullRequest: PR_NUMBER } })] },
+  ]) {
+    assert.throws(() => validateActionsConfig(bad), /INVALID_ACTIONS_CONFIG/);
+    const w = prWorld(); const r = await fullRun(w, w.addComment(), { cfg: bad });
+    assert.deepEqual(outcome(r), ['NONE', 'INVALID_ACTIONS_CONFIG']); assert.deepEqual(effects(w), zero);
+  }
+  const cfg = scopedConfig();
+  for (const [kind, number, runNumber, expected] of [
+    ['pull-request', PR_NUMBER, 11, 'READBACK_EXACT'], ['pull-request', PR_NUMBER, 12, 'READBACK_EXACT'],
+    ['issue', 483, 5, 'READBACK_EXACT'],
+    ['pull-request', PR_NUMBER, 5, 'RANGE_TARGET_MISMATCH'], ['issue', 483, 11, 'RANGE_TARGET_MISMATCH'],
+    ['pull-request', PR_NUMBER, 13, 'NO_RANGE'],
+  ]) {
+    const w = world(REPO, number, WF, kind), c = w.addComment(), run = w.newRun({ run_number: runNumber });
+    const r = await fullRun(w, c, { cfg, run });
+    assert.equal(r.post.cause, expected, JSON.stringify({ kind, number, runNumber }));
+    assert.deepEqual(effects(w), expected === 'READBACK_EXACT' ? { claim: 1, fetch: 1, post: 1 } : zero);
+    if (expected !== 'READBACK_EXACT') { assert.equal(w.calls.issueQ + w.calls.commentQ + w.calls.workflow, 0); continue; }
+    // The existing receipt and result identity shapes are unchanged (no target key is added to either run record).
+    assert.deepEqual(r.plan.run, { id: run.id, number: runNumber, attempt: 1, workflowId: WF });
+    assert.deepEqual(Object.keys(r.plan.run), ['id', 'number', 'attempt', 'workflowId']);
+    const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length));
+    assert.deepEqual(identity.run, { id: run.id, number: runNumber, attempt: 1, workflowId: WF });
+  }
+  // Pure admission re-selects with the snapshot target: a state rewritten to another target never spends a scoped slot.
+  const w = prWorld(), c = w.addComment(), run = w.newRun({ run_number: 11 });
+  const planned = await planIssueCommand(ctxFor(w, c, run), cfg, w.deps);
+  assert.equal(planned.receipt.outcome, 'PLANNED');
+  for (const [alter, cause] of [
+    [(value) => { value.issue.number = 483; delete value.targetKind; }, 'RANGE_TARGET_MISMATCH'],
+    [(value) => { value.run.number = 5; }, 'RANGE_TARGET_MISMATCH'],
+    [(value) => { value.run.number = 13; }, 'NO_RANGE'],
+  ]) {
+    const value = structuredClone(planned.state.admission); alter(value);
+    assert.deepEqual(await admitIssueCommand(value, cfg), { status: 'NOT_ADMITTED', cause, authority: false });
+  }
+  // A snapshot for another number than the event is never admitted (existing exact snapshot binding).
+  const drift = prWorld(); drift.hooks.issueQuery = (_, row) => ({ data: { repository: { pullRequest: { ...row, number: 483 } } } });
+  const held = await fullRun(drift, drift.addComment(), { cfg, run: drift.newRun({ run_number: 11 }) });
+  assert.deepEqual(outcome(held), ['NONE', 'SNAPSHOT_UNKNOWN']); assert.deepEqual(effects(drift), zero);
 });
 
 // Native run identity is bound before any read or effect; reruns never spend.
@@ -700,10 +795,6 @@ await check('same-issue-across-repositories', async () => {
   assert.deepEqual(effects(w), { claim: 2, fetch: 2, post: 2 });
 });
 
-const PR_NUMBER = 600;
-const prConfig = () => config({ targets: [...config().targets, { repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] });
-const prWorld = () => world(REPO, PR_NUMBER, WF, 'pull-request');
-
 const providedConfig = () => ({ ...prConfig(), providedRequestTargets: [{ repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] });
 function providedPayload(fixture) {
   const unit = (fields, content) => ({ ...fields, content, sha256: hash(content),
@@ -724,7 +815,7 @@ const providedBody = (payload) => REQUEST_PREFIX + JSON.stringify(payload);
 await check('provided-v14-independent-grant', async () => {
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   assert.deepEqual(shipped.providedRequestTargets.map(row => ({ ...row })), [
-    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 522 },
+    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
   for (const cfg of [prConfig(), { ...prConfig(), providedRequestTargets: [] }]) {
     const fixture = prWorld(), payload = providedPayload(fixture);
@@ -742,6 +833,7 @@ await check('provided-v14-independent-grant', async () => {
     cfg => { cfg.providedRequestTargets[0].executionSource = SHA; },
     cfg => { cfg.targets[1].pullRequest = cfg.providedRequestTargets[0].pullRequest = 511; },
     cfg => { cfg.targets[1].pullRequest = cfg.providedRequestTargets[0].pullRequest = 520; },
+    cfg => { cfg.targets[1].pullRequest = cfg.providedRequestTargets[0].pullRequest = 522; },
   ]) {
     const cfg = providedConfig(); alter(cfg); assert.throws(() => validateActionsConfig(cfg), /INVALID_ACTIONS_CONFIG/);
   }
@@ -807,6 +899,103 @@ await check('provided-v14-closed-request-refusals-before-claim', async () => {
   const fixture = prWorld(); fixture.issue.body = 'Full subject 日本語';
   const result = await fullRun(fixture, fixture.addComment({ body: providedBody(providedPayload(fixture)) }), { cfg: providedConfig() });
   assert.equal(result.post.outcome, 'NONE'); assert.deepEqual(effects(fixture), zero);
+});
+
+// A granted provided request may carry one English rendering of the whole observed CJK body. The runtime checks bytes
+// only (synthetic fixture text here); fidelity stays with the trusted requester. Everything else keeps its refusal.
+await check('provided-v14-granted-subject-auxiliary', async () => {
+  const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
+  const JA = '受信記録だけで完了を確認し、自動起床とは呼ばない。';
+  const EN = 'Confirm completion from the delivery receipt alone, and do not call it autonomous wake.';
+  const cjkWorld = () => { const fixture = prWorld(); fixture.issue.body = JA; return fixture; };
+  const rendered = (fixture) => { const payload = providedPayload(fixture);
+    payload.cases[0].input.subject.englishAuxiliary = { text: EN, sourceSha256: hash(fixture.issue.body) }; return payload; };
+  {
+    const fixture = cjkWorld(), payload = rendered(fixture); let sent = null;
+    fixture.hooks.fetch = (url, init) => { sent = init.body; return new Response(JSON.stringify({ model: JEV_MODEL,
+      answers: Object.fromEntries(Object.keys(JSON.parse(init.body).questions).map((k) => [k, { type: 'noul', noul: 0.4 }])) }), { status: 200 }); };
+    const result = await fullRun(fixture, fixture.addComment({ body: providedBody(payload) }), { cfg: providedConfig() });
+    assert.deepEqual(outcome(result), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(fixture), { claim: 1, fetch: 1, post: 1 });
+    assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases));
+    assert.equal(CJK.test(sent), false); assert.ok(sent.includes(EN)); // the original stays the source of record, not the wire
+    const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
+    assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION); assert.equal(envelope.result.cases[0].result.schema, 'ops.semlint.result.v14');
+  }
+  for (const [world_, alter, cause] of [
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary.sourceSha256 = '0'.repeat(64); }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary.text = EN + ' 自動'; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary.text = ' '; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary.review = 'self-declared'; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.context[0].englishAuxiliary = { text: 'x', sourceSha256: p.cases[0].input.context[0].sha256 }; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.checks[0].predicate.question = '判断してください'; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.ref += ' 日本'; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.evaluationSpan.endByte -= 3; }, 'INVALID_PROVIDED_REQUEST'],
+    [cjkWorld, (p) => { p.cases[0].input.subject.englishAuxiliary = null; }, 'INVALID_REQUEST_OR_ADMISSION'],
+    [prWorld, () => {}, 'INVALID_REQUEST_OR_ADMISSION'], // an English body with a rendering is refused by Core
+  ]) {
+    const fixture = world_(), payload = rendered(fixture); alter(payload);
+    const result = await fullRun(fixture, fixture.addComment({ body: providedBody(payload) }), { cfg: providedConfig() });
+    assert.deepEqual(outcome(result), ['NONE', cause]); assert.deepEqual(effects(fixture), zero);
+    assert.equal(Object.hasOwn(result.plan, 'observed') || Object.hasOwn(result.post, 'observed'), false, cause);
+  }
+  {
+    // The body changed after the rendering was bound: the observed snapshot no longer matches, before any claim.
+    const fixture = cjkWorld(), payload = rendered(fixture); fixture.issue.body = JA + '追記';
+    const result = await fullRun(fixture, fixture.addComment({ body: providedBody(payload) }), { cfg: providedConfig() });
+    assert.deepEqual(outcome(result), ['NONE', 'INVALID_PROVIDED_REQUEST']); assert.deepEqual(effects(fixture), zero);
+  }
+  {
+    // Not granted: the provided route itself is refused; the literal route of a non-granted target is unchanged.
+    const fixture = cjkWorld();
+    const refused = await fullRun(fixture, fixture.addComment({ body: providedBody(rendered(fixture)) }), { cfg: prConfig() });
+    assert.deepEqual(outcome(refused), ['NONE', 'PROVIDED_REQUEST_NOT_AUTHORIZED']); assert.deepEqual(effects(fixture), zero);
+    const legacy = cjkWorld();
+    assert.deepEqual(outcome(await fullRun(legacy, legacy.addComment(), { cfg: prConfig() })), ['APPENDED', 'READBACK_EXACT']);
+    const issue = world(); issue.issue.body = JA;
+    assert.deepEqual(outcome(await fullRun(issue, issue.addComment(), { cfg: providedConfig() })), ['APPENDED', 'READBACK_EXACT']);
+  }
+  {
+    // A literal command on a granted target with CJK input is refused before claim, owner, provider or comment. The
+    // NONE receipt and state keep the executor's own snapshot identity (node ID and exact 5-part revision, no body
+    // text); the existing post echo copies that same plan observation and reads nothing again.
+    const snap = (f) => ({ number: f.issue.number, nodeId: f.issue.id, body: f.issue.body, lastEditedAt: f.issue.lastEditedAt,
+      includesCreatedEdit: f.issue.includesCreatedEdit, userContentEditsTotal: f.issue.edits });
+    const refusedPlan = async (fixture) => {
+      const command = fixture.addComment(), run = fixture.newRun();
+      const planned = await planIssueCommand(ctxFor(fixture, command, run), providedConfig(), fixture.deps);
+      assert.deepEqual(planned.receipt, { schema: 'ops.jev.issue-actions-receipt.v1', stage: 'plan', outcome: 'NONE', cause: 'UNSUPPORTED_CJK',
+        claimed: false, providerCalls: 0, authority: false, commentId: command.databaseId,
+        run: { id: run.id, number: run.run_number, attempt: 1, workflowId: WF },
+        observed: { issueNodeId: fixture.issue.id, subjectRevision: subjectRevision(snap(fixture)) } });
+      assert.deepEqual(planned.state, planned.receipt); assert.equal(planned.plan, undefined);
+      assert.equal(JSON.stringify(planned).includes(fixture.issue.body), false);
+      const reads = { ...fixture.calls };
+      const post = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), null, providedConfig(), fixture.deps);
+      assert.deepEqual(post.receipt, { ...planned.receipt, stage: 'post' }); assert.deepEqual(fixture.calls, reads);
+      assert.deepEqual(effects(fixture), zero); assert.equal(fixture.posted.length, 0);
+      return planned.receipt.observed.subjectRevision;
+    };
+    const revisions = [];
+    for (const edit of [{}, { lastEditedAt: '2026-10-15T01:00:00Z', edits: 1 }, { includesCreatedEdit: true },
+      { lastEditedAt: '2026-10-15T02:00:00Z', edits: 2 }]) {
+      const fixture = cjkWorld(); Object.assign(fixture.issue, edit); revisions.push(await refusedPlan(fixture));
+    }
+    assert.equal(new Set(revisions).size, 4); assert.equal(new Set(revisions.map((r) => r.split('|')[1])).size, 1);
+    // CJK only in a context file with an English body: still refused; the observation names the English subject.
+    const contextual = prWorld(), readFile = contextual.deps.readFile;
+    contextual.deps.readFile = (p) => (p === CONTEXT[0].path ? '日本語の契約' : readFile(p));
+    await refusedPlan(contextual);
+    // Every other NONE refusal, PLANNED and result comments carry no observation.
+    const edited = cjkWorld(), editedRun = await fullRun(edited, edited.addComment({ lastEditedAt: '2026-10-15T01:00:00Z', edits: 1 }), { cfg: providedConfig() });
+    assert.deepEqual(outcome(editedRun), ['NONE', 'EDITED']);
+    const outside = cjkWorld(), outsideRun = await fullRun(outside, outside.addComment(), { run: outside.newRun({ run_number: 50 }), cfg: providedConfig() });
+    assert.deepEqual(outcome(outsideRun), ['NONE', 'NO_RANGE']);
+    for (const r of [editedRun, outsideRun]) assert.equal(Object.hasOwn(r.plan, 'observed') || Object.hasOwn(r.post, 'observed'), false);
+    const english = prWorld(), englishRun = await fullRun(english, english.addComment(), { cfg: providedConfig() });
+    assert.deepEqual(outcome(englishRun), ['APPENDED', 'READBACK_EXACT']);
+    assert.equal(englishRun.plan.outcome, 'PLANNED'); assert.equal(Object.hasOwn(englishRun.plan, 'observed'), false);
+    assert.equal(english.posted.some((c) => c.body.includes('observed')), false);
+  }
 });
 
 await check('provided-v14-snapshot-drift-and-unknown', async () => {
@@ -892,7 +1081,7 @@ await check('pull-request-closed-targets', async () => {
     { repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 483 },
     { repository: 'roccho-org/envs', repositoryId: '1391871347', issue: 52 },
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 511 },
-    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 522 },
+    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
 });
 
@@ -1050,30 +1239,39 @@ await check('pull-request-native-unknown-and-exact-readback', async () => {
   }
 });
 
-await check('configured-exact-ops511-ops522-and-legacy-targets', async () => {
+await check('configured-exact-ops511-ops536-and-legacy-targets', async () => {
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   for (const alter of [
     cfg => { cfg.targets.push({ ...cfg.targets[3] }); },
     cfg => { cfg.targets.push({ ...cfg.targets[3], pullRequest: 521 }); },
     cfg => { cfg.targets[3].repository = 'roccho-org/envs'; cfg.targets[3].repositoryId = '1391871347'; },
     cfg => { cfg.targets[3].repositoryId = '1391871347'; },
-    cfg => { cfg.targets[3].issue = 522; },
+    cfg => { cfg.targets[3].issue = 536; },
+    // The PR536-only range cannot outlive or move its target, and never widens a legacy target.
+    cfg => { cfg.targets[3].pullRequest = 522; cfg.providedRequestTargets = []; },
+    cfg => { cfg.runRanges[6].target = { pullRequest: 522 }; },
+    cfg => { cfg.runRanges[6].first = 103; },
   ]) {
     const invalid = structuredClone(shipped); alter(invalid);
     assert.throws(() => validateActionsConfig(invalid), /INVALID_ACTIONS_CONFIG/);
   }
+  // Legacy targets use their unscoped records; PR536 only its own scoped record (Ops runs 104..105).
+  const reservationFor = (repository, number, targetKind) => shipped.runRanges.find(range => range.repository === repository
+    && range.target?.pullRequest === number && targetKind === 'pull-request')
+    ?? shipped.runRanges.find(range => range.repository === repository && !range.target);
   for (const [repository, number, targetKind, admitted] of [
     ['roccho-org/ops', 511, 'pull-request', true], ['roccho-org/ops', 483, 'issue', true],
     ['roccho-org/envs', 52, 'issue', true], ['roccho-org/ops', 511, 'issue', false],
-    ['roccho-org/ops', 522, 'pull-request', true], ['roccho-org/ops', 522, 'issue', false],
-    ['roccho-org/envs', 522, 'pull-request', false], ['roccho-org/other', 522, 'pull-request', false],
+    ['roccho-org/ops', 536, 'pull-request', true], ['roccho-org/ops', 536, 'issue', false],
+    ['roccho-org/envs', 536, 'pull-request', false], ['roccho-org/other', 536, 'pull-request', false],
+    ['roccho-org/ops', 522, 'pull-request', false], ['roccho-org/ops', 522, 'issue', false],
     ['roccho-org/ops', 520, 'pull-request', false], ['roccho-org/ops', 520, 'issue', false],
     ['roccho-org/ops', 521, 'pull-request', false],
     ['roccho-org/ops', 483, 'pull-request', false], ['roccho-org/envs', 52, 'pull-request', false],
     ['roccho-org/envs', 511, 'pull-request', false], ['roccho-org/ops', 512, 'pull-request', false],
     ['roccho-org/other', 511, 'pull-request', false],
   ]) {
-    const reservation = shipped.runRanges.find(range => range.repository === repository);
+    const reservation = reservationFor(repository, number, targetKind);
     const fixture = world(repository, number, reservation?.workflowId ?? WF, targetKind);
     const command = fixture.addComment({ author: 'roccho-dev' });
     const run = fixture.newRun({ run_number: reservation?.first ?? 1 });
@@ -1093,6 +1291,18 @@ await check('configured-exact-ops511-ops522-and-legacy-targets', async () => {
       assert.equal(identity.targetKind, targetKind === 'pull-request' ? targetKind : undefined);
     }
   }
+  // No slot moves between targets: PR536 at a legacy ordinal and a legacy target at 104 hold before any read or effect.
+  for (const [number, targetKind, runNumber] of [[536, 'pull-request', 4], [536, 'pull-request', 103],
+    [483, 'issue', 104], [511, 'pull-request', 105]]) {
+    const fixture = world('roccho-org/ops', number, 377399991, targetKind);
+    const command = fixture.addComment({ author: 'roccho-dev' }), run = fixture.newRun({ run_number: runNumber });
+    const ctx = ctxFor(fixture, command, run);
+    ctx.event.repository.id = 1275606595;
+    ctx.event.repository.owner = { id: 319185687, login: 'roccho-org', type: 'Organization' };
+    const result = await fullRun(fixture, command, { cfg: shipped, run, ctx });
+    assert.deepEqual(outcome(result), ['NONE', 'RANGE_TARGET_MISMATCH']); assert.deepEqual(effects(fixture), zero);
+    assert.equal(fixture.calls.workflow + fixture.calls.issueQ + fixture.calls.commentQ, 0);
+  }
 });
 
 const PR511_SNAPSHOT = Object.freeze({"base":"035fbf17fdd7ea699d33dc98537d74382c9eb9b5","body":"## Purpose and necessity\nAllow this meaningful change PR's complete body to be evaluated through the existing comment → Actions → real Jev → same-conversation result path. This adds only Ops PR511 as a bounded PR-body target; it does not admit arbitrary PRs or execute evaluated PR code.\n\nRel: https://github.com/roccho-org/ops/issues/483\nRel: https://github.com/roccho-org/ops/issues/482\nRel: https://github.com/roccho-dev/adrs/pull/593\nRef: https://github.com/roccho-dev/windows/issues/68\n\n## Current implementation\n- Closed target shape: legacy Ops483/envs52 Issues plus only {repository: roccho-org/ops, repositoryId: 1275606595, pullRequest: 511}.\n- Fixed GraphQL body observation and typed subject/ref/revision binding through admission, claim, result and exact same-PR readback.\n- Existing issue_comment event, literal /jev-evaluate, reviewed requester roccho-dev and the same six catalog questions.\n- Exact workflow guard and central guard selftests retain both Issues and reject unrelated PR numbers, repositories and swapped target types; the fail-closed analyzer is not weakened.\n- Caller workflow is this S3 source. Runtime code/settings/context pin the previously published, Root-reviewed immutable S2 commit f053c18b4b3b24bac3622821eeaf14b58ad56f65. PR511 body is untrusted data, never dynamically selected PR HEAD code.\n- No new event, client, core, actor, database, queue, ledger, credential or secret projection. Existing Org-only provider secret separation and all 204 lifetime reservations are unchanged; PR attempts share existing Ops slots. No rerun spending or replay after UNKNOWN.\n- User authorized merge. #511 is merged at 6da72a69d5776734f2ee47b1c2d5ef4d1b713900; the proposals default tree exactly matches the reviewed S3 tree. The fixed runtime remains S2. First+next real PR-body proof is still PENDING.\n\n## Changed source tree\n```text\n.github/workflows/jev-issue-comment.yml\npackages/jev-review/\n  github-comment.mjs\n  issue-executor.mjs\n  tests/issue-executor.mjs\n  issue-actions.json\n  ISSUE-EVALUATION.md\n  COMMENT-INVOCATION.md\ntools/check-ci-intent-workflow-branches.mjs\n```\n\n## Verification and provenance\nHead: 849f927cc8851982a3b9e23a33f984e359493e95\nTree: f8589d1f8deae5296643ec589d474010a98788c1\nBase: 035fbf17fdd7ea699d33dc98537d74382c9eb9b5\nJob contract: jev-pr-body-target-20261008-v2\nSource author: existing persistent OCI Codex writer, User-required GPT-6.1 Sol / Medium on official GitHub Codex 0.161.0, no model fallback.\nRoot independently reviewed the writer's source and re-ran the tests/provided-source checks; this is not third-party assurance or independent review of Root-authored policy.\n\nPASS locally, independently rechecked by Root:\n- 25 executor scenarios and source-contract guard matrix, including first+next, exact target closure, state integrity, body/edit drift, concurrency/stop, reservations, UNKNOWN and exact readback.\n- Functional fixtures and central guard rejection selftests.\n- Nix jev-review / jev-issue-executor / jev-comment-functional / ci-intent-workflow-branches checks.\n- Current provided-source byte parity (17 review files +13 Jev files), installed fixtures/smoke; pinned S2 runtime/config parity against its immutable Git source.\nReal Jev calls / GitHub evaluation effects during these tests: 0. The initial guard and smoke-invocation failures were corrected and remain history; fixtures are not live proof.\nCurrent-head GitHub CI PASS on 849f927cc8851982a3b9e23a33f984e359493e95: [nix-check](https://github.com/roccho-org/ops/actions/runs/37727405760), [repo-health](https://github.com/roccho-org/ops/actions/runs/37727405825), [README artifact exporter](https://github.com/roccho-org/ops/actions/runs/37727405755). The unrelated conditional cdp-tty-proof job was skipped, not counted as PASS.\n\n## Remaining completion\nUser merge permission and actual default-workflow/tree readback are confirmed. Root's bounded activation GO authorizes only first+next evaluation of this PR body, at most two Jev calls within existing Ops reservations, after source acceptance, exact target identity, trusted immutable runtime and active workflow/capacity verification. No broader target or budget is granted.\nThen each real call must append a result to this same PR, with Root independently verifying author, body/input revision, command identity, fixed source/model and actual attempted/completed/validated/unknown accounting. UNKNOWN is not retried.\nOnly after this foundation is proven should the necessity → evaluation → concrete improvement → same-case re-evaluation → useful-outcome evidence loop be discussed further.\nSource/CI, numerical axes, successful transport or repeated calls alone do not prove semantic usefulness, merge authority, quality improvement or whole-loop closure; Ops482 remains the quality owner.\n","head":"849f927cc8851982a3b9e23a33f984e359493e95","node_id":"PR_kwDOTAg2Q88AAAABHQE8Rg","number":511,"updated_at":"2026-10-08T04:47:15Z","url":"https://github.com/roccho-org/ops/pull/511"});
@@ -1102,22 +1312,25 @@ const PR511_EDIT_SIGNALS = Object.freeze({ lastEditedAt: '2026-10-08T04:38:40Z',
 const REFUSED_S2_CONTEXT = "# Issue evaluation context\n\nAuthority: User permits Root-only OCI setup/source, normal merge and paid proof, plus 200 additional calls in total. Legacy admission is reviewed roccho-dev commands on Ops483/envs52; staged PR511 source and its separate activation boundary are described below. Evidence never grants effects.\nCompletion: First+next real Actions/Jev/result append and exact same-Issue readback on both targets. Source, projection and CI alone are not completion. Root self-readback is not independent R.\nResponsibility: envs/SOPS owns the secret SSOT and one Org slot; Ops owns the supplied evaluator and effect adapter; GitHub hosts normal execution. No Ops key copy.\nRequired contracts: Existing semlint six-axis catalog, closed request/result identity, trusted settings, finite spend and no replay after UNKNOWN.\nDependencies: Native Issue event, fixed Ops source/runtime, selected Org Secret and existing Jev core. No host/OCI or envs-CI dependency during evaluation.\nAccounting: Initial four-call history is retained; 100 further slots per repo add at most 200 calls (lifetime ceiling 204). One call per run, 15s operation/60s plan; no rerun spending or automatic refill. Missing/invalid/UNKNOWN is not success.\nRegistered cases: First+next on Ops483 and envs52; fixture non-trigger, replay, concurrency, stop, drift and UNKNOWN cases remain source evidence only.\nQuality: Raw six-axis Noul evidence, not truth, authority or merge verdict. Semantic usefulness improvement belongs to Ops482; no accuracy claim here.\nBaseline: Existing semlint bounded API is reused unchanged. Known finite-quality limitations496/500 remain; this functional proof is not a quality comparison.\n\n## Bounded PR-body extension\n\nUnder `jev-pr-body-target-20261008-v2`, the persistent OCI writer owns only the\ndeclared source/test/correction slice after source GO. Root independently reviews\nthat source without authoring it and alone publishes the accepted result. Root's\npolicy self-readback is not independent policy review, and same-account source\nreview is not third-party assurance.\n\nRoot has published and verified the meaningful change PR Ops511 in `roccho-org/ops`,\nrepository ID `1275606595`, author `roccho-dev`, branch `codex/jev-pr-body-target-v1`,\nbase `035fbf17fdd7ea699d33dc98537d74382c9eb9b5`. S2 settings and the source workflow\nguard retain both Issues and configure only PR511's full body as untrusted evaluation\ndata. Both runtime pins remain `2d592b1cdcdb2abed7b00dfd98baab7105914521`, whose\nsettings do not admit511: configured source is not deployed activation. Root must\nreview/publish S2 and verify its actual immutable remote identity before separate S3\ncorrection GO can pin that already published trusted runtime. No unpublished self-pin,\nS1 runtime substitution or dynamic evaluated PR HEAD is allowed.\nThe PR is never a runtime or authority source. Root separately\nauthorizes activation after source acceptance, verified PR identity, a previously\npublished immutable trusted runtime and current existing Ops reserved capacity.\nMerge/default-workflow activation needs applicable User merge authority; this source\ncontract does not grant it.\n\nCompletion for this extension is first+next real Jev evaluation, same-PR result append\nand Root's exact identity/author/body/input/source/model/accounting readback before\nmeta-loop discussion. The six questions, requester, Org-only provider/secret boundary,\nall 204 reservations and no replay after UNKNOWN remain unchanged. There is no new\nbudget, target discovery, event, client, actor, ledger or quality claim. Verified Codex\nweekly remaining zero stops new work/effects; reset alone does not resume work.\n";
 const PR522_SNAPSHOT = Object.freeze({"base":"c8c8430aed9c48ff3bf3c654fc15e6d12b793ea7","body":"## Purpose\nRefs roccho-org/ops#482. Connect the ALREADY IMPLEMENTED closed semlint v14/provided-criteria capability to the native comment consumer, reusing preparePlan, fixed owner, claim/drift, composer and exact readback. No new evaluator/client/translator/actor/DB. Existing completed semlint quality and PR511 function proof are reused, not repeated or promoted to consumer usefulness.\n\n## Current source and stage\nW source0d506978270fb0bd97dcd7ba6074835d7faa1faf / tree1d289e1af6527cf81d501fbf5739e82f6245b0a2; parent/basec8c8430aed9c48ff3bf3c654fc15e6d12b793ea7. Dedicated codex/jev-comment-consumer-v14-v1 and /work/repos/ops/.bare/.worktrees/jev-comment-consumer-v14-v1.\nChanged only packages/jev-review/github-comment.mjs, tests/issue-executor.mjs, COMMENT-INVOCATION.md. Bootstrap is INACTIVE: old actual target settings/context and both caller pins remain unchanged; no providedRequestTargets grant or future target number is active. Root creates/reads this real PR before subsequent binding. Target-bound published accepted runtime precedes repin/current CI/normal merge/default/settings/capacity readback and separate live GO.\n\n## Boundary\nProvided requests require an independent source-reviewed exact target grant, excluding legacy511/retired520. One case, one through six criteria, one provider call per native run. Closed JSON binds exact full observed PR body/URL/body-edit revision/UTF8 SHA/full byte span; no replacement/summary, payload-derived config/runtime/argv/grant or non-null auxiliary. CJK input and incomplete required context refuse before claim/provider. CJK absence does NOT prove English suitability; caller context/refs are declarations, not fetched or accepted evidence. Root reviews actual payload/off-wire gold separation. Legacy literal v1 is retained.\nExisting Core28000/31000/60000, 204 lifetime reservations/native ranges, roccho-dev requester, Org-only key custody and token grant remain; PRwrite is repository-wide authority, not a PR-scoped token. Raw Noul does not authorize actions or certify truth/quality.\n\n## Source evidence and roles\nSame native W01a1196c-ebd6-7e61-be34-3258c13cf828, gpt-6.1-sol/medium, windows-ownUID1000; Root01a1188d-bb1c-72b2-84ff-612aada80f5b P/D and independent R of this W's product code, not independent own-policy/thirdparty assurance.\nComplete scoped P source/controlf1c89ce6d10e4fe702c52544659d093cf90aac79/v4, [sourceGO6075568099](https://github.com/roccho-org/ops/issues/482#issuecomment-6075568099); native W independent PREPARE AGREE.\nW PASS: 35 scenarios/source-contract, four relevant Nix checks, 17+13-file packaged-byte parity/installed fixtures/malformed-entry refusal. Root independently read exact changes, verified clean parent/head/tree and unchanged legacy config/caller/S1 modules, and reran actual35 scenarios plus source-contract PASS. Earlier fixture prototype/hook expectation failures and Root transport timeout remain retained; readonly recheck succeeded, no paid retry. Public exact-head CI is pending, not claimed from local tests.\n\n## Necessary unresolved consumer decision\nThe new provided mode still inherits native collection/validation of nine fixed legacy context roles, while its provider plan uses the supplied criterion context. Do those native observations protect a required provided-mode boundary, or can that dependency be removed while preserving legacy literal behavior, independent target/grant/source safety, full subject binding, native reservation, claim/drift and required supplied-context coverage?\nThis is a real dependency/contract decision, not an assumed defect or predetermined removal. Nine roles share one document; nine reads are NOT nine distinct human reviews. A local machine-read reduction would not automatically prove lower human checking burden.\n\n## Finite trial\nNew ceiling10 actual attempted requests; current newcalls0. Prior PR520 one-call trial ended NOT_PROVEN and stays historical. Before J0, fix actual needed decision, independent expectation/unassisted comparison and exact X0/E off wire; before any warranted J1 preserve real change and same E/correctness. No forced removal/J1, score hunting, rerun/refill/UNKNOWN replay or inherited GO.\nKnown wiring/cap/target/context/metadata fixes are preparation, not Jev contribution. Correctness/safety and total preparation/interpretation/verification/fixing burden, all failures/unknown cost and learning/exposure limits are separate. Consumer usefulness remains NOT_PROVEN. Return actual evidence/verdict/next decision to existing Ops482; no automatic all-comment evaluation or Issue close.\n","head":"0d506978270fb0bd97dcd7ba6074835d7faa1faf","node_id":"PR_kwDOTAg2Q88AAAABHfC9qg","number":522,"updated_at":"2026-10-09T07:09:58Z","url":"https://github.com/roccho-org/ops/pull/522"});
 const actualContextBudgets = [];
-await check('configured-pr522-provided-full-body-and-exclusive-grant', async () => {
+// The PR536 grant is exercised with PR522's historical public body as a synthetic stand-in subject: the actual
+// PR536 body is not read in this source phase, so no PR536 size or fit is claimed.
+await check('configured-pr536-provided-full-body-and-exclusive-grant', async () => {
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   for (const [repository, number, kind, cause] of [
-    ['roccho-org/ops', 522, 'pull-request', null],
+    ['roccho-org/ops', 536, 'pull-request', null],
     ['roccho-org/ops', 511, 'pull-request', 'PROVIDED_REQUEST_NOT_AUTHORIZED'],
     ['roccho-org/ops', 483, 'issue', 'PROVIDED_REQUEST_NOT_AUTHORIZED'],
     ['roccho-org/envs', 52, 'issue', 'PROVIDED_REQUEST_NOT_AUTHORIZED'],
     ['roccho-org/ops', 520, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
+    ['roccho-org/ops', 522, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
     ['roccho-org/ops', 523, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
-    ['roccho-org/ops', 522, 'issue', 'TARGET_NOT_AUTHORIZED'],
-    ['roccho-org/envs', 522, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
+    ['roccho-org/ops', 536, 'issue', 'TARGET_NOT_AUTHORIZED'],
+    ['roccho-org/envs', 536, 'pull-request', 'TARGET_NOT_AUTHORIZED'],
   ]) {
-    const reservation = shipped.runRanges.find(row => row.repository === repository);
+    const reservation = shipped.runRanges.find(row => row.repository === repository && kind === 'pull-request'
+      && row.target?.pullRequest === number) ?? shipped.runRanges.find(row => row.repository === repository && !row.target);
     const fixture = world(repository, number, reservation.workflowId, kind);
     fixture.issue.body = PR522_SNAPSHOT.body;
-    fixture.issue.id = PR522_SNAPSHOT.node_id;
     const payload = providedPayload(fixture);
     const context = fs.readFileSync(new URL('../ISSUE-EVALUATION.md', import.meta.url), 'utf8');
     Object.assign(payload.cases[0].input.context[0], { content: context, sha256: hash(context),
@@ -1144,12 +1357,13 @@ await check('configured-pr522-provided-full-body-and-exclusive-grant', async () 
     assert.equal(nativeReads, 9);
     assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases));
     const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
-    assert.equal(envelope.identity.issue, 522); assert.equal(envelope.identity.targetKind, 'pull-request');
+    assert.equal(envelope.identity.issue, 536); assert.equal(envelope.identity.targetKind, 'pull-request');
     assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION);
+    assert.deepEqual(envelope.identity.run, { id: run.id, number: 104, attempt: 1, workflowId: 377399991 });
     assert.equal(envelope.result.cases[0].result.schema, 'ops.semlint.result.v14');
     await semlint(result.planBody.cases[0].input, async (state, questions) => {
       const budget = validateJevBudget(state, questions);
-      actualContextBudgets.push({ number: 522, kind: 'provided-mechanical-fixture', contextBytes: Buffer.byteLength(context),
+      actualContextBudgets.push({ number: 536, kind: 'provided-mechanical-fixture-historical-522-subject', contextBytes: Buffer.byteLength(context),
         subjectBytes: Buffer.byteLength(PR522_SNAPSHOT.body), ...budget,
         statePlusLongestQuestionBytes: budget.stateBytes + budget.longestQuestionBytes,
         statePlusAllQuestionsBytes: budget.stateBytes + budget.allQuestionsBytes });
@@ -1177,25 +1391,30 @@ await check('exact-public-pr511-pr522-current-context-budget', async () => {
   assert.equal(PR522_SNAPSHOT.head, '0d506978270fb0bd97dcd7ba6074835d7faa1faf');
   assert.equal(hash(PR522_SNAPSHOT.body), 'a4fdbe79a47775363902f5a1c4534b35ced11d3bb848093429812f2c089f90f4');
   assert.equal(Buffer.byteLength(PR522_SNAPSHOT.body, 'utf8'), 4585);
-  for (const required of ['Ops483/envs52 Issues and Ops PR511/522 only', 'PR511 function is complete',
-    'ten-attempt ceiling', 'PR520 ended NOT_PROVEN', 'pre-J0 input freeze', 'no forced second call or inherited GO',
-    'Nine native context observations remain',
+  for (const required of ['Ops483/envs52 Issues and Ops PR511/536 only', 'the independent PR536 grant', 'PR511 function is complete',
+    'Evaluating PR536 needs accepted published target-bound runtime', 'only its own run range', 'PR520 ended NOT_PROVEN', 'pre-J0 input freeze', 'no forced second call or inherited GO',
+    'two PR536 slots total 206 lifetime calls', 'PR536 replaces retired522', 'Nine native context observations remain',
     'same-PR result append and exact identity/body/input/source/model/accounting readback']) {
     assert.ok(actualContext.includes(required), required);
+  }
+  // Model-input wording must stay true after activation: no stale grant/total and no candidate/not-live status.
+  for (const stale of ['PR511/522 only', 'PR522 grant', 'PR522 needs', 'total 204', 'candidate', 'not live']) {
+    assert.equal(actualContext.includes(stale), false, stale);
   }
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   assert.deepEqual(shipped.context.map(row => row.role), ROLES);
   assert.deepEqual(shipped.allowedChecks, CHECKS);
+  // PR536 is planned with PR522's historical body as a stand-in subject (mechanical, not a PR536 measurement).
   for (const [number, kind, body] of [
     [511, 'pull-request', PR511_SNAPSHOT.body],
-    [522, 'pull-request', PR522_SNAPSHOT.body],
+    [536, 'pull-request', PR522_SNAPSHOT.body],
     [483, 'issue', 'Legacy Ops483 compatibility subject (synthetic); full-body admission.'],
   ]) {
-    const reservation = shipped.runRanges.find(row => row.repository === 'roccho-org/ops');
+    const reservation = shipped.runRanges.find(row => row.repository === 'roccho-org/ops'
+      && (number === 536 ? row.target?.pullRequest === 536 : !row.target));
     const fixture = world('roccho-org/ops', number, reservation.workflowId, kind);
     fixture.issue.body = body;
     if (number === 511) Object.assign(fixture.issue, PR511_EDIT_SIGNALS, { id: PR511_SNAPSHOT.node_id });
-    if (number === 522) fixture.issue.id = PR522_SNAPSHOT.node_id;
     const command = fixture.addComment({ author: 'roccho-dev' });
     const run = fixture.newRun({ run_number: reservation.first });
     const ctx = ctxFor(fixture, command, run);
@@ -1249,6 +1468,380 @@ await check('exact-public-pr511-pr522-current-context-budget', async () => {
   }
 });
 
+// Pure, clock-free view of one fixture result: every elapsedMs is 0 so the composed comment bytes are comparable.
+const zeroClock = (r) => ({ ...r, cases: r.cases.map((row) => ({ ...row, ...(Object.hasOwn(row, 'elapsedMs') ? { elapsedMs: 0 } : {}),
+  result: { ...row.result, accounting: { ...row.result.accounting, elapsedMs: 0 } },
+  provider: row.provider && { ...row.provider, elapsedMs: 0 } })) });
+// Everything a no-grant run produces that a later reader or the post step binds, plus the GraphQL sequence.
+async function noGrantView() {
+  const w = world(), queries = [], graphql = w.deps.graphql;
+  w.deps.graphql = async (query, vars) => { queries.push(query === ISSUE_QUERY ? 'ISSUE' : query === COMMENT_QUERY ? 'COMMENT' : 'OTHER'); return graphql(query, vars); };
+  const c = w.addComment(), p = await planIssueCommand(ctxFor(w, c, w.newRun()), config(), w.deps);
+  const out = await w.entry(p.plan);
+  const request = await admitIssueCommand(p.state.admission, config());
+  const body = composeResultComment(request, zeroClock(JSON.parse(out.stdout)));
+  const q = await postIssueCommand(JSON.parse(JSON.stringify(p.state)), out, config(), w.deps);
+  return { state: hash(JSON.stringify(p.state)), admissionKeys: Object.keys(p.state.admission).join(), identity: hash(JSON.stringify(request.identity)),
+    requestDigest: request.requestDigest, configDigest: request.identity.configDigest, comment: hash(body),
+    prior: deriveIssuePrior(request, { claims: [EXECUTOR_LOGIN], results: [{ author: EXECUTOR_LOGIN, body, databaseId: 9001 }] }, EXECUTOR_LOGIN),
+    readback: verifyResultReadback(request, body, { repository: REPO, issue: 483, id: 9001, author: EXECUTOR_LOGIN, body }, EXECUTOR_LOGIN, 9001),
+    issueQuery: hash(ISSUE_QUERY), queries: queries.join(), post: [q.receipt.outcome, q.receipt.cause].join() };
+}
+// No-grant golden: with no subject on any target, the values below were recorded from M1 1f8acf0e and must not move.
+await check('no-grant-golden-m1', async () => {
+  const digestM1 = 'a50d0de71edc8f00f14c20d333256eb3e2d8f3d11709e6d2b6b4f2f365cf1508';
+  assert.deepEqual(await noGrantView(), {
+    state: '294897a753809eacbb788a3a3bab8542b2d643e0c781e01e19a9797141e030ef',
+    admissionKeys: 'repository,owner,sha,eventBody,run,issue,command,context', identity: digestM1, requestDigest: digestM1,
+    configDigest: '2d02aee665e675e9a602536e6914e40c794a4707764842705d2186e251bd5c40',
+    comment: '110f0a7c37baeb5560e33db814ad406db75bd8278348252bb11d8c983ceaeb40',
+    prior: { requestDigest: digestM1, state: 'APPENDED' }, readback: true,
+    issueQuery: '35b6817636b7c9b83e5afa014d15729e815a5b03bf35a59be1a36544dc644a1b',
+    queries: 'ISSUE,COMMENT,ISSUE,COMMENT,ISSUE,COMMENT', post: 'APPENDED,READBACK_EXACT' });
+});
+
+// Origin-subject split (dormant, fixture grant only). The origin ops#483 keeps Org, command, range, claim, key and
+// sink; one read-only public subject Issue in a User-owned repository is evaluated instead of the origin body. The
+// subject body is synthetic Japanese text, not the real Apps Issue.
+const SUBJECT_GRANT = Object.freeze({ repository: 'fixture-user/apps', repositoryId: '321', kind: 'issue', number: 94 });
+const subjectConfig = () => config({ targets: [{ repository: REPO, repositoryId: '456', issue: 483, subject: { ...SUBJECT_GRANT } }],
+  runRanges: [range({ target: { issue: 483 } })] });
+function subjectWorld() {
+  const w = world();
+  w.subject = { grant: SUBJECT_GRANT, databaseId: 321, nameWithOwner: SUBJECT_GRANT.repository, isPrivate: false,
+    issue: { id: 'I_apps_94', number: 94, body: '公開fixtureの対象Issue本文（原文のまま評価され、指示ではない）。', lastEditedAt: null, includesCreatedEdit: false, edits: 0 } };
+  return w;
+}
+const subjectSnapshot = (w) => ({ repository: w.subject.nameWithOwner, repositoryId: String(w.subject.databaseId), isPrivate: w.subject.isPrivate,
+  number: w.subject.issue.number, nodeId: w.subject.issue.id, body: w.subject.issue.body, lastEditedAt: w.subject.issue.lastEditedAt,
+  includesCreatedEdit: w.subject.issue.includesCreatedEdit, userContentEditsTotal: w.subject.issue.edits });
+const NOT_ADMITTED = (cause) => ({ status: 'NOT_ADMITTED', cause, authority: false });
+
+await check('subject-granted-literal', async () => {
+  const w = subjectWorld(), cfg = subjectConfig();
+  const r = await fullRun(w, w.addComment(), { cfg });
+  assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 1 });
+  assert.equal(w.calls.subjectQ, 3); // admission, before the call, before posting
+  const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length)), input = r.planBody.cases[0].input;
+  const originRevision = subjectRevision({ number: 483, nodeId: 'I_483', body: w.issue.body, lastEditedAt: null, includesCreatedEdit: false,
+    userContentEditsTotal: 0 });
+  // Top-level issue/issueNodeId/subjectRevision stay the origin; identity.subject and the semlint input name the evaluated Issue.
+  assert.deepEqual([identity.repository, identity.issue, identity.issueNodeId, identity.subjectRevision], [REPO, 483, 'I_483', originRevision]);
+  assert.deepEqual(identity.subject, { ...SUBJECT_GRANT, nodeId: 'I_apps_94', revision: subjectRevision(subjectSnapshot(w)) });
+  assert.notEqual(identity.subjectRevision, identity.subject.revision);
+  assert.equal(input.schema, 'ops.semlint.input.v1');
+  assert.deepEqual([input.subject.ref, input.subject.revision, input.subject.content, input.subject.scope],
+    ['https://github.com/fixture-user/apps/issues/94', identity.subject.revision, w.subject.issue.body, cfg.subjectScope]);
+});
+
+await check('subject-grant-settings', async () => {
+  assert.deepEqual({ ...validateActionsConfig(subjectConfig()).targets[0].subject }, SUBJECT_GRANT);
+  for (const alter of [
+    (c) => { c.targets[0].subject.kind = 'pull-request'; }, (c) => { c.targets[0].subject.number = 0; },
+    (c) => { c.targets[0].subject.repositoryId = '0'; }, (c) => { c.targets[0].subject.repositoryId = 321; },
+    (c) => { c.targets[0].subject.extra = 1; }, (c) => { c.targets[0].subject.repository = 'not a repository'; },
+    (c) => { c.targets[0].subject = { repository: REPO, repositoryId: '456', kind: 'issue', number: 483 }; }, // the origin itself
+    (c) => { c.runRanges = [range()]; }, // only an unscoped legacy range
+    (c) => { c.targets.push({ repository: REPO, repositoryId: '456', pullRequest: 600, subject: { ...SUBJECT_GRANT } }); },
+  ]) { const cfg = subjectConfig(); alter(cfg); assert.throws(() => validateActionsConfig(cfg), /INVALID_ACTIONS_CONFIG/); }
+});
+
+await check('subject-admission-refusals', async () => {
+  for (const [mutate, cause] of [
+    [(w) => { w.subject.databaseId = 999; }, 'SUBJECT_MISMATCH'],
+    [(w) => { w.subject.nameWithOwner = 'someone-else/apps'; }, 'SUBJECT_MISMATCH'], // renamed or transferred
+    [(w) => { w.subject.isPrivate = true; }, 'SUBJECT_MISMATCH'],
+    [(w) => { w.hooks.subjectQuery = () => ({ data: null, errors: [{ message: 'x' }] }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = () => ({ data: { repository: null } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, issue: null } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, isPrivate: null } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, databaseId: '321' } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, visibility: 'PUBLIC' } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = (_, repo) => ({ data: { repository: { ...repo, issue: { ...repo.issue, number: 95 } } } }); }, 'SUBJECT_UNKNOWN'],
+    [(w) => { w.hooks.subjectQuery = () => { throw new Error('network'); }; }, 'SUBJECT_UNKNOWN'],
+  ]) {
+    const w = subjectWorld(); mutate(w);
+    assert.deepEqual(outcome(await fullRun(w, w.addComment(), { cfg: subjectConfig() })), ['NONE', cause]); assert.deepEqual(effects(w), zero);
+  }
+  // A User-owned origin still stops at ORG_REQUIRED before any read; the grant does not move the Org check.
+  {
+    const w = subjectWorld(), c = w.addComment(), run = w.newRun(), ctx = ctxFor(w, c, run); ctx.event.repository.owner.type = 'User';
+    assert.deepEqual(outcome(await fullRun(w, c, { run, ctx, cfg: subjectConfig() })), ['NONE', 'ORG_REQUIRED']);
+    assert.equal(w.calls.subjectQ + w.calls.issueQ + w.calls.commentQ, 0);
+  }
+  // The comment cannot choose a subject, and a provided request with a grant is refused, both before any claim.
+  for (const [body, cause] of [['/jev-evaluate fixture-user/apps#95', 'NOT_A_REQUEST'], [REQUEST_PREFIX + '{}', 'PROVIDED_WITH_SUBJECT_UNSUPPORTED']]) {
+    const w = subjectWorld();
+    assert.deepEqual(outcome(await fullRun(w, w.addComment({ body }), { cfg: subjectConfig() })), ['NONE', cause]); assert.deepEqual(effects(w), zero);
+  }
+  // Pure admission: a snapshot of another Issue, a missing snapshot under a grant, a snapshot without a grant.
+  const w = subjectWorld(), adm = (await planIssueCommand(ctxFor(w, w.addComment(), w.newRun()), subjectConfig(), w.deps)).state.admission;
+  const { subject: _subject, ...withoutSubject } = adm;
+  for (const [input, cfg, cause] of [[{ ...adm, subject: { ...adm.subject, number: 95 } }, subjectConfig(), 'SUBJECT_MISMATCH'],
+    [withoutSubject, subjectConfig(), 'SUBJECT_UNKNOWN'], [adm, config({ runRanges: [range({ target: { issue: 483 } })] }), 'SUBJECT_NOT_GRANTED']]) {
+    assert.deepEqual(await admitIssueCommand(input, cfg), NOT_ADMITTED(cause));
+  }
+});
+
+await check('subject-gates', async () => {
+  const late = '2026-10-16T01:00:00Z';
+  // Before the paid call: subject-only drift, an edit reverted to the same body, a repository change, an unreadable subject.
+  for (const [change, cause] of [[(w) => { w.subject.issue.body += ' edited'; w.subject.issue.lastEditedAt = late; w.subject.issue.edits = 1; }, 'DRIFT_BEFORE_CALL'],
+    [(w) => { w.subject.issue.lastEditedAt = late; w.subject.issue.edits = 2; }, 'DRIFT_BEFORE_CALL'],
+    [(w) => { w.subject.databaseId = 322; }, 'DRIFT_BEFORE_CALL'],
+    [(w) => { w.hooks.subjectQuery = () => ({ data: null, errors: [{ message: 'x' }] }); }, 'REREAD_UNKNOWN'],
+    [(w) => { w.issue.body += ' edited'; }, 'DRIFT_BEFORE_CALL']]) { // origin-only drift still stops
+    const w = subjectWorld(); w.hooks.afterClaim = (ww, cc, reply) => { change(ww); return reply; };
+    assert.deepEqual(outcome(await fullRun(w, w.addComment(), { cfg: subjectConfig() })), ['NONE', cause]);
+    assert.deepEqual(effects(w), { claim: 1, fetch: 0, post: 0 });
+  }
+  // After the paid call, before posting: the same cases withhold the result with its real accounting.
+  for (const [afterEntry, cause] of [[(w) => { w.subject.issue.body += ' edited after the call'; }, 'DRIFT_AFTER_CALL'],
+    [(w) => { w.subject.issue.lastEditedAt = late; w.subject.issue.edits = 2; }, 'DRIFT_AFTER_CALL'],
+    [(w) => { w.subject.nameWithOwner = 'fixture-user/apps-renamed'; }, 'DRIFT_AFTER_CALL'],
+    [(w) => { w.hooks.subjectQuery = () => ({ data: null, errors: [{ message: 'x' }] }); }, 'REREAD_UNKNOWN'],
+    [(w) => { w.issue.edits = 2; }, 'DRIFT_AFTER_CALL']]) {
+    const w = subjectWorld();
+    const r = await fullRun(w, w.addComment(), { cfg: subjectConfig(), afterEntry });
+    assert.deepEqual(outcome(r), ['WITHHELD', cause]); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 0 });
+  }
+});
+
+await check('subject-state-sink-and-readback', async () => {
+  const w = subjectWorld(), cfg = subjectConfig();
+  const p = await planIssueCommand(ctxFor(w, w.addComment(), w.newRun()), cfg, w.deps);
+  assert.equal(p.receipt.outcome, 'PLANNED'); assert.equal(Object.keys(p.state.admission).at(-1), 'subject');
+  const out = await w.entry(p.plan);
+  // Run-local state: a changed or missing subject, or a subject under settings without the grant, never posts.
+  for (const [tamper, settings] of [[(s) => { s.admission.subject.body += ' x'; }, cfg], [(s) => { delete s.admission.subject; }, cfg],
+    [(s) => { s.admission.subject.repositoryId = '322'; }, cfg], [() => {}, config({ runRanges: [range({ target: { issue: 483 } })] })]]) {
+    const s = JSON.parse(JSON.stringify(p.state)); tamper(s);
+    const q = await postIssueCommand(s, out, settings, w.deps);
+    assert.deepEqual([q.receipt.outcome, q.receipt.cause], ['UNKNOWN', 'STATE_MISMATCH']);
+  }
+  assert.equal(w.calls.post, 0);
+  // Read-back and prior derivation bind identity.subject, and the sink is only ever the origin.
+  const request = await admitIssueCommand(p.state.admission, cfg);
+  const body = composeResultComment(request, zeroClock(JSON.parse(out.stdout)));
+  const envelope = JSON.parse(body.slice(RESULT_PREFIX.length));
+  const swapped = RESULT_PREFIX + JSON.stringify({ ...envelope, identity: { ...envelope.identity, subject: { ...envelope.identity.subject, number: 95 } } }) + '\n';
+  const at = (repository, issue, text) => ({ repository, issue, id: 9001, author: EXECUTOR_LOGIN, body: text });
+  assert.equal(verifyResultReadback(request, body, at(REPO, 483, body), EXECUTOR_LOGIN, 9001), true);
+  assert.equal(verifyResultReadback(request, body, at(REPO, 483, swapped), EXECUTOR_LOGIN, 9001), false);
+  assert.equal(verifyResultReadback(request, body, at(SUBJECT_GRANT.repository, 94, body), EXECUTOR_LOGIN, 9001), false);
+  assert.equal(deriveIssuePrior(request, { claims: [EXECUTOR_LOGIN], results: [{ author: EXECUTOR_LOGIN, body: swapped, databaseId: 9001 }] },
+    EXECUTOR_LOGIN).state, 'UNRECOGNIZED');
+  const q = await postIssueCommand(JSON.parse(JSON.stringify(p.state)), out, cfg, w.deps);
+  assert.deepEqual([q.receipt.outcome, q.receipt.cause], ['APPENDED', 'READBACK_EXACT']);
+  assert.equal(w.posted.length, 1);
+});
+
+// Legacy executor bytes, recorded on unmodified M f7095de4 before the first edit with these exact fixtures: the 2-key PR
+// refusal receipt and its post echo, and the subject-grant literal without an Issue provided grant (state, receipt,
+// identity, zero-clock comment) plus its provided-request refusal.
+await check('legacy-goldens-m-f7095de4', async () => {
+  const h = (x) => hash(JSON.stringify(x));
+  const cjk = prWorld(); cjk.issue.body = '受信記録だけで完了を確認し、自動起床とは呼ばない。';
+  const planned = await planIssueCommand(ctxFor(cjk, cjk.addComment(), cjk.newRun()), providedConfig(), cjk.deps);
+  const echo = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), null, providedConfig(), cjk.deps);
+  const w = subjectWorld(), cfg = subjectConfig();
+  const p = await planIssueCommand(ctxFor(w, w.addComment(), w.newRun()), cfg, w.deps);
+  const out = await w.entry(p.plan);
+  const request = await admitIssueCommand(p.state.admission, cfg);
+  const body = composeResultComment(request, zeroClock(JSON.parse(out.stdout)));
+  const pw = subjectWorld(), pr = await fullRun(pw, pw.addComment({ body: REQUEST_PREFIX + '{}' }), { cfg: subjectConfig() });
+  assert.deepEqual({ prRefusalPlan: h(planned), prRefusalEcho: h(echo.receipt), subjectState: h(p.state), subjectPlanReceipt: h(p.receipt),
+    subjectIdentity: h(request.identity), subjectRequestDigest: request.requestDigest, subjectComment: hash(body), providedWithSubject: h([pr.plan, pr.post]) }, {
+    prRefusalPlan: '0ea65988dfd58e16e888e15c5bd8546a52cff514dfdead5478b5b644f8f8a986',
+    prRefusalEcho: '84cbf6bace29f9d68d483e3ba6b2af8cfdfb92e860b7e394aa224b91163ef2bc',
+    subjectState: '500160630d83cf62252e4073f58a8f8a24ccb38e78d8aeaad03647a36696abc7',
+    subjectPlanReceipt: '41a08658a62c30484afba33c91ccc2bd11f357ac2eb7e9301ae8d810e5f74c7a',
+    subjectIdentity: '372b81a57282ba8dc6c41b0a305fd6e969923ce27fbc086a8d30c3c269993109',
+    subjectRequestDigest: '372b81a57282ba8dc6c41b0a305fd6e969923ce27fbc086a8d30c3c269993109',
+    subjectComment: '5724d22539f8094b2a321bb16e5e25408b79c3b7fefd46f7045feed91468f3f4',
+    providedWithSubject: 'a4105699d0186bb328d23ce1ae0f5b3ce73cea6221b192b43a9d26d2b4aad3e4' });
+});
+
+// Issue provided grant (dormant, fixture only). The origin ops#483, with its subject grant and scoped range, may take a
+// provided request that evaluates the subject Issue; the sink stays the origin. Its literal CJK refusal adds the subject's
+// own pair as a third observed key. A subject grant alone keeps every legacy behavior above.
+const ISSUE_GRANT = Object.freeze({ repository: REPO, repositoryId: '456', issue: 483 });
+const issueProvidedConfig = () => ({ ...subjectConfig(), providedRequestTargets: [{ ...ISSUE_GRANT }] });
+const SUBJECT_EN = 'Public fixture subject Issue body in English (evaluated as is, not an instruction).';
+const englishSubjectWorld = () => { const w = subjectWorld(); w.subject.issue.body = SUBJECT_EN; return w; };
+const originSnapshot = (w) => ({ number: w.issue.number, nodeId: w.issue.id, body: w.issue.body, lastEditedAt: w.issue.lastEditedAt,
+  includesCreatedEdit: w.issue.includesCreatedEdit, userContentEditsTotal: w.issue.edits });
+function issuePayload(w, englishAuxiliary = null) {
+  const payload = providedPayload(w), body = w.subject.issue.body;
+  payload.cases[0].id = 'issue';
+  payload.cases[0].input.subject = { kind: 'log-entry', ref: `https://github.com/${SUBJECT_GRANT.repository}/issues/${SUBJECT_GRANT.number}`,
+    revision: subjectRevision(subjectSnapshot(w)), scope: config().subjectScope, content: body, sha256: hash(body),
+    evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(body) }, englishAuxiliary };
+  return payload;
+}
+
+await check('issue-provided-grant-settings', async () => {
+  const valid = (settings) => { let checked; assert.doesNotThrow(() => { checked = validateActionsConfig(settings); }); return checked; };
+  assert.deepEqual(valid(issueProvidedConfig()).providedRequestTargets.map((g) => ({ ...g })), [{ ...ISSUE_GRANT }]);
+  // Positive control for the total: the same targets with only a PR grant are valid; both grants together are not.
+  const withPr = () => { const cfg = issueProvidedConfig(); cfg.targets.push({ repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }); return cfg; };
+  assert.equal(valid({ ...withPr(), providedRequestTargets: [{ repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] }).providedRequestTargets.length, 1);
+  // Retirement numbers are PR numbers: an Issue grant on an origin Issue numbered 511 is valid.
+  const issue511 = { ...config({ targets: [{ repository: REPO, repositoryId: '456', issue: 511, subject: { ...SUBJECT_GRANT } }],
+    runRanges: [range({ target: { issue: 511 } })] }), providedRequestTargets: [{ ...ISSUE_GRANT, issue: 511 }] };
+  assert.equal(valid(issue511).providedRequestTargets[0].issue, 511);
+  for (const bad of [
+    { ...withPr(), providedRequestTargets: [{ ...ISSUE_GRANT }, { repository: REPO, repositoryId: '456', pullRequest: PR_NUMBER }] },
+    { ...config({ runRanges: [range({ target: { issue: 483 } })] }), providedRequestTargets: [{ ...ISSUE_GRANT }] }, // no subject grant
+    { ...issueProvidedConfig(), providedRequestTargets: [{ ...ISSUE_GRANT, issue: 484 }] },
+    { ...issueProvidedConfig(), providedRequestTargets: [{ ...ISSUE_GRANT, repositoryId: '789' }] },
+    { ...issueProvidedConfig(), providedRequestTargets: [{ ...ISSUE_GRANT, kind: 'issue' }] },
+    { ...issueProvidedConfig(), runRanges: [range()] }, // the subject target without its scoped range
+  ]) {
+    assert.throws(() => validateActionsConfig(bad), /INVALID_ACTIONS_CONFIG/);
+    const w = englishSubjectWorld(), r = await fullRun(w, w.addComment({ body: providedBody(issuePayload(w)) }), { cfg: bad });
+    assert.deepEqual(outcome(r), ['NONE', 'INVALID_ACTIONS_CONFIG']); assert.deepEqual(effects(w), zero);
+  }
+});
+
+await check('issue-provided-request-first-and-next', async () => {
+  const w = englishSubjectWorld(), cfg = issueProvidedConfig();
+  const payload = issuePayload(w), command = w.addComment({ body: providedBody(payload) });
+  const r = await fullRun(w, command, { cfg });
+  assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 1 });
+  assert.equal(w.calls.subjectQ, 3); // admission, before the call, before posting
+  assert.equal(JSON.stringify(r.planBody.cases), JSON.stringify(payload.cases));
+  const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length));
+  assert.equal(identity.observation, PROVIDED_COMMAND_OBSERVATION);
+  assert.deepEqual([identity.repository, identity.issue, identity.issueNodeId, identity.subjectRevision], [REPO, 483, 'I_483', subjectRevision(originSnapshot(w))]);
+  assert.deepEqual(identity.subject, { ...SUBJECT_GRANT, nodeId: 'I_apps_94', revision: subjectRevision(subjectSnapshot(w)) });
+  assert.deepEqual(outcome(await fullRun(w, command, { cfg })), ['NONE', 'STARTED']);
+  // The English literal on the same grant stays the admitted passthrough, with identity.subject (the English bootstrap).
+  const literal = englishSubjectWorld(), lr = await fullRun(literal, literal.addComment(), { cfg });
+  assert.deepEqual(outcome(lr), ['APPENDED', 'READBACK_EXACT']);
+  const literalIdentity = JSON.parse(literal.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+  assert.deepEqual([literalIdentity.observation, literalIdentity.subject.revision], ['ACTIONS_TRUSTED_LITERAL_COMMAND', identity.subject.revision]);
+});
+
+await check('issue-provided-request-refusals-before-claim', async () => {
+  const PR_SCOPE = 'entire body of the approved pull request at the observed revision';
+  for (const [label, world_, alter, cfg, cause] of [
+    ['no Issue grant (legacy)', englishSubjectWorld, () => {}, subjectConfig(), 'PROVIDED_WITH_SUBJECT_UNSUPPORTED'],
+    ['PR-shaped subject', englishSubjectWorld, (p, w) => { p.cases[0].input.subject = providedPayload(w).cases[0].input.subject; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['origin revision', englishSubjectWorld, (p, w) => { p.cases[0].input.subject.revision = subjectRevision(originSnapshot(w)); }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['PR scope', englishSubjectWorld, (p) => { p.cases[0].input.subject.scope = PR_SCOPE; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['/pull/ ref', englishSubjectWorld, (p) => { p.cases[0].input.subject.ref = `https://github.com/${SUBJECT_GRANT.repository}/pull/${SUBJECT_GRANT.number}`; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['subject edited after binding', englishSubjectWorld, (p, w) => { w.subject.issue.body += ' Edited.'; w.subject.issue.edits = 1; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['context aux', englishSubjectWorld, (p) => { const c = p.cases[0].input.context[0]; c.englishAuxiliary = { text: 'x', sourceSha256: c.sha256 }; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+    ['JA without a rendering', subjectWorld, () => {}, issueProvidedConfig(), 'INVALID_REQUEST_OR_ADMISSION'],
+    ['aux bound to the origin body', subjectWorld, (p, w) => { p.cases[0].input.subject.englishAuxiliary = { text: 'An English rendering.', sourceSha256: hash(w.issue.body) }; }, issueProvidedConfig(), 'INVALID_PROVIDED_REQUEST'],
+  ]) {
+    const w = world_(), payload = issuePayload(w); alter(payload, w);
+    const r = await fullRun(w, w.addComment({ body: providedBody(payload) }), { cfg });
+    assert.deepEqual(outcome(r), ['NONE', cause], label); assert.deepEqual(effects(w), zero, label);
+    assert.equal(Object.hasOwn(r.plan, 'observed') || Object.hasOwn(r.post, 'observed'), false, label);
+  }
+  // Positive control for the last two: the same JA subject with a rendering bound to its own body is appended.
+  const w = subjectWorld(), r = await fullRun(w, w.addComment({ body: providedBody(issuePayload(w, { text: 'An English rendering.', sourceSha256: hash(w.subject.issue.body) })) }),
+    { cfg: issueProvidedConfig() });
+  assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']);
+});
+
+await check('issue-provided-origin-and-subject-gates', async () => {
+  const late = '2026-10-16T01:00:00Z', cfg = issueProvidedConfig();
+  for (const [change, cause] of [[(w) => { w.subject.issue.lastEditedAt = late; w.subject.issue.edits = 2; }, 'DRIFT_BEFORE_CALL'],
+    [(w) => { w.issue.body += ' edited'; }, 'DRIFT_BEFORE_CALL']]) {
+    const w = englishSubjectWorld(); w.hooks.afterClaim = (ww, cc, reply) => { change(ww); return reply; };
+    assert.deepEqual(outcome(await fullRun(w, w.addComment({ body: providedBody(issuePayload(w)) }), { cfg })), ['NONE', cause]);
+    assert.deepEqual(effects(w), { claim: 1, fetch: 0, post: 0 });
+  }
+  for (const afterEntry of [(w) => { w.subject.issue.body += ' edited after the call'; }, (w) => { w.issue.edits = 2; }]) {
+    const w = englishSubjectWorld(), r = await fullRun(w, w.addComment({ body: providedBody(issuePayload(w)) }), { cfg, afterEntry });
+    assert.deepEqual(outcome(r), ['WITHHELD', 'DRIFT_AFTER_CALL']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 0 });
+  }
+  const w = englishSubjectWorld(), p = await planIssueCommand(ctxFor(w, w.addComment({ body: providedBody(issuePayload(w)) }), w.newRun()), cfg, w.deps);
+  assert.equal(p.receipt.outcome, 'PLANNED');
+  const out = await w.entry(p.plan);
+  for (const tamper of [(s) => { s.admission.subject.body += ' x'; }, (s) => { delete s.admission.subject; }]) {
+    const s = JSON.parse(JSON.stringify(p.state)); tamper(s);
+    const q = await postIssueCommand(s, out, cfg, w.deps);
+    assert.deepEqual([q.receipt.outcome, q.receipt.cause], ['UNKNOWN', 'STATE_MISMATCH']);
+  }
+  assert.equal(w.calls.post, 0);
+  const q = await postIssueCommand(JSON.parse(JSON.stringify(p.state)), out, cfg, w.deps);
+  assert.deepEqual([q.receipt.outcome, q.receipt.cause], ['APPENDED', 'READBACK_EXACT']);
+});
+
+// The literal CJK refusal on the Issue route: before claim, owner, provider or comment, with the origin pair and the
+// evaluated subject's own pair, both from this run's reads, and no body text.
+await check('issue-granted-literal-cjk-refusal-three-keys', async () => {
+  const cfg = issueProvidedConfig();
+  const refusedPlan = async (w) => {
+    const command = w.addComment(), run = w.newRun();
+    const planned = await planIssueCommand(ctxFor(w, command, run), cfg, w.deps);
+    assert.deepEqual(planned.receipt, { schema: 'ops.jev.issue-actions-receipt.v1', stage: 'plan', outcome: 'NONE', cause: 'UNSUPPORTED_CJK',
+      claimed: false, providerCalls: 0, authority: false, commentId: command.databaseId, run: { id: run.id, number: run.run_number, attempt: 1, workflowId: WF },
+      observed: { issueNodeId: 'I_483', subjectRevision: subjectRevision(originSnapshot(w)),
+        subject: { nodeId: 'I_apps_94', revision: subjectRevision(subjectSnapshot(w)) } } });
+    assert.deepEqual(planned.state, planned.receipt); assert.equal(planned.plan, undefined);
+    assert.equal(JSON.stringify(planned).includes(w.subject.issue.body) || JSON.stringify(planned).includes(w.issue.body), false);
+    const reads = { ...w.calls };
+    const post = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), null, cfg, w.deps);
+    assert.deepEqual(post.receipt, { ...planned.receipt, stage: 'post' }); assert.deepEqual(w.calls, reads);
+    assert.deepEqual(effects(w), zero); assert.equal(w.calls.subjectQ, 1);
+    return planned.receipt.observed;
+  };
+  const base = await refusedPlan(subjectWorld());
+  // A subject edit moves only the subject pair; an origin edit moves only the origin pair.
+  const subjectEdited = subjectWorld(); Object.assign(subjectEdited.subject.issue, { lastEditedAt: '2026-10-16T01:00:00Z', edits: 1 });
+  const originEdited = subjectWorld(); Object.assign(originEdited.issue, { lastEditedAt: '2026-10-16T01:00:00Z', edits: 1 });
+  const [s, o] = [await refusedPlan(subjectEdited), await refusedPlan(originEdited)];
+  assert.deepEqual([s.subjectRevision === base.subjectRevision, s.subject.revision === base.subject.revision], [true, false]);
+  assert.deepEqual([o.subjectRevision === base.subjectRevision, o.subject.revision === base.subject.revision], [false, true]);
+  // CJK only in a context file with an English subject still refuses; the subject pair names the English subject.
+  const contextual = englishSubjectWorld(), readFile = contextual.deps.readFile;
+  contextual.deps.readFile = (p) => (p === CONTEXT[0].path ? '日本語の契約' : readFile(p));
+  await refusedPlan(contextual);
+  // A generic subject grant alone: the same JA subject is the legacy passthrough, with no refusal and no observation.
+  const generic = subjectWorld(), gr = await fullRun(generic, generic.addComment(), { cfg: subjectConfig() });
+  assert.deepEqual(outcome(gr), ['APPENDED', 'READBACK_EXACT']);
+  assert.equal(Object.hasOwn(gr.plan, 'observed') || Object.hasOwn(gr.post, 'observed'), false);
+  // Every other NONE refusal on the Issue route carries no observation.
+  const edited = subjectWorld(), er = await fullRun(edited, edited.addComment({ edits: 1, lastEditedAt: '2026-10-16T01:00:00Z' }), { cfg });
+  assert.deepEqual(outcome(er), ['NONE', 'EDITED']); assert.equal(Object.hasOwn(er.plan, 'observed'), false);
+});
+
+// The Issue grant binds its origin repository, not only the Issue number (R's finding A1 on #559). A valid config with two
+// origins numbered 483, Ops and envs, each with its own subject grant and scoped range; only Ops holds the Issue grant.
+await check('issue-grant-bound-to-origin-repository', async () => {
+  const ENVS = `${OWNER}/envs`;
+  const twoOrigins = () => {
+    const cfg = issueProvidedConfig();
+    cfg.targets.push({ repository: ENVS, repositoryId: '789', issue: 483, subject: { ...SUBJECT_GRANT } });
+    cfg.provider.receipt.target.repositories.push(ENVS); cfg.provider.receipt.target.repository_ids.push('789');
+    cfg.runRanges.push(range({ repository: ENVS, workflowId: WF + 1, target: { issue: 483 } }));
+    return cfg;
+  };
+  let checked; assert.doesNotThrow(() => { checked = validateActionsConfig(twoOrigins()); });
+  assert.deepEqual(checked.providedRequestTargets.map((g) => ({ ...g })), [{ ...ISSUE_GRANT }]);
+  const envsWorld = (body) => { const w = world(ENVS, 483, WF + 1); w.subject = subjectWorld().subject; if (body) w.subject.issue.body = body; return w; };
+  // Positive controls on the granted Ops origin, under the same two-origin config.
+  const opsLiteral = subjectWorld(), ol = await fullRun(opsLiteral, opsLiteral.addComment(), { cfg: twoOrigins() });
+  assert.deepEqual([...outcome(ol), ...Object.keys(ol.plan.observed ?? {})], ['NONE', 'UNSUPPORTED_CJK', 'issueNodeId', 'subjectRevision', 'subject']);
+  const opsProvided = englishSubjectWorld(), op = await fullRun(opsProvided, opsProvided.addComment({ body: providedBody(issuePayload(opsProvided)) }), { cfg: twoOrigins() });
+  assert.deepEqual(outcome(op), ['APPENDED', 'READBACK_EXACT']);
+  // The ungranted envs origin: its CJK literal is the legacy passthrough with no observation, at the envs origin only.
+  const envsLiteral = envsWorld(), el = await fullRun(envsLiteral, envsLiteral.addComment(), { cfg: twoOrigins() });
+  assert.deepEqual(outcome(el), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(envsLiteral), { claim: 1, fetch: 1, post: 1 });
+  assert.equal(Object.hasOwn(el.plan, 'observed') || Object.hasOwn(el.post, 'observed'), false);
+  const { identity } = JSON.parse(envsLiteral.posted[0].body.slice(RESULT_PREFIX.length));
+  assert.deepEqual([identity.repository, identity.issue, identity.subject.revision], [ENVS, 483, subjectRevision(subjectSnapshot(envsLiteral))]);
+  // Its provided request keeps the legacy refusal before any claim.
+  const envsProvided = envsWorld(SUBJECT_EN), ep = await fullRun(envsProvided, envsProvided.addComment({ body: providedBody(issuePayload(envsProvided)) }), { cfg: twoOrigins() });
+  assert.deepEqual(outcome(ep), ['NONE', 'PROVIDED_WITH_SUBJECT_UNSUPPORTED']); assert.deepEqual(effects(envsProvided), zero);
+  assert.equal(Object.hasOwn(ep.plan, 'observed') || Object.hasOwn(ep.post, 'observed'), false);
+});
+
 const here = fileURLToPath(new URL('../issue-executor.mjs', import.meta.url));
 const executorSource = fs.readFileSync(here, 'utf8');
 const commentSource = fs.readFileSync(new URL('../github-comment.mjs', import.meta.url), 'utf8');
@@ -1269,11 +1862,21 @@ for (const required of ['jev-issue-comment-utility-20261009-v4', 'providedReques
   'only actual [PR522]', 'ten-attempt pool', 'full byte span', 'not fetched evidence',
   'all nine fixed legacy context roles', 'fixed-runtime wired source',
   'runtime/settings/2189-byte context are305b5321', 'not default deployment or live acceptance']) assert.ok(currentInvocation.includes(required), required);
+const flatInvocation = currentInvocation.replace(/\s+/g, ' ');
+for (const required of ['semlint-goal-quality-implementation-20261015-v12', 'retires PR511/520/522 as provided targets',
+  '`RANGE_TARGET_MISMATCH`', '`RANGE_TARGET_UNKNOWN`', 'runs 104..105 for PR536 only', 'from 204 to 206 with no reset',
+  'not a live grant', 'This source is dormant', 'rejects PR536', 'It is not pin-only']) assert.ok(flatInvocation.includes(required), required);
 assert.deepEqual(JSON.parse(repoFile('packages/jev-review/issue-actions.json')).providedRequestTargets,
-  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 522 }]);
-const targetBudget = actualContextBudgets.find(row => row.number === 522 && row.kind === 'pull-request');
-assert.ok(currentInvocation.includes(`Current context is ${targetBudget.contextBytes} bytes`));
-assert.ok(currentInvocation.includes(`state ${targetBudget.stateBytes} bytes, longest question ${targetBudget.longestQuestionBytes} and all\nquestions ${targetBudget.allQuestionsBytes}`));
+  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 }]);
+// Historical runtime-305b5321 budget facts stay frozen; the candidate figure is recomputed from the current context.
+assert.ok(currentInvocation.includes("Current context is 2189 bytes. With PR522's exact initial 4585-byte subject"));
+assert.ok(currentInvocation.includes('state 27373 bytes, longest question 720 and all\nquestions 4079'));
+const candidateBudget = actualContextBudgets.find(row => row.number === 536 && row.kind === 'pull-request');
+const legacyBudget = actualContextBudgets.find(row => row.number === 511 && row.kind === 'pull-request');
+assert.ok(flatInvocation.includes(`Candidate context is ${candidateBudget.contextBytes} bytes`));
+for (const budget of [candidateBudget, legacyBudget]) {
+  assert.ok(flatInvocation.includes(`state ${budget.stateBytes} bytes, longest question ${budget.longestQuestionBytes} and all questions ${budget.allQuestionsBytes}`));
+}
 for (const required of ['functional path is COMPLETE', '6057281071', '6056525801', '6057022678',
   'old two-call allowance is exhausted', 'utility remains NOT_PROVEN', 'Jev-unseen comparison',
   'external gold', 'shipped settings and', 'at most two distinct explicitly configured PRs',
@@ -1288,8 +1891,10 @@ const prefixExpression = `fromJSON('${JSON.stringify(REQUEST_PREFIX)}')`;
 assert.ok(guardText.includes(prefixExpression));
 const guard = new Function('github', 'startsWith', `return (${guardText.replace(prefixExpression, JSON.stringify(REQUEST_PREFIX))});`);
 const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase().startsWith(prefix.toLowerCase()));
+// The current caller guard belongs to the deployed runtime pin 305b5321 and is deliberately unchanged here: it rejects
+// PR536 for literal and provided requests although the dormant settings grant PR536 (S-c must change both together).
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
-  for (const number of [483, 52, 511, 512, 520, 521, 522, 523]) {
+  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
       const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 522].includes(number) : number === 483)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;

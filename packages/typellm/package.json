@@ -1,0 +1,9 @@
+{
+  "name": "typellm",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/typellm.mjs",
+    "./cli": "./cli/index.mjs"
+  }
+}

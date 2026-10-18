@@ -1,5 +1,134 @@
 # Issue invocation contract
 
+## English subject rendering on the provided grant (v15, dormant)
+
+Under `semlint-goal-quality-implementation-20261015-v15` (phase
+`audited_subject_auxiliary_runtime_code_only`), a provided request to a target that
+holds the existing `providedRequestTargets` grant, from a trusted caller, may carry
+one Core v14 `englishAuxiliary` `{text, sourceSha256}` on its subject. Admission
+accepts it only when the subject is the whole observed body at the observed revision
+(same span, revision and SHA256 as the runtime snapshot, checked before claim),
+`sourceSha256` is that body's SHA256 and the English text is non-empty. CJK may
+appear only in the original `subject.content`, which Core keeps as the source of
+record and does not send to the model; the English, criteria, refs, scope and
+context stay CJK-free, and context auxiliaries stay `null`. Configuration, schemas,
+ranges, limits, the workflow and `ISSUE-EVALUATION.md` are unchanged.
+
+The runtime checks bytes and shape only. It cannot verify that the English is a
+faithful rendering, and the shared GitHub author of a request cannot prove that an
+independent fidelity audit happened. Fidelity stays with the trusted requester's
+owner route, its independent fidelity record and the posting decision; this is a
+limit, not a semantic certification.
+
+Webhook comments, literal commands and targets without a provided grant keep the
+`AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE` refusal. A literal command on a target
+that holds a provided grant is refused before claim when its input contains CJK
+(`UNSUPPORTED_CJK`), so original Japanese text is never evaluated unrendered on that
+route. Literal behavior of Ops483, envs52 and PR511, which hold no provided grant,
+is unchanged. This source is dormant: both callers still pin runtime
+`305b5321ebc4d41d5c143cc002b82af71f140b8e`. Live calls in this source: 0.
+
+That refusal now keeps the subject identity of its own admission snapshot (v18,
+dormant). Only this branch adds an optional
+`observed: {issueNodeId, subjectRevision}` to the `NOT_ADMITTED` result: the node ID
+and the exact 5-part revision (node, body SHA256, `lastEditedAt` or `unedited`,
+edit count, `includesCreatedEdit`), with no body text and no second read. It is
+reached only after the target, caller, request kind, grant, command drift/edit and
+range gates. On an origin Issue that holds the Issue provided grant below (v32), the
+same refusal adds a third key, `subject: {nodeId, revision}`: the evaluated subject
+Issue's node ID and exact 5-part revision, while the first two keys keep naming the
+origin. The executor copies the observation into its `NONE` plan receipt and
+`state.json` only when it equals the executor's own snapshot
+(`subjectRevision(seen.issue)`), and keeps a third key only under that explicit grant
+for its own origin and only when it also equals its own subject read; otherwise the
+whole observation is dropped. A subject grant alone never yields this refusal or a
+third key, and PR receipts keep exactly two keys. The
+existing post step echoes that same plan observation with `stage: post`, which is a
+copy and not a new observation. No claim, owner run, provider call or comment
+happens, so `requestDigest` stays absent. Every other refusal, `PLANNED` receipts,
+result comments and legacy shapes are unchanged; the receipt schema id stays
+`ops.jev.issue-actions-receipt.v1`.
+
+`observed` identifies which subject state was refused. It does not say the body is
+CJK (CJK anywhere in the input refuses), and it is not execution-origin proof,
+fidelity, an evaluation, a permission or semantic truth. It appears only in the
+non-public job log and state, so a caller can receive it only as a P-transported
+log with `providerDigest: null`; the caller in `experiments/goal-evaluation-unix`
+consumes it only through `refusalOrigin` (two keys) or `issueRefusalOrigin` (three
+keys). It stays dormant until a separately scoped activation and command GO.
+
+## Issue provided grant (v32, dormant)
+
+Under `semlint-goal-quality-implementation-20261016-v32`, `providedRequestTargets` may
+instead hold one exact `{repository, repositoryId, issue}` grant. It must name a
+configured origin Issue target that has its own `subject` grant, and so its own
+target-scoped range. It counts toward the same limit of one provided grant in total,
+and `RETIRED_PROVIDED` lists PR numbers, so it applies to the PR form only. Under this
+grant a provided request on the origin evaluates the subject Issue: exactly one case
+whose subject ref is `https://github.com/<subject repository>/issues/<n>`, whose
+revision is the subject's own 5-part revision, whose scope is exactly `subjectScope`,
+and whose content, SHA256, full byte span and optional English rendering are bound
+to the whole subject body. The origin's body, revision or digest never stand in for
+it. Org, trusted caller, command, run, range, claim, key, provider receipt, drift
+checks before the call and before posting, and the result sink stay with the origin;
+the result identity keeps the origin's top-level fields and adds `identity.subject`.
+Admission does not check the case ID; `issue` is the caller's convention.
+
+Without this grant a subject-bearing target keeps `PROVIDED_WITH_SUBJECT_UNSUPPORTED`
+and its literal passthrough, and PR grants are unchanged. The shipped settings hold no
+such grant and no subject; the tests use fixture settings only. This source is
+dormant: both callers still pin runtime `305b5321ebc4d41d5c143cc002b82af71f140b8e`.
+Live calls in this source: 0.
+
+## Target-bound PR536 runtime source (v12 S-b, dormant)
+
+Under `semlint-goal-quality-implementation-20261015-v12` (phase `target_bound_runtime`),
+this source replaces the provided grant PR522 with
+[PR536](https://github.com/roccho-org/ops/pull/536) in trusted `targets` and
+`providedRequestTargets` and retires PR511/520/522 as provided targets. Ops483,
+envs52, PR511, the provider receipt, limits and every existing range record are
+unchanged. The PR536 body is not read by this source or its tests.
+
+A run range may carry one optional closed `target` (`{issue}` or `{pullRequest}`)
+that names an already configured target of the range's own repository. Once a
+repository has a scoped range, range selection needs the independently observed
+target: planning passes the event target already validated against trusted
+targets, and admission passes the observed snapshot number and kind. The target
+is never derived from the range. A scoped range admits only its target, and a
+target with a scoped range is never admitted by an unscoped legacy range
+(`RANGE_TARGET_MISMATCH`). A missing or invalid observed target holds
+(`RANGE_TARGET_UNKNOWN`). Overlap stays a settings refusal, so one run number maps
+to at most one range. The plan receipt `run` and the result identity keep their
+existing shapes.
+
+The shipped range is Ops workflow 377399991 runs 104..105 for PR536 only, one call
+per run: two slots, so lifetime reservations go from 204 to 206 with no reset. It
+was derived from the observed latest ordinal 103 and is a code candidate, not a
+live grant. Every comment in this repository consumes an ordinal; if 104..105 are
+consumed before activation, a new reviewed runtime source with a freshly observed
+range is required and the range is never extended silently.
+
+This source is dormant. Both callers still pin runtime
+`305b5321ebc4d41d5c143cc002b82af71f140b8e`, whose settings grant PR522, and the
+current caller guard admits provided requests only on PR522 and literal PR comments
+only on PR511/PR522, so it rejects PR536 (both asserted in tests). Activation is a
+separate scope: the workflow guard/header, `tools/check-ci-intent-workflow-branches.mjs`
+with its mutation cases, the matching source-contract test, both runtime pins and
+a freshly observed range, with the CI-intent and secret-effect records audited
+there. It is not pin-only.
+
+Candidate context is 2210 bytes. Using PR522's historical 4585-byte body as a
+stand-in subject for PR536, the legacy literal producer yields state 27543 bytes,
+longest question 701 and all questions 3965; PR511's 4808-byte snapshot yields
+state 27824 bytes, longest question 731 and all questions 4145. Both fit the
+unchanged Core limits. All nine roles carry this one document, so each context
+byte adds nine state bytes; PR511 is 176 bytes below the 28000 state limit, and
+any later context change must stay within it. PR536's own fit is checked when its body is frozen before
+any live use. Literal context for Ops483/envs52/PR511 also changes once this source
+is activated, so earlier literal results are not a like-for-like comparison. The
+sections below are history of the deployed runtime and earlier stages. Live calls
+in this source: 0.
+
 ## Provided-v14 PR522 binding (v4, fixed-runtime wired source)
 
 Under `jev-issue-comment-utility-20261009-v4`, the native consumer can admit the
@@ -616,11 +745,13 @@ Catalog-v1 per-case semantic results and Issue request/result envelopes retain t
 Comment composition binds the exact result edition and projection recorded by `preparePlan` for each case.
 Only semlint `result.v1` and `result.v14` compose; an Issue request whose cases would produce any other
 edition is refused at admission (`RESULT_EDITION_NOT_COMPOSABLE`) before any provider call.
-A comment carries no reviewed translation, so an Issue request with any v14 case whose subject or context
-has a non-null `englishAuxiliary` is also refused at admission (`AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE`),
+The runtime cannot verify a translation. An Issue request with any v14 case whose context has a non-null
+`englishAuxiliary`, or whose subject has one outside a granted provided request (webhook comments, literal
+commands, targets without a provided grant), is refused at admission (`AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE`),
 checked on the admitted plan snapshot before claim, owner launch, provider call or comment. Such inputs run only
-through the owner route with a separately reviewed translation. A composed v14 result is attributed raw model
-output under the same claim ceiling, not a quality result.
+through the owner route with a separately reviewed translation. A granted provided request may carry a subject
+rendering as described in the v15 section above. A composed v14 result is attributed raw model output under the
+same claim ceiling, not a quality result.
 
 `runPlan` counts actual invocations of the supplied owner callback. The canonical per-case
 callback counter separately counts its invocation wrapper (which may reject on deadline

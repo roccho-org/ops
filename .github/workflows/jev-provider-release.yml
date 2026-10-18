@@ -3,7 +3,9 @@ on:
   pull_request:
     paths:
       - 'packages/jev/**'
+      - 'packages/typellm/**'
       - 'tools/jev-provider-artifact.py'
+      - 'tools/test_jev_provider_artifact.py'
       - 'flake.nix'
       - 'flake.lock'
       - 'ci.intent.v1.jsonl'
@@ -45,19 +47,28 @@ jobs:
             yq -o=json . .github/workflows/jev-provider-release.yml | python3 packages/hayamimi-web/build/check-release-workflow.py
             python3 packages/hayamimi-web/build/check-release-workflow.py --selftest
             python3 packages/hayamimi-web/build/release-provenance.py selftest'
+          python3 tools/test_jev_provider_artifact.py
       - name: Build and execute the completed ESM, with old CLI regression
         run: |
           set -euo pipefail
           before="$(sha256sum flake.lock | cut -d' ' -f1)"
-          out="$(nix build --no-link --print-out-paths -L .#jev-worker-esm)"
-          nix build --no-link -L .#checks.x86_64-linux.jev
+          jev_out="$(nix build --no-link --print-out-paths -L .#jev-worker-esm)"
+          typed_out="$(nix build --no-link --print-out-paths -L .#typellm-worker-esm)"
+          nix build --no-link -L .#checks.x86_64-linux.jev .#checks.x86_64-linux.typellm
           test "$before" = "$(sha256sum flake.lock | cut -d' ' -f1)"
           git diff --exit-code -- flake.lock
           mkdir -p "$RUNNER_TEMP/jev-provider"
-          cp "$out/jev-provider.zip" "$out/jev-provider.zip.sha256" "$RUNNER_TEMP/jev-provider/"
-          digest="$(cut -d' ' -f1 "$out/jev-provider.zip.sha256")"
-          python3 tools/jev-provider-artifact.py verify --archive "$out/jev-provider.zip" --sha256 "$digest" --extract "$RUNNER_TEMP/jev-entry"
-          nix shell --inputs-from . nixpkgs#nodejs -c env JEV_PROVIDER_ENTRY="$RUNNER_TEMP/jev-entry/batch.mjs" node --test packages/jev/tests/batch.test.mjs
+          cp "$jev_out/jev-provider.zip" "$jev_out/jev-provider.zip.sha256" "$RUNNER_TEMP/jev-provider/"
+          cp "$typed_out/typellm-provider.zip" "$typed_out/typellm-provider.zip.sha256" "$RUNNER_TEMP/jev-provider/"
+          for provider in jev typellm; do
+            archive="$RUNNER_TEMP/jev-provider/$provider-provider.zip"
+            digest="$(cut -d' ' -f1 "$archive.sha256")"
+            python3 tools/jev-provider-artifact.py --provider "$provider" verify --archive "$archive" --sha256 "$digest" --extract "$RUNNER_TEMP/$provider-entry"
+          done
+          nix shell --inputs-from . nixpkgs#nodejs -c env JEV_PROVIDER_ENTRY="$RUNNER_TEMP/jev-entry/jev.mjs" node --test packages/jev/tests/batch.test.mjs
+          nix shell --inputs-from . nixpkgs#nodejs -c env JEV_QUESTIONS_ENTRY="$RUNNER_TEMP/jev-entry/jev.mjs" node --test packages/jev/tests/questions.test.mjs
+          nix shell --inputs-from . nixpkgs#nodejs -c env TYPELLM_PROVIDER_ENTRY="$RUNNER_TEMP/typellm-entry/typellm.mjs" node --test packages/typellm/tests/typellm.test.mjs
+          nix shell --inputs-from . nixpkgs#nodejs -c env JEV_PROVIDER_ENTRY="$RUNNER_TEMP/jev-entry/jev.mjs" TYPELLM_PROVIDER_ENTRY="$RUNNER_TEMP/typellm-entry/typellm.mjs" node --test packages/jev/tests/distribution.test.mjs
       - name: Bind current canonical check and merged review proof
         if: env.PUBLISH == 'true'
         env:
@@ -91,8 +102,12 @@ jobs:
           merge_tree="$(git rev-parse HEAD^{tree})"
           dir="$RUNNER_TEMP/jev-provider"
           python3 packages/hayamimi-web/build/release-provenance.py proof --pr "$RUNNER_TEMP/pr.json" --reviews "$RUNNER_TEMP/reviews.json" --head-tree "$head_tree" --merge-sha "$EXACT_SHA" --merge-tree "$merge_tree" --out "$dir/merged-pr-proof.json"
-          python3 tools/jev-provider-artifact.py provenance --archive "$dir/jev-provider.zip" --proof "$dir/merged-pr-proof.json" --out "$dir/provenance.json" --sha "$EXACT_SHA" --tree "$merge_tree" --workflow-ref "$GITHUB_WORKFLOW_REF" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" --root "$GITHUB_WORKSPACE"
-          python3 tools/jev-provider-artifact.py verify-release --dir "$dir" --sha "$EXACT_SHA"
+          for provider in jev typellm; do
+            python3 tools/jev-provider-artifact.py --provider "$provider" provenance --archive "$dir/$provider-provider.zip" --proof "$dir/merged-pr-proof.json" --out "$dir/$provider-provenance.json" --sha "$EXACT_SHA" --tree "$merge_tree" --workflow-ref "$GITHUB_WORKFLOW_REF" --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT" --root "$GITHUB_WORKSPACE"
+          done
+          for provider in jev typellm; do
+            python3 tools/jev-provider-artifact.py --provider "$provider" verify-release --paired --dir "$dir" --sha "$EXACT_SHA"
+          done
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: jev-provider-${{ github.event.pull_request.head.sha || github.sha }}
@@ -123,7 +138,9 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXACT_SHA"
           test "$(gh api "repos/$GITHUB_REPOSITORY/branches/proposals" --jq .commit.sha)" = "$EXACT_SHA"
           dir="$RUNNER_TEMP/jev-provider"
-          python3 tools/jev-provider-artifact.py verify-release --dir "$dir" --sha "$EXACT_SHA"
+          for provider in jev typellm; do
+            python3 tools/jev-provider-artifact.py --provider "$provider" verify-release --paired --dir "$dir" --sha "$EXACT_SHA"
+          done
           pr="$(python3 -c 'import json,os; print(json.load(open(os.environ["RUNNER_TEMP"]+"/jev-provider/merged-pr-proof.json"))["pr_number"])')"
           gh api "repos/$GITHUB_REPOSITORY/pulls/$pr" > "$RUNNER_TEMP/current-pr.json"
           gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls/$pr/reviews?per_page=100" > "$RUNNER_TEMP/current-review-pages.json"
@@ -137,10 +154,12 @@ jobs:
           cmp "$RUNNER_TEMP/current-proof.json" "$dir/merged-pr-proof.json"
           tag="jev-provider-$EXACT_SHA"
           if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create "$tag" "$dir/jev-provider.zip" "$dir/jev-provider.zip.sha256" "$dir/merged-pr-proof.json" "$dir/provenance.json" --repo "$GITHUB_REPOSITORY" --target "$EXACT_SHA" --latest=false --title "$tag" --notes 'Worker-compatible named-choice provider; reviewed source, not live-provider evidence.'
+            gh release create "$tag" "$dir/jev-provider.zip" "$dir/jev-provider.zip.sha256" "$dir/jev-provenance.json" "$dir/typellm-provider.zip" "$dir/typellm-provider.zip.sha256" "$dir/typellm-provenance.json" "$dir/merged-pr-proof.json" --repo "$GITHUB_REPOSITORY" --target "$EXACT_SHA" --latest=false --title "$tag" --notes 'Independent Jev named questions and TypeLLM typed generation; reviewed source, not live-provider evidence.'
           fi
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/jev-readback"
-          python3 tools/jev-provider-artifact.py verify-release --dir "$RUNNER_TEMP/jev-readback" --sha "$EXACT_SHA"
-          for name in jev-provider.zip jev-provider.zip.sha256 merged-pr-proof.json provenance.json; do
+          for provider in jev typellm; do
+            python3 tools/jev-provider-artifact.py --provider "$provider" verify-release --paired --dir "$RUNNER_TEMP/jev-readback" --sha "$EXACT_SHA"
+          done
+          for name in jev-provider.zip jev-provider.zip.sha256 jev-provenance.json typellm-provider.zip typellm-provider.zip.sha256 typellm-provenance.json merged-pr-proof.json; do
             cmp "$dir/$name" "$RUNNER_TEMP/jev-readback/$name"
           done

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fixed Jev Worker ESM artifact leaf; not a general package publisher."""
+"""Fixed legacy, Jev and TypeLLM ESM leaves; the existing publisher owns effects."""
 import argparse
 import hashlib
 import json
@@ -8,12 +8,33 @@ import re
 import tempfile
 import zipfile
 
-SCHEMA = "jev-provider/1"
-CONTRACT = "named-choices/2"
-EXPORTS = ["JudgeProviderError", "bindJev", "judgeNamedChoices"]
-INPUTS = ("flake.lock", "packages/jev/src/core.mjs", "packages/jev/src/batch.mjs",
-          "packages/jev/default.nix", "tools/jev-provider-artifact.py")
-MEMBERS = ["batch.mjs", "manifest.json"]
+# A closed selection of existing/independent contracts, not a package registry.
+SPECS = {
+    "legacy": ("jev-provider/1", "named-choices-and-typed/1",
+               ["JudgeProviderError", "TypedProviderError", "bindJev", "bindTypeLLM", "generateTyped", "judgeNamedChoices"],
+               ("flake.lock", "packages/jev/src/core.mjs", "packages/jev/src/batch.mjs", "packages/jev/src/typellm.mjs", "packages/jev/default.nix", "tools/jev-provider-artifact.py"),
+               "batch.mjs", "jev-provider.zip", "provenance.json", "jev-provider-provenance/1"),
+    "jev": ("jev-provider/2", "named-questions/1",
+            ["JevContractError", "JevError", "JudgeProviderError", "askJevChoice", "askJevNoul", "askJevQuestions", "askJevScore", "bindJev", "judgeNamedChoices"],
+            ("flake.lock", "flake.nix", "packages/jev/src/core.mjs", "packages/jev/src/client.mjs", "packages/jev/src/batch.mjs", "packages/jev/src/worker.mjs", "packages/jev/default.nix", "tools/jev-provider-artifact.py"),
+            "jev.mjs", "jev-provider.zip", "jev-provenance.json", "jev-provider-provenance/2"),
+    "typellm": ("typellm-provider/1", "typed-completion/1",
+                ["TypedProviderError", "bindTypeLLM", "generateTyped"],
+                ("flake.lock", "flake.nix", "packages/typellm/src/typellm.mjs", "packages/typellm/default.nix", "tools/jev-provider-artifact.py"),
+                "typellm.mjs", "typellm-provider.zip", "typellm-provenance.json", "typellm-provider-provenance/1"),
+}
+PAIRED_MEMBERS = {"jev-provider.zip", "jev-provider.zip.sha256", "jev-provenance.json",
+                  "typellm-provider.zip", "typellm-provider.zip.sha256", "typellm-provenance.json", "merged-pr-proof.json"}
+
+
+def select_provider(provider):
+    # Selected once by the CLI. Imports retain the exact legacy verifier default.
+    global SCHEMA, CONTRACT, EXPORTS, INPUTS, ENTRY, ARCHIVE, PROVENANCE, PROVENANCE_SCHEMA, MEMBERS
+    SCHEMA, CONTRACT, EXPORTS, INPUTS, ENTRY, ARCHIVE, PROVENANCE, PROVENANCE_SCHEMA = SPECS[provider]
+    MEMBERS = sorted([ENTRY, "manifest.json"])
+
+
+select_provider("legacy")
 
 
 class Refusal(Exception):
@@ -43,9 +64,9 @@ def module_contract(data):
 
 def manifest_for(data):
     module_contract(data)
-    return {"schema": SCHEMA, "contract": CONTRACT, "entry": "batch.mjs",
+    return {"schema": SCHEMA, "contract": CONTRACT, "entry": ENTRY,
             "exports": EXPORTS, "importClosure": [],
-            "files": [{"path": "batch.mjs", "bytes": len(data), "sha256": digest(data)}]}
+            "files": [{"path": ENTRY, "bytes": len(data), "sha256": digest(data)}]}
 
 
 def zip_bytes(rows):
@@ -62,28 +83,29 @@ def zip_bytes(rows):
 def assemble(source, out):
     data = source.read_bytes()
     manifest = manifest_for(data)
-    rows = {"batch.mjs": data, "manifest.json": (json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()}
+    rows = {ENTRY: data, "manifest.json": (json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()}
     payload = zip_bytes(rows)
     out.mkdir(parents=True, exist_ok=True)
     for name, value in rows.items():
         (out / name).write_bytes(value)
-    (out / "jev-provider.zip").write_bytes(payload)
-    (out / "jev-provider.zip.sha256").write_text(digest(payload) + "  jev-provider.zip\n")
+    (out / ARCHIVE).write_bytes(payload)
+    (out / (ARCHIVE + ".sha256")).write_text(digest(payload) + "  " + ARCHIVE + "\n")
     return digest(payload)
 
 
-def verify_bytes(payload, expected, contract=CONTRACT):
+def verify_bytes(payload, expected, contract=None):
+    contract = CONTRACT if contract is None else contract
     import io
     require(re.fullmatch(r"[0-9a-f]{64}", expected or "") is not None and digest(payload) == expected, "artifact_identity_mismatch")
     require(contract == CONTRACT, "unsupported_contract")
     try:
         with zipfile.ZipFile(io.BytesIO(payload)) as archive:
             names = archive.namelist()
-            require("batch.mjs" in names, "module_missing")
+            require(ENTRY in names, "module_missing")
             require(sorted(names) == MEMBERS, "manifest_mismatch")
             require(all(info.file_size < 1_048_576 and not (info.external_attr >> 16) & 0o170000 == 0o120000
                         for info in archive.infolist()), "manifest_mismatch")
-            data, raw = archive.read("batch.mjs"), archive.read("manifest.json")
+            data, raw = archive.read(ENTRY), archive.read("manifest.json")
             manifest = json.loads(raw)
             require(isinstance(manifest, dict) and manifest.get("schema") == SCHEMA and manifest.get("contract") == CONTRACT, "unsupported_contract")
             require(manifest == manifest_for(data), "manifest_mismatch")
@@ -109,37 +131,39 @@ def provenance(archive, proof_path, out, sha, tree, workflow_ref, run_id, run_at
     proof = json.loads(proof_path.read_text())
     proof_binding(proof, sha, tree)
     # The generic helper owns head/tree/review admission; bind its exact bytes.
-    result = {"schema": "jev-provider-provenance/1", "repository": "roccho-dev/ops",
-              "source": {"repository": "roccho-dev/ops", "commit": sha, "tree": tree},
+    result = {"schema": PROVENANCE_SCHEMA, "repository": "roccho-org/ops",
+              "source": {"repository": "roccho-org/ops", "commit": sha, "tree": tree},
               "producer": {"workflow_ref": workflow_ref, "run_id": run_id, "run_attempt": run_attempt},
-              "locator": f"https://github.com/roccho-dev/ops/releases/download/jev-provider-{sha}/jev-provider.zip",
+              "locator": f"https://github.com/roccho-org/ops/releases/download/jev-provider-{sha}/{ARCHIVE}",
               "inputDigests": {name: digest((root / name).read_bytes()) for name in INPUTS},
               "entrySha256": manifest["files"][0]["sha256"],
               "cross_host_bytes_reproducible": False,
-              "contract": CONTRACT, "artifact": {"name": "jev-provider.zip", "bytes": len(payload), "sha256": digest(payload)},
+              "contract": CONTRACT, "artifact": {"name": ARCHIVE, "bytes": len(payload), "sha256": digest(payload)},
               "manifestSha256": digest((json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()),
               "proof": {"name": "merged-pr-proof.json", "sha256": digest(proof_path.read_bytes())},
               "mergedProof": proof}
     out.write_text(json.dumps(result, sort_keys=True, separators=(",", ":")) + "\n")
 
 
-def verify_release(directory, sha):
-    require({p.name for p in directory.iterdir()} == {"jev-provider.zip", "jev-provider.zip.sha256", "merged-pr-proof.json", "provenance.json"}, "release_set_invalid")
-    payload = (directory / "jev-provider.zip").read_bytes()
+def verify_release(directory, sha, paired=False):
+    require(not paired or SCHEMA != "jev-provider/1", "unsupported_contract")
+    expected_files = PAIRED_MEMBERS if paired else {ARCHIVE, ARCHIVE + ".sha256", "merged-pr-proof.json", PROVENANCE}
+    require({p.name for p in directory.iterdir()} == expected_files, "release_set_invalid")
+    payload = (directory / ARCHIVE).read_bytes()
     expected = digest(payload)
-    require((directory / "jev-provider.zip.sha256").read_text().split() == [expected, "jev-provider.zip"], "artifact_identity_mismatch")
+    require((directory / (ARCHIVE + ".sha256")).read_text().split() == [expected, ARCHIVE], "artifact_identity_mismatch")
     _, manifest = verify_bytes(payload, expected)
-    record = json.loads((directory / "provenance.json").read_text())
+    record = json.loads((directory / PROVENANCE).read_text())
     proof_path = directory / "merged-pr-proof.json"
     proof = json.loads(proof_path.read_text())
-    require(record.get("schema") == "jev-provider-provenance/1" and record.get("contract") == CONTRACT, "provenance_invalid")
-    require(record.get("source", {}).get("repository") == "roccho-dev/ops" and record["source"].get("commit") == sha, "provenance_invalid")
+    require(record.get("schema") == PROVENANCE_SCHEMA and record.get("contract") == CONTRACT, "provenance_invalid")
+    require(record.get("source", {}).get("repository") == "roccho-org/ops" and record["source"].get("commit") == sha, "provenance_invalid")
     proof_binding(proof, sha, record["source"].get("tree"))
-    require(record.get("artifact") == {"name": "jev-provider.zip", "bytes": len(payload), "sha256": expected}, "provenance_invalid")
+    require(record.get("artifact") == {"name": ARCHIVE, "bytes": len(payload), "sha256": expected}, "provenance_invalid")
     require(record.get("proof") == {"name": "merged-pr-proof.json", "sha256": digest(proof_path.read_bytes())}
             and record.get("mergedProof") == proof, "proof_invalid")
     require(record.get("manifestSha256") == digest((json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n").encode()), "manifest_mismatch")
-    require(record.get("locator") == f"https://github.com/roccho-dev/ops/releases/download/jev-provider-{sha}/jev-provider.zip"
+    require(record.get("locator") == f"https://github.com/roccho-org/ops/releases/download/jev-provider-{sha}/{ARCHIVE}"
             and record.get("cross_host_bytes_reproducible") is False, "provenance_invalid")
     require(set(record.get("inputDigests", {})) == set(INPUTS)
             and all(re.fullmatch(r"[0-9a-f]{64}", v) for v in record["inputDigests"].values()), "provenance_invalid")
@@ -151,15 +175,15 @@ def selftest(source):
     with tempfile.TemporaryDirectory(prefix="jev-provider-") as directory:
         out = pathlib.Path(directory)
         expected = assemble(source, out)
-        payload = (out / "jev-provider.zip").read_bytes()
+        payload = (out / ARCHIVE).read_bytes()
         verify_bytes(payload, expected)
-        rows = {"batch.mjs": data, "manifest.json": (out / "manifest.json").read_bytes()}
+        rows = {ENTRY: data, "manifest.json": (out / "manifest.json").read_bytes()}
         wrong_contract = json.loads(rows["manifest.json"])
         wrong_contract["contract"] = "other/1"
         cases = [
             ("artifact_identity_mismatch", payload, "0" * 64, CONTRACT),
             ("module_missing", zip_bytes({"manifest.json": rows["manifest.json"]}), None, CONTRACT),
-            ("manifest_mismatch", zip_bytes({**rows, "batch.mjs": data + b"\n"}), None, CONTRACT),
+            ("manifest_mismatch", zip_bytes({**rows, ENTRY: data + b"\n"}), None, CONTRACT),
             ("unsupported_contract", payload, expected, "other/1"),
             ("unsupported_contract", zip_bytes({**rows, "manifest.json": json.dumps(wrong_contract).encode()}), None, CONTRACT),
         ]
@@ -171,28 +195,28 @@ def selftest(source):
             else:
                 raise Refusal("selftest_failure")
         fixture = out / "source-fixture"
-        for name, value in {name: (data if name.endswith("batch.mjs") else b"source fixture") for name in INPUTS}.items():
+        for name, value in {name: (data if name.endswith(ENTRY) else b"source fixture") for name in INPUTS}.items():
             path = fixture / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(value)
         release = out / "release"
         release.mkdir()
-        for name in ("jev-provider.zip", "jev-provider.zip.sha256"):
+        for name in (ARCHIVE, (ARCHIVE + ".sha256")):
             (release / name).write_bytes((out / name).read_bytes())
         sha, tree = "a" * 40, "b" * 40
         proof = {"merge_sha": sha, "merge_tree": tree, "reviewed_tree": tree, "reviewed_head": "c" * 40, "base": "proposals", "pr_number": 1, "r_exact_head_verdict_ref": "fixture", "merged_at": "fixture"}
         proof_path = release / "merged-pr-proof.json"
         proof_path.write_text(json.dumps(proof))
-        provenance(release / "jev-provider.zip", proof_path, release / "provenance.json", sha, tree, "fixture", "1", "1", fixture)
+        provenance(release / ARCHIVE, proof_path, release / PROVENANCE, sha, tree, "fixture", "1", "1", fixture)
         verify_release(release, sha)
         original = {path.name: path.read_bytes() for path in release.iterdir()}
-        record = json.loads(original["provenance.json"])
+        record = json.loads(original[PROVENANCE])
         bad_source = {**record, "source": {**record["source"], "commit": "d" * 40}}
         bad_input = {**record, "entrySha256": "0" * 64}
         release_cases = [("release_set_invalid", "extra", b"extra"),
-                         ("provenance_invalid", "provenance.json", json.dumps(bad_source).encode()),
+                         ("provenance_invalid", PROVENANCE, json.dumps(bad_source).encode()),
                          ("proof_invalid", "merged-pr-proof.json", json.dumps({**proof, "reviewed_head": "d" * 40}).encode()),
-                         ("source_identity_mismatch", "provenance.json", json.dumps(bad_input).encode())]
+                         ("source_identity_mismatch", PROVENANCE, json.dumps(bad_input).encode())]
         for reason, name, value in release_cases:
             (release / name).write_bytes(value)
             try:
@@ -210,6 +234,7 @@ def selftest(source):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--provider", choices=SPECS, default="legacy")
     sub = parser.add_subparsers(dest="command", required=True)
     create = sub.add_parser("assemble")
     create.add_argument("--source", type=pathlib.Path, required=True)
@@ -217,7 +242,7 @@ def main():
     verify = sub.add_parser("verify")
     verify.add_argument("--archive", type=pathlib.Path, required=True)
     verify.add_argument("--sha256", required=True)
-    verify.add_argument("--contract", default=CONTRACT)
+    verify.add_argument("--contract")
     verify.add_argument("--extract", type=pathlib.Path)
     check = sub.add_parser("selftest")
     check.add_argument("--source", type=pathlib.Path, required=True)
@@ -231,7 +256,9 @@ def main():
     release = sub.add_parser("verify-release")
     release.add_argument("--dir", type=pathlib.Path, required=True)
     release.add_argument("--sha", required=True)
+    release.add_argument("--paired", action="store_true")
     args = parser.parse_args()
+    select_provider(args.provider)
     try:
         if args.command == "assemble":
             result = {"status": "PASS", "sha256": assemble(args.source, args.out)}
@@ -239,7 +266,7 @@ def main():
             data, manifest = verify_bytes(args.archive.read_bytes(), args.sha256, args.contract)
             if args.extract:
                 args.extract.mkdir(parents=True, exist_ok=True)
-                (args.extract / "batch.mjs").write_bytes(data)
+                (args.extract / ENTRY).write_bytes(data)
                 (args.extract / "manifest.json").write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n")
             result = {"status": "PASS", "contract": manifest["contract"], "entrySha256": digest(data)}
         elif args.command == "provenance":
@@ -247,7 +274,7 @@ def main():
                        args.workflow_ref, args.run_id, args.run_attempt, args.root)
             result = {"status": "PASS"}
         elif args.command == "verify-release":
-            verify_release(args.dir, args.sha)
+            verify_release(args.dir, args.sha, args.paired)
             result = {"status": "PASS"}
         else:
             result = selftest(args.source)

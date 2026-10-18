@@ -11,6 +11,7 @@ const text = (x) => typeof x === 'string' && x.trim().length > 0;
 const reject = (cause) => ({ status: 'NOT_ADMITTED', cause, authority: false });
 const requests = new WeakSet();
 const nonnegative = (x) => Number.isFinite(x) && x >= 0;
+const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
 // Semlint result editions the comment composer binds exactly (v1 and the v14 bundle); all others are refused at admission.
 const COMPOSABLE_RESULTS = Object.freeze(['ops.semlint.result.v1', 'ops.semlint.result.v14']);
 // Exactly two closed receipt shapes: v2 (unchanged) and v3 (adds one per-case outer clock).
@@ -89,13 +90,16 @@ async function prepareIssueRequest(body, limits, validatePayload = null) {
 }
 
 // Shared result-size admission and registration of an admitted request, for every admission path.
-function finishRequest(prepared, identityOf) {
+// subjectAuxiliary is true only for a provided request already matched to the granted target's observed snapshot.
+function finishRequest(prepared, identityOf, subjectAuxiliary = false) {
   // Only result editions this composer binds exactly may be admitted; anything else is refused before any paid call.
   if (prepared.expected.some((x) => !COMPOSABLE_RESULTS.includes(x.resultSchema))) return reject('RESULT_EDITION_NOT_COMPOSABLE');
-  // A comment carries no audited translation: any v14 English auxiliary needs the frozen owner route.
+  // The runtime cannot verify an English rendering. Outside a granted provided request, any v14 English auxiliary
+  // needs the frozen owner route; context auxiliaries are never accepted from a comment.
   // Checked on the Core-admitted snapshot, before identity, claim, owner, provider or comment.
   if (prepared.plan.cases.some(({ input }) => input.schema === 'ops.semlint.input.v14'
-    && [input.subject, ...input.context].some((row) => row.englishAuxiliary !== null))) return reject('AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE');
+    && ((!subjectAuxiliary && input.subject.englishAuxiliary !== null)
+      || input.context.some((row) => row.englishAuxiliary !== null)))) return reject('AUDITED_AUXILIARY_REQUIRES_OWNER_ROUTE');
   const identity = Object.freeze(identityOf(prepared.planDigest));
   const request = Object.freeze({ status: 'ADMITTED', identity, requestDigest: digest(identity), prepared, authority: false });
   // Known repeated record/identity strings plus a conservative scalar/accounting reserve per case.
@@ -121,11 +125,23 @@ function finishRequest(prepared, identityOf) {
 // Org Secret projection/target is outside this source; no executable, argv or program selector.
 export const ACTIONS_CONFIG_KEYS = ['trustedCallers', 'allowedChecks', 'context', 'subjectScope', 'limits', 'runRanges', 'targets', 'provider'];
 const RANGE_KEYS = ['repository', 'workflowId', 'path', 'first', 'last', 'reservedCallsPerRun'];
+// Retired provided targets never regain a grant (legacy PR511, ended trial PR520, replaced PR522).
+const RETIRED_PROVIDED = Object.freeze([511, 520, 522]);
+// An optional range target is one closed {issue} or {pullRequest} of the range's own repository.
+const rangeTarget = (t) => exact(t, ['issue']) && positive(t.issue) || exact(t, ['pullRequest']) && positive(t.pullRequest);
+const scopes = (r, kind, number) => (Object.hasOwn(r.target, 'pullRequest')
+  ? kind === 'pull-request' && r.target.pullRequest === number : kind === 'issue' && r.target.issue === number);
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const REPO_PATH = /^(?!.*(?:^|\/)\.\.?(?:\/|$))[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*$/;
 const WORKFLOW_PATH = /^\.github\/workflows\/[A-Za-z0-9._-]+\.ya?ml$/;
 const freezeDeep = (x) => { if (x && typeof x === 'object') { Object.values(x).forEach(freezeDeep); Object.freeze(x); } return x; };
 const databaseId = (x) => typeof x === 'string' && /^[1-9][0-9]*$/.test(x);
+// An Issue target may name one read-only public subject Issue that is evaluated instead of the origin body. The
+// subject is not an execution target or provider-receipt member: Org, command, range, claim, key and result sink stay
+// with the origin. It may not be the origin Issue itself.
+const subjectGrantValid = (s, origin) => exact(s, ['repository', 'repositoryId', 'kind', 'number'])
+  && REPOSITORY.test(s.repository) && databaseId(s.repositoryId) && s.kind === 'issue' && positive(s.number)
+  && !((s.repository === origin.repository || s.repositoryId === origin.repositoryId) && s.number === origin.issue);
 function providerValid(value) {
   if (value === null) return true;
   if (!exact(value, ['repository', 'revision', 'path', 'receipt']) || !REPOSITORY.test(value.repository) || !sha(value.revision)
@@ -159,13 +175,15 @@ export function validateActionsConfig(value) {
     || new Set(config.context.map((c) => JSON.stringify([c.role, c.path]))).size !== config.context.length
     || !providerValid(config.provider)
     || !Array.isArray(config.targets) || !config.targets.every((target) =>
-      (exact(target, ['repository', 'repositoryId', 'issue']) && positive(target.issue)
+      ((exact(target, ['repository', 'repositoryId', 'issue'])
+        || exact(target, ['repository', 'repositoryId', 'issue', 'subject']) && subjectGrantValid(target.subject, target)) && positive(target.issue)
         || exact(target, ['repository', 'repositoryId', 'pullRequest']) && positive(target.pullRequest))
       && REPOSITORY.test(target.repository) && databaseId(target.repositoryId))
     || new Set(config.targets.map((target) => JSON.stringify(Object.hasOwn(target, 'pullRequest')
       ? [target.repository, 'pull-request', target.pullRequest] : [target.repository, 'issue']))).size !== config.targets.length
     || config.targets.filter((target) => Object.hasOwn(target, 'pullRequest')).length > 2
-    || !Array.isArray(ranges) || !ranges.every((r) => exact(r, RANGE_KEYS) && REPOSITORY.test(r.repository) && positive(r.workflowId)
+    || !Array.isArray(ranges) || !ranges.every((r) => (exact(r, RANGE_KEYS) || exact(r, [...RANGE_KEYS, 'target']) && rangeTarget(r.target))
+      && REPOSITORY.test(r.repository) && positive(r.workflowId)
       && WORKFLOW_PATH.test(r.path) && positive(r.first) && positive(r.last) && r.first <= r.last
       && positive(r.reservedCallsPerRun) && r.reservedCallsPerRun <= ENTRY_LIMITS.maxCalls)) throw new Error('INVALID_ACTIONS_CONFIG');
   for (const target of config.targets) {
@@ -180,13 +198,27 @@ export function validateActionsConfig(value) {
       throw new Error('INVALID_ACTIONS_CONFIG');
     }
   }
+  // At most one provided grant in total: a PR body, or an origin Issue whose own subject grant (and so its own scoped
+  // range) names the evaluated Issue. Retirement numbers are PR numbers and apply to the PR form only.
   if (Object.hasOwn(config, 'providedRequestTargets') && (!Array.isArray(config.providedRequestTargets)
     || config.providedRequestTargets.length > 1 || !config.providedRequestTargets.every((grant) =>
       exact(grant, ['repository', 'repositoryId', 'pullRequest']) && positive(grant.pullRequest)
-      && ![511, 520].includes(grant.pullRequest)
+      && !RETIRED_PROVIDED.includes(grant.pullRequest)
       && config.targets.some((target) => Object.hasOwn(target, 'pullRequest')
         && target.repository === grant.repository && target.repositoryId === grant.repositoryId
-        && target.pullRequest === grant.pullRequest)))) throw new Error('INVALID_ACTIONS_CONFIG');
+        && target.pullRequest === grant.pullRequest)
+      || exact(grant, ['repository', 'repositoryId', 'issue']) && positive(grant.issue)
+      && config.targets.some((target) => Object.hasOwn(target, 'subject')
+        && target.repository === grant.repository && target.repositoryId === grant.repositoryId
+        && target.issue === grant.issue)))) throw new Error('INVALID_ACTIONS_CONFIG');
+  // A scoped range binds an already configured target of its own repository; it never creates a target.
+  if (ranges.some((r) => Object.hasOwn(r, 'target') && !config.targets.some((t) => t.repository === r.repository
+    && (Object.hasOwn(r.target, 'pullRequest') ? t.pullRequest === r.target.pullRequest : t.issue === r.target.issue)))) {
+    throw new Error('INVALID_ACTIONS_CONFIG');
+  }
+  // A subject-bearing target runs only within its own target-scoped range, never an unscoped legacy range.
+  if (config.targets.some((t) => Object.hasOwn(t, 'subject') && !ranges.some((r) => r.repository === t.repository
+    && Object.hasOwn(r, 'target') && r.target.issue === t.issue))) throw new Error('INVALID_ACTIONS_CONFIG');
   // Reservations never overlap for one native workflow identity, so a run number is admitted by at most one.
   for (const a of ranges) for (const b of ranges) {
     if (a !== b && a.repository === b.repository && a.workflowId === b.workflowId && a.first <= b.last && b.first <= a.last) throw new Error('INVALID_ACTIONS_CONFIG');
@@ -208,13 +240,24 @@ export function selectActionsTarget(config, repository, number, targetKind = 'is
 // Hard aggregate bound on attempted consumer provider calls: a provider call is planned only for a
 // first-attempt run whose native repository/workflow id/path/run number fall in one reviewed range, and
 // each run is capped at min(range.reservedCallsPerRun, limits.maxCalls). Total <= sum(width x reserved).
-export function selectRunRange(config, run) {
+// Once a repository has a target-scoped range, every run there needs the caller's independently observed
+// {kind, number} target (event or snapshot, never the range): a scoped range admits only its target, and a
+// target with a scoped range is never admitted by an unscoped legacy range.
+export function selectRunRange(config, run, target) {
   if (!exact(run, ['repository', 'workflowId', 'path', 'number', 'attempt', 'id'])
     || !positive(run.workflowId) || !positive(run.number) || !positive(run.attempt) || !positive(run.id)) return { cause: 'RUN_UNKNOWN' };
   if (run.attempt !== 1) return { cause: 'RERUN_NOT_PAID' };
   const hits = config.runRanges.filter((r) => r.repository === run.repository && r.workflowId === run.workflowId
     && r.path === run.path && r.first <= run.number && run.number <= r.last);
   if (hits.length !== 1) return { cause: 'NO_RANGE' };
+  const scoped = config.runRanges.filter((r) => Object.hasOwn(r, 'target') && r.repository === run.repository);
+  if (scoped.length) {
+    if (!exact(target, ['kind', 'number']) || !['issue', 'pull-request'].includes(target.kind) || !positive(target.number)) {
+      return { cause: 'RANGE_TARGET_UNKNOWN' };
+    }
+    if (Object.hasOwn(hits[0], 'target') ? !scopes(hits[0], target.kind, target.number)
+      : scoped.some((r) => scopes(r, target.kind, target.number))) return { cause: 'RANGE_TARGET_MISMATCH' };
+  }
   return { range: hits[0], callsPerRun: Math.min(hits[0].reservedCallsPerRun, config.limits.maxCalls) };
 }
 
@@ -226,6 +269,8 @@ const editSignals = (x) => (x.lastEditedAt === null || time(x.lastEditedAt)) && 
   && Number.isSafeInteger(x.userContentEditsTotal) && x.userContentEditsTotal >= 0;
 export const ISSUE_KEYS = ['number', 'nodeId', 'body', 'lastEditedAt', 'includesCreatedEdit', 'userContentEditsTotal'];
 export const COMMAND_KEYS = ['databaseId', 'nodeId', 'author', 'body', 'lastEditedAt', 'includesCreatedEdit', 'userContentEditsTotal'];
+// A granted subject snapshot: the Issue keys plus the repository identity observed in the same read.
+export const SUBJECT_KEYS = ['repository', 'repositoryId', 'isPrivate', ...ISSUE_KEYS];
 export function subjectRevision(issue) {
   return [issue.nodeId, 'sha256:' + sha256(issue.body), issue.lastEditedAt ?? 'unedited',
     String(issue.userContentEditsTotal), String(issue.includesCreatedEdit)].join('|');
@@ -237,18 +282,23 @@ export function subjectRevision(issue) {
 export const COMMAND_OBSERVATION = 'ACTIONS_TRUSTED_LITERAL_COMMAND';
 export const PROVIDED_COMMAND_OBSERVATION = 'ACTIONS_TRUSTED_PROVIDED_REQUEST';
 
-function providedPayloadMatches(payload, input, revision) {
+// The subject may carry one English rendering of the whole observed body ({text, sourceSha256}, CJK-free). The runtime
+// checks bytes only; fidelity of the rendering stays with the trusted requester's owner route and posting decision.
+// CJK may appear only in the original subject content; every other field, including the English, stays CJK-free.
+// `expected` is the evaluated text {ref, revision, scope, body}: the PR body itself, or the granted subject Issue.
+function providedPayloadMatches(payload, expected) {
   if (!Array.isArray(payload.cases) || payload.cases.length !== 1) return false;
   const value = payload.cases[0]?.input, subject = value?.subject;
+  const aux = subject?.englishAuxiliary;
+  if (!(aux === null || exact(aux, ['text', 'sourceSha256']) && text(aux.text) && aux.sourceSha256 === sha256(expected.body))) return false;
+  const { content, ...outsideOriginal } = subject;
   return value?.schema === 'ops.semlint.input.v14' && subject?.kind === 'log-entry'
-    && subject.ref === `https://github.com/${input.repository}/pull/${input.issue.number}`
-    && subject.revision === revision && subject.scope === 'entire body of the approved pull request at the observed revision'
-    && subject.content === input.issue.body && subject.sha256 === sha256(input.issue.body)
-    && subject.evaluationSpan?.startByte === 0 && subject.evaluationSpan.endByte === Buffer.byteLength(input.issue.body, 'utf8')
-    && subject.englishAuxiliary === null && Array.isArray(value.context)
-    && value.context.every((row) => row?.englishAuxiliary === null)
+    && subject.ref === expected.ref && subject.revision === expected.revision && subject.scope === expected.scope
+    && content === expected.body && subject.sha256 === sha256(expected.body)
+    && subject.evaluationSpan?.startByte === 0 && subject.evaluationSpan.endByte === Buffer.byteLength(expected.body, 'utf8')
+    && Array.isArray(value.context) && value.context.every((row) => row?.englishAuxiliary === null)
     && Array.isArray(value.checks) && value.checks.length > 0 && value.checks.length <= 6
-    && !/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(JSON.stringify(value));
+    && !CJK.test(JSON.stringify({ ...value, subject: outsideOriginal }));
 }
 
 export async function admitIssueCommand(inputValue, configValue) {
@@ -256,8 +306,12 @@ export async function admitIssueCommand(inputValue, configValue) {
   try { config = validateActionsConfig(configValue); } catch (error) { return reject(error.message); }
   try {
     input = snapshotJson(inputValue);
+    const subject = input.subject;
     if (!exact(input, ['repository', 'owner', 'sha', 'eventBody', 'run', 'issue', 'command', 'context',
-      ...(Object.hasOwn(input, 'targetKind') ? ['targetKind'] : [])])
+      ...(Object.hasOwn(input, 'targetKind') ? ['targetKind'] : []), ...(Object.hasOwn(input, 'subject') ? ['subject'] : [])])
+      || (Object.hasOwn(input, 'subject') && (!exact(subject, SUBJECT_KEYS) || !REPOSITORY.test(subject.repository)
+        || !databaseId(subject.repositoryId) || typeof subject.isPrivate !== 'boolean' || !positive(subject.number)
+        || !text(subject.nodeId) || typeof subject.body !== 'string' || !editSignals(subject)))
       || (Object.hasOwn(input, 'targetKind') && input.targetKind !== 'pull-request')
       || !REPOSITORY.test(input.repository) || !text(input.owner) || !sha(input.sha) || !text(input.eventBody)
       || !exact(input.issue, ISSUE_KEYS) || !positive(input.issue.number) || !text(input.issue.nodeId)
@@ -271,41 +325,75 @@ export async function admitIssueCommand(inputValue, configValue) {
   const { issue, command } = input;
   const targetKind = input.targetKind ?? 'issue';
   const pullRequest = targetKind === 'pull-request';
-  if (!selectActionsTarget(config, input.repository, issue.number, targetKind)) return reject('TARGET_NOT_AUTHORIZED');
+  const target = selectActionsTarget(config, input.repository, issue.number, targetKind);
+  if (!target) return reject('TARGET_NOT_AUTHORIZED');
+  // Only the reviewed target names a subject; the snapshot must be that exact public Issue in that exact repository.
+  const grant = target.subject, subject = input.subject;
+  if (!grant !== !subject) return reject(grant ? 'SUBJECT_UNKNOWN' : 'SUBJECT_NOT_GRANTED');
+  if (grant && (subject.repository !== grant.repository || subject.repositoryId !== grant.repositoryId
+    || subject.number !== grant.number || subject.isPrivate !== false)) return reject('SUBJECT_MISMATCH');
   if (!config.trustedCallers.includes(command.author)) return reject('COMMAND_NOT_AUTHORIZED');
   const provided = input.eventBody.startsWith(REQUEST_PREFIX);
+  // Only an explicit Issue provided grant lets a provided request evaluate the origin's granted subject Issue.
+  const issueGranted = !pullRequest && grant !== undefined && config.providedRequestTargets?.some((g) =>
+    g.repository === input.repository && g.issue === issue.number) === true;
+  if (provided && grant && !issueGranted) return reject('PROVIDED_WITH_SUBJECT_UNSUPPORTED');
   if (input.eventBody !== '/jev-evaluate' && !provided) return reject('NOT_A_REQUEST');
-  if (provided && (!pullRequest || !config.providedRequestTargets?.some((grant) =>
-    grant.repository === input.repository && grant.pullRequest === issue.number))) return reject('PROVIDED_REQUEST_NOT_AUTHORIZED');
+  const granted = pullRequest && config.providedRequestTargets?.some((grant) =>
+    grant.repository === input.repository && grant.pullRequest === issue.number) === true;
+  if (provided && !granted && !issueGranted) return reject('PROVIDED_REQUEST_NOT_AUTHORIZED');
   if (command.body !== input.eventBody) return reject('COMMAND_DRIFT');
   if (command.lastEditedAt !== null || command.includesCreatedEdit || command.userContentEditsTotal !== 0) return reject('EDITED');
-  const selected = selectRunRange(config, { ...input.run, repository: input.repository });
+  const selected = selectRunRange(config, { ...input.run, repository: input.repository }, { kind: targetKind, number: issue.number });
   if (!selected.range) return reject(selected.cause);
+  // The top-level identity keeps describing the origin Issue (issue, issueNodeId, subjectRevision). With a grant, the
+  // evaluated Issue is the subject: the semlint input and identity.subject carry its ref and revision instead.
   const revision = subjectRevision(issue);
+  const evaluatedRevision = grant ? subjectRevision(subject) : revision;
   const semlintInput = { schema: 'ops.semlint.input.v1',
-    subject: { kind: 'log-entry', ref: `https://github.com/${input.repository}/${pullRequest ? 'pull' : 'issues'}/${issue.number}`, revision,
+    subject: { kind: 'log-entry', ref: grant ? `https://github.com/${grant.repository}/issues/${grant.number}`
+      : `https://github.com/${input.repository}/${pullRequest ? 'pull' : 'issues'}/${issue.number}`, revision: evaluatedRevision,
       scope: pullRequest ? 'entire body of the approved pull request at the observed revision' : config.subjectScope,
-      content: issue.body, sha256: sha256(issue.body) },
+      content: grant ? subject.body : issue.body, sha256: sha256(grant ? subject.body : issue.body) },
     context: input.context.map((c) => ({ role: c.role, ref: `${c.path}@${input.sha}`, revision: input.sha, content: c.content, sha256: sha256(c.content) })),
     checks: [...config.allowedChecks] };
   let prepared;
   if (provided) {
+    // The provided subject must be the evaluated text: the PR body, or on the Issue route the granted subject Issue at its
+    // own revision and the configured scope. The origin body, revision or digest never stand in for it.
+    const expected = issueGranted
+      ? { ref: `https://github.com/${grant.repository}/issues/${grant.number}`, revision: evaluatedRevision, scope: config.subjectScope, body: subject.body }
+      : { ref: `https://github.com/${input.repository}/pull/${issue.number}`, revision,
+        scope: 'entire body of the approved pull request at the observed revision', body: issue.body };
     const parsed = await prepareIssueRequest(command.body, { ...config.limits, maxCases: 1, maxCalls: Math.min(1, selected.callsPerRun) },
-      (payload) => providedPayloadMatches(payload, input, revision));
+      (payload) => providedPayloadMatches(payload, expected));
     if (parsed.cause) return reject(parsed.cause);
     prepared = parsed.prepared;
     if (prepared.expected[0].sendable !== prepared.plan.cases[0].input.checks.length) return reject('PROVIDED_CONTEXT_INCOMPLETE');
-  } else try {
-    prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: [{ id: targetKind, input: semlintInput }] },
-      { ...config.limits, maxCalls: selected.callsPerRun });
-  } catch { return reject('INVALID_REQUEST_OR_ADMISSION'); }
+  } else {
+    // A literal v1 request sends the original text unrendered; on a target granted the provided route, CJK input
+    // is refused here rather than evaluated unsupported. Legacy literal targets keep their behavior. The refusal
+    // keeps this admission snapshot's subject identity (node ID and exact revision, no body text). CJK anywhere in
+    // the input refuses, so the observation names the subject; it does not say the body itself is CJK. On the Issue route
+    // the origin pair is joined by the evaluated subject's own pair; a subject grant alone keeps the legacy passthrough.
+    if ((granted || issueGranted) && CJK.test(JSON.stringify(semlintInput))) {
+      return { ...reject('UNSUPPORTED_CJK'), observed: { issueNodeId: issue.nodeId, subjectRevision: revision,
+        ...(issueGranted ? { subject: { nodeId: subject.nodeId, revision: evaluatedRevision } } : {}) } };
+    }
+    try {
+      prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: [{ id: targetKind, input: semlintInput }] },
+        { ...config.limits, maxCalls: selected.callsPerRun });
+    } catch { return reject('INVALID_REQUEST_OR_ADMISSION'); }
+  }
   return finishRequest(prepared, (planDigest) => ({
     repository: input.repository, issue: issue.number, issueNodeId: issue.nodeId, subjectRevision: revision,
+    ...(grant ? { subject: { repository: grant.repository, repositoryId: grant.repositoryId, kind: 'issue', number: grant.number,
+      nodeId: subject.nodeId, revision: evaluatedRevision } } : {}),
     ...(pullRequest ? { targetKind } : {}),
     commentId: command.databaseId, nodeId: command.nodeId, author: command.author, bodyDigest: digest(command.body),
     observation: provided ? PROVIDED_COMMAND_OBSERVATION : COMMAND_OBSERVATION, executionSource: input.sha, configDigest: digest(config),
     run: { id: input.run.id, number: input.run.number, attempt: input.run.attempt, workflowId: input.run.workflowId },
-    planDigest }));
+    planDigest }), provided);
 }
 
 // Pure prior derivation from provider-native state only: claim reactions of the source-constant kind on the

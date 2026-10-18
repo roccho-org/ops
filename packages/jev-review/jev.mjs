@@ -1,5 +1,5 @@
 import { JEV_MODEL, validateJevBudget } from './core.mjs';
-import { bindJev } from '../jev/src/core.mjs';
+import { bindJev, postJevQuestions } from '../jev/src/core.mjs';
 
 const ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
 
@@ -69,15 +69,15 @@ export function bindJevReview({ key, fetchImpl = fetch } = {}) {
     if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) throw new Error('INVALID_TIMEOUT');
     if (!questions || !Object.keys(questions).length) throw new Error('EMPTY_JEV_QUESTIONS');
     validateJevBudget(state, questions);
-    let data;
-    try { data = await provider.post({ model: JEV_MODEL, state, questions }, { deadlineMs: timeoutMs }); }
+    let result;
+    try { result = await postJevQuestions(provider, { model: JEV_MODEL, state, questions }, { deadlineMs: timeoutMs }); }
     catch (error) {
       if (error?.code === 'provider_http_error') throw new Error(`JEV_HTTP_${error.status}`);
       if (error?.code === 'provider_invalid_response') throw new Error('INVALID_JEV_JSON');
       if (error?.code === 'provider_timeout') throw new Error('JEV_PROVIDER_TIMEOUT');
       throw new Error('JEV_PROVIDER_FAILED');
     }
-    return validateJevResponse(data, questions);
+    return validateJevResponse(result.data, result.questions);
   };
 }
 
