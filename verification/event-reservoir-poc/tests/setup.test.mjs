@@ -26,7 +26,7 @@ async function context(t) {
   assert.equal(dirname(dir), resolve(tmpdir()));
   t.after(async () => {
     const absent = error => { if (error.code !== 'ENOENT') throw error; };
-    for (const path of ['handoff.jsonl', 'bridge.mjs', 'full/marker']) await unlink(join(dir, path)).catch(absent);
+    for (const path of ['handoff.jsonl', 'bridge.mjs', 'private/dummy', 'full/marker']) await unlink(join(dir, path)).catch(absent);
     for (const path of ['private', 'full', 'weak']) await rmdir(join(dir, path)).catch(absent);
     await rmdir(dir);
   });
@@ -202,32 +202,22 @@ test('Windows entrypoint protects new or empty private directory and refuses non
   const quote = value => `'${value.replaceAll("'", "''")}'`;
   const command = `
     . ${quote(script)}
-    $original = Get-Acl -LiteralPath ${quote(dir)}
-    try {
-      New-PrivateSetupDirectory ${quote(privateDir)}
-      New-PrivateSetupDirectory ${quote(privateDir)}
-      $full = Join-Path ${quote(dir)} full
-      New-Item -ItemType Directory -Path $full | Out-Null
-      Set-Content -LiteralPath (Join-Path $full marker) -Value dummy
-      try { New-PrivateSetupDirectory $full; exit 2 }
-      catch { if ($_.Exception.Message -ne 'SETUP_DIRECTORY_EXISTS_STOP') { exit 3 } }
-      $weak = Join-Path ${quote(dir)} weak
-      New-Item -ItemType Directory -Path $weak | Out-Null
-      try { New-PrivateSetupDirectory $weak; exit 4 }
-      catch { if ($_.Exception.Message -ne 'PRIVATE_DIRECTORY_ACL_FAILED') { exit 5 } }
-      Write-Output ACL_OK
-    } finally {
-      # Restore this disposable fixture's ACL so an AppContainer can clean up.
-      if (Test-Path -LiteralPath ${quote(privateDir)}) {
-        $cleanup = [System.Security.AccessControl.DirectorySecurity]::new()
-        $cleanup.SetOwner([System.Security.Principal.WindowsIdentity]::GetCurrent().User)
-        $cleanup.SetAccessRuleProtection($true, $false)
-        foreach ($rule in $original.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
-          $cleanup.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($rule.IdentityReference, $rule.FileSystemRights, $rule.InheritanceFlags, $rule.PropagationFlags, $rule.AccessControlType))
-        }
-        Set-Acl -LiteralPath ${quote(privateDir)} -AclObject $cleanup
-      }
-    }
+    New-PrivateSetupDirectory ${quote(privateDir)}
+    New-PrivateSetupDirectory ${quote(privateDir)}
+    $dummy = Join-Path ${quote(privateDir)} dummy
+    Set-Content -LiteralPath $dummy -Value dummy
+    if ((Get-Content -LiteralPath $dummy -Raw).Trim() -ne 'dummy') { exit 6 }
+    Remove-Item -LiteralPath $dummy
+    $full = Join-Path ${quote(dir)} full
+    New-Item -ItemType Directory -Path $full | Out-Null
+    Set-Content -LiteralPath (Join-Path $full marker) -Value dummy
+    try { New-PrivateSetupDirectory $full; exit 2 }
+    catch { if ($_.Exception.Message -ne 'SETUP_DIRECTORY_EXISTS_STOP') { exit 3 } }
+    $weak = Join-Path ${quote(dir)} weak
+    New-Item -ItemType Directory -Path $weak | Out-Null
+    try { New-PrivateSetupDirectory $weak; exit 4 }
+    catch { if ($_.Exception.Message -ne 'PRIVATE_DIRECTORY_ACL_FAILED') { exit 5 } }
+    Write-Output ACL_OK
   `;
   const result = spawnSync('pwsh', ['-NoProfile', '-NonInteractive', '-Command', command], { encoding: 'utf8' });
   assert.equal(result.status, 0, `PowerShell ACL self-check must succeed without input or network: ${result.stderr}`);
