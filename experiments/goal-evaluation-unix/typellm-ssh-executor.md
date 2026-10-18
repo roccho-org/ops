@@ -2,12 +2,29 @@
 
 `bindTypeLLMSSHExecutor` supplies `executeTyped` to the existing
 `bindTypeLLMExecutorPorts`. It starts the existing SSH executable with a strict
-alias and a fixed remote command: `ops-typellm --envs-sha <40hex> --ops-sha
+alias and, by default, the fixed remote command: `ops-typellm --envs-sha <40hex> --ops-sha
 <40hex> --response-metadata`. No request, key, arbitrary remote program, shell
 expression or caller-selected child argument enters that command. Local
 `shell: false` does not remove SSH's remote shell: the remote words are fixed
-constants and validated lowercase hexadecimal pins. Existing SSH configuration
+constants, validated lowercase hexadecimal pins and the closed launcher path below. Existing SSH configuration
 and authentication remain in use; they are not replaced by this adapter.
+
+The optional `remoteLauncherPath` selects only an absolute path of the form
+`/nix/store/<32 lowercase alphanumeric characters>-ops-typellm/bin/ops-typellm`.
+Other programs, directories, extra arguments, whitespace and shell expressions are
+refused before a call claim or spawn. The selected path replaces only the command
+word; both SHA flags and `--response-metadata` remain fixed. Omitting the option
+keeps the existing PATH literal and original binding-manifest bytes. Supplying it
+adds `remoteLauncherPath` to that persisted binding. Changing between a literal
+and an absolute path, or between store paths, cannot rebind an existing run.
+Each receipt records `declaredRemoteLauncherPath` (null for the default literal).
+
+A path matching this shape remains **DECLARED_ONLY**. Before use, independently
+admit the exact resources source, realized output/derivation and launcher script
+SHA, target executable and both envs/ops pins. Realizing that standalone output
+is a separate target operation with its own build effects and burden. This adapter
+does not realize it, select a profile generation, replace Base/Core/Pi, initialize
+an identity or certify that a supplied path came from the accepted source.
 
 Before a real call, separately verify the alias's actual configuration (including
 ProxyCommand/Match exec), existing trusted host key, installed command resolution,

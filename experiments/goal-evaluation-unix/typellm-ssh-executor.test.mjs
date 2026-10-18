@@ -413,3 +413,83 @@ test('SSH executor cancellation/EPIPE/spawn failure remain failed consumed calls
   const fresh = h.config({ runId: spawnFailure.settings.runId });
   await assert.rejects(() => h.call(fresh), errorIs('executor_contract_error'));
 });
+
+
+test('SSH executor retains the legacy literal manifest when no absolute launcher is supplied', async t => {
+  const h = harness(t), configured = h.config();
+  const legacyArgv = ['-T', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes', '--',
+    'fixture-oci', 'ops-typellm', '--envs-sha', SHA_ENVS, '--ops-sha', SHA_OPS, '--response-metadata'];
+  const legacy = JSON.stringify({ sshPath: configured.settings.sshPath, host: 'fixture-oci',
+    envsSha: SHA_ENVS, opsSha: SHA_OPS, runId: configured.settings.runId,
+    argv: legacyArgv, deadlineMs: 1000, maxCalls: 5 }) + '\n';
+  const manifestPath = path.join(h.ledgerDir, configured.settings.runId + '.binding.json');
+  fs.writeFileSync(manifestPath, legacy, { flag: 'wx', mode: 0o600 });
+  assert.equal(configured.executor.bindingSha256, hash(legacy));
+  await finite(h.call(configured));
+  assert.deepEqual(h.spawns[0].argv, legacyArgv);
+  assert.equal(fs.readFileSync(manifestPath, 'utf8'), legacy);
+  assert.equal(lastReceipt(configured.executor).declaredRemoteLauncherPath, null);
+});
+
+test('SSH executor binds one closed absolute launcher as a declaration in argv, manifest and receipt', async t => {
+  const h = harness(t);
+  const launcher = '/nix/store/' + 'a'.repeat(32) + '-ops-typellm/bin/ops-typellm';
+  const configured = h.config({ remoteLauncherPath: launcher });
+  // Changing caller options after construction cannot reselect the remote program.
+  configured.settings.remoteLauncherPath = '/nix/store/' + 'b'.repeat(32) + '-ops-typellm/bin/ops-typellm';
+  await finite(h.call(configured));
+  assert.deepEqual(h.spawns[0].argv, ['-T', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes', '--',
+    'fixture-oci', launcher, '--envs-sha', SHA_ENVS, '--ops-sha', SHA_OPS, '--response-metadata']);
+  assert.equal(h.spawns[0].options.shell, false);
+  const manifestPath = path.join(h.ledgerDir, configured.settings.runId + '.binding.json');
+  const manifest = fs.readFileSync(manifestPath, 'utf8');
+  assert.equal(JSON.parse(manifest).remoteLauncherPath, launcher);
+  assert.equal(JSON.parse(manifest).argv[7], launcher);
+  const record = lastReceipt(configured.executor);
+  assert.equal(record.declaredRemoteLauncherPath, launcher);
+  assert.equal(record.bindingSha256, hash(manifest));
+  assert.equal(record.bindingAuthority, 'DECLARED_ONLY');
+  assert.equal(record.remoteEffects, 'UNKNOWN');
+});
+
+test('SSH executor refuses other remote paths, shell words and malformed optional values before claiming or spawning', t => {
+  const h = harness(t), configured = h.config();
+  const launcher = '/nix/store/' + 'a'.repeat(32) + '-ops-typellm/bin/ops-typellm';
+  const bad = [undefined, null, false, 1, {}, [], '', 'ops-typellm', '/tmp/ops-typellm',
+    launcher + ' --help', launcher + ';x', launcher + '&x', launcher + '|x', launcher + '$(x)',
+    launcher + String.fromCharCode(96), launcher + '\n', launcher + '\r\n', launcher + '\0',
+    launcher + '/extra', ' ' + launcher, launcher + ' ', launcher.replace('/bin/', '/../bin/'),
+    launcher.replace('/store/', '//store/'), launcher.replace('a'.repeat(32), 'a'.repeat(31)),
+    launcher.replace('a'.repeat(32), 'a'.repeat(33)), launcher.replace('a'.repeat(32), 'A'.repeat(32)),
+    launcher.replace('-ops-typellm/', '-ops-jev/'), launcher.replace('/bin/ops-typellm', '/bin/typellm')];
+  for (const remoteLauncherPath of bad)
+    assert.throws(() => bindTypeLLMSSHExecutor({ ...configured.settings, remoteLauncherPath }),
+      /INVALID_TYPELLM_SSH_EXECUTOR/);
+  assert.deepEqual(fs.readdirSync(h.ledgerDir), []);
+  assert.equal(h.spawns.length, 0);
+});
+
+test('SSH executor refuses absolute launcher rebinding within the persisted run across factories and kinds', async t => {
+  const h = harness(t);
+  const a = '/nix/store/' + 'a'.repeat(32) + '-ops-typellm/bin/ops-typellm';
+  const b = '/nix/store/' + 'b'.repeat(32) + '-ops-typellm/bin/ops-typellm';
+  for (const [from, to] of [[null, a], [a, b], [a, null]]) {
+    const first = h.config(from === null ? {} : { remoteLauncherPath: from });
+    await finite(h.call(first));
+    const manifestPath = path.join(h.ledgerDir, first.settings.runId + '.binding.json');
+    const before = fs.readFileSync(manifestPath);
+    const patch = { runId: first.settings.runId, ...(to === null ? {} : { remoteLauncherPath: to }) };
+    const changed = h.config(patch);
+    assert.notEqual(changed.executor.bindingSha256, first.executor.bindingSha256);
+    await assert.rejects(() => h.call(changed, request(), 2, 'judgment'), errorIs('executor_contract_error'));
+    const failed = lastReceipt(changed.executor);
+    assert.equal(failed.declaredRemoteLauncherPath, to);
+    assert.equal(failed.spawnInvocations, 0);
+    assert.equal(failed.remoteEffects, 'NOT_DISPATCHED_BY_EXECUTOR');
+    assert.deepEqual(fs.readFileSync(manifestPath), before);
+    const duplicate = h.config(patch);
+    await assert.rejects(() => h.call(duplicate, request(), 1, 'judgment'), errorIs('executor_contract_error'));
+    assert.deepEqual(duplicate.executor.receipts(), []);
+  }
+  assert.equal(h.spawns.length, 3);
+});
