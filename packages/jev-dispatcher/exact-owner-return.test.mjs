@@ -437,3 +437,45 @@ test('host return timeout finalizes once and late replies cannot change it', asy
   assert.doesNotThrow(() => r.acceptHostObservation(c.commandId, f.status()));
   assert.equal(JSON.stringify(r.receipts()), before);
 });
+
+test('finite host options preserve omitted binding and capture explicit list limits', async t => {
+  const old = hostReturnFixture(t), legacy = old.bind();
+  await legacy.deliver(old.event);
+  const command = legacy.takeHostCommand();
+  assert.deepEqual(command.arguments, { limit: 1 });
+  assert.equal(command.bindingSha256, createHash('sha256').update(JSON.stringify(old.options)).digest('hex'));
+  for (const limit of [1, 50]) {
+    const f = hostReturnFixture(t);
+    f.options.statusListLimit = limit; f.options.exchangeTimeoutMs = 600000;
+    const r = f.bind(); f.options.statusListLimit = 2; f.options.exchangeTimeoutMs = 1;
+    await r.deliver(f.event); const c = r.takeHostCommand();
+    assert.equal(c.arguments.limit, limit);
+    assert.notEqual(c.bindingSha256, command.bindingSha256);
+  }
+  for (const patch of [{ statusListLimit: 0 }, { statusListLimit: 51 }, { statusListLimit: null },
+    { exchangeTimeoutMs: 600001 }, { exchangeTimeoutMs: null }, { timeoutMs: 30001 }]) {
+    const f = hostReturnFixture(t);
+    assert.throws(() => bindHostReturnForTest({ ...f.options, ...patch }, f.runtime), /INVALID_HOST_OWNER_RETURN_BINDING/);
+  }
+});
+
+test('finite exchange deadline is aggregate and cannot extend idle observation freshness', async t => {
+  const stale = hostReturnFixture(t);
+  stale.options.expiresAt = new Date(Date.parse(stale.options.expiresAt) + 700000).toISOString();
+  stale.options.exchangeTimeoutMs = 600000;
+  const r = stale.bind(); await r.deliver(stale.event); const c = r.takeHostCommand();
+  stale.advance(5001);
+  r.acceptHostObservation(c.commandId, stale.status());
+  assert.equal(r.receipts().at(-1).errorCode, 'HOST_OBSERVATION_TIMEOUT');
+  assert.equal(r.receipts().at(-1).sendCommandsIssued, 0);
+  const f = hostReturnFixture(t);
+  f.options.exchangeTimeoutMs = 1000;
+  const aggregate = f.bind(); await aggregate.deliver(f.event);
+  const first = aggregate.takeHostCommand(); f.advance(600);
+  aggregate.acceptHostObservation(first.commandId, f.status());
+  aggregate.takeHostCommand(); f.advance(401);
+  assert.equal(aggregate.receipts().at(-1).errorCode, 'HOST_EXCHANGE_TIMEOUT');
+  const frozen = JSON.stringify(aggregate.receipts());
+  assert.doesNotThrow(() => aggregate.acceptHostSendResult(f.options.runId + '/host-return/2', f.ack()));
+  assert.equal(JSON.stringify(aggregate.receipts()), frozen);
+});

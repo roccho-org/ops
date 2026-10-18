@@ -69,3 +69,27 @@ The send report has exactly `{schema:"jev.host-owner-send-observation.v1",ownerT
 The host driver must preserve standard user approval and genuine tool caller identity. The source cannot establish that list_threads supplies the required runtime status, that exact P is present in its result (all pinned rows may be returned), that a pending functions cell survives parent final, that send wakes this same idle P, or that its report mapping is correct. None is certified by the synthetic tests. Missing or excessive output must stay UNKNOWN with no send; delay alone is not idle evidence. A direct caller-supplied packet is only reported evidence, as recorded in each receipt.
 
 The factory and its pending transitions are in-memory and must remain in the same genuine owner-native process. Separate functions/Node processes do not share the object or WeakMap brand. An actual finite approved native-to-host command/observation transport and post-final lifetime admission remain required before a live experiment; this module does not create one or authorize a probe. Commands and observations are exclusive private ledger artifacts; final receipt is written once. expiresAt limits delivery, not the separately authorized engine execution.
+## Opt-in finite host exchange options
+
+`bindExactOwnerHostReturn` additionally accepts optional `statusListLimit` (integer
+1..50) and `exchangeTimeoutMs` (integer 1..600000). Omission keeps the previous
+binding JSON/hash, command wire with `limit:1`, and <=30000ms timeout unchanged.
+The explicit host options are captured at bind time. They never alter the CLI
+receiver, its timeout or its official endpoint requirements.
+
+An explicit exchange deadline is aggregate from terminal delivery and never
+resets between status and send. It is separate from `timeoutMs`, which remains
+the <=30000ms observation freshness bound. In explicit finite mode the source's
+status-command take time, rather than the driver's tool-completion timestamp,
+is the conservative lower bound used for subsequent freshness checks. A normal
+tool request can report status without exposing an internal sample timestamp;
+the request-interval interpretation is host-port evidence, not authenticated
+internal instrumentation. A long response can expire freshness even when it
+remains inside the aggregate exchange deadline. This is HOLD, never send retry.
+
+Explicit finite bindings also expose `holdHostReturn` for three fixed terminal
+codes (`HOST_EXCHANGE_TIMEOUT`, `HOST_PACKET_INVALID`, `HOST_PACKET_IO`). It can
+only finalize HOLD and cannot manufacture idle, ACK or consumption. The native
+product runner uses it after a failed finite packet exchange. The existing
+non-finite API remains unchanged. Runtime reachability, after-parent-final
+lifetime and actual owner consumption remain separate, unproved obligations.
