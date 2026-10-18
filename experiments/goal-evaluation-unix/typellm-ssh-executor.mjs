@@ -9,7 +9,8 @@ const plain = value => value !== null && typeof value === 'object' && !Array.isA
   && [Object.prototype, null].includes(Object.getPrototypeOf(value));
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const hex40 = /^[a-f0-9]{40}$/;
-const optionKeys = ['sshPath', 'host', 'envsSha', 'opsSha', 'runId', 'ledgerDir', 'deadlineMs', 'maxCalls'];
+const launcherPath = /^\/nix\/store\/[0-9a-z]{32}-ops-typellm\/bin\/ops-typellm$/;
+const optionKeys = ['sshPath', 'host', 'envsSha', 'opsSha', 'runId', 'ledgerDir', 'deadlineMs', 'maxCalls', 'remoteLauncherPath'];
 const frameKeys = ['schema', 'stdinComplete', 'stdinBytes', 'stdinSha256', 'responseMetadataStatus',
   'metadataSchema', 'publicModelStatus', 'reportedPublicModel', 'responseIdStatus',
   'providerResponseId', 'backendIdentityStatus'];
@@ -64,8 +65,12 @@ export function bindTypeLLMSSHExecutor(options = {}) {
   if (!plain(options) || Object.keys(options).some(key => !optionKeys.includes(key)))
     throw new Error('INVALID_TYPELLM_SSH_EXECUTOR');
   const { sshPath, host, envsSha, opsSha, runId, ledgerDir, deadlineMs = 95000, maxCalls = 5 } = options;
+  const hasRemoteLauncherPath = Object.hasOwn(options, 'remoteLauncherPath');
+  const remoteLauncherPath = hasRemoteLauncherPath ? options.remoteLauncherPath : undefined;
   if (typeof sshPath !== 'string' || !path.isAbsolute(sshPath) || /[\u0000\r\n]/u.test(sshPath)
       || typeof host !== 'string' || !/^[A-Za-z][A-Za-z0-9_.-]{0,127}$/.test(host)
+      || (hasRemoteLauncherPath && (typeof remoteLauncherPath !== 'string'
+        || !launcherPath.test(remoteLauncherPath) || /[\u0000\r\n]/u.test(remoteLauncherPath)))
       || typeof envsSha !== 'string' || !hex40.test(envsSha)
       || typeof opsSha !== 'string' || !hex40.test(opsSha)
       || typeof runId !== 'string' || !uuid.test(runId)
@@ -76,8 +81,11 @@ export function bindTypeLLMSSHExecutor(options = {}) {
   const root = fs.lstatSync(ledgerDir);
   if (!root.isDirectory() || root.isSymbolicLink()) throw new Error('INVALID_TYPELLM_SSH_LEDGER');
   const argv = Object.freeze(['-T', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes', '--',
-    host, 'ops-typellm', '--envs-sha', envsSha, '--ops-sha', opsSha, '--response-metadata']);
-  const bindingJson = JSON.stringify({ sshPath, host, envsSha, opsSha, runId, argv, deadlineMs, maxCalls }) + '\n';
+    host, hasRemoteLauncherPath ? remoteLauncherPath : 'ops-typellm',
+    '--envs-sha', envsSha, '--ops-sha', opsSha, '--response-metadata']);
+  // Preserve the original manifest bytes when the optional absolute launcher is omitted.
+  const bindingJson = JSON.stringify({ sshPath, host, envsSha, opsSha, runId, argv, deadlineMs, maxCalls,
+    ...(hasRemoteLauncherPath ? { remoteLauncherPath } : {}) }) + '\n';
   const bindingSha256 = sha(bindingJson);
   const records = [];
   let calls = 0;
@@ -105,6 +113,7 @@ export function bindTypeLLMSSHExecutor(options = {}) {
     const record = {
       schema: 'typellm.ssh-executor-receipt.v1', callId, bindingSha256, bindingAuthority: 'DECLARED_ONLY',
       declaredHost: host, declaredSshPath: sshPath, declaredEnvsSha: envsSha, declaredOpsSha: opsSha,
+      declaredRemoteLauncherPath: hasRemoteLauncherPath ? remoteLauncherPath : null,
       startedAt: new Date().toISOString(), completedAt: null, status: 'CLAIMED', errorCode: null,
       spawnInvocations: 0, childPid: null, childExitCode: null, childSignal: null,
       childErrorCode: null, physicalCloseObserved: false, closeGraceExpired: false,
