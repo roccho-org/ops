@@ -907,6 +907,117 @@ assert.equal(incompleteOwner.accounting.providerHttpCalls, 0);
 assert.equal(incompleteOwner.cases[0].result.records[0].status, 'INCOMPLETE');
 providerBindingCases++;
 
+
+// v15 has a separate retained-source ceiling; all actual model budgets are unchanged.
+// These synthetic renderings test structural/budget binding, not translation fidelity.
+let v15Controls = 0;
+const v15Hash = value => createHash('sha256').update(value, 'utf8').digest('hex');
+const v15Copy = value => JSON.parse(JSON.stringify(value));
+const v15Input = (original = '赤。', english = 'Red.') => ({
+  schema: 'ops.semlint.input.v15',
+  subject: {kind: 'log-entry', ref: 'fixture:v15-subject', revision: 'fixture-1', scope: 'whole synthetic record',
+    content: 'Synthetic record.', sha256: v15Hash('Synthetic record.'),
+    evaluationSpan: {startByte: 0, endByte: Buffer.byteLength('Synthetic record.', 'utf8')}, englishAuxiliary: null},
+  context: [{role: 'colorContract', ref: 'fixture:v15-context', revision: 'fixture-1', content: original,
+    sha256: v15Hash(original), evaluationSpan: {startByte: 0, endByte: Buffer.byteLength(original, 'utf8')},
+    englishAuxiliary: {text: english, sourceSha256: v15Hash(original)}}],
+  checks: [{id: 'v15-color', axis: 'Minimal', concern: 'The synthetic record violates its supplied color rule.',
+    requiredRoles: ['colorContract'], crossLinks: [], predicate: {
+      question: 'Does the synthetic record violate the supplied color rule?',
+      true: 'The synthetic record violates the supplied color rule.',
+      false: 'The synthetic record does not violate the supplied color rule.'}}],
+});
+const v15Observer = () => {
+  const observation = {calls: 0, state: null, questions: null};
+  observation.ask = async (s, q) => {
+    observation.calls++; observation.state = v15Copy(s); observation.questions = v15Copy(q);
+    return {model: JEV_MODEL, answers: Object.fromEntries(Object.keys(q).map(key => [key, {type: 'noul', noul: 0.5}]))};
+  };
+  return observation;
+};
+const v15NoModel = async input => {
+  const observed = v15Observer(), output = await semlint(input, observed.ask);
+  assert.equal(observed.calls, 0); assert.equal(output.accounting.callbackAttempts, 0);
+  assert.equal(output.accounting.validatedCalls, 0);
+  assert.ok(output.records.length > 0 && output.records.every(row => row.status === 'EXECUTION_ERROR'
+    && row.cause === 'EVALUATION_PREFLIGHT_FAILED'));
+  return output;
+};
+const v15Large = v15Input('赤。'.repeat(3000), 'Red. '.repeat(3000));
+assert.ok(Buffer.byteLength(JSON.stringify(v15Large), 'utf8') > 28000);
+assert.ok(Buffer.byteLength(JSON.stringify(v15Large), 'utf8') < 1048576);
+const v15LargeObservation = v15Observer();
+const v15LargeResult = await semlint(v15Large, v15LargeObservation.ask);
+assert.equal(v15LargeObservation.calls, 1);
+assert.equal(v15LargeResult.schema, 'ops.semlint.result.v15');
+assert.equal(v15LargeResult.records[0].status, 'OBSERVED');
+assert.equal(v15LargeObservation.state.schema, 'ops.semlint.evaluation-state.v6');
+assert.equal(v15LargeObservation.state.context[0].content, v15Large.context[0].englishAuxiliary.text);
+assert.equal(v15LargeObservation.state.context[0].originalSha256, v15Large.context[0].sha256);
+assert.equal(JSON.stringify(v15LargeObservation.state).includes('赤。'), false);
+const v15LargeBudget = validateJevBudget(v15LargeObservation.state, v15LargeObservation.questions);
+assert.ok(v15LargeBudget.stateBytes < 28000);
+v15Controls++;
+
+// The exact same complete raw input still fails the old v14 raw admission.
+await v15NoModel({...v15Large, schema: 'ops.semlint.input.v14'});
+v15Controls++;
+
+const v15RawOversize = v15Input('赤。'.repeat(175000), 'Red.');
+assert.ok(Buffer.byteLength(JSON.stringify(v15RawOversize), 'utf8') > 1048576);
+const v15RawObservation = v15Observer();
+await assert.rejects(() => semlint(v15RawOversize, v15RawObservation.ask), /INVALID_SEMLINT_INPUT/);
+assert.equal(v15RawObservation.calls, 0);
+v15Controls++;
+
+const v15ModelOversize = v15Input('赤。'.repeat(5000), 'Red. '.repeat(6000));
+assert.ok(Buffer.byteLength(JSON.stringify(v15ModelOversize), 'utf8') < 1048576);
+await v15NoModel(v15ModelOversize);
+v15Controls++;
+
+const v15LongQuestion = v15Input();
+v15LongQuestion.checks[0].predicate.question = 'q'.repeat(31000);
+await v15NoModel(v15LongQuestion);
+v15Controls++;
+
+// One actual question fits; three otherwise identical actual questions exceed only the aggregate ceiling.
+const v15OneQuestion = v15Input();
+v15OneQuestion.checks[0].predicate.question = 'q'.repeat(19500);
+const v15OneObservation = v15Observer();
+const v15OneResult = await semlint(v15OneQuestion, v15OneObservation.ask);
+assert.equal(v15OneObservation.calls, 1); assert.equal(v15OneResult.records[0].status, 'OBSERVED');
+const v15OneBudget = validateJevBudget(v15OneObservation.state, v15OneObservation.questions);
+assert.ok(v15OneBudget.stateBytes + v15OneBudget.longestQuestionBytes <= 31000);
+assert.ok(v15OneBudget.stateBytes + 3 * v15OneBudget.allQuestionsBytes > 60000);
+v15Controls++;
+const v15ManyQuestions = v15Copy(v15OneQuestion);
+v15ManyQuestions.checks = Array.from({length: 3}, (_, i) => ({...v15Copy(v15OneQuestion.checks[0]), id: 'v15-color-' + i}));
+await v15NoModel(v15ManyQuestions);
+v15Controls++;
+
+const v15Small = v15Input(), v14Small = {...v15Copy(v15Small), schema: 'ops.semlint.input.v14'};
+const v15SmallObservation = v15Observer(), v14SmallObservation = v15Observer();
+const v15SmallResult = await semlint(v15Small, v15SmallObservation.ask);
+const v14SmallResult = await semlint(v14Small, v14SmallObservation.ask);
+assert.equal(v15SmallObservation.calls, 1); assert.equal(v14SmallObservation.calls, 1);
+assert.equal(v14SmallResult.schema, 'ops.semlint.result.v14');
+assert.equal(v15SmallResult.schema, 'ops.semlint.result.v15');
+assert.deepEqual(v15SmallObservation.state, v14SmallObservation.state);
+assert.deepEqual(v15SmallObservation.questions, v14SmallObservation.questions);
+assert.equal(v15SmallResult.projection.stateDigest, v14SmallResult.projection.stateDigest);
+v15Controls++;
+
+for (const corrupt of [
+  input => { input.context[0].englishAuxiliary = null; },
+  input => { input.context[0].sha256 = '0'.repeat(64); },
+  input => { input.context[0].evaluationSpan.startByte = 1; },
+]) {
+  const invalid = v15Input(), observed = v15Observer(); corrupt(invalid);
+  await assert.rejects(() => semlint(invalid, observed.ask), /INVALID_SEMLINT_INPUT/);
+  assert.equal(observed.calls, 0); v15Controls++;
+}
+assert.equal(v15Controls, 11);
+
 assert.equal(providerBindingCases, 7);
 console.log(JSON.stringify({
   status: 'PASS',
@@ -915,7 +1026,7 @@ console.log(JSON.stringify({
   cli: 'json-input-jsonl-output-readback',
   semanticThresholds: 0,
   semlintCases, semlintCallbacks, realProviderCalls: 0, semanticQuality: 'NOT_PROVEN',
-  providedCases, providedCallbacks, bridgeControls, projectedControls, atomicControls, structuredControls, choiceControls, v14Controls,
+  providedCases, providedCallbacks, bridgeControls, projectedControls, atomicControls, structuredControls, choiceControls, v14Controls, v15Controls,
 }));
 }
 

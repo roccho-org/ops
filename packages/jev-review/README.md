@@ -362,3 +362,16 @@ The existing `nix-check` workflow provides this exact runtime as bytes, not just
   - Any mismatch, missing module or modified archive fails the job.
 
 This proves mechanical provision of the same bytes to a clean consumer. It is not a live call and not semantic quality.
+
+
+## Explicit v15: retained-source admission and actual model budgets
+
+`ops.semlint.input.v15` is an opt-in edition with the exact v14 subject/context/check, SHA, UTF-8 evaluationSpan and englishAuxiliary grammar. It returns `ops.semlint.result.v15`. The model-facing projection remains `ops.semlint.evaluation-state.v6`; rendering, segmentation, question construction and original-source provenance have the same meaning as v14. For otherwise equal admitted small inputs, v14 and v15 produce byte-equivalent model state and questions. The input digest still binds the selected input edition.
+
+v15 admits at most **1,048,576 UTF-8 bytes of JSON.stringify of the validated complete raw input snapshot**. This finite source ceiling is checked before projection. It bounds retained original text, English auxiliary text, supplied predicates and source/control metadata together; it is not a model context or provider transport limit. The existing owner entry independently bounds the entire real-input plan, including cases and its wrapper, to at most 1,048,576 bytes. An inner raw input near that ceiling can therefore still fail the outer plan limit.
+
+After projection the existing Jev budgets are unchanged: JSON.stringify(actual state) <= 28,000 UTF-8 bytes; state plus the longest serialized question <= 31,000; state plus all serialized questions <= 60,000. All existing evaluator and provider guards remain in force before ask. Raw or actual-model excess rejects evaluation with zero ask calls. No clipping, summarization, source/control omission, predicate shortening or check-count reduction is performed. v15 does not guarantee that any real input fits.
+
+v14 and every earlier edition retain their previous acceptance and wire behavior, including the 28,000-byte raw admission check on projected legacy editions. Old rejections do not become passes because v15 exists. v15 removes that raw-as-model check only for its explicit edition and replaces it with the finite retained-source ceiling; it does not raise the actual model budgets.
+
+As in v14, CJK source selections require a bound English auxiliary and that auxiliary becomes model-facing content, while originalSha256 identifies the original. Preserving the raw original is not proof that the model received original Japanese. Structural SHA/span/aux validation does not certify translation fidelity, source coverage, Goal satisfaction, independence, semantic utility or authority. Those remain separate reviews. The synthetic budget tests exercise complete neutral source/aux bindings and actual ask-boundary bytes; their fake answers establish no real service or quality result.
