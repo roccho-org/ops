@@ -375,3 +375,13 @@ After projection the existing Jev budgets are unchanged: JSON.stringify(actual s
 v14 and every earlier edition retain their previous acceptance and wire behavior, including the 28,000-byte raw admission check on projected legacy editions. Old rejections do not become passes because v15 exists. v15 removes that raw-as-model check only for its explicit edition and replaces it with the finite retained-source ceiling; it does not raise the actual model budgets.
 
 As in v14, CJK source selections require a bound English auxiliary and that auxiliary becomes model-facing content, while originalSha256 identifies the original. Preserving the raw original is not proof that the model received original Japanese. Structural SHA/span/aux validation does not certify translation fidelity, source coverage, Goal satisfaction, independence, semantic utility or authority. Those remain separate reviews. The synthetic budget tests exercise complete neutral source/aux bindings and actual ask-boundary bytes; their fake answers establish no real service or quality result.
+
+## Explicit v16 provider token admission
+
+`ops.semlint.input.v16` / `ops.semlint.result.v16` retain the complete v15 source, selected spans, English auxiliary binding and evaluation-state.v6 representation. They make a different, explicit admission promise: the local guard bounds the exact JSON request `{model,state,questions}` to 65,536 UTF-8 bytes; it does **not** certify a model token count. The retained-source limit stays 1 MiB.
+
+The fixed Jev model and endpoint, credentials, ordinary request headers, answer validation, missing-role handling and attempt accounting remain unchanged. The owner entry binds the policy from its admitted case edition and passes it through every evaluator/client guard. Requests still have no long-context opt-in header. Legacy through v15 keep their existing 28,000 / 31,000 / 60,000 byte guards and wire behavior.
+
+TypeSafe documents default limits in **tokens**: state plus any one question, and state plus all questions ([models](https://docs.typesafe.ai/models), [API](https://docs.typesafe.ai/api)). A byte bound is a finite local containment policy, not that provider contract or a byte-to-token ratio. Local v16 validation reports token admission as UNKNOWN. Only an actual fixed-provider response establishes provider acceptance; a synthetic preflight, a stub response or structural source equality does not.
+
+If the provider refuses, the original attempt and error remain evidence; the entry does not retry, shorten K, remove questions, switch a model or enable long context. A generic HTTP 400 alone is not proof of the precise token-limit cause. Real-case fidelity, utility, G1/G2 and exact-owner automatic return require their separate evidence.

@@ -5,7 +5,7 @@ const { default: assert } = await import('node:assert/strict');
 const { default: fs } = await import('node:fs');
 const { default: os } = await import('node:os');
 const { default: path } = await import('node:path');
-const { JEV_MODEL, validateJevBudget } = await import('../core.mjs');
+const { JEV_MODEL, validateJevBudget, JEV_PROVIDER_TOKEN_BUDGET_POLICY } = await import('../core.mjs');
 const { evaluate } = await import('../review.mjs');
 const { createHash } = await import('node:crypto');
 const { semlint } = await import('../semlint.mjs');
@@ -1018,6 +1018,109 @@ for (const corrupt of [
 }
 assert.equal(v15Controls, 11);
 
+
+ // v16 keeps the complete v15 representation and uses explicit provider token admission.
+ // These synthetic fixtures prove byte containment and transport binding, not token fit.
+ let v16Controls = 0;
+ const v16Policy = JEV_PROVIDER_TOKEN_BUDGET_POLICY;
+ const v16Input = (...args) => ({ ...v15Input(...args), schema: 'ops.semlint.input.v16' });
+ const v16Large = v16Input('赤。', 'Red. '.repeat(7000));
+ const v16LargeObservation = v15Observer();
+ const v16LargeResult = await semlint(v16Large, v16LargeObservation.ask);
+ assert.equal(v16LargeObservation.calls, 1);
+ assert.equal(v16LargeResult.schema, 'ops.semlint.result.v16');
+ assert.equal(v16LargeResult.records[0].status, 'OBSERVED');
+ assert.ok(Buffer.byteLength(JSON.stringify(v16LargeObservation.state), 'utf8') > 28000);
+ assert.equal(v16LargeObservation.state.context[0].content, v16Large.context[0].englishAuxiliary.text);
+ const v16Measured = validateJevBudget(v16LargeObservation.state, v16LargeObservation.questions, v16Policy);
+ assert.ok(v16Measured.requestBytes <= 65536);
+ assert.equal(v16Measured.tokenAdmission, 'UNKNOWN_LOCALLY_PROVIDER_ENFORCED');
+ await v15NoModel({ ...v15Copy(v16Large), schema: 'ops.semlint.input.v15' });
+ v16Controls++;
+
+ const v16Small = v16Input(), v16SmallObservation = v15Observer();
+ const v16SmallResult = await semlint(v16Small, v16SmallObservation.ask);
+ assert.deepEqual(v16SmallObservation.state, v15SmallObservation.state);
+ assert.deepEqual(v16SmallObservation.questions, v15SmallObservation.questions);
+ assert.equal(v16SmallResult.projection.stateDigest, v15SmallResult.projection.stateDigest);
+ assert.notEqual(v16SmallResult.inputDigest, v15SmallResult.inputDigest);
+ v16Controls++;
+
+ const v16WireBase = Buffer.byteLength(JSON.stringify({ model: JEV_MODEL, state: '', questions: {} }), 'utf8');
+ assert.equal(validateJevBudget('a'.repeat(65536 - v16WireBase), {}, v16Policy).requestBytes, 65536);
+ assert.throws(() => validateJevBudget('a'.repeat(65537 - v16WireBase), {}, v16Policy), /JEV_REQUEST_BYTE_LIMIT/);
+ assert.throws(() => validateJevBudget({}, {}, {}), /INVALID_JEV_BUDGET_POLICY/);
+ v16Controls++;
+
+ await v15NoModel(v16Input('赤。', 'Red. '.repeat(14000)));
+ const v16LongQuestion = v16Input();
+ v16LongQuestion.checks[0].predicate.question = 'q'.repeat(65536);
+ await v15NoModel(v16LongQuestion);
+ const v16ManyQuestions = v16Input();
+ v16ManyQuestions.checks[0].predicate.question = 'q'.repeat(23000);
+ v16ManyQuestions.checks = Array.from({ length: 3 }, (_, i) =>
+   ({ ...v15Copy(v16ManyQuestions.checks[0]), id: 'v16-' + i }));
+ await v15NoModel(v16ManyQuestions);
+ v16Controls++;
+
+ const v16RawOversize = v16Input('赤。'.repeat(180000), 'Red.');
+ const v16RawObservation = v15Observer();
+ await assert.rejects(() => semlint(v16RawOversize, v16RawObservation.ask), /INVALID_SEMLINT_INPUT/);
+ assert.equal(v16RawObservation.calls, 0);
+ v16Controls++;
+
+ let v16GetterReads = 0;
+ const v16ReviewOptions = { themes: ['Minimal'], items: [] };
+ Object.defineProperty(v16ReviewOptions, 'budgetPolicy', { enumerable: true,
+   get() { v16GetterReads++; return v16Policy; } });
+ await assert.rejects(() => evaluate({}, v16ReviewOptions, () => { throw new Error('MUST_NOT_CALL'); }),
+   /INVALID_JEV_BUDGET_POLICY/);
+ assert.equal(v16GetterReads, 0);
+ const v16ClientOptions = { timeoutMs: 1000 };
+ Object.defineProperty(v16ClientOptions, 'budgetPolicy', { enumerable: true,
+   get() { v16GetterReads++; return v16Policy; } });
+ await assert.rejects(() => bindJevReview({ key: 'synthetic-v16-key',
+   fetchImpl: () => { throw new Error('MUST_NOT_CALL'); } })({}, { q0: { type: 'noul' } }, v16ClientOptions),
+   /INVALID_JEV_BUDGET_POLICY/);
+ assert.equal(v16GetterReads, 0);
+ v16Controls++;
+
+ const v16Prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1',
+   cases: [{ id: 'v16-complete-source', input: v16Large }] });
+ let v16HttpCalls = 0, v16Wire = null;
+ const v16Owned = await executeOwnerPlan(v16Prepared, 'synthetic-v16-key', async (url, init) => {
+   v16HttpCalls++; v16Wire = JSON.parse(init.body);
+   assert.equal(url, 'https://api.typesafe.ai/v1/systemone');
+   assert.equal(v16Wire.model, JEV_MODEL);
+   assert.equal(Buffer.byteLength(init.body, 'utf8'), v16Measured.requestBytes);
+   assert.equal(v16Wire.state.context[0].content, v16Large.context[0].englishAuxiliary.text);
+   assert.equal(new Headers(init.headers).has('TypeSafe-Danger-Zone-Long-Context'), false);
+   return new Response(JSON.stringify({ model: JEV_MODEL,
+     answers: Object.fromEntries(Object.keys(v16Wire.questions).map(id => [id, { type: 'noul', noul: 0.5 }])),
+     usage: { input_tokens: 100, output_tokens: 0 } }), { status: 200 });
+ });
+ assert.equal(v16HttpCalls, 1);
+ assert.equal(v16Owned.accounting.providerHttpCalls, 1);
+ assert.equal(v16Owned.accounting.validatedResponses, 1);
+ assert.equal(v16Owned.cases[0].result.schema, 'ops.semlint.result.v16');
+ assert.equal(v16Owned.cases[0].provider.statusClass, 'VALIDATED_RESPONSE');
+ v16Controls++;
+
+ let v16RefusalCalls = 0;
+ const v16Refused = await executeOwnerPlan(v16Prepared, 'synthetic-v16-key', async () => {
+   v16RefusalCalls++;
+   return new Response(JSON.stringify({ detail: { error_type: 'max_tokens_exceeded' } }), { status: 400 });
+ });
+ assert.equal(v16RefusalCalls, 1);
+ assert.equal(v16Refused.accounting.providerHttpCalls, 1);
+ assert.equal(v16Refused.accounting.completedHttpCalls, 1);
+ assert.equal(v16Refused.accounting.validatedResponses, 0);
+ assert.equal(v16Refused.cases[0].result.records[0].status, 'EXECUTION_ERROR');
+ assert.equal(v16Refused.cases[0].provider.statusClass, 'HTTP_4XX');
+ // A generic 400 is not a proven token-limit diagnosis. No retry or shortening follows.
+ v16Controls++;
+ assert.equal(v16Controls, 8);
+
 assert.equal(providerBindingCases, 7);
 console.log(JSON.stringify({
   status: 'PASS',
@@ -1026,7 +1129,7 @@ console.log(JSON.stringify({
   cli: 'json-input-jsonl-output-readback',
   semanticThresholds: 0,
   semlintCases, semlintCallbacks, realProviderCalls: 0, semanticQuality: 'NOT_PROVEN',
-  providedCases, providedCallbacks, bridgeControls, projectedControls, atomicControls, structuredControls, choiceControls, v14Controls, v15Controls,
+  providedCases, providedCallbacks, bridgeControls, projectedControls, atomicControls, structuredControls, choiceControls, v14Controls, v15Controls, v16Controls,
 }));
 }
 
