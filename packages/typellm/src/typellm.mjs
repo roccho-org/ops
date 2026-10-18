@@ -21,7 +21,7 @@ export class TypedProviderError extends Error {
 const fail = (code, status) => { throw new TypedProviderError(code, status); };
 
 // Resolve sibling names before sending; the service executes the resulting DAG.
-// Object dependencies apply to every scalar property, including nested objects.
+// Object dependencies apply to every descendant scalar or atomic array node.
 function validateDependencies(questions) {
   const leaves = [];
   const walk = (definitions, inherited) => {
@@ -32,12 +32,12 @@ function validateDependencies(questions) {
       if (field.depends_on !== undefined) {
         const names = field.depends_on;
         if (!Array.isArray(names) || names.length > 64 || new Set(names).size !== names.length
-            || names.some(key => typeof key !== "string" || !scope.has(key) || scope.get(key).field.type === "array"))
+            || names.some(key => typeof key !== "string" || !scope.has(key)))
           fail("input_invalid");
         rules = [...inherited, { scope, names }];
       }
       if (field.type === "object") entry.leaves.push(...walk(field.properties, rules));
-      else if (field.type !== "array") {
+      else { // Top-level arrays are atomic DAG nodes; items cannot declare dependencies.
         const leaf = { rules, dependencies: new Set() };
         entry.leaves.push(leaf); leaves.push(leaf);
       }
@@ -74,7 +74,7 @@ function validateRequest(request) {
   const schema = (s, depth, inArray) => {
     if (depth > 6 || !keys(s, ["type", "instructions", "enum", "properties", "items", "minItems", "maxItems", "depends_on", "thinking", "thinking_budget"]))
       fail("input_invalid");
-    if (s.depends_on !== undefined && (inArray || s.type === "array")) fail("input_invalid");
+    if (s.depends_on !== undefined && inArray) fail("input_invalid");
     if (s.instructions !== undefined && (typeof s.instructions !== "string" || s.instructions.length > 8192))
       fail("input_invalid");
     if (!["string", "boolean", "integer", "number", "object", "array"].includes(s.type)) fail("input_invalid");

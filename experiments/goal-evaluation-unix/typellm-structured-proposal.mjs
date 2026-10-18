@@ -26,10 +26,14 @@ function bounds(prompt) {
     needs: ARRAY_LIMIT, missing: ARRAY_LIMIT };
 }
 
-// Seven top-level arrays, no nested arrays/null schema/dependencies. The SDK counts
+// Seven top-level arrays, no nested arrays or null schema. The default has no
+// dependencies; the opt-in format adds only top-level relation dependencies.
+// The SDK counts
 // 27/29 named fields recursively; core fields are absent for an empty catalog.
 // Array item containers add no name.
-export function buildTypeLLMStructuredProposalRequest(prompt) {
+export function buildTypeLLMStructuredProposalRequest(prompt, format = 'typed-relations-v1') {
+  if (!['typed-relations-v1', 'typed-relations-dependent-v1'].includes(format))
+    fail('INVALID_STRUCTURED_PROPOSAL_INPUT');
   const { captured, request: base } = buildTypeLLMProposalRequest(prompt);
   const limits = bounds(captured);
   const s = instructions => ({ type: 'string', instructions });
@@ -76,6 +80,12 @@ export function buildTypeLLMStructuredProposalRequest(prompt) {
         need: s('What remains missing.'), reason: s('Why it remains missing or cannot be represented.')
       })
   };
+  if (format === 'typed-relations-dependent-v1') {
+    // Context remains the full original input. Only relations see generated siblings.
+    questions.clauses.items.properties.quote.instructions =
+      'Copy one contiguous substring of the decoded original ref.content exactly. Do not stitch parts, add omitted words or ellipses, paraphrase, trim, normalize, or quote JSON serialization escapes.';
+    for (const key of KEYS.slice(2)) questions[key].depends_on = ['clauses', 'questions'];
+  }
   return { captured, request: { context: base.context, questions } };
 }
 

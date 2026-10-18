@@ -123,7 +123,7 @@ test("sibling and inherited object dependencies reach one POST with unchanged an
   assert.equal(calls, 1); assert.deepEqual(value, { result });
 });
 
-test("invalid dependency scope, inherited cycles and array dependencies refuse before transport", async () => {
+test("invalid dependency scope, inherited cycles and array-item dependencies refuse before transport", async () => {
   let calls = 0;
   const provider = bindTypeLLM({ apiKey: "key-canary", fetch: async () => { calls++; throw Error("must not send"); } });
   const array = () => ({ type: "array", minItems: 0, maxItems: 1, items: { type: "string" } });
@@ -138,8 +138,6 @@ test("invalid dependency scope, inherited cycles and array dependencies refuse b
     x => { x.questions.first.properties.label.depends_on = ["first.kind"]; },
     x => { x.questions.second.properties.kind.depends_on = ["first"]; },
     x => { x.questions.first.depends_on = Array(65).fill("second"); },
-    x => { x.questions.extra = array(); x.questions.first.depends_on = ["extra"]; },
-    x => { x.questions.extra = { ...array(), depends_on: [] }; },
     x => { x.questions.extra = array(); x.questions.extra.items.depends_on = []; },
   ];
   for (const change of mutations) {
@@ -519,4 +517,81 @@ test("explicit 60s request preserves HTTP 504 classification, unread body and no
   }) }), error => error instanceof TypedProviderError && error.code === "provider_http_error"
     && error.upstreamStatus === 504 && error.message === "provider_http_error");
   assert.equal(calls, 1); assert.equal(reads, 0);
+});
+
+
+test("atomic array DAG: array targets and object/scalar dependents reach the unchanged typed transport", async () => {
+  const rows = () => ({ type: "array", minItems: 0, maxItems: 2, items: { type: "string" } });
+  const typed = { context: "synthetic dependency graph", questions: {
+    first: { ...rows(), depends_on: [] },
+    second: { ...rows(), depends_on: ["first"] },
+    group: { type: "object", depends_on: ["second"], properties: { label: { type: "string" } } },
+    final: { ...rows(), depends_on: ["group"] },
+    ready: { type: "boolean", depends_on: ["final"] },
+  } };
+  const expected = JSON.parse(JSON.stringify(typed.questions));
+  const result = { first: ["source"], second: [], group: { label: "derived" }, final: [], ready: true };
+  let calls = 0;
+  const value = await generateTyped({ request: typed, provider: { available: true, post: async body => {
+    calls++;
+    const sent = JSON.parse(body);
+    for (const key of ["first", "second", "group", "final"]) assert.deepEqual(sent.questions[key], expected[key]);
+    assert.deepEqual(sent.questions.ready, { ...expected.ready, thinking: false });
+    assert.equal(sent.timeout, 30);
+    // Mutating the caller's definitions after dispatch cannot change the captured answer validator.
+    typed.questions.second.depends_on = ["second"];
+    typed.questions.first.items = { type: "boolean" };
+    return { result };
+  } } });
+  assert.equal(calls, 1);
+  assert.deepEqual(value, { result });
+});
+
+test("atomic array DAG: self, array cycles, mixed object cycles and item dependencies refuse before POST", async () => {
+  const rows = () => ({ type: "array", minItems: 0, maxItems: 2, items: { type: "string" } });
+  const base = () => ({ context: "synthetic cyclic graph", questions: {
+    a: rows(), b: rows(), group: { type: "object", properties: { label: { type: "string" } } },
+  } });
+  const mutations = [
+    x => { x.questions.a.depends_on = ["a"]; },
+    x => { x.questions.a.depends_on = ["b"]; x.questions.b.depends_on = ["a"]; },
+    x => { x.questions.a.depends_on = ["group"]; x.questions.group.depends_on = ["a"]; },
+    x => { x.questions.a.depends_on = ["unknown"]; },
+    x => { x.questions.a.depends_on = ["b", "b"]; },
+    x => { x.questions.a.depends_on = "b"; },
+    x => { x.questions.a.items.depends_on = ["b"]; },
+    x => { x.questions.a.items = { type: "object", properties: { label: { type: "string", depends_on: [] } } }; },
+    x => { x.questions.a.items = rows(); },
+    x => { x.questions.group.properties.hidden = rows(); },
+  ];
+  let calls = 0;
+  const provider = { available: true, post: async () => { calls++; throw Error("must not dispatch"); } };
+  for (const mutate of mutations) {
+    const typed = base(); mutate(typed);
+    await refuse(() => generateTyped({ request: typed, provider }), "input_invalid");
+  }
+  assert.equal(calls, 0);
+});
+
+test("atomic array DAG: existing 32 item, 64 field, instruction, request and answer limits still apply", async () => {
+  const base = () => ({ context: "bounded synthetic DAG", questions: {
+    source: { type: "boolean" },
+    rows: { type: "array", depends_on: ["source"], minItems: 0, maxItems: 32, items: { type: "string" } },
+  } });
+  let calls = 0;
+  const provider = { available: true, post: async () => { calls++; return { result: { source: true, rows: [] } }; } };
+  for (const change of [
+    x => { x.questions.rows.maxItems = 33; },
+    x => { for (let i = 0; i < 63; i++) x.questions["extra" + i] = { type: "boolean" }; },
+    x => { x.questions.rows.instructions = "x".repeat(8193); },
+    x => { x.context = "x".repeat(131072); },
+  ]) {
+    const typed = base(); change(typed);
+    await refuse(() => generateTyped({ request: typed, provider }), "input_invalid");
+  }
+  assert.equal(calls, 0);
+  await refuse(() => generateTyped({ request: base(), provider: { available: true, post: async () => {
+    calls++; return { result: { source: true, rows: ["x".repeat(2049)] } };
+  } } }), "provider_contract_error");
+  assert.equal(calls, 1);
 });
