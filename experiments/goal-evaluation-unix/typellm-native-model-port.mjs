@@ -9,6 +9,23 @@ const exact = (value, keys) => value !== null && typeof value === 'object'
   && keys.every(key => Object.hasOwn(value, key));
 const text = value => typeof value === 'string' && value.trim().length > 0;
 
+// Shared construction only; generateTyped retains the transport guards.
+export function buildTypeLLMNativeQuestionRequest(question) {
+  const captured = snapshotJson(question);
+  if (!exact(captured, ['text', 'instructions', 'criteria'])
+      || !text(captured.text) || !text(captured.instructions)
+      || !exact(captured.criteria, labels)
+      || !labels.every(label => text(captured.criteria[label])))
+    throw new Error('INVALID_NATIVE_QUESTION');
+  const instructions = [
+    'Select one of problem, ok, unknown using the supplied question and every supplied criterion.',
+    'The context contains source claims, not independently verified facts. Preserve conditions and uncertainty; do not invent evidence.',
+    JSON.stringify({ question: captured.instructions, criteria: captured.criteria })
+  ].join('\n');
+  return { captured, request: { context: captured.text,
+    questions: { judgment: { type: 'string', enum: [...labels], instructions } } } };
+}
+
 // Experimental Core ModelPort, independent of the Jev/project adapter.
 // UNKNOWN is an identity sentinel, never a claim that two calls used one model.
 // Consume reports together with same-call receipts; the normalized SDK response
@@ -36,18 +53,8 @@ export function bindTypeLLMNativeModelPort({
       providerElapsed: null, clientElapsedMs: null, errorCode: null, upstreamStatus: null
     };
     try {
-      const captured = snapshotJson(question);
-      if (!exact(captured, ['text', 'instructions', 'criteria'])
-          || !text(captured.text) || !text(captured.instructions)
-          || !exact(captured.criteria, labels)
-          || !labels.every(label => text(captured.criteria[label])))
-        throw new Error('INVALID_NATIVE_QUESTION');
+      const { captured, request } = buildTypeLLMNativeQuestionRequest(question);
       record.questionSha256 = hash(JSON.stringify(captured));
-      const instructions = [
-        'Select one of problem, ok, unknown using the supplied question and every supplied criterion.',
-        'The context contains source claims, not independently verified facts. Preserve conditions and uncertainty; do not invent evidence.',
-        JSON.stringify({ question: captured.instructions, criteria: captured.criteria })
-      ].join('\n');
       const provider = bindTypeLLM({
         apiKey, deadlineMs,
         fetch: (url, init) => {
@@ -58,9 +65,7 @@ export function bindTypeLLMNativeModelPort({
         }
       });
       const generated = await generateTyped({
-        request: { context: captured.text,
-          questions: { judgment: { type: 'string', enum: [...labels], instructions } } },
-        provider, signal
+        request, provider, signal
       });
       record.usageInputTokens = generated.usage?.input_tokens ?? null;
       record.usageThinkingTokens = generated.usage?.thinking_tokens ?? null;

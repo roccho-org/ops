@@ -12,6 +12,15 @@ const instructions = [
   'A quoted claim is provenance, not proof. Do not remove conditions or uncertainty to fit an output limit. Do not invent observations or evidence.'
 ].join(' ');
 
+// Shared construction only; generateTyped retains the transport guards.
+export function buildTypeLLMProposalRequest(prompt) {
+  const captured = snapshotJson(prompt);
+  if (!captured || typeof captured !== 'object' || Array.isArray(captured))
+    throw new Error('INVALID_PROPOSAL_INPUT');
+  return { captured, request: { context: JSON.stringify(captured),
+    questions: { proposal: { type: 'string', instructions } } } };
+}
+
 // One proposal attempt per bound port; Core owns native Plan validation.
 // This port does not read environment variables, repair output, or retry.
 // TypeLLM bounds strings at 2048 UTF-16 units, independently of Core's byte limits.
@@ -42,9 +51,7 @@ export function bindTypeLLMProposalPort({
       providerElapsed: null, clientElapsedMs: null, errorCode: null, upstreamStatus: null
     };
     try {
-      const captured = snapshotJson(prompt);
-      if (!captured || typeof captured !== 'object' || Array.isArray(captured))
-        throw new Error('INVALID_PROPOSAL_INPUT');
+      const { request } = buildTypeLLMProposalRequest(prompt);
       const provider = bindTypeLLM({
         apiKey, deadlineMs,
         fetch: (url, init) => {
@@ -55,9 +62,7 @@ export function bindTypeLLMProposalPort({
         }
       });
       const generated = await generateTyped({
-        request: { context: JSON.stringify(captured),
-          questions: { proposal: { type: 'string', instructions } } },
-        provider, signal
+        request, provider, signal
       });
       record.usageInputTokens = generated.usage?.input_tokens ?? null;
       record.usageThinkingTokens = generated.usage?.thinking_tokens ?? null;
