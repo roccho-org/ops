@@ -1,5 +1,8 @@
 export class PocError extends Error {
-  constructor(code) { super(code); this.code = code; }
+  constructor(code, upstreamStatus) {
+    super(code); this.code = code;
+    if (Number.isInteger(upstreamStatus) && upstreamStatus >= 100 && upstreamStatus <= 599) this.upstreamStatus = upstreamStatus;
+  }
 }
 
 export function canonical(value) {

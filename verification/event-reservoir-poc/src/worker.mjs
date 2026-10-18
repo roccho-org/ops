@@ -8,7 +8,9 @@ function json(body, status = 200) { return new Response(JSON.stringify(body), { 
 export async function collect(env, { proof = false, trigger = 'manual', scheduledTime = null } = {}, adapters = { http: collectHttp, webpush: collectWebpush }) {
   const result = await Promise.all(Object.entries(adapters).map(async ([name, run]) => {
     try { return [name, await run(env, { proof })]; }
-    catch (error) { return [name, { status: 'ERROR', code: safeCode(error) }]; }
+    catch (error) {
+      return [name, { status: 'ERROR', code: safeCode(error), ...(error instanceof PocError && error.upstreamStatus ? { upstreamStatus: error.upstreamStatus } : {}) }];
+    }
   }));
   const inputs = Object.fromEntries(result);
   const receipt = { schema: 'event-reservoir.run/1', version: env.APP_VERSION, trigger, scheduledTime, finishedAt: new Date().toISOString(), inputs };

@@ -12,6 +12,8 @@ export default {
         // This is workerd's actual constructor, which rejects redirect:'error'.
         const upstream = new Request(url, options);
         if (upstream.url !== 'https://api.fxtwitter.com/status/20') throw new Error();
+        // FxTwitter's documented API policy: identify the application or receive 401.
+        if (!upstream.headers.get('user-agent')?.startsWith('event-reservoir-poc/')) return Response.json({}, { status: 401 });
         return Response.json({ code: 200, tweet: { id: '20', text: 'local workerd fixture' } });
       } });
       const webpush = await collectWebpush({ ...env, WEBPUSH_SUBSCRIPTION: JSON.stringify({ uaid, channel_id, keys: {} }) }, {

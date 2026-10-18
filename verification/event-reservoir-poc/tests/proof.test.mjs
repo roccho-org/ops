@@ -55,10 +55,22 @@ test('HTTP refuses upstream failure, malformed data and wrong IDs without saving
     assert.equal(env.RESERVOIR.objects.size, 0);
   }
   const env = { RESERVOIR: new Bucket(), HTTP_POST_ID: '20' };
-  assert.equal((await collectHttp(env, { proof: true, fetcher: async url => {
+  assert.equal((await collectHttp(env, { proof: true, fetcher: async (url, options) => {
     assert.equal(url, 'https://api.fxtwitter.com/status/20');
+    if (!new Headers(options.headers).get('user-agent')) return Response.json({}, { status: 401 });
     return Response.json({ code: 200, tweet: { id: '20', text: 'real-shaped fixture' } });
   } })).replay.oneObject, true);
+});
+
+test('adapter diagnostics preserve only a validated numeric upstream status', async () => {
+  const env = { RESERVOIR: new Bucket(), HTTP_POST_ID: '20' };
+  const receipt = await collect(env, {}, {
+    http: input => collectHttp(input, { fetcher: async () => new Response('private remote body', { status: 401 }) }),
+    webpush: async () => { const error = new Error('private remote body'); error.upstreamStatus = 'private remote body'; throw error; },
+  });
+  assert.deepEqual(receipt.inputs.http, { status: 'ERROR', code: 'HTTP_UPSTREAM_STATUS', upstreamStatus: 401 });
+  assert.deepEqual(receipt.inputs.webpush, { status: 'ERROR', code: 'INTERNAL_FAILURE' });
+  assert.equal(JSON.stringify(receipt).includes('private remote body'), false);
 });
 
 // Public test data from RFC 8291 section 5 / Appendix A; these are NOT credentials.

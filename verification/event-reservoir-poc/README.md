@@ -12,6 +12,8 @@ Two independent adapters use the same immutable first-observation storage:
 - HTTP retrieves the existing public X post `20` from FxTwitter. There is one
   provider and one fixed post, no search or fallback chain. HTTP errors and invalid
   provider bodies fail; they never become a successful empty result.
+  Its required descriptive User-Agent is `event-reservoir-poc/1`; the API rejects
+  missing identification. Errors retain the numeric upstream HTTP status only.
 - Mozilla AutoPush reconnects an existing subscription, decrypts `aes128gcm` or
   legacy `aesgcm`, saves and reads back each notification, then sends its ACK.
   An expired UAID fails visibly; the Worker never registers with X or logs in.

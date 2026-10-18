@@ -6,10 +6,10 @@ export async function collectHttp(env, { fetcher = fetch, proof = false } = {}) 
   let response;
   try {
     response = await fetcher(`https://api.fxtwitter.com/status/${id}`, {
-      headers: { accept: 'application/json' }, signal: AbortSignal.timeout(15_000), redirect: 'manual',
+      headers: { accept: 'application/json', 'user-agent': 'event-reservoir-poc/1' }, signal: AbortSignal.timeout(15_000), redirect: 'manual',
     });
   } catch { throw new PocError('HTTP_UPSTREAM_UNREACHABLE'); }
-  if (!response.ok) throw new PocError('HTTP_UPSTREAM_STATUS');
+  if (!response.ok) throw new PocError('HTTP_UPSTREAM_STATUS', response.status);
   const bytes = await response.text();
   if (bytes.length > 512_000) throw new PocError('HTTP_UPSTREAM_TOO_LARGE');
   let body;
