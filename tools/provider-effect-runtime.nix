@@ -30,20 +30,42 @@ let
     '';
   };
   python = pkgs.python3.withPackages (ps: [ ps.playwright ]);
+  fontConfig = pkgs.makeFontsConf {
+    fontDirectories = [ pkgs.dejavu_fonts.minimal ];
+    impureFontDirectories = [];
+    includes = [];
+  };
+  chromiumWithFonts = pkgs.symlinkJoin {
+    name = "ops-provider-effect-chromium";
+    paths = [ pkgs.chromium ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram "$out/bin/chromium" --set-default FONTCONFIG_FILE ${fontConfig}
+      ln -sfn chromium "$out/bin/chromium-browser"
+    '';
+  };
   runtime = pkgs.buildEnv {
     name = "ops-provider-effect-runtime";
-    paths = [ producerNode python pkgs.chromium pkgs.wrangler pkgs.git pkgs.gh
+    paths = [ producerNode python chromiumWithFonts pkgs.wrangler pkgs.git pkgs.gh
       pkgs.curl pkgs.jq pkgs.coreutils pkgs.findutils pkgs.gnugrep pkgs.gnused
       pkgs.gawk pkgs.gnutar pkgs.gzip pkgs.bash ];
     pathsToLink = [ "/bin" ];
   };
 in runtime // { check = pkgs.runCommand "provider-effect-runtime-check" {
-  nativeBuildInputs = [ runtime ];
+  nativeBuildInputs = [ runtime pkgs.fontconfig ];
 } ''
   export HOME="$TMPDIR/home"
   mkdir -p "$HOME"
   node --version
   wrangler --version
-  CHROMIUM_PATH=${pkgs.chromium}/bin/chromium python3 ${./provider-effect-runtime-test.py}
+  # The default sans font must come from the declared closure, not host config.
+  font="$(FONTCONFIG_FILE=${fontConfig} fc-match --format='%{file}' sans-serif)"
+  case "$font" in
+    ${pkgs.dejavu_fonts.minimal}/*) test -f "$font" ;;
+    *) echo "sans font escaped declared closure" >&2; exit 1 ;;
+  esac
+  # Exercise the same wrapper default used by the runtime, without a test override.
+  unset FONTCONFIG_FILE
+  CHROMIUM_PATH=${chromiumWithFonts}/bin/chromium python3 ${./provider-effect-runtime-test.py}
   touch "$out"
 ''; }

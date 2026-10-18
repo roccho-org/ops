@@ -18,12 +18,15 @@ jobs:
       - name: Resolve exact latest default head
         id: source
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           target="$GITHUB_REPOSITORY"
           meta="$RUNNER_TEMP/repo.json"
           curl --fail --silent --show-error --location \
             -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer $GH_TOKEN" \
             "https://api.github.com/repos/$target" > "$meta"
 
           read -r visibility default_branch < <(
