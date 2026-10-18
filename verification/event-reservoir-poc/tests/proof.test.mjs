@@ -1,0 +1,403 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { saveObservation, proveReplay, PocError, withPushLease } from '../src/store.mjs';
+import { collectHttp } from '../src/http.mjs';
+import { decryptNotification, decode } from '../src/ece.mjs';
+import { collectWebpush } from '../src/webpush.mjs';
+import worker, { collect } from '../src/worker.mjs';
+
+class Bucket {
+  objects = new Map();
+  history = [];
+  fail = false;
+  async put(key, text, options = {}) {
+    await Promise.resolve();
+    if (this.fail) throw new Error('private upstream body that must never be returned');
+    const old = this.objects.get(key);
+    const only = options.onlyIf;
+    if ((only instanceof Headers && only.get('if-none-match') === '*' && old) || (only?.etagMatches && old?.etag !== only.etagMatches)) return null;
+    const value = { text, version: crypto.randomUUID() };
+    value.etag = value.version;
+    this.objects.set(key, value); this.history.push(`put:${key}`);
+    return value;
+  }
+  async get(key) {
+    const value = this.objects.get(key);
+    if (!value) return null;
+    this.history.push(`get:${key}`);
+    return { version: value.version, etag: value.etag, text: async () => value.text, json: async () => JSON.parse(value.text) };
+  }
+  async list({ prefix, startAfter = '', limit = 1000 }) {
+    const keys = [...this.objects.keys()].sort().filter(key => key.startsWith(prefix) && key > startAfter);
+    return { objects: keys.slice(0, limit).map(key => ({ key })), truncated: keys.length > limit };
+  }
+}
+const event = { schema: 'event-reservoir.observation/1', source: 'http', sourceId: 'fxtwitter:20', postId: '20', observedAt: '2026-10-18T00:00:00.000Z', payload: { text: 'existing public post' } };
+
+test('conditional creation has one winner; sequential replay and changed metrics preserve first bytes', async () => {
+  const bucket = new Bucket();
+  const result = await proveReplay(bucket, event);
+  assert.deepEqual(result, { created: 1, duplicate: 2, oneObject: true, unchanged: true, verified: true });
+  const original = [...bucket.objects.values()][0];
+  await saveObservation(bucket, { ...event, payload: { metrics: 99 } });
+  assert.equal([...bucket.objects.values()][0], original);
+});
+
+test('HTTP refuses upstream failure, malformed data and wrong IDs without saving', async () => {
+  for (const response of [new Response('error', { status: 503 }), new Response(null, { status: 302, headers: { location: 'https://example.invalid/' } }), new Response('{}'), Response.json({ code: 200, tweet: { id: '21', text: 'other' } })]) {
+    const env = { RESERVOIR: new Bucket(), HTTP_POST_ID: '20' };
+    await assert.rejects(collectHttp(env, { fetcher: async () => response }), PocError);
+    assert.equal(env.RESERVOIR.objects.size, 0);
+  }
+  const env = { RESERVOIR: new Bucket(), HTTP_POST_ID: '20' };
+  assert.equal((await collectHttp(env, { proof: true, fetcher: async (url, options) => {
+    assert.equal(url, 'https://api.fxtwitter.com/status/20');
+    if (!new Headers(options.headers).get('user-agent')) return Response.json({}, { status: 401 });
+    return Response.json({ code: 200, tweet: { id: '20', text: 'real-shaped fixture' } });
+  } })).replay.oneObject, true);
+});
+
+test('adapter diagnostics preserve only a validated numeric upstream status', async () => {
+  const env = { RESERVOIR: new Bucket(), HTTP_POST_ID: '20' };
+  const receipt = await collect(env, {}, {
+    http: input => collectHttp(input, { fetcher: async () => new Response('private remote body', { status: 401 }) }),
+    webpush: async () => { const error = new Error('private remote body'); error.upstreamStatus = 'private remote body'; throw error; },
+  });
+  assert.deepEqual(receipt.inputs.http, { status: 'ERROR', code: 'HTTP_UPSTREAM_STATUS', upstreamStatus: 401 });
+  assert.deepEqual(receipt.inputs.webpush, { status: 'ERROR', code: 'INTERNAL_FAILURE' });
+  assert.equal(JSON.stringify(receipt).includes('private remote body'), false);
+});
+
+// Public test data from RFC 8291 section 5 / Appendix A; these are NOT credentials.
+const rfc = {
+  keys: { private_key: 'q1dXpw3UpT5VOmu_cf_v6ih07Aems3njxI-JWgLcM94', public_key: 'BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4', auth_secret: 'BTBZMqHH6r4Tts7J_aSIgg' },
+  data: 'DGv6ra1nlYgDCS1FRnbzlwAAEABBBP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6TlzAC8wEqKK6PBru3jl7A_yl95bQpu6cVPTpK4Mqgkf1CXztLVBSt2Ks3oZwbuwXPXLWyouBWLVWGNWQexSgSxsj_Qulcy4a-fN',
+};
+test('WebCrypto decrypts independent RFC 8291 interoperability vector and rejects tampering', async () => {
+  assert.equal(await decryptNotification(rfc, rfc.keys), 'When I grow up, I want to be a watermelon');
+  const fullRecord = decode(rfc.data);
+  new DataView(fullRecord.buffer).setUint32(16, fullRecord.length - 86);
+  assert.equal(await decryptNotification({ ...rfc, data: [...fullRecord] }, rfc.keys), 'When I grow up, I want to be a watermelon');
+  new DataView(fullRecord.buffer).setUint32(16, 17);
+  await assert.rejects(decryptNotification({ ...rfc, data: [...fullRecord] }, rfc.keys), /WEBPUSH_DECRYPT_FAILED/);
+  const damaged = decode(rfc.data); damaged[100] ^= 1;
+  await assert.rejects(decryptNotification({ ...rfc, data: [...damaged] }, rfc.keys), /WEBPUSH_DECRYPT_FAILED/);
+});
+
+test('legacy aesgcm interoperates with Mozilla Firefox public crypto test vector', async () => {
+  // https://github.com/mozilla/gecko-dev/blob/master/dom/push/test/xpcshell/test_crypto.js
+  const keys = { private_key: '4h23G_KkXC9TvBSK2v0Q7ImpS2YAuRd8hQyN0rFAwBg', public_key: 'BLHfOWQmxBunRJBjApg8hgSLeOeEMvmKPtcYW2k9iZZOvr3cKpQ-Sp1kpZ9HipNjUCwSA55yy0uM8N9byE8dmLs', auth_secret: 'aTDc6JebzR6eScy2oLo4RQ' };
+  const notification = { data: 'Oo34w2F9VVnTMFfKtdx48AZWQ9Li9M6DauWJVgXU', headers: { encoding: 'aesgcm', crypto_key: 'dh=BCHFVrflyxibGLlgztLwKelsRZp4gqX3tNfAKFaxAcBhpvYeN1yIUMrxaDKiLh4LNKPtj0BOXGdr-IQ-QP82Wjo', encryption: 'salt=zCU18Rw3A5aB_Xi-vfixmA; rs=24' } };
+  assert.equal(await decryptNotification(notification, keys), 'Some message');
+});
+
+function pushEnvironment() {
+  return { RESERVOIR: new Bucket(), WEBPUSH_SUBSCRIPTION: JSON.stringify({ uaid: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', channel_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', keys: rfc.keys }) };
+}
+function fakeSocket(env, queue, { invalidUaid = false, failStorage = false } = {}) {
+  const config = JSON.parse(env.WEBPUSH_SUBSCRIPTION);
+  const sent = [];
+  return {
+    sent, closed: false,
+    send(value) {
+      sent.push(value);
+      if (value.messageType === 'hello') assert.equal(value.uaid, config.uaid);
+      if (value.messageType === 'ack') {
+        const stored = [...env.RESERVOIR.objects.entries()].filter(([key]) => key.startsWith('observations/webpush/'));
+        assert.equal(stored.length, 1, 'ACK requires durable observation');
+        assert.ok(env.RESERVOIR.history.some(entry => entry.startsWith('get:observations/webpush/')), 'ACK requires readback');
+      }
+    },
+    async next() {
+      if (!this.hello) {
+        this.hello = true;
+        if (failStorage) env.RESERVOIR.fail = true;
+        return { messageType: 'hello', status: 200, uaid: invalidUaid ? 'new-id' : config.uaid, use_webpush: true };
+      }
+      return queue.shift() ?? null;
+    },
+    close() { this.closed = true; },
+  };
+}
+const notification = { messageType: 'notification', channelID: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', version: 'test-version', data: rfc.data, headers: { encoding: 'aes128gcm' } };
+
+test('Mozilla proof reconnects same subscription after save-before-ACK interruption; re-delivery stays one object', async () => {
+  const env = pushEnvironment(), sockets = [];
+  const result = await collectWebpush(env, { proof: true, opener: async () => {
+    const socket = fakeSocket(env, [notification]); sockets.push(socket); return socket;
+  } });
+  assert.equal(result.created, 1); assert.equal(result.received, 2);
+  assert.equal(result.replayed, true); assert.equal(result.reconnected, true);
+  assert.equal(result.acknowledged, 1); assert.equal(result.decrypted, 2);
+  assert.equal(sockets[0].sent.some(x => x.messageType === 'ack'), false);
+  assert.equal(sockets.every(x => x.closed), true);
+});
+
+test('empty first proof session never opens a second session that could blindly ACK a new notification', async () => {
+  const env = pushEnvironment(); let opens = 0;
+  const result = await collectWebpush(env, { proof: true, opener: async () => fakeSocket(env, ++opens === 1 ? [] : [notification]) });
+  assert.equal(opens, 1);
+  assert.equal(result.status, 'NO_NOTIFICATION');
+  assert.equal(result.reconnected, false);
+  assert.equal(result.acknowledged, 0);
+  assert.equal([...env.RESERVOIR.objects.keys()].some(key => key.startsWith('observations/')), false);
+});
+
+test('pending proof tolerates idle replay polls but remains within the existing session deadline', async () => {
+  for (const returnsReplay of [true, false]) {
+    const env = pushEnvironment(); let opens = 0, polls = 0, now = 1_800_000_000_000;
+    const realNow = Date.now; Date.now = () => now;
+    try {
+      const operation = collectWebpush(env, { proof: true, opener: async () => {
+        const socket = fakeSocket(env, [notification]);
+        if (++opens === 2) {
+          const next = socket.next.bind(socket);
+          socket.next = async () => {
+            if (socket.hello) {
+              now += 2000; polls++;
+              if (!returnsReplay || polls <= 2) return null;
+            }
+            return next();
+          };
+        }
+        return socket;
+      } });
+      if (returnsReplay) assert.equal((await operation).replayed, true);
+      else await assert.rejects(operation, { code: 'WEBPUSH_REPLAY_NOT_OBSERVED' });
+      assert.ok(polls >= 3 && polls <= 6);
+    } finally { Date.now = realNow; }
+  }
+});
+
+test('real scheduled entrypoint performs save-without-ACK and reconnect replay through both adapters', async () => {
+  const env = { ...pushEnvironment(), APP_VERSION: 'fixture', HTTP_POST_ID: '20' }, sockets = [];
+  class Socket extends EventTarget {
+    acknowledged = false;
+    accept() {}
+    send(text) {
+      const value = JSON.parse(text);
+      if (value.messageType === 'hello') queueMicrotask(() => {
+        this.dispatchEvent(new MessageEvent('message', { data: JSON.stringify({ messageType: 'hello', status: 200, uaid: JSON.parse(env.WEBPUSH_SUBSCRIPTION).uaid, use_webpush: true }) }));
+        this.dispatchEvent(new MessageEvent('message', { data: JSON.stringify(notification) }));
+      });
+      if (value.messageType === 'ack') {
+        this.acknowledged = true;
+        assert.ok(env.RESERVOIR.history.some(entry => entry.startsWith('get:observations/webpush/')));
+      }
+    }
+    close() {}
+  }
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    if (url === 'https://api.fxtwitter.com/status/20') return Response.json({ code: 200, tweet: { id: '20', text: 'fixture' } });
+    assert.equal(url, 'https://push.services.mozilla.com/');
+    const socket = new Socket(); sockets.push(socket);
+    return { status: 101, webSocket: socket };
+  };
+  try {
+    await worker.scheduled({ scheduledTime: Date.now() }, env);
+    assert.equal(sockets.length, 2);
+    assert.equal(sockets[0].acknowledged, false);
+    assert.equal(sockets[1].acknowledged, true);
+    const run = JSON.parse([...env.RESERVOIR.objects.entries()].find(([key]) => key.startsWith('runs/'))[1].text);
+    assert.equal(run.trigger, 'scheduled');
+    assert.equal(run.inputs.http.replay.oneObject, true);
+    assert.equal(run.inputs.webpush.replayed, true);
+    assert.equal(run.inputs.webpush.decrypted, 2);
+    assert.equal(run.complete, true);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test('Mozilla storage/decryption failures and changed UAID never send success ACK', async () => {
+  for (const mode of ['storage', 'decrypt', 'uaid']) {
+    const env = pushEnvironment();
+    let socket;
+    await assert.rejects(collectWebpush(env, { opener: async () => {
+      socket = fakeSocket(env, [mode === 'decrypt' ? { ...notification, data: 'AAAA' } : notification], { invalidUaid: mode === 'uaid', failStorage: mode === 'storage' });
+      return socket;
+    } }));
+    assert.equal(socket.sent.some(x => x.messageType === 'ack'), false);
+    assert.equal(socket.closed, true);
+  }
+});
+
+test('concurrent Mozilla receive is refused; expired lease permits a later Cron attempt', async () => {
+  const bucket = new Bucket();
+  let release;
+  const first = withPushLease(bucket, () => new Promise(resolve => { release = resolve; }));
+  await new Promise(resolve => setImmediate(resolve));
+  await assert.rejects(withPushLease(bucket, async () => {}), /WEBPUSH_BUSY/);
+  release(); await first;
+  assert.equal(await withPushLease(bucket, async () => 'next'), 'next');
+  await bucket.put('state/webpush-lease.json', JSON.stringify({ until: 1 }));
+  assert.equal(await withPushLease(bucket, async () => 'expired'), 'expired');
+});
+
+test('Mozilla backoff is durable and prevents the next Cron from reconnecting early', async () => {
+  const env = pushEnvironment();
+  let opened = 0;
+  const opener = async () => {
+    opened++;
+    const socket = fakeSocket(env, []);
+    const next = socket.next.bind(socket);
+    socket.next = async () => { if (socket.hello) throw new PocError('WEBPUSH_BACKOFF'); return next(); };
+    return socket;
+  };
+  await assert.rejects(collectWebpush(env, { opener }), /WEBPUSH_BACKOFF/);
+  await assert.rejects(collectWebpush(env, { opener }), /WEBPUSH_BACKOFF/);
+  assert.equal(opened, 1);
+});
+
+test('both adapters run independently; public proof requires its own token and errors omit secrets', async () => {
+  const env = { RESERVOIR: new Bucket(), APP_VERSION: 'test', PROOF_TOKEN: 'private-proof-token' };
+  assert.equal((await worker.fetch(new Request('https://example.test/proof', { method: 'POST' }), env)).status, 401);
+  const receipt = await collect(env, {}, { http: async () => ({ status: 'OK' }), webpush: async () => { throw new Error('private-material'); } });
+  assert.equal(receipt.inputs.http.status, 'OK');
+  assert.equal(receipt.inputs.webpush.code, 'INTERNAL_FAILURE');
+  assert.equal(JSON.stringify(receipt).includes('private-material'), false);
+});
+
+test('recent evidence remains readable after more than 1000 historical Cron receipts', async () => {
+  const env = { RESERVOIR: new Bucket(), PROOF_TOKEN: 'private-proof-token' };
+  const now = Date.now();
+  for (let index = 0; index < 1001; index++) await env.RESERVOIR.put(`runs/${now - 10_000_000 + index}-old.json`, '{}');
+  await env.RESERVOIR.put(`runs/${now}-new.json`, JSON.stringify({ trigger: 'scheduled' }));
+  const response = await worker.fetch(new Request(`https://example.test/evidence?since=${now - 1000}`, { headers: { authorization: `Bearer ${env.PROOF_TOKEN}` } }), env);
+  assert.equal(response.status, 200);
+  assert.deepEqual((await response.json()).runs, [{ trigger: 'scheduled' }]);
+});
+
+function providerFixture(failProof) {
+  const dir = mkdtempSync(join(tmpdir(), 'event-reservoir-proof-'));
+  const output = join(dir, 'receipt.json');
+  const fixture = `
+    let evidenceCalls = 0, posts = 0;
+    globalThis.setTimeout = callback => { queueMicrotask(callback); return 0; };
+    globalThis.fetch = async (url, options) => {
+      if (new URL(url).pathname === '/proof') {
+        if (++posts > 1) throw new Error('POST must not be retried');
+        if (${failProof}) return Response.json({code:'RUN_RECEIPT_WRITE_FAILED',message:'SECRET_REMOTE_VALUE'}, {status:500});
+        return Response.json({version:'fixture',inputs:{http:{status:'OK',replay:{oneObject:true,unchanged:true}},webpush:{status:'ERROR',code:'WEBPUSH_SETUP_REQUIRED'}}});
+      }
+      if (++evidenceCalls === 1) return Response.json({code:'UNAUTHORIZED',message:'SECRET_REMOTE_VALUE'}, {status:401});
+      const at = Date.now()+100;
+      return Response.json({version:'fixture',runs:[at,at+120000].map(scheduledTime=>({version:'fixture',trigger:'scheduled',scheduledTime,inputs:{http:{status:'OK',verified:true}}}))});
+    };
+  `;
+  try {
+    const child = spawnSync(process.execPath, ['--import', `data:text/javascript,${encodeURIComponent(fixture)}`, fileURLToPath(new URL('../scripts/prove.mjs', import.meta.url)), output], {
+      encoding: 'utf8', timeout: 10_000,
+      env: { ...process.env, WORKER_URL: 'https://example.workers.dev', PROOF_TOKEN: 'fixture-only-token', GITHUB_SHA: 'fixture', REQUIRE_WEBPUSH: 'false' },
+    });
+    const raw = readFileSync(output, 'utf8');
+    assert.equal((raw + child.stdout + child.stderr).includes('SECRET_REMOTE_VALUE'), false);
+    return { status: child.status, receipt: JSON.parse(raw) };
+  } finally {
+    try { unlinkSync(output); } finally { rmdirSync(dir); }
+  }
+}
+
+test('provider readiness waits for the operation secret before one proof POST', () => {
+  const result = providerFixture(false);
+  assert.equal(result.status, 0);
+  assert.equal(result.receipt.authenticatedReadiness, true);
+  assert.equal(result.receipt.readinessAttempts, 2);
+  assert.deepEqual(result.receipt.lastReadinessFailure, {stage:'readiness',code:'UNAUTHORIZED',httpStatus:401});
+  assert.equal(result.receipt.http, true); assert.equal(result.receipt.cron, true);
+  assert.equal(result.receipt.status, 'PARTIAL'); assert.equal(result.receipt.fullPoc, false);
+});
+
+test('provider failure preserves safe stage/status/code without arbitrary remote text', () => {
+  const result = providerFixture(true);
+  assert.equal(result.status, 1);
+  assert.deepEqual(result.receipt.diagnostic, {stage:'manual-proof',code:'RUN_RECEIPT_WRITE_FAILED',httpStatus:500});
+});
+
+function scheduledProviderFixture(scenario, requirePush = true) {
+  const dir = mkdtempSync(join(tmpdir(), 'event-reservoir-scheduled-proof-')), output = join(dir, 'receipt.json');
+  const fixture = `
+    const start = 1800000000000, scenario = ${JSON.stringify(scenario)};
+    let now = start, evidenceCalls = 0, polls = 0, posts = 0;
+    Date.now = () => now;
+    globalThis.setTimeout = (callback, delay) => { now += delay; queueMicrotask(callback); return 0; };
+    const push = {status:'OK',connected:true,reconnected:true,replayed:true,decrypted:2,acknowledged:1,received:2,created:1,verified:true};
+    const empty = {status:'NO_NOTIFICATION',connected:true,reconnected:false,replayed:false,decrypted:0,acknowledged:0,received:0,created:0,verified:true};
+    const http = {status:'OK',verified:true,replay:{oneObject:true,unchanged:true}};
+    const run = (scheduledTime, webpush = empty, version = 'fixture') => ({schema:'event-reservoir.run/1',version,trigger:'scheduled',scheduledTime,finishedAt:new Date(now).toISOString(),inputs:{http,webpush}});
+    globalThis.fetch = async (url, options) => {
+      if (new URL(url).pathname === '/proof') {
+        if (++posts > 1) throw Error('proof POST retried');
+        return Response.json({schema:'event-reservoir.run/1',version:'fixture',trigger:'manual',scheduledTime:null,inputs:{http,webpush:scenario === 'manual' ? push : empty}});
+      }
+      if (++evidenceCalls === 1) return Response.json({version:'fixture',runs:[]});
+      polls++; now += polls === 1 ? 240000 : 120000;
+      const runs = [run(start+120000),run(start+240000)];
+      if (polls >= 2) {
+        if (scenario === 'late') runs.push(run(start+360000,push));
+        if (scenario === 'wrong-version') runs.push(run(start+360000,push,'other-source'));
+        if (scenario === 'pre-start') runs.push(run(start-120000,push));
+        if (scenario === 'one-delivery') runs.push(run(start+360000,{...push,replayed:false,decrypted:1,received:1}));
+        if (scenario === 'unverified') runs.push(run(start+360000,{...push,verified:false}));
+        if (scenario === 'missing-readback') { const {verified,...missing} = push; runs.push(run(start+360000,missing)); }
+      }
+      return Response.json({version:'fixture',runs});
+    };
+    process.once('beforeExit',()=>console.log(JSON.stringify({polls,posts})));
+  `;
+  try {
+    const child = spawnSync(process.execPath, ['--import', `data:text/javascript,${encodeURIComponent(fixture)}`, fileURLToPath(new URL('../scripts/prove.mjs', import.meta.url)), output], {
+      encoding: 'utf8', timeout: 10_000,
+      env: { ...process.env, WORKER_URL: 'https://example.workers.dev', PROOF_TOKEN: 'fixture-only-token', GITHUB_SHA: 'fixture', REQUIRE_WEBPUSH: String(requirePush), CRON_WAIT_MS: '600000' },
+    });
+    return { status: child.status, receipt: JSON.parse(readFileSync(output, 'utf8')), calls: JSON.parse(child.stdout.trim().split('\n').at(-1)) };
+  } finally { try { unlinkSync(output); } finally { rmdirSync(dir); } }
+}
+
+test('strict CI waits beyond the HTTP Cron pair for a later scheduled real replay and retains that exact receipt', () => {
+  const { status, receipt, calls } = scheduledProviderFixture('late');
+  assert.equal(status, 0);
+  assert.equal(receipt.fullPoc, true);
+  assert.equal(receipt.manual.inputs.webpush.status, 'NO_NOTIFICATION');
+  assert.equal(receipt.mozillaEvidence.trigger, 'scheduled');
+  assert.equal(receipt.mozillaEvidence.version, 'fixture');
+  assert.equal(receipt.mozillaEvidence.scheduledTime, 1_800_000_360_000);
+  assert.equal(receipt.mozillaEvidence.inputs.webpush.decrypted, 2);
+  assert.deepEqual(calls, { polls: 2, posts: 1 });
+});
+
+test('strict CI refuses wrong source/time, one-delivery or unverified evidence after HTTP Cron passes', () => {
+  for (const scenario of ['wrong-version', 'pre-start', 'one-delivery', 'unverified', 'missing-readback']) {
+    const { status, receipt, calls } = scheduledProviderFixture(scenario);
+    assert.equal(status, 2);
+    assert.equal(receipt.status, 'PARTIAL');
+    assert.equal(receipt.cron, true);
+    assert.equal(receipt.mozilla, false);
+    assert.equal(receipt.fullPoc, false);
+    assert.equal(receipt.mozillaEvidence, undefined);
+    assert.ok(calls.polls > 2);
+    assert.equal(calls.posts, 1);
+  }
+});
+
+test('non-strict CI still ends after its HTTP pair; valid manual replay satisfies the same strict predicate', () => {
+  const nonStrict = scheduledProviderFixture('late', false);
+  assert.equal(nonStrict.status, 0);
+  assert.equal(nonStrict.receipt.status, 'PARTIAL');
+  assert.equal(nonStrict.receipt.mozilla, false);
+  assert.deepEqual(nonStrict.calls, { polls: 1, posts: 1 });
+  const manual = scheduledProviderFixture('manual');
+  assert.equal(manual.status, 0);
+  assert.equal(manual.receipt.fullPoc, true);
+  assert.deepEqual(manual.receipt.mozillaEvidence, manual.receipt.manual);
+  assert.deepEqual(manual.calls, { polls: 1, posts: 1 });
+});
+
+test('failed run-receipt persistence has a safe distinct Worker code', async () => {
+  const env = { RESERVOIR: new Bucket() }; env.RESERVOIR.fail = true;
+  await assert.rejects(collect(env, {}, {http:async()=>({status:'OK'}),webpush:async()=>({status:'NO_NOTIFICATION'})}), /RUN_RECEIPT_WRITE_FAILED/);
+});
