@@ -304,3 +304,136 @@ testNativeV2('owner return binding: adding a flag after bind cannot change legac
   assertNativeV2.equal(c.queue.length, 1);
   assertNativeV2.ok(!c.queue[0].argv[6].includes('one engine-operation'));
 });
+
+
+// Synthetic host protocol only: no host/MCP calls or live endpoint discovery.
+import { bindExactOwnerHostReturn as bindHostReturnForTest } from './exact-owner-return.mjs';
+import * as hostReturnFS from 'node:fs';
+import * as hostReturnPath from 'node:path';
+import * as hostReturnOS from 'node:os';
+import { randomUUID as hostReturnUUID } from 'node:crypto';
+
+function hostReturnFixture(t) {
+  const root = hostReturnFS.mkdtempSync(hostReturnPath.join(hostReturnOS.tmpdir(), 'ops-host-return-'));
+  t.after(() => {
+    const resolved = hostReturnPath.resolve(root), base = hostReturnPath.resolve(hostReturnOS.tmpdir()) + hostReturnPath.sep;
+    assert.ok(resolved.startsWith(base) && hostReturnPath.basename(resolved).startsWith('ops-host-return-'));
+    hostReturnFS.rmSync(resolved, { recursive: true, force: true });
+  });
+  let clock = Date.parse('2026-10-19T00:00:00.000Z');
+  const ownerId = '11111111-1111-4111-8111-111111111111';
+  let currentOwner = ownerId;
+  const options = { mode: 'test-double', ownerThread: ownerId, hostId: 'local',
+    runId: hostReturnUUID(), sourceSha: 'a'.repeat(40), ledgerDir: root,
+    expiresAt: new Date(clock + 20000).toISOString(), timeoutMs: 5000 };
+  const runtime = { now: () => clock, ownerThread: () => currentOwner, nonce: hostReturnUUID };
+  const event = { schema: 'jev.product-terminal-event.v2', ownerThread: ownerId,
+    runId: options.runId, sourceSha: options.sourceSha, outcome: 'HOLD', resultSha256: 'b'.repeat(64),
+    transportReceiptSha256: 'c'.repeat(64), physicalCloseObserved: false,
+    executorInvocations: 0, transportLifecycle: 'NO_EXECUTOR_INVOCATION' };
+  const status = (patch = {}) => ({ schema: 'jev.host-owner-status.v1', ownerThread: ownerId,
+    hostId: 'local', status: 'idle', observedAt: new Date(clock).toISOString(),
+    statusMeaning: 'RUNTIME_TURN_STATUS', ...patch });
+  const ack = (patch = {}) => ({ schema: 'jev.host-owner-send-observation.v1', ownerThread: ownerId,
+    hostId: 'local', status: 'acknowledged', observedAt: new Date(clock).toISOString(), ...patch });
+  return { root, options, runtime, event, status, ack,
+    bind: () => bindHostReturnForTest(options, runtime),
+    advance: ms => { clock += ms; }, changeOwner: value => { currentOwner = value; } };
+}
+
+test('host return commands are fixed data, one-use and ACK never consumption', async t => {
+  const f = hostReturnFixture(t), receiver = f.bind();
+  await receiver.deliver(f.event);
+  const status = receiver.takeHostCommand();
+  assert.equal(status.tool, 'codex_app.list_threads');
+  assert.deepEqual(status.arguments, { limit: 1 });
+  assert.ok(Object.isFrozen(status) && Object.isFrozen(status.arguments));
+  receiver.acceptHostObservation(status.commandId, f.status());
+  const send = receiver.takeHostCommand();
+  assert.equal(send.tool, 'codex_app.send_message_to_thread');
+  assert.deepEqual(Object.keys(send.arguments).sort(), ['hostId', 'prompt', 'threadId']);
+  assert.equal(send.arguments.threadId, f.options.ownerThread);
+  assert.equal(send.arguments.hostId, 'local');
+  assert.match(send.arguments.prompt, /Result SHA256: b{64}/);
+  assert.ok(Buffer.byteLength(send.arguments.prompt) <= 2048);
+  const result = receiver.acceptHostSendResult(send.commandId, f.ack());
+  assert.equal(result.status, 'HOST_ACK_REPORTED_NOT_CONSUMED');
+  assert.equal(result.enqueueStatus, 'UNKNOWN');
+  assert.equal(result.consumptionStatus, 'NOT_OBSERVED');
+  assert.equal(result.statusCommandsIssued, 1);
+  assert.equal(result.sendCommandsIssued, 1);
+  assert.equal(result.hostLifetime, 'NOT_ESTABLISHED_BY_SOURCE');
+  assert.equal(result.remoteEffects, 'UNKNOWN');
+  const before = JSON.stringify(receiver.receipts());
+  receiver.acceptHostSendResult(send.commandId, f.ack());
+  receiver.acceptHostObservation(status.commandId, f.status());
+  assert.equal(receiver.takeHostCommand(), null);
+  assert.equal(JSON.stringify(receiver.receipts()), before);
+});
+
+test('host return missing, active, unknown, foreign or stale status never issues send', async t => {
+  for (const patch of [{ status: 'active' }, { status: 'unknown' }, { status: 'notLoaded' },
+    { statusMeaning: 'UNKNOWN' }, { ownerThread: '99999999-9999-4999-8999-999999999999' },
+    { hostId: 'remote' }, { observedAt: '2026-10-18T23:59:59.999Z' },
+    { observedAt: '2026-10-19T00:00:01.000Z' }]) {
+    const f = hostReturnFixture(t), r = f.bind(); await r.deliver(f.event);
+    const cmd = r.takeHostCommand(); r.acceptHostObservation(cmd.commandId, f.status(patch));
+    assert.equal(r.takeHostCommand(), null);
+    assert.equal(r.receipts().at(-1).status, 'HOLD');
+    assert.equal(r.receipts().at(-1).sendCommandsIssued, 0);
+  }
+  const f = hostReturnFixture(t), r = f.bind(); await r.deliver(f.event);
+  const cmd = r.takeHostCommand(), missing = f.status(); delete missing.status;
+  r.acceptHostObservation(cmd.commandId, missing);
+  assert.equal(r.receipts().at(-1).sendCommandsIssued, 0);
+  assert.equal(r.receipts().at(-1).status, 'HOLD');
+});
+
+test('host return rejects getters without executing them and captures primitive binding', async t => {
+  const f = hostReturnFixture(t), r = f.bind();
+  f.options.ownerThread = '99999999-9999-4999-8999-999999999999';
+  await r.deliver(f.event); const cmd = r.takeHostCommand(); let getterCalls = 0;
+  const packet = f.status(); Object.defineProperty(packet, 'status', { enumerable: true, get() { getterCalls++; return 'idle'; } });
+  r.acceptHostObservation(cmd.commandId, packet);
+  assert.equal(getterCalls, 0); assert.equal(r.receipts().at(-1).status, 'HOLD');
+  assert.equal(r.receipts().at(-1).ownerThread, f.event.ownerThread);
+});
+
+test('host return refuses order violations and a second command take', async t => {
+  for (const wrongOrder of ['before-take', 'wrong-id', 'duplicate-take']) {
+    const f = hostReturnFixture(t), r = f.bind(); await r.deliver(f.event);
+    if (wrongOrder === 'before-take') r.acceptHostObservation('not-issued', f.status());
+    else { const c = r.takeHostCommand(); if (wrongOrder === 'wrong-id') r.acceptHostObservation(c.commandId + '-wrong', f.status()); else r.takeHostCommand(); }
+    assert.equal(r.takeHostCommand(), null); assert.equal(r.receipts().at(-1).status, 'HOLD');
+    assert.equal(r.receipts().at(-1).sendCommandsIssued, 0);
+  }
+});
+
+test('host return checks expiry, owner and idle freshness again before dispatch', async t => {
+  for (const reason of ['expiry', 'owner', 'idle-stale']) {
+    const f = hostReturnFixture(t), r = f.bind(); await r.deliver(f.event);
+    const c = r.takeHostCommand(); r.acceptHostObservation(c.commandId, f.status());
+    if (reason === 'expiry') f.advance(20001);
+    else if (reason === 'idle-stale') f.advance(5001);
+    else f.changeOwner('99999999-9999-4999-8999-999999999999');
+    assert.equal(r.takeHostCommand(), null); const last = r.receipts().at(-1);
+    assert.equal(last.status, 'HOLD'); assert.equal(last.sendCommandsIssued, 0);
+  }
+});
+
+test('host return claim persists and prevents rebind delivery without retry', async t => {
+  const f = hostReturnFixture(t), r = f.bind(); await r.deliver(f.event);
+  await assert.rejects(r.deliver(f.event), /OWNER_RETURN_ALREADY_CONSUMED/);
+  const second = f.bind(); await assert.rejects(second.deliver(f.event), /OWNER_RETURN_ALREADY_CLAIMED/);
+  assert.equal(r.receipts().at(-1).statusCommandsIssued, 0);
+  assert.throws(() => bindHostReturnForTest({ ...f.options, mode: 'live' }, f.runtime), /LIVE_RUNTIME_OVERRIDE/);
+});
+
+test('host return timeout finalizes once and late replies cannot change it', async t => {
+  const f = hostReturnFixture(t), r = f.bind(); await r.deliver(f.event);
+  const c = r.takeHostCommand(); f.advance(5001);
+  const before = JSON.stringify(r.receipts());
+  assert.equal(r.receipts().at(-1).errorCode, 'HOST_OBSERVATION_TIMEOUT');
+  assert.doesNotThrow(() => r.acceptHostObservation(c.commandId, f.status()));
+  assert.equal(JSON.stringify(r.receipts()), before);
+});

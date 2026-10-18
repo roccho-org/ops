@@ -27,3 +27,23 @@ No default product invocation, daemon, scheduler, model call, current host avail
 `expiresAt` is only the return-delivery deadline. Engine execution authority and its finite deadline belong to separate caller admission; this option is not an engine-start lease. An expired delivery preserves the actual engine value/error and saved result artifact, queues nothing and remains undelivered.
 
 The explicitly selected preflight flag is captured at receiver bind time. Later mutation/deletion/addition on the caller options cannot change the bound event gate or endpoint check.
+
+
+## Opt-in host-tool return
+
+The existing `bindNativeProductCaller` accepts an explicit ownerReturn alternative:
+
+```js
+ownerReturn: {
+  transport: "host-mcp", hostId: "local", ownerThread,
+  ledgerDir, expiresAt, timeoutMs
+}
+```
+
+This alternative uses `bindExactOwnerHostReturn` from the existing receiver module. Omitted transport retains the existing CLI binding, returned API shape, endpoint-presence preflight and defaults. This branch has no CLI/SSH/MCP send callback injected into live mode. Live execution still verifies the actual inherited owner environment and uses real fixed SSH ports for any engine work. An all-needs INCOMPLETE result is a valid engine result with zero executor invocation; it is not a transport failure.
+
+The actual engine value, or a fixed safe envelope for its original error, is persisted as engine.result.json and binary-readback verified before terminal/transport artifacts and before any command can be taken. Failure to save that artifact yields no host command and preserves the original engine value/error. The host branch adds only `takeHostCommand()`, `acceptHostObservation(commandId, scalarPacket)` and `acceptHostSendResult(commandId, scalarPacket)` to the public caller. The same-module receiver controls the fixed owner/run/source/hash command state machine; a user model may not select, rewrite or resend commands after seeing the result.
+
+The engine receipt captures delivery state when run() settles. Later host handshake state is available from returnReceipts(); it does not retroactively mutate the engine receipt or imply queueing/consumption. A host acknowledgement is only HOST_ACK_REPORTED_NOT_CONSUMED. Artifact-before-command, one status command, one send command, ordered fresh owner observation and no retry are source properties. Real status availability, normal MCP approval/caller context, native process lifetime after parent final, the approved thin data transport and exact-P idle consumption remain unproven runtime conditions.
+
+The returned caller is process-local. A functions cell cannot receive this native factory by passing a callback, evaluating source text or copying a WeakMap-branded receiver. A genuine owner-native runner must keep the state alive and an approved thin driver must only carry its typed command/observation data. NodeREPL children need not inherit the owner ID; environment rewriting to bypass this guard is prohibited. These tests are synthetic and do not establish a live host bridge, delivery, model utility or G1/G2 completion.

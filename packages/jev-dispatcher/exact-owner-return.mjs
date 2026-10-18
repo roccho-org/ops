@@ -246,3 +246,182 @@ export async function withProductOwnerReturn(runProduct, describeTerminal, recei
   if (rejected) throw originalError;
   return value;
 }
+
+
+// Explicit host-only protocol. Commands are data, never code or fabricated MCP metadata.
+// The approved host driver, not this Node module, owns actual tool provenance.
+export function bindExactOwnerHostReturn(options, testRuntime) {
+  const keys = ['mode', 'ownerThread', 'hostId', 'runId', 'sourceSha', 'ledgerDir', 'expiresAt', 'timeoutMs'];
+  const ownData = (value, names) => exact(value, names) && Reflect.ownKeys(value).length === names.length
+    && names.every(key => { const d = Object.getOwnPropertyDescriptor(value, key);
+      return Object.hasOwn(d, 'value') && (d.value === null || ['string', 'number', 'boolean'].includes(typeof d.value)); });
+  if (!ownData(options, keys)) fail('INVALID_HOST_OWNER_RETURN_BINDING');
+  const { mode, ownerThread, hostId, runId, sourceSha, ledgerDir, expiresAt, timeoutMs } = options;
+  if (!['live', 'test-double'].includes(mode) || !uuid.test(ownerThread) || !uuid.test(runId)
+      || !sha40.test(sourceSha) || hostId !== 'local' || typeof ledgerDir !== 'string'
+      || !path.isAbsolute(ledgerDir) || /[\0\r\n]/u.test(ledgerDir)
+      || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30000
+      || typeof expiresAt !== 'string' || !Number.isFinite(Date.parse(expiresAt))
+      || new Date(Date.parse(expiresAt)).toISOString() !== expiresAt)
+    fail('INVALID_HOST_OWNER_RETURN_BINDING');
+  if (mode === 'live' && testRuntime !== undefined) fail('LIVE_RUNTIME_OVERRIDE');
+  const runtime = mode === 'live'
+    ? { now: Date.now, ownerThread: () => process.env.CODEX_THREAD_ID, nonce: randomUUID }
+    : testRuntime;
+  if (!runtime || !['now', 'ownerThread', 'nonce'].every(key => typeof runtime[key] === 'function'))
+    fail('INVALID_HOST_OWNER_RETURN_RUNTIME');
+  let directory;
+  try { directory = fs.lstatSync(ledgerDir); } catch { fail('INVALID_OWNER_RETURN_LEDGER'); }
+  if (!directory.isDirectory() || directory.isSymbolicLink()) fail('INVALID_OWNER_RETURN_LEDGER');
+  const binding = Object.freeze({ mode, ownerThread, hostId, runId, sourceSha, ledgerDir, expiresAt, timeoutMs });
+  const bindingSha256 = hash(JSON.stringify(binding));
+  const records = [];
+  const note = value => { records.push(Object.freeze(value)); return records.at(-1); };
+  let used = false, record = null, claim = null, pending = null, finalized = false;
+  const now = () => {
+    const value = runtime.now();
+    if (!Number.isSafeInteger(value)) fail('INVALID_HOST_OWNER_CLOCK');
+    return value;
+  };
+  const finish = (status, code = null) => {
+    if (finalized) return records.at(-1);
+    finalized = true; pending = null;
+    record.status = status; record.errorCode = code; record.completedAt = new Date(now()).toISOString();
+    try { fs.writeFileSync(path.join(claim, 'receipt.json'), JSON.stringify(record) + '\n', { flag: 'wx', mode: 0o600 }); }
+    catch { record.status = 'RECEIPT_WRITE_FAILED'; record.errorCode = 'RECEIPT_WRITE_FAILED'; }
+    return note(record);
+  };
+  const gate = () => {
+    if (!record || finalized) return false;
+    if (runtime.ownerThread() !== ownerThread) { finish('HOLD', 'OWNER_THREAD_MISMATCH'); return false; }
+    const current = now();
+    if (current < Date.parse(record.startedAt)) { finish('HOLD', 'HOST_CLOCK_REWIND'); return false; }
+    if (current >= Date.parse(expiresAt)) { finish('HOLD', 'OWNER_RETURN_EXPIRED'); return false; }
+    if (record.statusObservedAt !== null && (current < Date.parse(record.statusObservedAt)
+        || current - Date.parse(record.statusObservedAt) > timeoutMs)) {
+      finish('HOLD', 'STALE_HOST_OBSERVATION'); return false;
+    }
+    if (pending?.takenAt !== null && pending?.takenAt !== undefined
+        && now() - pending.takenAt > timeoutMs) { finish('HOLD', 'HOST_OBSERVATION_TIMEOUT'); return false; }
+    return true;
+  };
+  const command = (kind, tool, args, sequence) => Object.freeze({
+    schema: 'jev.host-owner-command.v1', kind, commandId: runId + '/host-return/' + sequence,
+    ownerThread, hostId, runId, sourceSha, bindingSha256, eventSha256: record.eventSha256,
+    expiresAt, tool, arguments: Object.freeze(args)
+  });
+  let notice;
+  const deliver = async inputEvent => {
+    if (used) fail('OWNER_RETURN_ALREADY_CONSUMED');
+    used = true;
+    const v2 = ownData(inputEvent, [...eventKeys, 'transportLifecycle', 'executorInvocations'])
+      && inputEvent.schema === 'jev.product-terminal-event.v2';
+    const v1 = ownData(inputEvent, eventKeys) && inputEvent.schema === 'jev.product-terminal-event.v1';
+    const lifecycle = v2 && Number.isSafeInteger(inputEvent.executorInvocations)
+      && (inputEvent.executorInvocations === 0
+        ? inputEvent.transportLifecycle === 'NO_EXECUTOR_INVOCATION' && inputEvent.physicalCloseObserved === false
+        : inputEvent.executorInvocations > 0 && inputEvent.transportLifecycle === 'LOCAL_SSH_CLOSED'
+          && inputEvent.physicalCloseObserved === true);
+    if ((!v1 && !lifecycle) || inputEvent.ownerThread !== ownerThread || inputEvent.runId !== runId
+        || inputEvent.sourceSha !== sourceSha || !['COMPLETED', 'FAILED', 'HOLD', 'RETURN_P', 'TERMINAL'].includes(inputEvent.outcome)
+        || !sha64.test(inputEvent.resultSha256) || !sha64.test(inputEvent.transportReceiptSha256)
+        || (v1 && inputEvent.physicalCloseObserved !== true)) fail('INVALID_OWNER_RETURN_EVENT');
+    if (runtime.ownerThread() !== ownerThread) fail('OWNER_THREAD_MISMATCH');
+    if (now() >= Date.parse(expiresAt)) fail('OWNER_RETURN_EXPIRED');
+    const nonce = runtime.nonce();
+    if (!uuid.test(nonce)) fail('INVALID_OWNER_RETURN_NONCE');
+    const event = Object.freeze({ ...inputEvent }), eventSha256 = hash(JSON.stringify(event));
+    notice = [
+      'Product terminal event for the same P thread.', 'Owner thread: ' + ownerThread,
+      'Run: ' + runId, 'Source: ' + sourceSha, 'Outcome: ' + event.outcome,
+      'Outcome is one engine-operation terminal, not Goal or G1/G2 completion.',
+      'Result SHA256: ' + event.resultSha256, 'Transport receipt SHA256: ' + event.transportReceiptSha256,
+      'Event SHA256: ' + eventSha256, 'Delivery expiry UTC: ' + expiresAt, 'Receipt nonce: ' + nonce,
+      'A host acknowledgement is neither proof of queueing nor automatic consumption.',
+      'Only after this same thread actually consumes the notice, verify its bound local receipt',
+      'and record OWNER_RETURN_CONSUMED ' + runId + ' ' + nonce + '.',
+      'Recheck current source/refs, expiry and authorization before acting; this notice grants no scope.',
+      'Never replay consumed calls. web.chat and periodic automation stay paused.'
+    ].join('\n');
+    if (Buffer.byteLength(notice) > 2048) fail('OWNER_RETURN_ARGV_LIMIT');
+    claim = path.join(ledgerDir, runId); // Same per-run namespace as the explicit CLI receiver.
+    try { fs.mkdirSync(claim, { mode: 0o700 }); }
+    catch (error) { if (error?.code === 'EEXIST') fail('OWNER_RETURN_ALREADY_CLAIMED'); throw error; }
+    record = { schema: 'jev.exact-owner-host-return-receipt.v1', mode, ownerThread, hostId, runId,
+      sourceSha, bindingSha256, bindingAuthority: 'DECLARED_ONLY', eventSha256,
+      resultSha256: event.resultSha256, transportReceiptSha256: event.transportReceiptSha256,
+      outcome: event.outcome, nonce, expiresAt, noticeSha256: hash(notice), noticeBytes: Buffer.byteLength(notice),
+      startedAt: new Date(now()).toISOString(), completedAt: null, status: 'HOST_STATUS_READY', errorCode: null,
+      statusCommandsIssued: 0, sendCommandsIssued: 0, hostToolInvocations: 'NOT_OBSERVED_BY_LIBRARY',
+      statusObservationAuthority: 'HOST_PORT_REPORTED_NOT_AUTHENTICATED_BY_LIBRARY',
+      statusObservationSha256: null, statusObservedAt: null, sendObservationSha256: null, idleStatus: 'NOT_OBSERVED',
+      hostLifetime: 'NOT_ESTABLISHED_BY_SOURCE', enqueueStatus: 'UNKNOWN',
+      consumptionStatus: 'NOT_OBSERVED', remoteEffects: 'NOT_DISPATCHED_BY_SOURCE', retries: 0 };
+    try {
+      fs.writeFileSync(path.join(claim, 'claim.json'), JSON.stringify({ ...event, eventSha256, nonce, expiresAt,
+        bindingSha256, transport: 'host-mcp' }) + '\n', { flag: 'wx', mode: 0o600 });
+      pending = { value: command('OBSERVE_OWNER_STATUS', 'codex_app.list_threads', { limit: 1 }, 1), takenAt: null };
+    } catch { return finish('HOLD', 'HOST_RETURN_LEDGER_IO'); }
+    return Object.freeze({ ...record });
+  };
+  const takeHostCommand = () => {
+    if (!gate()) return null;
+    if (!pending || pending.takenAt !== null) { finish('HOLD', 'HOST_COMMAND_ALREADY_TAKEN'); return null; }
+    const value = pending.value;
+    pending.takenAt = now();
+    record[value.kind === 'OBSERVE_OWNER_STATUS' ? 'statusCommandsIssued' : 'sendCommandsIssued']++;
+    if (value.kind === 'SEND_OWNER_NOTICE') record.remoteEffects = 'UNKNOWN';
+    try { fs.writeFileSync(path.join(claim, value.kind === 'OBSERVE_OWNER_STATUS'
+      ? 'host-status.command.json' : 'host-send.command.json'), JSON.stringify(value) + '\n', { flag: 'wx', mode: 0o600 }); }
+    catch { finish('HOLD', 'HOST_RETURN_LEDGER_IO'); return null; }
+    record.status = value.kind === 'OBSERVE_OWNER_STATUS' ? 'HOST_STATUS_PENDING' : 'HOST_SEND_PENDING';
+    return value;
+  };
+  const observationValid = (id, value, names, schema, kind) => {
+    if (!gate()) return false;
+    if (!pending || pending.takenAt === null || pending.value.commandId !== id || pending.value.kind !== kind
+        || !ownData(value, names) || value.schema !== schema || value.ownerThread !== ownerThread || value.hostId !== hostId) {
+      finish('HOLD', 'INVALID_HOST_OBSERVATION'); return false;
+    }
+    const statusAllowed = kind === 'OBSERVE_OWNER_STATUS'
+      ? ['idle', 'active', 'notLoaded', 'systemError', 'unknown'].includes(value.status)
+        && ['RUNTIME_TURN_STATUS', 'UNKNOWN'].includes(value.statusMeaning)
+      : ['acknowledged', 'failed', 'unknown'].includes(value.status);
+    if (!statusAllowed) { finish('HOLD', 'INVALID_HOST_OBSERVATION'); return false; }
+    const at = Date.parse(value.observedAt), current = now();
+    if (typeof value.observedAt !== 'string' || !Number.isFinite(at)
+        || new Date(at).toISOString() !== value.observedAt || at < pending.takenAt || at > current
+        || current - at > timeoutMs) { finish('HOLD', 'STALE_HOST_OBSERVATION'); return false; }
+    return true;
+  };
+  const acceptHostObservation = (id, value) => {
+    if (!observationValid(id, value, ['schema', 'ownerThread', 'hostId', 'status', 'observedAt', 'statusMeaning'],
+      'jev.host-owner-status.v1', 'OBSERVE_OWNER_STATUS')) return records.at(-1) ?? null;
+    record.statusObservationSha256 = hash(JSON.stringify(value));
+    record.statusObservedAt = value.observedAt;
+    record.idleStatus = value.status === 'idle' ? 'HOST_PORT_REPORTED_IDLE' : 'NOT_IDLE_OR_UNKNOWN';
+    try { fs.writeFileSync(path.join(claim, 'host-status.observation.json'), JSON.stringify(value) + '\n', { flag: 'wx', mode: 0o600 }); }
+    catch { return finish('HOLD', 'HOST_RETURN_LEDGER_IO'); }
+    if (value.status !== 'idle' || value.statusMeaning !== 'RUNTIME_TURN_STATUS')
+      return finish('HOLD', 'OWNER_IDLE_NOT_ESTABLISHED');
+    pending = { value: command('SEND_OWNER_NOTICE', 'codex_app.send_message_to_thread', {
+      threadId: ownerThread, hostId, prompt: notice
+    }, 2), takenAt: null };
+    record.status = 'HOST_SEND_READY';
+    return Object.freeze({ ...record });
+  };
+  const acceptHostSendResult = (id, value) => {
+    if (!observationValid(id, value, ['schema', 'ownerThread', 'hostId', 'status', 'observedAt'],
+      'jev.host-owner-send-observation.v1', 'SEND_OWNER_NOTICE')) return records.at(-1) ?? null;
+    record.sendObservationSha256 = hash(JSON.stringify(value));
+    try { fs.writeFileSync(path.join(claim, 'host-send.observation.json'), JSON.stringify(value) + '\n', { flag: 'wx', mode: 0o600 }); }
+    catch { return finish('HOLD', 'HOST_RETURN_LEDGER_IO'); }
+    if (value.status === 'acknowledged') return finish('HOST_ACK_REPORTED_NOT_CONSUMED');
+    return finish('HOLD', value.status === 'failed' ? 'HOST_SEND_FAILED_REPORTED' : 'HOST_SEND_UNKNOWN');
+  };
+  const receiver = Object.freeze({ deliver, takeHostCommand, acceptHostObservation, acceptHostSendResult,
+    receipts: () => { gate(); return Object.freeze(record && !finalized ? [...records, Object.freeze({ ...record })] : [...records]); }
+  });
+  states.set(receiver, { note });
+  return receiver;
+}

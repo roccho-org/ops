@@ -412,3 +412,59 @@ test('native product expiry: delivery expiry preserves original Core error and s
   assert.deepEqual(artifact, { schema: 'ops.native-product-error.v1', errorCode: 'INVALID_REQUEST' });
   assert.equal(record.resultSha256, hash(JSON.stringify(artifact)));
 });
+
+
+test('explicit host caller saves actual needs-only result before any typed command', async t => {
+  const c = context(t, 'judge');
+  c.options.ownerReturn = { transport: 'host-mcp', hostId: 'local', ownerThread: owner,
+    ledgerDir: path.join(c.root, 'return'), expiresAt: '2026-10-19T00:01:00.000Z', timeoutMs: 100 };
+  t.mock.method(childProcess, 'spawn', () => { throw new Error('NO_SSH_ALLOWED'); });
+  const caller = c.bind(), value = await caller.run(planFixture(1, ['synthetic unfilled need']));
+  assert.equal(value.calls, 0); assert.equal(value.judgments[0].status, 'INCOMPLETE');
+  const engine = caller.receipts()[0], file = path.join(c.options.ledgerDir, c.options.runId + '.engine', 'engine.result.json');
+  const saved = fs.readFileSync(file);
+  assert.equal(hash(saved), engine.resultArtifactSha256);
+  assert.deepEqual(JSON.parse(saved.toString('utf8')), value);
+  const status = caller.takeHostCommand(); assert.equal(status.kind, 'OBSERVE_OWNER_STATUS');
+  assert.equal(c.queue.length, 0); assert.equal(engine.executorInvocations, 0);
+  const observedAt = '2026-10-19T00:00:00.000Z';
+  caller.acceptHostObservation(status.commandId, { schema: 'jev.host-owner-status.v1', ownerThread: owner,
+    hostId: 'local', status: 'idle', observedAt, statusMeaning: 'RUNTIME_TURN_STATUS' });
+  const send = caller.takeHostCommand(); assert.equal(send.arguments.threadId, owner);
+  assert.ok(send.arguments.prompt.includes(engine.resultSha256));
+  assert.ok(!send.arguments.prompt.includes('synthetic unfilled need'));
+  caller.acceptHostSendResult(send.commandId, { schema: 'jev.host-owner-send-observation.v1',
+    ownerThread: owner, hostId: 'local', status: 'acknowledged', observedAt });
+  assert.equal(caller.returnReceipts().at(-1).consumptionStatus, 'NOT_OBSERVED');
+  assert.equal(caller.returnReceipts().at(-1).status, 'HOST_ACK_REPORTED_NOT_CONSUMED');
+});
+
+test('host caller retains original engine error and creates a bound safe artifact', async t => {
+  const c = context(t, 'judge');
+  c.options.ownerReturn = { transport: 'host-mcp', hostId: 'local', ownerThread: owner,
+    ledgerDir: path.join(c.root, 'return'), expiresAt: '2026-10-19T00:01:00.000Z', timeoutMs: 100 };
+  const caller = c.bind(); let original;
+  await assert.rejects(caller.run({}), error => { original = error; return error instanceof Error; });
+  assert.ok(original); const engine = caller.receipts()[0];
+  assert.equal(engine.operationStatus, 'REJECTED');
+  assert.equal(engine.resultArtifactStatus, 'VERIFIED_READBACK');
+  assert.equal(engine.resultKind, 'SAFE_ERROR_ENVELOPE');
+  assert.equal(caller.takeHostCommand().kind, 'OBSERVE_OWNER_STATUS');
+  assert.equal(c.queue.length, 0);
+});
+
+test('host caller artifact write failure prevents commands while preserving needs-only engine result', async t => {
+  const c = context(t, 'judge');
+  c.options.ownerReturn = { transport: 'host-mcp', hostId: 'local', ownerThread: owner,
+    ledgerDir: path.join(c.root, 'return'), expiresAt: '2026-10-19T00:01:00.000Z', timeoutMs: 100 };
+  const originalWrite = fs.writeFileSync;
+  t.mock.method(fs, 'writeFileSync', (file, ...args) => {
+    if (String(file).endsWith('engine.result.json')) throw new Error('synthetic artifact I/O');
+    return originalWrite(file, ...args);
+  });
+  const caller = c.bind(), value = await caller.run(planFixture(1, ['synthetic missing']));
+  assert.equal(value.judgments[0].status, 'INCOMPLETE');
+  assert.equal(caller.takeHostCommand(), null);
+  assert.equal(caller.returnReceipts().at(-1).status, 'NOT_SENT_OR_UNKNOWN');
+  assert.equal(c.queue.length, 0);
+});
