@@ -399,9 +399,26 @@ assert.equal(smallTwo.status, 'NOT_ADMITTED'); // two sendable cases exceed maxC
 
 // Formal owner path: unchanged programs/argv/stdin, globalThis.fetch replaced by a counting fixture.
 // The fixture counts on stderr, separately from the entry's own stdout accounting.
+const ownerDeadlineMs = 300;
 const fakeFetch = `globalThis.fetch = async (url, init) => {
   process.stderr.write('FIXTURE_FETCH\\n');
   const body = JSON.parse(init.body);
+  if (body.state.subject.ref === 'fixture:deadline-hang') {
+    // Keep abort dispatch synchronous until the whole plan deadline has elapsed.
+    // Plan start precedes fetch start, so this derived barrier needs no timing margin.
+    const fetchStart = performance.now();
+    const pending = setInterval(() => {}, 1000);
+    await new Promise((resolve) => {
+      const crossDeadline = () => {
+        while (performance.now() - fetchStart <= ${ownerDeadlineMs}) {}
+        resolve();
+      };
+      if (init.signal.aborted) crossDeadline();
+      else init.signal.addEventListener('abort', crossDeadline, { once: true });
+    });
+    clearInterval(pending);
+    throw new Error('fixture whole deadline elapsed');
+  }
   if (body.state.subject.ref === 'fixture:hang') {
     // Like a pending socket, keep the loop alive; AbortSignal.timeout alone does not.
     const pending = setInterval(() => {}, 1000);
@@ -427,8 +444,9 @@ const ownerChild = (program, stdin) => {
   return { status: run.status, value: JSON.parse(run.stdout), fetches };
 };
 const hang = copy(input); hang.subject.ref = 'fixture:hang';
-const deadlinePlan = { schema: 'ops.semlint.real-input.v1', limits: { ...small, maxCalls: 2, timeoutMs: 15000, deadlineMs: 300 },
-  cases: [{ id: 'first', input: hang }, { id: 'second', input: copy(input) }] };
+const deadlineHang = copy(hang); deadlineHang.subject.ref = 'fixture:deadline-hang';
+const deadlinePlan = { schema: 'ops.semlint.real-input.v1', limits: { ...small, maxCalls: 2, timeoutMs: 15000, deadlineMs: ownerDeadlineMs },
+  cases: [{ id: 'first', input: deadlineHang }, { id: 'second', input: copy(input) }] };
 for (const program of [entry, compatibility]) {
   // Positive control: same mechanism, admitted small plan, fixture actually reached once.
   const normal = ownerChild(program, JSON.stringify(smallRequest.prepared.plan));
