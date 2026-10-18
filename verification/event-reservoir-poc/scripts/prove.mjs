@@ -23,6 +23,13 @@ async function call(path, method, stage) {
   return body;
 }
 const receipt = { schema: 'event-reservoir.providerProof/1', version, worker: base, http: false, cron: false, mozilla: false, fullPoc: false };
+function acceptMozilla(run) {
+  const push = run.inputs?.webpush;
+  if (!receipt.mozilla && push?.status === 'OK' && push.verified === true && push.reconnected === true && push.replayed === true && push.decrypted >= 2 && push.acknowledged >= 1) {
+    receipt.mozilla = true;
+    receipt.mozillaEvidence = run;
+  }
+}
 let stage = 'readiness';
 try {
   const started = Date.now();
@@ -47,17 +54,18 @@ try {
   assert.equal(proof.version, version);
   receipt.http = proof.inputs.http.status === 'OK' && proof.inputs.http.replay?.oneObject === true && proof.inputs.http.replay?.unchanged === true;
   assert.equal(receipt.http, true, 'HTTP_REAL_INPUT_PROOF_FAILED');
-  const push = proof.inputs.webpush;
-  receipt.mozilla = push.status === 'OK' && push.reconnected === true && push.replayed === true && push.decrypted >= 2 && push.acknowledged >= 1;
+  acceptMozilla(proof);
   const deadline = Date.now() + Number(process.env.CRON_WAIT_MS ?? 25 * 60_000);
   stage = 'cron-evidence';
   while (Date.now() < deadline) {
     const evidence = await call(`/evidence?since=${started}`, 'GET', stage);
     const runs = evidence.runs.filter(run => run.version === version && run.trigger === 'scheduled' && run.scheduledTime >= started).sort((a, b) => a.scheduledTime - b.scheduledTime);
+    for (const run of runs) acceptMozilla(run);
     const pair = runs.slice(-2);
-    if (pair.length === 2 && pair[1].scheduledTime - pair[0].scheduledTime === 120_000 && pair.every(run => run.inputs.http.status === 'OK' && run.inputs.http.verified)) {
-      receipt.cron = true; receipt.scheduled = pair; break;
+    if (!receipt.cron && pair.length === 2 && pair[1].scheduledTime - pair[0].scheduledTime === 120_000 && pair.every(run => run.inputs.http.status === 'OK' && run.inputs.http.verified)) {
+      receipt.cron = true; receipt.scheduled = pair;
     }
+    if (receipt.cron && (!requirePush || receipt.mozilla)) break;
     await sleep(15_000);
   }
   assert.equal(receipt.cron, true, 'TWO_REAL_CRON_RUNS_NOT_OBSERVED');

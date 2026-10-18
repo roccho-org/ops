@@ -76,7 +76,12 @@ export async function collectWebpush(env, { opener = openMozilla, proof = false,
         await env.RESERVOIR.put(stateKey, JSON.stringify(state));
         while (Date.now() < deadline) {
           const message = await socket.next(Math.min(2_000, deadline - Date.now()));
-          if (message === null) break;
+          if (message === null) {
+            // Only the deliberate reconnect waits through idle polls for the
+            // unacknowledged notification, within the existing session bound.
+            if (pending && !replayed) continue;
+            break;
+          }
           if (!message.messageType) continue; // Mozilla application-level pong.
           if (message.messageType !== 'notification' || message.channelID !== config.channel_id || typeof message.version !== 'string' || !message.version) throw new PocError('WEBPUSH_NOTIFICATION_INVALID');
           let payload = null;
@@ -99,7 +104,7 @@ export async function collectWebpush(env, { opener = openMozilla, proof = false,
     }
     try {
       await session(proof);
-      if (proof) { await session(false); reconnected = true; }
+      if (proof && pending) { await session(false); reconnected = true; }
       if (pending && !replayed) throw new PocError('WEBPUSH_REPLAY_NOT_OBSERVED');
       return { status: counts.received ? 'OK' : 'NO_NOTIFICATION', connected: true, reconnected, replayed, ...counts };
     } catch (error) {

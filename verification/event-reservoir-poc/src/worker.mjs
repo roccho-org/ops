@@ -46,7 +46,7 @@ export default {
     } catch (error) { return json({ code: safeCode(error) }, 500); }
   },
   async scheduled(controller, env) {
-    const receipt = await collect(env, { trigger: 'scheduled', scheduledTime: controller.scheduledTime });
+    const receipt = await collect(env, { proof: true, trigger: 'scheduled', scheduledTime: controller.scheduledTime });
     if (Object.values(receipt.inputs).some(result => result.status === 'ERROR')) throw new PocError('COLLECTION_INCOMPLETE');
   },
 };

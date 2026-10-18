@@ -42,6 +42,9 @@ nix-build verification/event-reservoir-poc/dependencies.nix --no-out-link
 Tests cover conditional R2 creation, unchanged first bytes, upstream failure,
 the independent RFC 8291 and Mozilla Firefox crypto vectors, save-before-ACK,
 save/ACK interruption and reconnect, invalid UAID, overlapping receive and backoff.
+They also exercise the real scheduled entrypoint, delayed replay, late scheduled
+proof acceptance, strict/non-strict waits, and rejection of evidence from a
+different version, before the CI start, or without verified storage readback.
 The standard tool closure uses the repository's existing locked nixpkgs input;
 the dedicated workflow also runs the existing CI intent/effect boundary checker
 and Wrangler dry-run. Fixture results are not live X notification evidence.
@@ -118,8 +121,10 @@ failure. Setup does not deploy or start a CI run.
 
 `X_REQUEST_ACCEPTED_AND_SECRET_CONFIGURED` means X returned a successful HTTP
 response with JSON and no business errors, and GitHub confirmed the secret name.
-It does not prove notification delivery. Follow the desired account and enable
-its post notifications in X. A subsequent explicit live CI run must receive a
+It does not prove notification delivery. Follow the desired account, open that
+account's X profile and enable its profile bell for post notifications. This is
+the per-account X setting; browser notification permission is not required by
+this custom Worker receiver. A subsequent explicit live CI run must receive a
 real notification and complete decrypt/save/reconnect/ACK evidence before the
 Mozilla result or `fullPoc` can pass.
 
@@ -147,9 +152,22 @@ Before any proof POST, it waits for the same source version to accept the
 operation token and read R2 through authenticated GET. Failed stages record only
 HTTP status and enumerated safe codes; POST requests with unknown results are
 not retried. Public health alone does not establish secret propagation.
-The Mozilla proof deliberately saves the first received notification without an
-ACK, disconnects, reconnects the same subscription and verifies redelivery before
-saving/ACKing. All other received notifications are saved before ACKing as well.
+Both the manual `/proof` and this dedicated PoC's scheduled collection deliberately
+save the first received notification without an ACK, disconnect, reconnect the
+same subscription and verify redelivery before saving/ACKing. Scheduled collection
+therefore produces the same evidence when a natural notification arrives after
+the manual request. All other received notifications are saved before ACKing.
+The replay checks add bounded R2 verification calls and one intentional reconnect
+when a notification exists; this is PoC verification behavior.
+
+An empty first session ends after a two-second idle poll and does not open a
+second session. Only a pending, unacknowledged notification causes the second
+session, which waits through short idle gaps within its existing 12-second bound
+including hello. Two connection attempts of at most 10 seconds and two sessions
+of at most 12 seconds give about 44 seconds before R2 overhead, below the
+50-second CI request timeout and 120-second lease. These are bounded best-effort
+budgets, not a guarantee on unbounded storage latency. Mozilla backoff remains
+durable and is never bypassed to force a successful proof.
 
 `event-reservoir-proof-<source SHA>` contains sanitized evidence with separate
 `http`, `cron`, `mozilla` and `fullPoc` results. Without an actual X notification,
@@ -157,6 +175,14 @@ the result is `PARTIAL`; `require_webpush=true` (the default) makes acceptance
 fail. An HTTP-only infrastructure check may explicitly set it false, but this
 never changes `fullPoc` to true. Cron can legitimately receive zero notifications.
 Two successful connections alone do not prove actual notification delivery.
+The same strict predicate requires successful status, verified readback, reconnect,
+redelivery, at least two decryptions and an ACK. Either the manual receipt or a
+scheduled receipt from this exact version with scheduled time at or after this
+CI run's start can satisfy it. The exact winning receipt is retained as
+`mozillaEvidence` in the artifact. Strict CI waits for both this proof and the two
+HTTP Cron runs within the existing 25-minute deadline; an HTTP-only run still ends
+after its two HTTP Cron runs. A single saved/ACKed notification remains useful real
+input evidence but cannot satisfy the reconnect/redelivery requirement.
 
 Disconnected delivery depends on the sender's actual TTL and Topic replacement.
 There is no all-posts/no-loss guarantee. The receive window and recent receipt

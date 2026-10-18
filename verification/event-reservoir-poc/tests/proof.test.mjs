@@ -138,6 +138,81 @@ test('Mozilla proof reconnects same subscription after save-before-ACK interrupt
   assert.equal(sockets.every(x => x.closed), true);
 });
 
+test('empty first proof session never opens a second session that could blindly ACK a new notification', async () => {
+  const env = pushEnvironment(); let opens = 0;
+  const result = await collectWebpush(env, { proof: true, opener: async () => fakeSocket(env, ++opens === 1 ? [] : [notification]) });
+  assert.equal(opens, 1);
+  assert.equal(result.status, 'NO_NOTIFICATION');
+  assert.equal(result.reconnected, false);
+  assert.equal(result.acknowledged, 0);
+  assert.equal([...env.RESERVOIR.objects.keys()].some(key => key.startsWith('observations/')), false);
+});
+
+test('pending proof tolerates idle replay polls but remains within the existing session deadline', async () => {
+  for (const returnsReplay of [true, false]) {
+    const env = pushEnvironment(); let opens = 0, polls = 0, now = 1_800_000_000_000;
+    const realNow = Date.now; Date.now = () => now;
+    try {
+      const operation = collectWebpush(env, { proof: true, opener: async () => {
+        const socket = fakeSocket(env, [notification]);
+        if (++opens === 2) {
+          const next = socket.next.bind(socket);
+          socket.next = async () => {
+            if (socket.hello) {
+              now += 2000; polls++;
+              if (!returnsReplay || polls <= 2) return null;
+            }
+            return next();
+          };
+        }
+        return socket;
+      } });
+      if (returnsReplay) assert.equal((await operation).replayed, true);
+      else await assert.rejects(operation, { code: 'WEBPUSH_REPLAY_NOT_OBSERVED' });
+      assert.ok(polls >= 3 && polls <= 6);
+    } finally { Date.now = realNow; }
+  }
+});
+
+test('real scheduled entrypoint performs save-without-ACK and reconnect replay through both adapters', async () => {
+  const env = { ...pushEnvironment(), APP_VERSION: 'fixture', HTTP_POST_ID: '20' }, sockets = [];
+  class Socket extends EventTarget {
+    acknowledged = false;
+    accept() {}
+    send(text) {
+      const value = JSON.parse(text);
+      if (value.messageType === 'hello') queueMicrotask(() => {
+        this.dispatchEvent(new MessageEvent('message', { data: JSON.stringify({ messageType: 'hello', status: 200, uaid: JSON.parse(env.WEBPUSH_SUBSCRIPTION).uaid, use_webpush: true }) }));
+        this.dispatchEvent(new MessageEvent('message', { data: JSON.stringify(notification) }));
+      });
+      if (value.messageType === 'ack') {
+        this.acknowledged = true;
+        assert.ok(env.RESERVOIR.history.some(entry => entry.startsWith('get:observations/webpush/')));
+      }
+    }
+    close() {}
+  }
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async url => {
+    if (url === 'https://api.fxtwitter.com/status/20') return Response.json({ code: 200, tweet: { id: '20', text: 'fixture' } });
+    assert.equal(url, 'https://push.services.mozilla.com/');
+    const socket = new Socket(); sockets.push(socket);
+    return { status: 101, webSocket: socket };
+  };
+  try {
+    await worker.scheduled({ scheduledTime: Date.now() }, env);
+    assert.equal(sockets.length, 2);
+    assert.equal(sockets[0].acknowledged, false);
+    assert.equal(sockets[1].acknowledged, true);
+    const run = JSON.parse([...env.RESERVOIR.objects.entries()].find(([key]) => key.startsWith('runs/'))[1].text);
+    assert.equal(run.trigger, 'scheduled');
+    assert.equal(run.inputs.http.replay.oneObject, true);
+    assert.equal(run.inputs.webpush.replayed, true);
+    assert.equal(run.inputs.webpush.decrypted, 2);
+    assert.equal(run.complete, true);
+  } finally { globalThis.fetch = originalFetch; }
+});
+
 test('Mozilla storage/decryption failures and changed UAID never send success ACK', async () => {
   for (const mode of ['storage', 'decrypt', 'uaid']) {
     const env = pushEnvironment();
@@ -241,6 +316,85 @@ test('provider failure preserves safe stage/status/code without arbitrary remote
   const result = providerFixture(true);
   assert.equal(result.status, 1);
   assert.deepEqual(result.receipt.diagnostic, {stage:'manual-proof',code:'RUN_RECEIPT_WRITE_FAILED',httpStatus:500});
+});
+
+function scheduledProviderFixture(scenario, requirePush = true) {
+  const dir = mkdtempSync(join(tmpdir(), 'event-reservoir-scheduled-proof-')), output = join(dir, 'receipt.json');
+  const fixture = `
+    const start = 1800000000000, scenario = ${JSON.stringify(scenario)};
+    let now = start, evidenceCalls = 0, polls = 0, posts = 0;
+    Date.now = () => now;
+    globalThis.setTimeout = (callback, delay) => { now += delay; queueMicrotask(callback); return 0; };
+    const push = {status:'OK',connected:true,reconnected:true,replayed:true,decrypted:2,acknowledged:1,received:2,created:1,verified:true};
+    const empty = {status:'NO_NOTIFICATION',connected:true,reconnected:false,replayed:false,decrypted:0,acknowledged:0,received:0,created:0,verified:true};
+    const http = {status:'OK',verified:true,replay:{oneObject:true,unchanged:true}};
+    const run = (scheduledTime, webpush = empty, version = 'fixture') => ({schema:'event-reservoir.run/1',version,trigger:'scheduled',scheduledTime,finishedAt:new Date(now).toISOString(),inputs:{http,webpush}});
+    globalThis.fetch = async (url, options) => {
+      if (new URL(url).pathname === '/proof') {
+        if (++posts > 1) throw Error('proof POST retried');
+        return Response.json({schema:'event-reservoir.run/1',version:'fixture',trigger:'manual',scheduledTime:null,inputs:{http,webpush:scenario === 'manual' ? push : empty}});
+      }
+      if (++evidenceCalls === 1) return Response.json({version:'fixture',runs:[]});
+      polls++; now += polls === 1 ? 240000 : 120000;
+      const runs = [run(start+120000),run(start+240000)];
+      if (polls >= 2) {
+        if (scenario === 'late') runs.push(run(start+360000,push));
+        if (scenario === 'wrong-version') runs.push(run(start+360000,push,'other-source'));
+        if (scenario === 'pre-start') runs.push(run(start-120000,push));
+        if (scenario === 'one-delivery') runs.push(run(start+360000,{...push,replayed:false,decrypted:1,received:1}));
+        if (scenario === 'unverified') runs.push(run(start+360000,{...push,verified:false}));
+        if (scenario === 'missing-readback') { const {verified,...missing} = push; runs.push(run(start+360000,missing)); }
+      }
+      return Response.json({version:'fixture',runs});
+    };
+    process.once('beforeExit',()=>console.log(JSON.stringify({polls,posts})));
+  `;
+  try {
+    const child = spawnSync(process.execPath, ['--import', `data:text/javascript,${encodeURIComponent(fixture)}`, fileURLToPath(new URL('../scripts/prove.mjs', import.meta.url)), output], {
+      encoding: 'utf8', timeout: 10_000,
+      env: { ...process.env, WORKER_URL: 'https://example.workers.dev', PROOF_TOKEN: 'fixture-only-token', GITHUB_SHA: 'fixture', REQUIRE_WEBPUSH: String(requirePush), CRON_WAIT_MS: '600000' },
+    });
+    return { status: child.status, receipt: JSON.parse(readFileSync(output, 'utf8')), calls: JSON.parse(child.stdout.trim().split('\n').at(-1)) };
+  } finally { try { unlinkSync(output); } finally { rmdirSync(dir); } }
+}
+
+test('strict CI waits beyond the HTTP Cron pair for a later scheduled real replay and retains that exact receipt', () => {
+  const { status, receipt, calls } = scheduledProviderFixture('late');
+  assert.equal(status, 0);
+  assert.equal(receipt.fullPoc, true);
+  assert.equal(receipt.manual.inputs.webpush.status, 'NO_NOTIFICATION');
+  assert.equal(receipt.mozillaEvidence.trigger, 'scheduled');
+  assert.equal(receipt.mozillaEvidence.version, 'fixture');
+  assert.equal(receipt.mozillaEvidence.scheduledTime, 1_800_000_360_000);
+  assert.equal(receipt.mozillaEvidence.inputs.webpush.decrypted, 2);
+  assert.deepEqual(calls, { polls: 2, posts: 1 });
+});
+
+test('strict CI refuses wrong source/time, one-delivery or unverified evidence after HTTP Cron passes', () => {
+  for (const scenario of ['wrong-version', 'pre-start', 'one-delivery', 'unverified', 'missing-readback']) {
+    const { status, receipt, calls } = scheduledProviderFixture(scenario);
+    assert.equal(status, 2);
+    assert.equal(receipt.status, 'PARTIAL');
+    assert.equal(receipt.cron, true);
+    assert.equal(receipt.mozilla, false);
+    assert.equal(receipt.fullPoc, false);
+    assert.equal(receipt.mozillaEvidence, undefined);
+    assert.ok(calls.polls > 2);
+    assert.equal(calls.posts, 1);
+  }
+});
+
+test('non-strict CI still ends after its HTTP pair; valid manual replay satisfies the same strict predicate', () => {
+  const nonStrict = scheduledProviderFixture('late', false);
+  assert.equal(nonStrict.status, 0);
+  assert.equal(nonStrict.receipt.status, 'PARTIAL');
+  assert.equal(nonStrict.receipt.mozilla, false);
+  assert.deepEqual(nonStrict.calls, { polls: 1, posts: 1 });
+  const manual = scheduledProviderFixture('manual');
+  assert.equal(manual.status, 0);
+  assert.equal(manual.receipt.fullPoc, true);
+  assert.deepEqual(manual.receipt.mozillaEvidence, manual.receipt.manual);
+  assert.deepEqual(manual.calls, { polls: 1, posts: 1 });
 });
 
 test('failed run-receipt persistence has a safe distinct Worker code', async () => {
