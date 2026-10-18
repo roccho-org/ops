@@ -683,3 +683,4 @@ typedProposalTest('TypeLLM proposal port consumes one attempt before awaiting an
 import './typellm-native-model-port.test.mjs';
 import './typellm-executor-ports.test.mjs';
 import './typellm-ssh-executor.test.mjs';
+import './typellm-structured-proposal.test.mjs';

@@ -3,6 +3,7 @@ import { snapshotJson } from '../../packages/jev-review/semlint-entry.mjs';
 import { generateTyped, TypedProviderError } from '../../packages/typellm/src/typellm.mjs';
 import { buildTypeLLMProposalRequest } from './typellm-port.mjs';
 import { buildTypeLLMNativeQuestionRequest } from './typellm-native-model-port.mjs';
+import { buildTypeLLMStructuredProposalRequest, assembleTypeLLMStructuredProposal } from './typellm-structured-proposal.mjs';
 
 const hash = value => createHash('sha256').update(value, 'utf8').digest('hex');
 const text = value => typeof value === 'string' && value.trim().length > 0;
@@ -20,8 +21,10 @@ const codes = new Set(['auth_missing', 'cancelled', 'provider_timeout', 'provide
   'provider_unavailable', 'input_invalid', 'provider_invalid_response', 'provider_contract_error',
   'executor_timeout', 'executor_failed', 'executor_contract_error',
   'INVALID_NATIVE_QUESTION', 'INVALID_PROPOSAL_INPUT', 'INVALID_PROPOSAL_JSON']);
+const structuredCodes = new Set(['INVALID_STRUCTURED_PROPOSAL_INPUT',
+  'STRUCTURED_PROPOSAL_LIMIT', 'INVALID_STRUCTURED_PROPOSAL']);
 const optionKeys = ['id', 'mode', 'executeTyped', 'executorId', 'bindingSha256',
-  'runId', 'deadlineMs', 'signal', 'maxCalls'];
+  'runId', 'deadlineMs', 'signal', 'maxCalls', 'proposalFormat'];
 
 // A real normalized typed capability, not a synthetic HTTP response or API key.
 // Declared binding metadata is not proof of the actual target or source revision.
@@ -29,13 +32,14 @@ export function bindTypeLLMExecutorPorts(options = {}) {
   if (!object(options) || Object.keys(options).some(key => !optionKeys.includes(key)))
     throw new Error('INVALID_TYPELLM_EXECUTOR_PORT');
   const { id, mode, executeTyped, executorId, bindingSha256, runId,
-    deadlineMs, signal, maxCalls = 4 } = options;
+    deadlineMs, signal, maxCalls = 4, proposalFormat = 'json-string' } = options;
   if (!text(id) || !['live', 'test-double'].includes(mode) || !text(executorId)
       || typeof executeTyped !== 'function' || typeof bindingSha256 !== 'string'
       || !/^[a-f0-9]{64}$/.test(bindingSha256) || typeof runId !== 'string'
       || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(runId)
       || !Number.isInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 95000
       || !Number.isInteger(maxCalls) || maxCalls < 1 || maxCalls > 4
+      || !['json-string', 'typed-relations-v1'].includes(proposalFormat)
       || (signal !== undefined && !(signal instanceof AbortSignal)))
     throw new Error('INVALID_TYPELLM_EXECUTOR_PORT');
   const records = [];
@@ -97,8 +101,14 @@ export function bindTypeLLMExecutorPorts(options = {}) {
       usageInputTokens: null, usageThinkingTokens: null, providerElapsed: null,
       clientElapsedMs: null, errorCode: null, upstreamStatus: null
     };
+    if (kind === 'proposal' && proposalFormat === 'typed-relations-v1') {
+      record.proposalFormat = proposalFormat;
+      record.structuredCoverage = 'UNKNOWN';
+      record.saturatedArrays = null;
+    }
     try {
-      const built = kind === 'proposal' ? buildTypeLLMProposalRequest(value)
+      const built = kind === 'proposal' ? (proposalFormat === 'typed-relations-v1'
+        ? buildTypeLLMStructuredProposalRequest(value) : buildTypeLLMProposalRequest(value))
         : buildTypeLLMNativeQuestionRequest(value);
       const request = freeze(built.request);
       const serialized = JSON.stringify(request);
@@ -117,7 +127,15 @@ export function bindTypeLLMExecutorPorts(options = {}) {
       record.usageThinkingTokens = generated.usage?.thinking_tokens ?? null;
       record.providerElapsed = generated.elapsed ?? null;
       let answer;
-      if (kind === 'proposal') {
+      if (kind === 'proposal' && proposalFormat === 'typed-relations-v1') {
+        const assembled = assembleTypeLLMStructuredProposal(generated.result, built.captured);
+        answer = assembled.candidate;
+        Object.assign(record, assembled.metadata);
+        const encoded = JSON.stringify(answer);
+        record.proposalBytes = Buffer.byteLength(encoded, 'utf8');
+        record.proposalSha256 = hash(encoded);
+        record.status = 'STRUCTURED_ASSEMBLED';
+      } else if (kind === 'proposal') {
         const output = generated.result.proposal;
         record.proposalUnits = output.length;
         record.proposalBytes = Buffer.byteLength(output, 'utf8');
@@ -133,8 +151,10 @@ export function bindTypeLLMExecutorPorts(options = {}) {
       return answer;
     } catch (error) {
       record.status = 'FAILED';
-      const code = error instanceof TypedProviderError && codes.has(error.code) ? error.code
-        : codes.has(error?.message) ? error.message : 'executor_failed';
+      const known = code => codes.has(code) || (kind === 'proposal'
+        && proposalFormat === 'typed-relations-v1' && structuredCodes.has(code));
+      const code = error instanceof TypedProviderError && known(error.code) ? error.code
+        : known(error?.message) ? error.message : 'executor_failed';
       record.errorCode = code;
       if (code === 'provider_http_error' && Number.isInteger(error?.upstreamStatus)
           && error.upstreamStatus >= 300 && error.upstreamStatus <= 599)
