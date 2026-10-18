@@ -2,7 +2,7 @@ name: Pi Worker proof (mock inference, OAuth screen)
 
 on:
   push:
-    branches: [poc/pi-worker-oauth-20261017]
+    branches: [poc/pi-worker-oauth-20261017, proposals]
     paths:
       - experiments/pi-worker-proof/**
       - .github/workflows/pi-worker-proof.yml
