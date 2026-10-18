@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { saveObservation, proveReplay, PocError, withPushLease } from '../src/store.mjs';
 import { collectHttp } from '../src/http.mjs';
 import { decryptNotification, decode } from '../src/ece.mjs';
@@ -178,4 +183,55 @@ test('recent evidence remains readable after more than 1000 historical Cron rece
   const response = await worker.fetch(new Request(`https://example.test/evidence?since=${now - 1000}`, { headers: { authorization: `Bearer ${env.PROOF_TOKEN}` } }), env);
   assert.equal(response.status, 200);
   assert.deepEqual((await response.json()).runs, [{ trigger: 'scheduled' }]);
+});
+
+function providerFixture(failProof) {
+  const dir = mkdtempSync(join(tmpdir(), 'event-reservoir-proof-'));
+  const output = join(dir, 'receipt.json');
+  const fixture = `
+    let evidenceCalls = 0, posts = 0;
+    globalThis.setTimeout = callback => { queueMicrotask(callback); return 0; };
+    globalThis.fetch = async (url, options) => {
+      if (new URL(url).pathname === '/proof') {
+        if (++posts > 1) throw new Error('POST must not be retried');
+        if (${failProof}) return Response.json({code:'RUN_RECEIPT_WRITE_FAILED',message:'SECRET_REMOTE_VALUE'}, {status:500});
+        return Response.json({version:'fixture',inputs:{http:{status:'OK',replay:{oneObject:true,unchanged:true}},webpush:{status:'ERROR',code:'WEBPUSH_SETUP_REQUIRED'}}});
+      }
+      if (++evidenceCalls === 1) return Response.json({code:'UNAUTHORIZED',message:'SECRET_REMOTE_VALUE'}, {status:401});
+      const at = Date.now()+100;
+      return Response.json({version:'fixture',runs:[at,at+120000].map(scheduledTime=>({version:'fixture',trigger:'scheduled',scheduledTime,inputs:{http:{status:'OK',verified:true}}}))});
+    };
+  `;
+  try {
+    const child = spawnSync(process.execPath, ['--import', `data:text/javascript,${encodeURIComponent(fixture)}`, fileURLToPath(new URL('../scripts/prove.mjs', import.meta.url)), output], {
+      encoding: 'utf8', timeout: 10_000,
+      env: { ...process.env, WORKER_URL: 'https://example.workers.dev', PROOF_TOKEN: 'fixture-only-token', GITHUB_SHA: 'fixture', REQUIRE_WEBPUSH: 'false' },
+    });
+    const raw = readFileSync(output, 'utf8');
+    assert.equal((raw + child.stdout + child.stderr).includes('SECRET_REMOTE_VALUE'), false);
+    return { status: child.status, receipt: JSON.parse(raw) };
+  } finally {
+    try { unlinkSync(output); } finally { rmdirSync(dir); }
+  }
+}
+
+test('provider readiness waits for the operation secret before one proof POST', () => {
+  const result = providerFixture(false);
+  assert.equal(result.status, 0);
+  assert.equal(result.receipt.authenticatedReadiness, true);
+  assert.equal(result.receipt.readinessAttempts, 2);
+  assert.deepEqual(result.receipt.lastReadinessFailure, {stage:'readiness',code:'UNAUTHORIZED',httpStatus:401});
+  assert.equal(result.receipt.http, true); assert.equal(result.receipt.cron, true);
+  assert.equal(result.receipt.status, 'PARTIAL'); assert.equal(result.receipt.fullPoc, false);
+});
+
+test('provider failure preserves safe stage/status/code without arbitrary remote text', () => {
+  const result = providerFixture(true);
+  assert.equal(result.status, 1);
+  assert.deepEqual(result.receipt.diagnostic, {stage:'manual-proof',code:'RUN_RECEIPT_WRITE_FAILED',httpStatus:500});
+});
+
+test('failed run-receipt persistence has a safe distinct Worker code', async () => {
+  const env = { RESERVOIR: new Bucket() }; env.RESERVOIR.fail = true;
+  await assert.rejects(collect(env, {}, {http:async()=>({status:'OK'}),webpush:async()=>({status:'NO_NOTIFICATION'})}), /RUN_RECEIPT_WRITE_FAILED/);
 });

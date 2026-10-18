@@ -8,31 +8,51 @@ const output = process.argv[2];
 const requirePush = process.env.REQUIRE_WEBPUSH === 'true';
 if (!base?.match(/^https:\/\/[a-z0-9.-]+\.workers\.dev$/) || !token || !version || !output) throw new Error('PROOF_INPUT_REQUIRED');
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-async function call(path, method = 'GET') {
-  const response = await fetch(`${base}${path}`, { method, headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(50_000), redirect: 'error' });
-  if (!response.ok) throw new Error(`PROOF_HTTP_${response.status}`);
-  return response.json();
+const workerCodes = new Set(['UNAUTHORIZED', 'NOT_FOUND', 'RECEIPT_LIMIT', 'RECEIPT_MISSING', 'INVALID_SINCE', 'RUN_RECEIPT_WRITE_FAILED', 'INTERNAL_FAILURE']);
+class ProofError extends Error {
+  constructor(stage, code, httpStatus = null) { super(code); this.diagnostic = { stage, code, httpStatus }; }
+}
+async function call(path, method, stage) {
+  let response;
+  try { response = await fetch(`${base}${path}`, { method, headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(50_000), redirect: 'error' }); }
+  catch { throw new ProofError(stage, 'REQUEST_FAILED'); }
+  let body;
+  try { body = await response.json(); }
+  catch { throw new ProofError(stage, 'INVALID_RESPONSE_JSON', response.status); }
+  if (!response.ok) throw new ProofError(stage, workerCodes.has(body?.code) ? body.code : 'UNRECOGNIZED_WORKER_ERROR', response.status);
+  return body;
 }
 const receipt = { schema: 'event-reservoir.providerProof/1', version, worker: base, http: false, cron: false, mozilla: false, fullPoc: false };
+let stage = 'readiness';
 try {
-  // Only safe GET readiness is retried. A POST with an unknown result is never replayed here.
-  let health;
+  const started = Date.now();
+  // Secret updates can propagate after public health already reports the new source.
+  // Readiness proves this exact version accepts our token and can read R2. Only GET is retried.
+  let ready, lastReadinessFailure;
   for (let attempt = 0; attempt < 30; attempt++) {
-    try { health = await call('/health'); if (health.version === version) break; } catch {}
+    receipt.readinessAttempts = attempt + 1;
+    try {
+      ready = await call(`/evidence?since=${started}`, 'GET', stage);
+      if (ready.version === version) break;
+      lastReadinessFailure = { stage, code: 'DEPLOYED_VERSION_MISMATCH', httpStatus: 200 };
+    } catch (error) { lastReadinessFailure = error.diagnostic ?? { stage, code: 'READINESS_FAILED', httpStatus: null }; }
     await sleep(1000);
   }
-  assert.equal(health?.version, version, 'DEPLOYED_VERSION_MISMATCH');
-  const started = Date.now();
-  const proof = await call('/proof', 'POST');
-  assert.equal(proof.version, version);
+  if (lastReadinessFailure) receipt.lastReadinessFailure = lastReadinessFailure;
+  if (ready?.version !== version) throw new ProofError(stage, lastReadinessFailure?.code ?? 'READINESS_NOT_OBSERVED', lastReadinessFailure?.httpStatus);
+  receipt.authenticatedReadiness = true;
+  stage = 'manual-proof';
+  const proof = await call('/proof', 'POST', stage);
   receipt.manual = proof;
+  assert.equal(proof.version, version);
   receipt.http = proof.inputs.http.status === 'OK' && proof.inputs.http.replay?.oneObject === true && proof.inputs.http.replay?.unchanged === true;
   assert.equal(receipt.http, true, 'HTTP_REAL_INPUT_PROOF_FAILED');
   const push = proof.inputs.webpush;
   receipt.mozilla = push.status === 'OK' && push.reconnected === true && push.replayed === true && push.decrypted >= 2 && push.acknowledged >= 1;
   const deadline = Date.now() + Number(process.env.CRON_WAIT_MS ?? 25 * 60_000);
+  stage = 'cron-evidence';
   while (Date.now() < deadline) {
-    const evidence = await call(`/evidence?since=${started}`);
+    const evidence = await call(`/evidence?since=${started}`, 'GET', stage);
     const runs = evidence.runs.filter(run => run.version === version && run.trigger === 'scheduled' && run.scheduledTime >= started).sort((a, b) => a.scheduledTime - b.scheduledTime);
     const pair = runs.slice(-2);
     if (pair.length === 2 && pair[1].scheduledTime - pair[0].scheduledTime === 120_000 && pair.every(run => run.inputs.http.status === 'OK' && run.inputs.http.verified)) {
@@ -49,6 +69,7 @@ try {
   receipt.status = 'FAIL';
   // Never publish arbitrary remote text, stack traces, subscription data or keys.
   receipt.failure = error?.code === 'ERR_ASSERTION' ? 'PROOF_ASSERTION_FAILED' : 'PROOF_EXECUTION_FAILED';
+  receipt.diagnostic = error.diagnostic ?? { stage, code: receipt.failure, httpStatus: null };
   process.exitCode = 1;
 } finally {
   await writeFile(output, JSON.stringify(receipt, null, 2) + '\n');

@@ -74,6 +74,10 @@ explicit setup action. Do not put secret values in arguments, Git or CI artifact
 
 The live proof runs from the deployed Worker, verifies HTTP storage/replay,
 then waits for two consecutive real Cron times at the deployed source version.
+Before any proof POST, it waits for the same source version to accept the
+operation token and read R2 through authenticated GET. Failed stages record only
+HTTP status and enumerated safe codes; POST requests with unknown results are
+not retried. Public health alone does not establish secret propagation.
 The Mozilla proof deliberately saves the first received notification without an
 ACK, disconnects, reconnects the same subscription and verifies redelivery before
 saving/ACKing. All other received notifications are saved before ACKing as well.

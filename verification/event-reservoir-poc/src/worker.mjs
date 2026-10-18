@@ -15,7 +15,8 @@ export async function collect(env, { proof = false, trigger = 'manual', schedule
   receipt.complete = inputs.http?.status === 'OK' && inputs.webpush?.status === 'OK';
   // Receipts contain counts, public post IDs and error codes, never payloads or subscriptions.
   const key = `runs/${scheduledTime ?? Date.now()}-${crypto.randomUUID()}.json`;
-  await env.RESERVOIR.put(key, JSON.stringify(receipt));
+  try { await env.RESERVOIR.put(key, JSON.stringify(receipt)); }
+  catch { throw new PocError('RUN_RECEIPT_WRITE_FAILED'); }
   return receipt;
 }
 
