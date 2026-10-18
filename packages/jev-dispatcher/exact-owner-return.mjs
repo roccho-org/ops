@@ -178,7 +178,7 @@ export function bindExactOwnerReturn(options, testRuntime) {
         child.stderr.on('data', value => capture('stderr', value));
         child.stdout.on('error', () => { if (!finalized) stop('QUEUE_PIPE_ERROR'); });
         child.stderr.on('error', () => { if (!finalized) stop('QUEUE_PIPE_ERROR'); });
-        child.once('error', () => stop('QUEUE_CHILD_ERROR'));
+        child.on('error', () => { if (!finalized) stop('QUEUE_CHILD_ERROR'); });
         child.once('close', (code, signal) => {
           if (finalized) return;
           record.physicalCloseObserved = true; record.childExitCode = code; record.childSignal = signal;

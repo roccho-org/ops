@@ -152,13 +152,17 @@ test('no-close kill failure detaches handles; late close/error/data cannot mutat
   for (const failure of [{ killReturn: false }, { killThrows: true }]) {
     const f = fixture({ output: '', hang: true, noClose: true, ...failure });
     const receiver = bindExactOwnerReturn({ ...f.options, timeoutMs: 1 }, f.runtime);
-    const receipt = await receiver.deliver(f.event), before = JSON.stringify(receipt);
+    const pending = receiver.deliver(f.event);
+    assert.doesNotThrow(() => f.observations.child.emit('error', new Error('initial synthetic error')));
+    const receipt = await pending, before = JSON.stringify(receipt);
     assert.equal(receipt.physicalCloseObserved, false); assert.equal(receipt.childUnrefObserved, true);
     assert.equal(f.observations.unrefs, 1);
     assert.equal(receipt.stdoutDetached, true); assert.equal(receipt.stderrDetached, true);
     assert.equal(receipt.enqueueStatus, 'UNKNOWN'); assert.equal(receipt.consumptionStatus, 'NOT_OBSERVED');
     assert.doesNotThrow(() => f.observations.child.emit('close', 0, null));
     assert.doesNotThrow(() => f.observations.child.emit('error', new Error('late synthetic error')));
+    assert.doesNotThrow(() => f.observations.child.emit('error', new Error('second late synthetic error')));
+    assert.doesNotThrow(() => f.observations.child.emit('error', new Error('third late synthetic error')));
     assert.doesNotThrow(() => f.observations.child.stdout.emit('error', new Error('late synthetic pipe error')));
     assert.doesNotThrow(() => f.observations.child.stdout.emit('data', Buffer.from('late data')));
     assert.equal(JSON.stringify(receipt), before);
