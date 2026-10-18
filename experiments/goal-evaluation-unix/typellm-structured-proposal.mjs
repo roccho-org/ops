@@ -26,7 +26,9 @@ function bounds(prompt) {
     needs: ARRAY_LIMIT, missing: ARRAY_LIMIT };
 }
 
-// Seven top-level arrays, no nested arrays/null schema/dependencies. The SDK counts
+// Seven top-level arrays, no nested arrays or null schema. The default has no
+// dependencies; the opt-in format adds only top-level relation dependencies.
+// The SDK counts
 // 27/29 named fields recursively; core fields are absent for an empty catalog.
 // Array item containers add no name.
 export function buildTypeLLMStructuredProposalRequest(prompt, format = 'typed-relations-v1') {
