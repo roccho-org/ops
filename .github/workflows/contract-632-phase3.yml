@@ -284,10 +284,10 @@ jobs:
             and .source.graphSha256 == .servedGraphSha256' \
             "$root/closure-graph-receipt.json" >/dev/null
 
-          jq -e '.status == "PASS"
+          jq -e --slurpfile universe "$work/source-universe.json" '.status == "PASS"
             and .authority == false
             and .phaseClosed == false
-            and .packageCount == 60
+            and .packageCount == ($universe[0].packages | length)
             and .fillCount == 0
             and .receiptCount == 0
             and .residualCount == 0

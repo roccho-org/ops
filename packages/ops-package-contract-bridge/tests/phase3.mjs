@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { buildPhase3Bundle, verifyPhase3Bundle } from '../src/phase3.mjs';
 
 const [phase1Bundle, phase2Bundle, uiSource, appsSource, uiRevision, appsRevision, packageMapCommand, packageMapViewer, opsCandidateSha] = process.argv.slice(2);
@@ -12,6 +13,19 @@ if ([phase1Bundle, phase2Bundle, uiSource, appsSource, uiRevision, appsRevision,
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ops-package-contract-phase3-'));
 const run1 = path.join(temp, 'run1');
 const run2 = path.join(temp, 'run2');
+const sourceRoot = fileURLToPath(new URL('../../../', import.meta.url));
+const expectedPackages = fs.readdirSync(path.join(sourceRoot, 'packages'), { withFileTypes: true })
+  .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
+const inputAssertions = fs.readFileSync(path.join(phase2Bundle, 'relation-valid-source-assertions-v5.jsonl'), 'utf8')
+  .trim().split(/\r?\n/u).map(JSON.parse);
+const expectedSources = [...new Map(inputAssertions.map(row => [
+  `${row.sourceRef}@assertion:${row.sourceDigest}`,
+  { sourceRef: `${row.sourceRef}@assertion:${row.sourceDigest}`, sourceDigest: `sha256:${row.sourceDigest}` },
+])).values()].sort((a, b) => a.sourceRef.localeCompare(b.sourceRef));
+const expectedEdges = [...new Set(inputAssertions.filter(row => row.field === 'dependency')
+  .flatMap(row => (Array.isArray(row.value) ? row.value : [row.value])
+    .filter(value => expectedPackages.includes(value)).map(value => `${row.packageId}\0${value}`)))].sort();
+const inputDrifts = JSON.parse(fs.readFileSync(path.join(phase2Bundle, 'combined-drift-findings-v5.json'), 'utf8')).findings;
 
 function files(root, prefix = '') {
   const out = [];
@@ -32,12 +46,12 @@ try {
   assert.equal(first.status, 'PASS');
   assert.equal(first.authority, false);
   assert.equal(first.phaseClosed, false);
-  assert.equal(first.packageCount, 60);
-  assert.equal(first.sourceCount, 1156);
-  assert.equal(first.uiElementCount, 61);
-  assert.equal(first.uiEdgeCount, 17);
+  assert.equal(first.packageCount, expectedPackages.length);
+  assert.equal(first.sourceCount, expectedSources.length);
+  assert.equal(first.uiElementCount, expectedPackages.length + 1);
+  assert.equal(first.uiEdgeCount, expectedEdges.length);
   assert.ok(first.appsRowCount > 0);
-  assert.ok(first.mappingRows >= 1156);
+  assert.ok(first.mappingRows >= expectedSources.length);
   assert.equal(first.fillCount, 0);
   assert.equal(first.receiptCount, 0);
   assert.equal(first.residualCount, 0);
@@ -76,9 +90,13 @@ try {
   assert.notEqual(append.contextInputs.candidateOverlay.digest, append.contextInputs.mutatedCandidateOverlay.digest);
 
   const view = JSON.parse(fs.readFileSync(path.join(run1, 'ui.contract-model-atlas.view.json'), 'utf8'));
+  assert.deepEqual(view.elements.filter(element => element.packageId).map(element => element.packageId).sort(), expectedPackages);
+  assert.deepEqual(view.sourceIdentity.sources, expectedSources);
+  const packageIdsByElement = new Map(view.elements.filter(element => element.packageId).map(element => [element.id, element.packageId]));
+  assert.deepEqual(view.edges.map(edge => `${packageIdsByElement.get(edge.from)}\0${packageIdsByElement.get(edge.to)}`).sort(), expectedEdges);
   assert.ok(view.elements.every(element => !element.packageId || Object.keys(element.contractFields).length === 11));
   assert.equal(view.edges.some(edge => edge.from === 'decision_current' || edge.to === 'decision_current'), false);
-  assert.equal(view.diagnostics.filter(item => item.kind === 'visible_drift').length, 302);
+  assert.equal(view.diagnostics.filter(item => item.kind === 'visible_drift').length, inputDrifts.length);
 
   const atlasRows = fs.readFileSync(path.join(run1, 'apps.atlas-purpose-closure.input.jsonl'), 'utf8').trim().split(/\r?\n/u).slice(1).map(JSON.parse);
   assert.equal(atlasRows.some(row => row.kind === 'purpose' && row.id.startsWith('purpose:decision:')), false);
