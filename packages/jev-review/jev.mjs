@@ -1,4 +1,4 @@
-import { JEV_MODEL, validateJevBudget } from './core.mjs';
+import { JEV_MODEL, validateJevBudget, JEV_PROVIDER_TOKEN_BUDGET_POLICY, JEV_PROVIDER_REQUEST_MAX_BYTES } from './core.mjs';
 import { bindJev, postJevQuestions } from '../jev/src/core.mjs';
 
 const ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
@@ -64,13 +64,28 @@ export function validateJevResponse(data, questions) {
 // credential closure are supplied by the existing shared provider transport.
 export function bindJevReview({ key, fetchImpl = fetch } = {}) {
   const provider = bindJev({ apiKey: key, fetch: (url, init) => fetchImpl(url, { ...init, redirect: 'error' }) });
-  return async (state, questions, { timeoutMs }) => {
+  return async (state, questions, options) => {
+    const budget = Object.getOwnPropertyDescriptor(options, 'budgetPolicy');
+    if (('budgetPolicy' in options && !budget) || (budget && (!budget.enumerable
+        || !Object.hasOwn(budget, 'value') || budget.value !== JEV_PROVIDER_TOKEN_BUDGET_POLICY)))
+      throw new Error('INVALID_JEV_BUDGET_POLICY');
+    const { timeoutMs } = options, budgetPolicy = budget?.value;
     if (typeof key !== 'string' || !key.trim()) throw new Error('JEV_API_KEY_REQUIRED');
     if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) throw new Error('INVALID_TIMEOUT');
+    if (budgetPolicy === JEV_PROVIDER_TOKEN_BUDGET_POLICY) {
+      // Capture once before measuring: a caller's toJSON cannot change the later wire.
+      const wire = JSON.stringify({ model: JEV_MODEL, state, questions });
+      if (Buffer.byteLength(wire, 'utf8') > JEV_PROVIDER_REQUEST_MAX_BYTES) throw new Error('JEV_REQUEST_BYTE_LIMIT');
+      const captured = JSON.parse(wire);
+      state = captured.state; questions = captured.questions;
+    }
     if (!questions || !Object.keys(questions).length) throw new Error('EMPTY_JEV_QUESTIONS');
-    validateJevBudget(state, questions);
+    validateJevBudget(state, questions, budgetPolicy);
     let result;
-    try { result = await postJevQuestions(provider, { model: JEV_MODEL, state, questions }, { deadlineMs: timeoutMs }); }
+    try { result = await postJevQuestions(provider, { model: JEV_MODEL, state, questions }, {
+      deadlineMs: timeoutMs,
+      ...(budgetPolicy === JEV_PROVIDER_TOKEN_BUDGET_POLICY ? { diagnoseRejection: true } : {})
+    }); }
     catch (error) {
       if (error?.code === 'provider_http_error') throw new Error(`JEV_HTTP_${error.status}`);
       if (error?.code === 'provider_invalid_response') throw new Error('INVALID_JEV_JSON');

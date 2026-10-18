@@ -274,7 +274,7 @@ assert.equal(normalMachine.status, 0); assert.equal(normalMachine.stderr, '');
 assert.deepEqual(JSON.parse(normalMachine.stdout), { status: 'PASS', core: 'semantic-evaluate', ranking: 'derived',
   cli: 'json-input-jsonl-output-readback', semanticThresholds: 0, semlintCases: 37, semlintCallbacks: 19,
   realProviderCalls: 0, semanticQuality: 'NOT_PROVEN', providedCases: 29, providedCallbacks: 9, bridgeControls: 9,
-  projectedControls: 22, atomicControls: 26, structuredControls: 42, choiceControls: 67, v14Controls: 69 });
+  projectedControls: 22, atomicControls: 26, structuredControls: 42, choiceControls: 67, v14Controls: 69, v15Controls: 11, v16Controls: 11 });
 for (const program of [entry, compatibility]) {
   const argv = program === entry ? [] : ['--semlint-real'];
   for (const [stdin, status, expectedSchema] of [

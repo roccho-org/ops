@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { pathToFileURL } from 'node:url';
-import { JEV_MODEL } from './core.mjs';
+import { JEV_MODEL, JEV_PROVIDER_TOKEN_BUDGET_POLICY } from './core.mjs';
 import { bindJevReview } from './jev.mjs';
 import { semlint } from './semlint.mjs';
 
@@ -104,7 +104,8 @@ export async function runPlan(prepared, ask, { now = () => performance.now() } =
       if (callbackAttempts >= prepared.limits.maxCalls) fail('ENTRY_CALL_BUDGET_EXCEEDED');
       callbackAttempts++;
       // ask owns the bounded provider operation; this module never retries it.
-      return ask(state, questions, { caseId: row.id, timeoutMs: Math.max(1, Math.floor(Math.min(remaining, prepared.limits.timeoutMs))) });
+      return ask(state, questions, { caseId: row.id, timeoutMs: Math.max(1, Math.floor(Math.min(remaining, prepared.limits.timeoutMs))),
+        ...(row.input.schema === 'ops.semlint.input.v16' ? { budgetPolicy: JEV_PROVIDER_TOKEN_BUDGET_POLICY } : {}) });
     });
     const caseEnd = now();
     if (!Number.isFinite(caseStart) || !Number.isFinite(caseEnd) || caseEnd < caseStart) fail('ENTRY_CLOCK_INVALID');
@@ -143,11 +144,11 @@ export async function executeOwnerPlan(prepared, key, fetchImpl = fetch) {
     return { ok: response.ok, status: response.status, json: async () => JSON.parse(bytes.toString('utf8')) };
   };
   const ask = bindJevReview({ key, fetchImpl: observedFetch });
-  const output = await runPlan(prepared, async (state, questions, { caseId, timeoutMs }) => {
+  const output = await runPlan(prepared, async (state, questions, { caseId, timeoutMs, budgetPolicy }) => {
     const provider = providers.get(caseId), start = performance.now();
     activeProvider = provider;
     try {
-      const answer = await ask(state, questions, { timeoutMs });
+      const answer = await ask(state, questions, { timeoutMs, ...(budgetPolicy ? { budgetPolicy } : {}) });
       provider.validatedResponses = 1; provider.validatedModel = JEV_MODEL; provider.statusClass = 'VALIDATED_RESPONSE';
       const usage = Object.entries(answer.usage).filter(([name]) => ['input_tokens', 'output_tokens', 'total_tokens'].includes(name));
       provider.usage = usage.length ? Object.fromEntries(usage) : null;

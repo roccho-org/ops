@@ -1,4 +1,4 @@
-import { validateJevBudget } from './core.mjs';
+import { validateJevBudget, JEV_PROVIDER_TOKEN_BUDGET_POLICY } from './core.mjs';
 import { validateJevResponse } from './jev.mjs';
 
 const text = (x) => typeof x === 'string' && x.trim().length > 0;
@@ -93,6 +93,10 @@ export function validateReviewInput(themes, items) {
 export async function evaluate(state, options, ask) {
   const descriptor = Object.getOwnPropertyDescriptor(options, 'nativeQuestions');
   if (('nativeQuestions' in options && !descriptor) || (descriptor && (!descriptor.enumerable || !Object.hasOwn(descriptor, 'value')))) throw new Error('INVALID_NATIVE_QUESTIONS');
+  const budget = Object.getOwnPropertyDescriptor(options, 'budgetPolicy');
+  if (('budgetPolicy' in options && !budget) || (budget && (!budget.enumerable
+      || !Object.hasOwn(budget, 'value') || budget.value !== JEV_PROVIDER_TOKEN_BUDGET_POLICY)))
+    throw new Error('INVALID_JEV_BUDGET_POLICY');
   const {themes, items} = options;
   validateReviewInput(themes, items);
   if (descriptor) state = projectedSnapshot(state);
@@ -114,7 +118,7 @@ export async function evaluate(state, options, ask) {
       criteria: { true: 'The concern is present in the declared state.', false: 'The concern is absent from the declared state.' },
     };
   });
-  validateJevBudget(state, questions);
+  validateJevBudget(state, questions, budget?.value);
   const response = validateJevResponse(await ask(state, questions), questions);
   const judgments = mapping.map(({ key, item }) => questions[key].type === 'choice'
     ? {theme: item.theme, subject: item.subject, ...response.answers[key]}

@@ -5,7 +5,7 @@ const { default: assert } = await import('node:assert/strict');
 const { default: fs } = await import('node:fs');
 const { default: os } = await import('node:os');
 const { default: path } = await import('node:path');
-const { JEV_MODEL, validateJevBudget } = await import('../core.mjs');
+const { JEV_MODEL, validateJevBudget, JEV_PROVIDER_TOKEN_BUDGET_POLICY } = await import('../core.mjs');
 const { evaluate } = await import('../review.mjs');
 const { createHash } = await import('node:crypto');
 const { semlint } = await import('../semlint.mjs');
@@ -907,6 +907,255 @@ assert.equal(incompleteOwner.accounting.providerHttpCalls, 0);
 assert.equal(incompleteOwner.cases[0].result.records[0].status, 'INCOMPLETE');
 providerBindingCases++;
 
+
+// v15 has a separate retained-source ceiling; all actual model budgets are unchanged.
+// These synthetic renderings test structural/budget binding, not translation fidelity.
+let v15Controls = 0;
+const v15Hash = value => createHash('sha256').update(value, 'utf8').digest('hex');
+const v15Copy = value => JSON.parse(JSON.stringify(value));
+const v15Input = (original = '赤。', english = 'Red.') => ({
+  schema: 'ops.semlint.input.v15',
+  subject: {kind: 'log-entry', ref: 'fixture:v15-subject', revision: 'fixture-1', scope: 'whole synthetic record',
+    content: 'Synthetic record.', sha256: v15Hash('Synthetic record.'),
+    evaluationSpan: {startByte: 0, endByte: Buffer.byteLength('Synthetic record.', 'utf8')}, englishAuxiliary: null},
+  context: [{role: 'colorContract', ref: 'fixture:v15-context', revision: 'fixture-1', content: original,
+    sha256: v15Hash(original), evaluationSpan: {startByte: 0, endByte: Buffer.byteLength(original, 'utf8')},
+    englishAuxiliary: {text: english, sourceSha256: v15Hash(original)}}],
+  checks: [{id: 'v15-color', axis: 'Minimal', concern: 'The synthetic record violates its supplied color rule.',
+    requiredRoles: ['colorContract'], crossLinks: [], predicate: {
+      question: 'Does the synthetic record violate the supplied color rule?',
+      true: 'The synthetic record violates the supplied color rule.',
+      false: 'The synthetic record does not violate the supplied color rule.'}}],
+});
+const v15Observer = () => {
+  const observation = {calls: 0, state: null, questions: null};
+  observation.ask = async (s, q) => {
+    observation.calls++; observation.state = v15Copy(s); observation.questions = v15Copy(q);
+    return {model: JEV_MODEL, answers: Object.fromEntries(Object.keys(q).map(key => [key, {type: 'noul', noul: 0.5}]))};
+  };
+  return observation;
+};
+const v15NoModel = async input => {
+  const observed = v15Observer(), output = await semlint(input, observed.ask);
+  assert.equal(observed.calls, 0); assert.equal(output.accounting.callbackAttempts, 0);
+  assert.equal(output.accounting.validatedCalls, 0);
+  assert.ok(output.records.length > 0 && output.records.every(row => row.status === 'EXECUTION_ERROR'
+    && row.cause === 'EVALUATION_PREFLIGHT_FAILED'));
+  return output;
+};
+const v15Large = v15Input('赤。'.repeat(3000), 'Red. '.repeat(3000));
+assert.ok(Buffer.byteLength(JSON.stringify(v15Large), 'utf8') > 28000);
+assert.ok(Buffer.byteLength(JSON.stringify(v15Large), 'utf8') < 1048576);
+const v15LargeObservation = v15Observer();
+const v15LargeResult = await semlint(v15Large, v15LargeObservation.ask);
+assert.equal(v15LargeObservation.calls, 1);
+assert.equal(v15LargeResult.schema, 'ops.semlint.result.v15');
+assert.equal(v15LargeResult.records[0].status, 'OBSERVED');
+assert.equal(v15LargeObservation.state.schema, 'ops.semlint.evaluation-state.v6');
+assert.equal(v15LargeObservation.state.context[0].content, v15Large.context[0].englishAuxiliary.text);
+assert.equal(v15LargeObservation.state.context[0].originalSha256, v15Large.context[0].sha256);
+assert.equal(JSON.stringify(v15LargeObservation.state).includes('赤。'), false);
+const v15LargeBudget = validateJevBudget(v15LargeObservation.state, v15LargeObservation.questions);
+assert.ok(v15LargeBudget.stateBytes < 28000);
+v15Controls++;
+
+// The exact same complete raw input still fails the old v14 raw admission.
+await v15NoModel({...v15Large, schema: 'ops.semlint.input.v14'});
+v15Controls++;
+
+const v15RawOversize = v15Input('赤。'.repeat(175000), 'Red.');
+assert.ok(Buffer.byteLength(JSON.stringify(v15RawOversize), 'utf8') > 1048576);
+const v15RawObservation = v15Observer();
+await assert.rejects(() => semlint(v15RawOversize, v15RawObservation.ask), /INVALID_SEMLINT_INPUT/);
+assert.equal(v15RawObservation.calls, 0);
+v15Controls++;
+
+const v15ModelOversize = v15Input('赤。'.repeat(5000), 'Red. '.repeat(6000));
+assert.ok(Buffer.byteLength(JSON.stringify(v15ModelOversize), 'utf8') < 1048576);
+await v15NoModel(v15ModelOversize);
+v15Controls++;
+
+const v15LongQuestion = v15Input();
+v15LongQuestion.checks[0].predicate.question = 'q'.repeat(31000);
+await v15NoModel(v15LongQuestion);
+v15Controls++;
+
+// One actual question fits; three otherwise identical actual questions exceed only the aggregate ceiling.
+const v15OneQuestion = v15Input();
+v15OneQuestion.checks[0].predicate.question = 'q'.repeat(19500);
+const v15OneObservation = v15Observer();
+const v15OneResult = await semlint(v15OneQuestion, v15OneObservation.ask);
+assert.equal(v15OneObservation.calls, 1); assert.equal(v15OneResult.records[0].status, 'OBSERVED');
+const v15OneBudget = validateJevBudget(v15OneObservation.state, v15OneObservation.questions);
+assert.ok(v15OneBudget.stateBytes + v15OneBudget.longestQuestionBytes <= 31000);
+assert.ok(v15OneBudget.stateBytes + 3 * v15OneBudget.allQuestionsBytes > 60000);
+v15Controls++;
+const v15ManyQuestions = v15Copy(v15OneQuestion);
+v15ManyQuestions.checks = Array.from({length: 3}, (_, i) => ({...v15Copy(v15OneQuestion.checks[0]), id: 'v15-color-' + i}));
+await v15NoModel(v15ManyQuestions);
+v15Controls++;
+
+const v15Small = v15Input(), v14Small = {...v15Copy(v15Small), schema: 'ops.semlint.input.v14'};
+const v15SmallObservation = v15Observer(), v14SmallObservation = v15Observer();
+const v15SmallResult = await semlint(v15Small, v15SmallObservation.ask);
+const v14SmallResult = await semlint(v14Small, v14SmallObservation.ask);
+assert.equal(v15SmallObservation.calls, 1); assert.equal(v14SmallObservation.calls, 1);
+assert.equal(v14SmallResult.schema, 'ops.semlint.result.v14');
+assert.equal(v15SmallResult.schema, 'ops.semlint.result.v15');
+assert.deepEqual(v15SmallObservation.state, v14SmallObservation.state);
+assert.deepEqual(v15SmallObservation.questions, v14SmallObservation.questions);
+assert.equal(v15SmallResult.projection.stateDigest, v14SmallResult.projection.stateDigest);
+v15Controls++;
+
+for (const corrupt of [
+  input => { input.context[0].englishAuxiliary = null; },
+  input => { input.context[0].sha256 = '0'.repeat(64); },
+  input => { input.context[0].evaluationSpan.startByte = 1; },
+]) {
+  const invalid = v15Input(), observed = v15Observer(); corrupt(invalid);
+  await assert.rejects(() => semlint(invalid, observed.ask), /INVALID_SEMLINT_INPUT/);
+  assert.equal(observed.calls, 0); v15Controls++;
+}
+assert.equal(v15Controls, 11);
+
+
+ // v16 keeps the complete v15 representation and uses explicit provider token admission.
+ // These synthetic fixtures prove byte containment and transport binding, not token fit.
+ let v16Controls = 0;
+ const v16Policy = JEV_PROVIDER_TOKEN_BUDGET_POLICY;
+ const v16Input = (...args) => ({ ...v15Input(...args), schema: 'ops.semlint.input.v16' });
+ const v16Large = v16Input('赤。', 'Red. '.repeat(7000));
+ const v16LargeObservation = v15Observer();
+ const v16LargeResult = await semlint(v16Large, v16LargeObservation.ask);
+ assert.equal(v16LargeObservation.calls, 1);
+ assert.equal(v16LargeResult.schema, 'ops.semlint.result.v16');
+ assert.equal(v16LargeResult.records[0].status, 'OBSERVED');
+ assert.ok(Buffer.byteLength(JSON.stringify(v16LargeObservation.state), 'utf8') > 28000);
+ assert.equal(v16LargeObservation.state.context[0].content, v16Large.context[0].englishAuxiliary.text);
+ const v16Measured = validateJevBudget(v16LargeObservation.state, v16LargeObservation.questions, v16Policy);
+ assert.ok(v16Measured.requestBytes <= 65536);
+ assert.equal(v16Measured.tokenAdmission, 'UNKNOWN_LOCALLY_PROVIDER_ENFORCED');
+ await v15NoModel({ ...v15Copy(v16Large), schema: 'ops.semlint.input.v15' });
+ v16Controls++;
+
+ const v16Small = v16Input(), v16SmallObservation = v15Observer();
+ const v16SmallResult = await semlint(v16Small, v16SmallObservation.ask);
+ assert.deepEqual(v16SmallObservation.state, v15SmallObservation.state);
+ assert.deepEqual(v16SmallObservation.questions, v15SmallObservation.questions);
+ assert.equal(v16SmallResult.projection.stateDigest, v15SmallResult.projection.stateDigest);
+ assert.notEqual(v16SmallResult.inputDigest, v15SmallResult.inputDigest);
+ v16Controls++;
+
+ const v16WireBase = Buffer.byteLength(JSON.stringify({ model: JEV_MODEL, state: '', questions: {} }), 'utf8');
+ assert.equal(validateJevBudget('a'.repeat(65536 - v16WireBase), {}, v16Policy).requestBytes, 65536);
+ assert.throws(() => validateJevBudget('a'.repeat(65537 - v16WireBase), {}, v16Policy), /JEV_REQUEST_BYTE_LIMIT/);
+ assert.throws(() => validateJevBudget({}, {}, {}), /INVALID_JEV_BUDGET_POLICY/);
+ v16Controls++;
+
+ await v15NoModel(v16Input('赤。', 'Red. '.repeat(14000)));
+ const v16LongQuestion = v16Input();
+ v16LongQuestion.checks[0].predicate.question = 'q'.repeat(65536);
+ await v15NoModel(v16LongQuestion);
+ const v16ManyQuestions = v16Input();
+ v16ManyQuestions.checks[0].predicate.question = 'q'.repeat(23000);
+ v16ManyQuestions.checks = Array.from({ length: 3 }, (_, i) =>
+   ({ ...v15Copy(v16ManyQuestions.checks[0]), id: 'v16-' + i }));
+ await v15NoModel(v16ManyQuestions);
+ v16Controls++;
+
+ const v16RawOversize = v16Input('赤。'.repeat(180000), 'Red.');
+ const v16RawObservation = v15Observer();
+ await assert.rejects(() => semlint(v16RawOversize, v16RawObservation.ask), /INVALID_SEMLINT_INPUT/);
+ assert.equal(v16RawObservation.calls, 0);
+ v16Controls++;
+
+ let v16GetterReads = 0;
+ const v16ReviewOptions = { themes: ['Minimal'], items: [] };
+ Object.defineProperty(v16ReviewOptions, 'budgetPolicy', { enumerable: true,
+   get() { v16GetterReads++; return v16Policy; } });
+ await assert.rejects(() => evaluate({}, v16ReviewOptions, () => { throw new Error('MUST_NOT_CALL'); }),
+   /INVALID_JEV_BUDGET_POLICY/);
+ assert.equal(v16GetterReads, 0);
+ const v16ClientOptions = { timeoutMs: 1000 };
+ Object.defineProperty(v16ClientOptions, 'budgetPolicy', { enumerable: true,
+   get() { v16GetterReads++; return v16Policy; } });
+ await assert.rejects(() => bindJevReview({ key: 'synthetic-v16-key',
+   fetchImpl: () => { throw new Error('MUST_NOT_CALL'); } })({}, { q0: { type: 'noul' } }, v16ClientOptions),
+   /INVALID_JEV_BUDGET_POLICY/);
+ assert.equal(v16GetterReads, 0);
+ v16Controls++;
+
+ const v16Prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1',
+   cases: [{ id: 'v16-complete-source', input: v16Large }] });
+ let v16HttpCalls = 0, v16Wire = null;
+ const v16Owned = await executeOwnerPlan(v16Prepared, 'synthetic-v16-key', async (url, init) => {
+   v16HttpCalls++; v16Wire = JSON.parse(init.body);
+   assert.equal(url, 'https://api.typesafe.ai/v1/systemone');
+   assert.equal(v16Wire.model, JEV_MODEL);
+   assert.equal(Buffer.byteLength(init.body, 'utf8'), v16Measured.requestBytes);
+   assert.equal(v16Wire.state.context[0].content, v16Large.context[0].englishAuxiliary.text);
+   assert.equal(new Headers(init.headers).has('TypeSafe-Danger-Zone-Long-Context'), false);
+   return new Response(JSON.stringify({ model: JEV_MODEL,
+     answers: Object.fromEntries(Object.keys(v16Wire.questions).map(id => [id, { type: 'noul', noul: 0.5 }])),
+     usage: { input_tokens: 100, output_tokens: 0 } }), { status: 200 });
+ });
+ assert.equal(v16HttpCalls, 1);
+ assert.equal(v16Owned.accounting.providerHttpCalls, 1);
+ assert.equal(v16Owned.accounting.validatedResponses, 1);
+ assert.equal(v16Owned.cases[0].result.schema, 'ops.semlint.result.v16');
+ assert.equal(v16Owned.cases[0].provider.statusClass, 'VALIDATED_RESPONSE');
+ v16Controls++;
+
+ let v16RefusalCalls = 0;
+ const v16Refused = await executeOwnerPlan(v16Prepared, 'synthetic-v16-key', async () => {
+   v16RefusalCalls++;
+   return new Response(JSON.stringify({ detail: { error_type: 'max_tokens_exceeded' } }), { status: 400 });
+ });
+ assert.equal(v16RefusalCalls, 1);
+ assert.equal(v16Refused.accounting.providerHttpCalls, 1);
+ assert.equal(v16Refused.accounting.completedHttpCalls, 1);
+ assert.equal(v16Refused.accounting.validatedResponses, 0);
+ assert.equal(v16Refused.cases[0].result.records[0].status, 'EXECUTION_ERROR');
+ assert.equal(v16Refused.cases[0].provider.statusClass, 'HTTP_4XX');
+ // A generic 400 is not a proven token-limit diagnosis. No retry or shortening follows.
+ v16Controls++;
+
+ // Public client callers may supply toJSON: capture exactly once before budget measurement.
+ for (const mutablePart of ['state', 'questions']) {
+   let serializations = 0, fetches = 0;
+   const canonicalQuestions = { q0: { type: 'noul', instructions: 'Is this synthetic fixture present?' } };
+   const changing = { toJSON() {
+     serializations++;
+     return serializations <= 2
+       ? (mutablePart === 'state' ? { text: 'captured fixture' } : canonicalQuestions)
+       : (mutablePart === 'state' ? { text: 'x'.repeat(70000) }
+         : { q0: { type: 'noul', instructions: 'x'.repeat(70000) } });
+   } };
+   const capturedAsk = bindJevReview({ key: 'synthetic-v16-key', fetchImpl: async (_url, init) => {
+     fetches++;
+     assert.ok(Buffer.byteLength(init.body, 'utf8') <= 65536);
+     const wire = JSON.parse(init.body);
+     assert.deepEqual(wire.state, { text: 'captured fixture' });
+     assert.deepEqual(wire.questions, canonicalQuestions);
+     return new Response(JSON.stringify({ model: JEV_MODEL, answers: { q0: { type: 'noul', noul: 0.5 } } }),
+       { status: 200 });
+   } });
+   await capturedAsk(mutablePart === 'state' ? changing : { text: 'captured fixture' },
+     mutablePart === 'questions' ? changing : canonicalQuestions, { timeoutMs: 1000, budgetPolicy: v16Policy });
+   assert.equal(serializations, 1); assert.equal(fetches, 1);
+   v16Controls++;
+ }
+ let oversizedSnapshotFetches = 0, oversizedSnapshotCalls = 0;
+ await assert.rejects(() => bindJevReview({ key: 'synthetic-v16-key', fetchImpl: () => {
+   oversizedSnapshotFetches++; throw new Error('MUST_NOT_CALL');
+ } })({ toJSON() { oversizedSnapshotCalls++; return 'x'.repeat(70000); } },
+ { q0: { type: 'noul', instructions: 'Synthetic?' } }, { timeoutMs: 1000, budgetPolicy: v16Policy }),
+ /JEV_REQUEST_BYTE_LIMIT/);
+ assert.equal(oversizedSnapshotCalls, 1); assert.equal(oversizedSnapshotFetches, 0);
+ v16Controls++;
+ assert.equal(v16Controls, 11);
+
+
 assert.equal(providerBindingCases, 7);
 console.log(JSON.stringify({
   status: 'PASS',
@@ -915,7 +1164,7 @@ console.log(JSON.stringify({
   cli: 'json-input-jsonl-output-readback',
   semanticThresholds: 0,
   semlintCases, semlintCallbacks, realProviderCalls: 0, semanticQuality: 'NOT_PROVEN',
-  providedCases, providedCallbacks, bridgeControls, projectedControls, atomicControls, structuredControls, choiceControls, v14Controls,
+  providedCases, providedCallbacks, bridgeControls, projectedControls, atomicControls, structuredControls, choiceControls, v14Controls, v15Controls, v16Controls,
 }));
 }
 
