@@ -5,7 +5,7 @@ import { snapshotJson, exact } from '../../packages/jev-review/semlint-entry.mjs
 import { plan, judge } from './core.mjs';
 import { bindTypeLLMSSHExecutor } from './typellm-ssh-executor.mjs';
 import { bindTypeLLMExecutorPorts } from './typellm-executor-ports.mjs';
-import { bindExactOwnerReturn, withProductOwnerReturn } from '../../packages/jev-dispatcher/exact-owner-return.mjs';
+import { bindExactOwnerReturn, bindExactOwnerHostReturn, withProductOwnerReturn } from '../../packages/jev-dispatcher/exact-owner-return.mjs';
 
 const sha = value => createHash('sha256').update(value).digest('hex');
 const fail = code => { throw new Error(code); };
@@ -24,6 +24,7 @@ const keys = ['id', 'mode', 'operation', 'runId', 'sourceSha', 'ledgerDir', 'ssh
   'proposalFormat', 'requestTimeoutSeconds'];
 const sshKeys = ['sshPath', 'host', 'envsSha', 'opsSha', 'ledgerDir'];
 const returnKeys = ['codexPath', 'endpoint', 'ownerThread', 'ledgerDir', 'expiresAt', 'timeoutMs'];
+const hostReturnKeys = ['transport', 'hostId', 'ownerThread', 'ledgerDir', 'expiresAt', 'timeoutMs'];
 function directory(value) {
   if (typeof value !== 'string' || !path.isAbsolute(value)) fail('INVALID_NATIVE_PRODUCT_LEDGER');
   let stat;
@@ -44,11 +45,12 @@ export function bindNativeProductCaller(options, testRuntime) {
     fail('INVALID_NATIVE_PRODUCT_CALLER');
   const { id, mode, operation, runId, sourceSha, ledgerDir, ssh, ownerReturn,
     deadlineMs, proposalFormat = 'json-string', requestTimeoutSeconds } = input;
+  const hostReturn = ownerReturn?.transport === 'host-mcp';
   if (typeof id !== 'string' || !id.trim() || !['live', 'test-double'].includes(mode)
       || !['plan', 'judge'].includes(operation) || !uuid.test(runId)
       || typeof sourceSha !== 'string' || !/^[a-f0-9]{40}$/.test(sourceSha)
       || !ssh || !exact(ssh, sshKeys.concat(Object.hasOwn(ssh, 'remoteLauncherPath') ? ['remoteLauncherPath'] : []))
-      || !exact(ownerReturn, returnKeys)
+      || !exact(ownerReturn, hostReturn ? hostReturnKeys : returnKeys)
       || !Number.isSafeInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 95000
       || !['json-string', 'typed-relations-v1', 'typed-relations-dependent-v1'].includes(proposalFormat)
       || (Object.hasOwn(input, 'requestTimeoutSeconds') && requestTimeoutSeconds !== 60))
@@ -66,9 +68,13 @@ export function bindNativeProductCaller(options, testRuntime) {
     maxClauses: bounded(input.maxClauses, 16, 16), maxCalls
   };
   const cores = freeze(snapshotJson(input.cores === undefined ? [] : input.cores));
-  const receiver = bindExactOwnerReturn({
-    ...ownerReturn, mode, runId, sourceSha, requireEndpointPresence: true
-  }, testRuntime?.ownerReturn);
+  const receiver = hostReturn
+    ? bindExactOwnerHostReturn({ mode, runId, sourceSha, hostId: ownerReturn.hostId,
+      ownerThread: ownerReturn.ownerThread, ledgerDir: ownerReturn.ledgerDir,
+      expiresAt: ownerReturn.expiresAt, timeoutMs: ownerReturn.timeoutMs }, testRuntime?.ownerReturn)
+    : bindExactOwnerReturn({
+      ...ownerReturn, mode, runId, sourceSha, requireEndpointPresence: true
+    }, testRuntime?.ownerReturn);
   const transport = bindTypeLLMSSHExecutor({ ...ssh, runId, deadlineMs, maxCalls });
   const invocationIds = [];
   let pending = 0, consumed = false, latched = false;
@@ -204,6 +210,11 @@ export function bindNativeProductCaller(options, testRuntime) {
   return Object.freeze({
     run, bindingSha256,
     receipts: () => Object.freeze([...records]),
-    returnReceipts: () => receiver.receipts()
+    returnReceipts: () => receiver.receipts(),
+    ...(hostReturn ? {
+      takeHostCommand: receiver.takeHostCommand,
+      acceptHostObservation: receiver.acceptHostObservation,
+      acceptHostSendResult: receiver.acceptHostSendResult
+    } : {})
   });
 }
