@@ -20,7 +20,10 @@ const outputLimit = 32768;
 // Host capability supplied by the caller. This is not a model/evaluation port.
 // Explicit --remote avoids the CLI's default embedded-server fallback.
 export function bindExactOwnerReturn(options, testRuntime) {
-  if (!exact(options, optionKeys)) fail('INVALID_OWNER_RETURN_BINDING');
+  if (!exact(options, optionKeys) && !exact(options, [...optionKeys, 'requireEndpointPresence']))
+    fail('INVALID_OWNER_RETURN_BINDING');
+  if (Object.hasOwn(options, 'requireEndpointPresence') && options.requireEndpointPresence !== true)
+    fail('INVALID_OWNER_RETURN_BINDING');
   const { mode, codexPath, endpoint, ownerThread, runId, sourceSha, ledgerDir,
     expiresAt, timeoutMs } = options;
   if (!['live', 'test-double'].includes(mode) || typeof codexPath !== 'string' || !path.isAbsolute(codexPath)
@@ -47,11 +50,20 @@ export function bindExactOwnerReturn(options, testRuntime) {
   const binding = hash(JSON.stringify(options));
 
   const deliver = async event => {
-    if (!exact(event, eventKeys) || event.schema !== 'jev.product-terminal-event.v1'
+    const v2 = exact(event, [...eventKeys, 'transportLifecycle', 'executorInvocations'])
+      && event.schema === 'jev.product-terminal-event.v2';
+    const v1 = exact(event, eventKeys) && event.schema === 'jev.product-terminal-event.v1';
+    const lifecycleValid = v2 && Number.isSafeInteger(event.executorInvocations)
+      && (event.executorInvocations === 0
+        ? event.transportLifecycle === 'NO_EXECUTOR_INVOCATION' && event.physicalCloseObserved === false
+        : event.executorInvocations > 0 && event.transportLifecycle === 'LOCAL_SSH_CLOSED'
+          && event.physicalCloseObserved === true);
+    // The receiver checks structure; the owning product must establish actual counters/receipts.
+    if ((!v1 && !lifecycleValid) || (options.requireEndpointPresence === true && !v2)
         || event.ownerThread !== ownerThread || event.runId !== runId || event.sourceSha !== sourceSha
         || !['COMPLETED', 'FAILED', 'HOLD', 'RETURN_P', 'TERMINAL'].includes(event.outcome)
         || !sha64.test(event.resultSha256) || !sha64.test(event.transportReceiptSha256)
-        || event.physicalCloseObserved !== true)
+        || (v1 && event.physicalCloseObserved !== true))
       fail('INVALID_OWNER_RETURN_EVENT');
     if (runtime.ownerThread() !== ownerThread) fail('OWNER_THREAD_MISMATCH');
     const remaining = Date.parse(expiresAt) - runtime.now();
@@ -61,7 +73,9 @@ export function bindExactOwnerReturn(options, testRuntime) {
     const eventSha256 = hash(JSON.stringify(event));
     const notice = ['Product terminal event for the same P thread.',
       'Owner thread: ' + ownerThread, 'Run: ' + runId, 'Source: ' + sourceSha,
-      'Outcome: ' + event.outcome, 'Result SHA256: ' + event.resultSha256,
+      'Outcome: ' + event.outcome,
+      ...(v2 ? ['Outcome is one engine-operation terminal, not Goal or G1/G2 completion.'] : []),
+      'Result SHA256: ' + event.resultSha256,
       'Transport receipt SHA256: ' + event.transportReceiptSha256,
       'Event SHA256: ' + eventSha256,
       'Delivery expiry UTC: ' + expiresAt,
@@ -81,6 +95,8 @@ export function bindExactOwnerReturn(options, testRuntime) {
     const record = { schema: 'jev.exact-owner-return-receipt.v1', mode, ownerThread, runId,
       sourceSha, bindingSha256: binding, bindingAuthority: 'DECLARED_ONLY', eventSha256,
       resultSha256: event.resultSha256, transportReceiptSha256: event.transportReceiptSha256,
+      ...(v2 ? { eventSchema: event.schema, transportLifecycle: event.transportLifecycle,
+        executorInvocations: event.executorInvocations } : {}),
       outcome: event.outcome, noticeSha256: hash(notice), noticeBytes: Buffer.byteLength(notice),
       nonce, expiresAt, startedAt: new Date(runtime.now()).toISOString(), completedAt: null,
       spawnInvocations: 0, childExitCode: null, childSignal: null, physicalCloseObserved: false,
@@ -134,6 +150,10 @@ export function bindExactOwnerReturn(options, testRuntime) {
           record.queuedSubmissionId = match[1];
         } else { record.status = 'UNKNOWN_OUTPUT'; record.errorCode = 'QUEUE_ACK_NOT_VERIFIED'; }
       } else { record.status = 'SEND_FAILED_OR_UNKNOWN'; record.errorCode = stopped ?? 'QUEUE_CHILD_NONZERO'; }
+      if (stopped === 'OWNER_ENDPOINT_UNAVAILABLE') {
+        record.status = 'HOLD_ENDPOINT_UNAVAILABLE'; record.enqueueStatus = 'NOT_ATTEMPTED';
+        record.remoteEffects = 'NOT_DISPATCHED';
+      }
       try { fs.writeFileSync(path.join(claim, 'receipt.json'), JSON.stringify(record) + '\n', { flag: 'wx', mode: 0o600 }); }
       catch { record.status = 'RECEIPT_WRITE_FAILED'; record.errorCode = 'RECEIPT_WRITE_FAILED'; }
       return note(record);
@@ -170,6 +190,14 @@ export function bindExactOwnerReturn(options, testRuntime) {
         if (dispatchRemaining <= 0 || runtime.ownerThread() !== ownerThread) {
           stopped = dispatchRemaining <= 0 ? 'OWNER_RETURN_EXPIRED' : 'OWNER_THREAD_MISMATCH';
           resolve(finish()); return;
+        }
+        if (options.requireEndpointPresence === true) {
+          let endpointStat;
+          try { endpointStat = fs.lstatSync(endpoint.slice(7)); } catch {}
+          if (!endpointStat || endpointStat.isSymbolicLink()
+              || !(endpointStat.isSocket() || endpointStat.isFile())) {
+            stopped = 'OWNER_ENDPOINT_UNAVAILABLE'; resolve(finish()); return;
+          }
         }
         timer = setTimeout(() => stop('QUEUE_TIMEOUT'), Math.min(timeoutMs, dispatchRemaining));
         record.spawnInvocations++;

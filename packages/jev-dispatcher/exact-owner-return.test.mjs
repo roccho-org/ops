@@ -169,3 +169,107 @@ test('no-close kill failure detaches handles; late close/error/data cannot mutat
     assert.equal(f.observations.spawns.length, 1); assert.equal(receipt.retries, 0);
   }
 });
+
+
+// Explicit-v2 structural tests use synthetic descriptors; only the product caller owns real evidence.
+import testNativeV2 from 'node:test';
+import assertNativeV2 from 'node:assert/strict';
+import fsNativeV2 from 'node:fs';
+import pathNativeV2 from 'node:path';
+import osNativeV2 from 'node:os';
+import { EventEmitter as NativeV2Emitter } from 'node:events';
+import { PassThrough as NativeV2Pipe } from 'node:stream';
+import { randomUUID as nativeV2UUID } from 'node:crypto';
+function nativeV2Context(t) {
+  const root = fsNativeV2.mkdtempSync(pathNativeV2.join(osNativeV2.tmpdir(), 'semlint-return-v2-'));
+  t.after(() => {
+    const absolute = pathNativeV2.resolve(root);
+    assertNativeV2.ok(absolute.startsWith(pathNativeV2.resolve(osNativeV2.tmpdir()) + pathNativeV2.sep)
+      && pathNativeV2.basename(absolute).startsWith('semlint-return-v2-'));
+    fsNativeV2.rmSync(absolute, { recursive: true, force: true });
+  });
+  const owner = '11111111-1111-4111-8111-111111111111', runId = nativeV2UUID(), queue = [];
+  const options = { mode: 'test-double', codexPath: pathNativeV2.join(root, 'codex.exe'),
+    endpoint: 'unix://' + pathNativeV2.join(root, 'absent.sock'), ownerThread: owner,
+    runId, sourceSha: 'a'.repeat(40), ledgerDir: root,
+    expiresAt: '2026-10-19T00:01:00.000Z', timeoutMs: 100 };
+  let now = Date.parse('2026-10-19T00:00:00.000Z');
+  const runtime = { now: () => now, ownerThread: () => owner, nonce: nativeV2UUID,
+    spawn: (exe, argv) => {
+      queue.push({ exe, argv });
+      const child = new NativeV2Emitter();
+      child.stdout = new NativeV2Pipe(); child.stderr = new NativeV2Pipe();
+      child.kill = () => true; child.unref = () => {};
+      queueMicrotask(() => {
+        child.stdout.emit('data', Buffer.from('Queued message 33333333-3333-4333-8333-333333333333 for thread ' + owner + '.\n'));
+        child.emit('close', 0, null);
+      });
+      return child;
+    } };
+  const event = { schema: 'jev.product-terminal-event.v2', ownerThread: owner, runId,
+    sourceSha: options.sourceSha, outcome: 'HOLD', resultSha256: 'b'.repeat(64),
+    transportReceiptSha256: 'c'.repeat(64), physicalCloseObserved: false,
+    transportLifecycle: 'NO_EXECUTOR_INVOCATION', executorInvocations: 0 };
+  return { root, options, runtime, event, queue, expire: () => { now += 120000; } };
+}
+
+testNativeV2('owner return v2: mismatched count/lifecycle/closure and forged owner/source fail closed', async t => {
+  const c = nativeV2Context(t), receiver = bindExactOwnerReturn(c.options, c.runtime);
+  for (const delta of [
+    { executorInvocations: 1 }, { physicalCloseObserved: true },
+    { transportLifecycle: 'LOCAL_SSH_CLOSED' }, { executorInvocations: -1 },
+    { executorInvocations: 1.5 }, { executorInvocations: 1, transportLifecycle: 'LOCAL_SSH_CLOSED' },
+    { ownerThread: nativeV2UUID() }, { sourceSha: 'd'.repeat(40) }, { fabricated: true }
+  ]) await assertNativeV2.rejects(receiver.deliver({ ...c.event, ...delta }), /INVALID_OWNER_RETURN_EVENT/);
+  assertNativeV2.equal(c.queue.length, 0);
+  assertNativeV2.equal(receiver.receipts().length, 0);
+  const record = await receiver.deliver(c.event);
+  assertNativeV2.equal(record.status, 'QUEUED_NOT_CONSUMED');
+  assertNativeV2.equal(record.eventSchema, 'jev.product-terminal-event.v2');
+  assertNativeV2.equal(record.executorInvocations, 0);
+  await assertNativeV2.rejects(receiver.deliver(c.event), /OWNER_RETURN_ALREADY_CLAIMED/);
+  assertNativeV2.equal(c.queue.length, 1);
+});
+
+testNativeV2('owner return v2: explicit preflight claims absent endpoint once without queue', async t => {
+  const c = nativeV2Context(t);
+  const receiver = bindExactOwnerReturn({ ...c.options, requireEndpointPresence: true }, c.runtime);
+  const record = await receiver.deliver(c.event);
+  assertNativeV2.equal(record.status, 'HOLD_ENDPOINT_UNAVAILABLE');
+  assertNativeV2.equal(record.enqueueStatus, 'NOT_ATTEMPTED');
+  assertNativeV2.equal(record.spawnInvocations, 0);
+  assertNativeV2.equal(record.remoteEffects, 'NOT_DISPATCHED');
+  assertNativeV2.equal(c.queue.length, 0);
+  fsNativeV2.writeFileSync(c.options.endpoint.slice(7), 'presence after consumed claim');
+  await assertNativeV2.rejects(receiver.deliver(c.event), /OWNER_RETURN_ALREADY_CLAIMED/);
+  assertNativeV2.equal(c.queue.length, 0);
+  assertNativeV2.throws(() => bindExactOwnerReturn({ ...c.options, requireEndpointPresence: false }, c.runtime),
+    /INVALID_OWNER_RETURN_BINDING/);
+});
+
+testNativeV2('owner return v2: preflight rejects directory and expired descriptors', async t => {
+  const c = nativeV2Context(t);
+  fsNativeV2.mkdirSync(c.options.endpoint.slice(7));
+  const receiver = bindExactOwnerReturn({ ...c.options, requireEndpointPresence: true }, c.runtime);
+  assertNativeV2.equal((await receiver.deliver(c.event)).status, 'HOLD_ENDPOINT_UNAVAILABLE');
+  assertNativeV2.equal(c.queue.length, 0);
+  const other = nativeV2Context(t); other.expire();
+  await assertNativeV2.rejects(bindExactOwnerReturn(other.options, other.runtime).deliver(other.event), /OWNER_RETURN_EXPIRED/);
+  assertNativeV2.equal(other.queue.length, 0);
+});
+
+testNativeV2('owner return v1: legacy schema and notice stay unchanged without new preflight', async t => {
+  const c = nativeV2Context(t), receiver = bindExactOwnerReturn(c.options, c.runtime);
+  const event = { schema: 'jev.product-terminal-event.v1', ownerThread: c.event.ownerThread,
+    runId: c.event.runId, sourceSha: c.event.sourceSha, outcome: 'COMPLETED',
+    resultSha256: c.event.resultSha256, transportReceiptSha256: c.event.transportReceiptSha256,
+    physicalCloseObserved: true };
+  const record = await receiver.deliver(event);
+  assertNativeV2.equal(record.status, 'QUEUED_NOT_CONSUMED');
+  assertNativeV2.equal(Object.hasOwn(record, 'eventSchema'), false);
+  assertNativeV2.equal(c.queue.length, 1); // Absent endpoint was never a legacy preflight condition.
+  assertNativeV2.ok(!c.queue[0].argv[6].includes('one engine-operation'));
+  await assertNativeV2.rejects(bindExactOwnerReturn({ ...c.options, requireEndpointPresence: true }, c.runtime)
+    .deliver(event), /INVALID_OWNER_RETURN_EVENT/);
+  assertNativeV2.equal(c.queue.length, 1);
+});

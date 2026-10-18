@@ -684,3 +684,5 @@ import './typellm-native-model-port.test.mjs';
 import './typellm-executor-ports.test.mjs';
 import './typellm-ssh-executor.test.mjs';
 import './typellm-structured-proposal.test.mjs';
+
+import './native-caller.test.mjs';
