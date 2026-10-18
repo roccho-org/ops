@@ -45,3 +45,4 @@
 {"deps":["nodejs","contract-diff"],"kind":"check","name":"contract-diff-source-integration","script":"packages/contract-diff/tests/source-integration.mjs"}
 {"deps":["nodejs"],"kind":"check","name":"goal-evaluation-unix","script":"experiments/goal-evaluation-unix/core.test.mjs"}
 {"deps":["nodejs","semlint-core"],"kind":"check","name":"semlint-core","script":"packages/semlint-core/tests/run.mjs"}
+{"deps":["nodejs","semlint-owner"],"kind":"check","name":"semlint-owner-package","script":"packages/jev-review/tests/owner-package.mjs"}
