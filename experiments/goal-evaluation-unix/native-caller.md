@@ -165,7 +165,11 @@ node native-caller.mjs host-observe-projection --packet-dir ABS --run-id UUID --
 ```
 
 Only those two operations and exact scalar flags are accepted, with an aggregate
-argv ceiling of 8192 UTF16 units. Unknown, duplicate, extra and malformed arguments
+argv ceiling of 8192 UTF16 units. The CLI `host-command` is v2-only and rejects a
+raw-v1 binding before returning a command; exported raw-v1 APIs remain available.
+The entire success envelope including LF is checked against 8192 UTF8 bytes before
+any stdout write. Overflow emits only the fixed HOLD envelope with exit 2, never
+a clipped success or an exposed prefix. Unknown, duplicate, extra and malformed arguments
 give the fixed `HOST_HELPER_FAILED` output/exit 2. No arbitrary export, source text,
 file wrapper, callback, eval or stdin body is executed. No-argument module behavior
 is unchanged. `host-command` arms one directory watch before its first check and
@@ -196,21 +200,33 @@ const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 must(uuid.test(pin.runId) && uuid.test(pin.owner) && /^[a-f0-9]{40}$/.test(pin.sourceSha));
 must([pin.node,pin.source,pin.packetDir].every(x => /^[A-Za-z]:[\\/]/.test(x) && !/[\0\r\n]/.test(x)));
 const quote = value => "'" + String(value).replaceAll("'", "''") + "'";
+const utf8 = text => {
+  let n=0;
+  for (const character of text) {
+    const c=character.codePointAt(0);
+    n += c<128 ? 1 : c<2048 ? 2 : c<65536 ? 3 : 4;
+  }
+  return n;
+};
 const end = Date.now() + 600000;
 async function helper(args) {
   must(Date.now() < end);
-  const cmd = '& ' + [pin.node,pin.source,...args].map(quote).join(' ');
+  const cmd = '& ' + [pin.node,pin.source,...args].map(quote).join(' ') + '; exit $LASTEXITCODE';
   must(cmd.length < 16384);
-  let r = await tools.exec_command({cmd,shell:'powershell.exe',login:false,max_output_tokens:6000,yield_time_ms:10000});
+  let r = await tools.exec_command({cmd,shell:'powershell.exe',login:false,max_output_tokens:12000,yield_time_ms:10000});
+  let reportedToolBytes=utf8(JSON.stringify(r));
+  must(reportedToolBytes<=12000 && typeof r.output==='string');
   // These bounded reads await the SAME helper process; they never re-execute a
   // helper or poll host status. The native one-shot watch owns readiness.
   let decoded = r.output;
   for (let n=0;r.session_id && n<12 && Date.now()<end;n++) {
-    r = await tools.write_stdin({session_id:r.session_id,chars:'',max_output_tokens:6000,yield_time_ms:50000});
+    r = await tools.write_stdin({session_id:r.session_id,chars:'',max_output_tokens:12000,yield_time_ms:50000});
+    reportedToolBytes += utf8(JSON.stringify(r));
+    must(reportedToolBytes<=12000 && typeof r.output==='string');
     decoded += r.output;
-    must(decoded.length <= 16384);
+    must(decoded.length <= 8192);
   }
-  must(!r.session_id && r.exit_code === 0 && decoded.length <= 16384);
+  must(!r.session_id && r.exit_code === 0 && decoded.length <= 8192 && utf8(decoded)<=8192);
   const result = JSON.parse(decoded);
   must(JSON.stringify(result)+'\n' === decoded.replaceAll('\r\n','\n'));
   must(result.schema === 'ops.native-host-cli.v1' && result.status === 'OK');
@@ -224,18 +240,23 @@ for (const phase of [1,2]) {
   must(ready.kind === 'COMMAND' && p.phase === phase && p.ownerThread === pin.owner
     && p.runId === pin.runId && p.sourceSha === pin.sourceSha);
   must(Date.now() < Date.parse(p.commandExpiresAt) && Date.now() < Date.parse(p.expiresAt));
-  let response;
-  const startedAt = new Date().toISOString();
+  let response, startedAt;
   if (phase === 1) {
     must(p.command.tool === 'codex_app.list_threads' && p.command.kind === 'OBSERVE_OWNER_STATUS'
       && Object.keys(p.command.arguments).join(',') === 'limit'
       && Number.isInteger(p.command.arguments.limit) && p.command.arguments.limit>=1 && p.command.arguments.limit<=50);
+    const at=Date.now();
+    must(at<end && at<Date.parse(p.commandExpiresAt) && at<Date.parse(p.expiresAt));
+    startedAt=new Date(at).toISOString();
     response = await tools.mcp__codex_app__list_threads({limit:p.command.arguments.limit});
   } else {
     must(p.command.tool === 'codex_app.send_message_to_thread' && p.command.kind === 'SEND_OWNER_NOTICE'
       && Object.keys(p.command.arguments).sort().join(',') === 'hostId,prompt,threadId'
       && p.command.arguments.threadId === pin.owner && p.command.arguments.hostId === 'local'
       && typeof p.command.arguments.prompt === 'string' && p.command.arguments.prompt.length<=2048);
+    const at=Date.now();
+    must(at<end && at<Date.parse(p.commandExpiresAt) && at<Date.parse(p.expiresAt));
+    startedAt=new Date(at).toISOString();
     response = await tools.mcp__codex_app__send_message_to_thread({
       threadId:pin.owner,hostId:'local',prompt:p.command.arguments.prompt
     });
@@ -250,6 +271,17 @@ for (const phase of [1,2]) {
 }
 ```
 
+The caller/product binding and receiver command binding have distinct hash roles.
+The packet validates the command binding and event digests as 64-hex metadata,
+not as equal hashes. Source-owned command hash/nonce echo in the live worker and
+private filesystem admission remain the integrity boundary; this does not rebuild
+the receiver binding or authenticate a hostile same-UID writer.
+
+The driver admits at most 12000 reported UTF8 bytes across returned exec/read
+metadata for one helper, with an 8192-byte decoded success envelope. This is a
+post-response completeness guard, not a tool transport/allocation hard cap.
+`max_output_tokens` is not a byte measurement. Truncation, missing output or any
+noncanonical response yields HOLD; no truncated prefix is accepted as FULL.
 The driver stops on helper/tool/parse error, stale deadline, missing command or
 unknown state. There is no host retry, extra list, send fallback or calibration
 message. Tool/exec timeouts do not prove a remote effect stopped. Expired native

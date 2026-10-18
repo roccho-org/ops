@@ -870,3 +870,79 @@ test('closed ordinary-Node helper transports only bounded scalar projection argu
     assert.deepEqual(JSON.parse(bad.stdout), { schema: 'ops.native-host-cli.v1', status: 'HOLD', errorCode: 'HOST_HELPER_FAILED' });
   }
 });
+
+test('projection CLI rejects a raw-v1 binding before exposing its otherwise valid command', async t => {
+  const c = finiteBridgeFixture(t, { exchangeTimeoutMs: 10000 });
+  const modulePath = fileURLToPath(new URL('./native-caller.mjs', import.meta.url));
+  const driver = finiteDriver(t, c, (_packet, phase) => {
+    const child = childProcess.spawnSync(process.execPath, [modulePath, 'host-command',
+      '--packet-dir', c.packetDir, '--run-id', c.options.runId, '--phase', String(phase), '--wait-ms', '100'],
+    { shell: false, windowsHide: true, encoding: 'utf8', timeout: 5000, maxBuffer: 16384 });
+    assert.equal(child.status, 2); assert.equal(child.stderr, '');
+    assert.deepEqual(JSON.parse(child.stdout), { schema: 'ops.native-host-cli.v1', status: 'HOLD', errorCode: 'HOST_HELPER_FAILED' });
+    // The old exported API still reads valid raw-v1 packets. No host tool is called.
+    assert.equal(readFiniteNativeHostCommand(c.packetOptions(phase)).phase, phase);
+    submitFiniteSynthetic(c, phase, finiteListResult('active'));
+  });
+  await c.run(); assert.deepEqual(driver.errors, []); assert.deepEqual([...driver.seen], [1]);
+});
+
+test('projection CLI emits complete 8192-byte success or fixed HOLD at 8193 bytes without leaking a prefix', async t => {
+  const c = projectedBridgeFixture(t, { exchangeTimeoutMs: 10000 });
+  const driver = finiteDriver(t, c, (_packet, phase) =>
+    submitProjectedSynthetic(c, phase, phase === 1 ? finiteListResult() : { isError: false }));
+  await c.run(); assert.deepEqual(driver.errors, []);
+  const packetDir = path.join(c.root, 'bounded-cli-copy'), dir = path.join(packetDir, c.options.runId + '.bridge');
+  fs.mkdirSync(packetDir); fs.mkdirSync(dir);
+  fs.copyFileSync(path.join(c.dir, 'binding.json'), path.join(dir, 'binding.json'));
+  const packet = JSON.parse(fs.readFileSync(path.join(c.dir, 'phase-2.command.json')));
+  const envelopeBytes = () => Buffer.byteLength(JSON.stringify({ schema: 'ops.native-host-cli.v1',
+    status: 'OK', output: { kind: 'COMMAND', packet } }) + '\n');
+  const setPrompt = text => {
+    packet.command.arguments.prompt = text;
+    packet.commandSha256 = hash(JSON.stringify(packet.command));
+  };
+  setPrompt('');
+  const extra = 8192 - envelopeBytes(); assert.ok(extra > 0);
+  setPrompt('\u0001'.repeat(Math.floor(extra / 6)) + 'x'.repeat(extra % 6));
+  assert.ok(Buffer.byteLength(packet.command.arguments.prompt) <= 2048);
+  assert.equal(envelopeBytes(), 8192);
+  const file = path.join(dir, 'phase-2.command.json');
+  fs.writeFileSync(file, JSON.stringify(packet) + '\n', { flag: 'wx' });
+  const modulePath = fileURLToPath(new URL('./native-caller.mjs', import.meta.url));
+  const invoke = () => childProcess.spawnSync(process.execPath, [modulePath, 'host-command',
+    '--packet-dir', packetDir, '--run-id', c.options.runId, '--phase', '2', '--wait-ms', '100'],
+  { shell: false, windowsHide: true, timeout: 5000, maxBuffer: 16384 });
+  const exact = invoke();
+  assert.equal(exact.status, 0); assert.equal(exact.stderr.length, 0); assert.equal(exact.stdout.length, 8192);
+  assert.equal(JSON.parse(exact.stdout).output.packet.commandSha256, packet.commandSha256);
+  setPrompt(packet.command.arguments.prompt + 'x');
+  assert.equal(envelopeBytes(), 8193);
+  fs.writeFileSync(file, JSON.stringify(packet) + '\n'); // Independent synthetic copy only.
+  const over = invoke();
+  assert.equal(over.status, 2); assert.equal(over.stderr.length, 0); assert.ok(over.stdout.length < 8192);
+  assert.deepEqual(JSON.parse(over.stdout), { schema: 'ops.native-host-cli.v1', status: 'HOLD', errorCode: 'HOST_HELPER_FAILED' });
+  assert.equal(over.stdout.includes(Buffer.from('commandSha256')), false);
+});
+
+test('command and event digest shapes are closed without equating receiver and caller bindings', async t => {
+  const c = projectedBridgeFixture(t);
+  const driver = finiteDriver(t, c, (packet, phase) => {
+    const binding = JSON.parse(fs.readFileSync(path.join(c.dir, 'binding.json')));
+    assert.notEqual(packet.command.bindingSha256, binding.callerBindingSha256);
+    for (const field of ['bindingSha256', 'eventSha256']) for (const type of ['string', 'array']) {
+      const packetDir = path.join(c.root, 'invalid-' + field + '-' + type), dir = path.join(packetDir, c.options.runId + '.bridge');
+      fs.mkdirSync(packetDir); fs.mkdirSync(dir);
+      fs.copyFileSync(path.join(c.dir, 'binding.json'), path.join(dir, 'binding.json'));
+      const bad = JSON.parse(JSON.stringify(packet));
+      bad.command[field] = type === 'string' ? 'not-a-sha' : [packet.command[field]];
+      if (field === 'eventSha256') bad.eventSha256 = bad.command.eventSha256;
+      bad.commandSha256 = hash(JSON.stringify(bad.command));
+      fs.writeFileSync(path.join(dir, 'phase-1.command.json'), JSON.stringify(bad) + '\n', { flag: 'wx' });
+      assert.throws(() => readFiniteNativeHostCommand({ packetDir, runId: c.options.runId, phase }), /INVALID_NATIVE_HOST_PACKET/);
+    }
+    submitProjectedSynthetic(c, phase, finiteListResult('active'));
+  });
+  await c.run(); assert.deepEqual(driver.errors, []);
+  assert.equal(finiteReceipt(c).phases, 1);
+});

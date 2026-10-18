@@ -288,6 +288,7 @@ function publishBridgeJson(dir, basename, value) {
 function commandPacketValid(packet, binding, phase) {
   if (!packet || !exact(packet, bridgePacketKeys) || packet.schema !== 'ops.native-host-command.v1'
       || packet.phase !== phase || !uuid.test(packet.nonce)
+      || typeof packet.eventSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(packet.eventSha256)
       || !utc(packet.commandExpiresAt) || Date.parse(packet.commandExpiresAt) > Date.parse(packet.expiresAt)
       || packet.runnerModuleSha256 !== bridgeSourceHash()
       || ['ownerThread', 'runId', 'sourceSha', 'bindingSha256', 'runnerModuleSha256', 'expiresAt']
@@ -296,6 +297,7 @@ function commandPacketValid(packet, binding, phase) {
   if (!cmd || !exact(cmd, ['schema', 'kind', 'commandId', 'ownerThread', 'hostId', 'runId',
     'sourceSha', 'bindingSha256', 'eventSha256', 'expiresAt', 'tool', 'arguments'])
       || cmd.schema !== 'jev.host-owner-command.v1' || cmd.hostId !== 'local'
+      || typeof cmd.bindingSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(cmd.bindingSha256)
       || cmd.commandId !== packet.runId + '/host-return/' + phase
       || ['ownerThread', 'runId', 'sourceSha', 'eventSha256', 'expiresAt'].some(key => cmd[key] !== packet[key])
       || packet.commandSha256 !== sha(JSON.stringify(cmd))) return false;
@@ -712,12 +714,19 @@ if (typeof process !== 'undefined' && process.argv[1]
       const number = Number(text); if (!Number.isSafeInteger(number)) fail('INVALID_NATIVE_HOST_CLI'); return number; };
     const config = { packetDir: values['--packet-dir'], runId: values['--run-id'], phase: integer(values['--phase']) };
     let output;
-    if (operation === 'host-command') output = await awaitFiniteNativeHostCommand({ ...config, waitMs: integer(values['--wait-ms']) });
+    if (operation === 'host-command') {
+      // This closed frontend is projection-only. Keep the exported raw-v1 APIs
+      // valid, but reject the wrong format before exposing a command to a tool.
+      readBridgeBinding(config, 'projection-v2');
+      output = await awaitFiniteNativeHostCommand({ ...config, waitMs: integer(values['--wait-ms']) });
+    }
     else output = submitFiniteNativeHostProjection({ ...config, toolStartedAt: values['--started-at'],
       toolCompletedAt: values['--completed-at'] }, { schema: 'ops.host-tool-projection.v1', status: values['--status'],
       classification: values['--classification'], reportedRawJsonBytes: values['--raw-bytes'] === 'null' ? null : integer(values['--raw-bytes']),
       reportedRawJsonUnits: values['--raw-units'] === 'null' ? null : integer(values['--raw-units']), rawSizeStatus: values['--raw-size'] });
-    process.stdout.write(JSON.stringify({ schema: 'ops.native-host-cli.v1', status: 'OK', output }) + '\n');
+    const envelope = JSON.stringify({ schema: 'ops.native-host-cli.v1', status: 'OK', output }) + '\n';
+    if (Buffer.byteLength(envelope, 'utf8') > 8192) fail('INVALID_NATIVE_HOST_CLI');
+    process.stdout.write(envelope);
   } catch {
     process.stdout.write(JSON.stringify({ schema: 'ops.native-host-cli.v1', status: 'HOLD', errorCode: 'HOST_HELPER_FAILED' }) + '\n');
     process.exitCode = 2;
