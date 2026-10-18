@@ -283,3 +283,42 @@ test('structured proposal: default/explicit json-string request and SDK body ret
   assert.throws(() => port(async () => response(wire()), { proposalFormat: 'implicit-auto' }),
     /INVALID_TYPELLM_EXECUTOR_PORT/);
 });
+
+
+test('structured proposal: explicit timeout survives the exact SDK-to-executor request and Core validation', async () => {
+  const captured = [], bodies = [], plans = [];
+  for (const options of [{}, { requestTimeoutSeconds: 60 }]) {
+    const bound = port(async request => {
+      assert.ok(Object.isFrozen(request));
+      captured.push(JSON.stringify(request));
+      return generateTyped({ request, provider: { available: true, post: async body => {
+        bodies.push(JSON.parse(body)); return response(wire());
+      } } });
+    }, options);
+    plans.push(await plan(input(), { propose: bound.propose }));
+    const receipt = bound.receipts()[0];
+    assert.equal(receipt.typedRequestBytes, Buffer.byteLength(captured.at(-1)));
+    assert.equal(receipt.typedRequestSha256, sha(captured.at(-1)));
+    assert.equal(receipt.status, 'STRUCTURED_ASSEMBLED');
+    assert.equal(receipt.structuredCoverage, 'UNKNOWN');
+    assert.equal(receipt.remoteEffects, 'UNKNOWN');
+  }
+  const original = JSON.parse(captured[0]), explicit = JSON.parse(captured[1]);
+  assert.equal(Object.hasOwn(original, 'timeout'), false);
+  assert.equal(explicit.timeout, 60);
+  delete explicit.timeout;
+  assert.equal(JSON.stringify(explicit), captured[0]);
+  assert.equal(bodies[0].timeout, 30); assert.equal(bodies[1].timeout, 60);
+  const explicitBody = clone(bodies[1]); explicitBody.timeout = 30;
+  assert.deepEqual(explicitBody, bodies[0]);
+  assert.deepEqual(plans[1], plans[0]);
+});
+
+test('structured proposal: unsupported explicit timeout is refused before any executor invocation', () => {
+  let executions = 0;
+  for (const requestTimeoutSeconds of [undefined, 30, 90, 0, -1, 60.5, '60', null, false]) {
+    assert.throws(() => port(async () => { executions++; return response(wire()); }, { requestTimeoutSeconds }),
+      { message: 'INVALID_TYPELLM_EXECUTOR_PORT' });
+  }
+  assert.equal(executions, 0);
+});

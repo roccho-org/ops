@@ -435,3 +435,88 @@ test("CLI opt-in errors retain original exit/stdout and distinguish complete fro
     assert.equal(frame.stdinSha256, current.complete ? metadataHash(current.input) : null);
   }
 });
+
+// Explicit provider timeout changes only the hashed transport request envelope.
+test("request timeout is an explicit 60s opt-in; omitted default wire stays byte exact", async () => {
+  const legacyBody = JSON.stringify({ context: request.context, questions: {
+    enough: { ...request.questions.enough, thinking: false }, parts: request.questions.parts,
+  }, model: "typellm-latest", options: { temperature: 0 }, timeout: 30 });
+  const bodies = [];
+  for (const current of [request, { ...request, timeout: 60 }]) {
+    let calls = 0;
+    const result = await generateTyped({ request: current, provider: { available: true,
+      post: async body => { calls++; bodies.push(body); return raw(); } } });
+    assert.equal(calls, 1);
+    assert.deepEqual(result, { result: raw().result, usage: raw().usage, elapsed: raw().elapsed });
+  }
+  assert.equal(bodies[0], legacyBody);
+  assert.equal(bodies[1], legacyBody.replace('"timeout":30}', '"timeout":60}'));
+});
+
+test("all other explicit timeout values fail before provider dispatch", async () => {
+  for (const timeout of [undefined, 30, 90, 0, -1, 60.5, "60", null, false, {}, []]) {
+    let calls = 0;
+    await refuse(() => generateTyped({ request: { ...request, timeout }, provider: {
+      available: true, post: async () => { calls++; return raw(); },
+    } }), "input_invalid");
+    assert.equal(calls, 0);
+  }
+});
+
+function timeoutCli(input, expectedTimeout, expectedDeadline, { expectPost = true, metadata = false } = {}) {
+  const preload = [
+    "let calls = 0, latestDeadline;",
+    "const originalSetTimeout = globalThis.setTimeout;",
+    "globalThis.setTimeout = (...args) => { latestDeadline = args[1]; return originalSetTimeout(...args); };",
+    "globalThis.fetch = async (_url, init) => {",
+    "  calls++; const body = JSON.parse(init.body);",
+    "  if (body.timeout !== " + JSON.stringify(expectedTimeout) + " || latestDeadline !== " + JSON.stringify(expectedDeadline) + ") throw Error('synthetic timeout mismatch');",
+    "  return new Response(" + JSON.stringify(JSON.stringify(raw())) + ", {status:200});",
+    "};",
+    "process.on('exit', () => { if (calls !== " + (expectPost ? "1" : "0") + ") process.exitCode = 99; });",
+  ].join("\n");
+  return spawnSync(process.execPath, ["--import", "data:text/javascript," + encodeURIComponent(preload),
+    fileURLToPath(new URL("../cli/index.mjs", import.meta.url)), ...(metadata ? ["--response-metadata"] : [])], {
+    input, env: { TYPELLM_API_KEY: "synthetic-timeout-cli-key" }, encoding: "utf8",
+    shell: false, windowsHide: true, maxBuffer: 4 * 1024 * 1024, timeout: 10000,
+  });
+}
+
+test("CLI selects 35s/65s local deadline from the same omitted/60s request", () => {
+  for (const [current, seconds, deadline] of [[request, 30, 35000], [{ ...request, timeout: 60 }, 60, 65000]]) {
+    const input = JSON.stringify(current) + "\n";
+    const normal = timeoutCli(input, seconds, deadline);
+    const observed = timeoutCli(input, seconds, deadline, { metadata: true });
+    for (const run of [normal, observed]) {
+      assert.equal(run.error, undefined); assert.equal(run.signal, null); assert.equal(run.status, 0);
+      assert.equal(run.stdout, JSON.stringify({ result: raw().result, usage: raw().usage, elapsed: raw().elapsed }) + "\n");
+    }
+    assert.equal(normal.stderr, "");
+    const frame = metadataFrame(observed);
+    assert.equal(frame.stdinBytes, Buffer.byteLength(input));
+    assert.equal(frame.stdinSha256, metadataHash(input));
+  }
+});
+
+test("CLI preserves input_invalid for malformed shapes and unsupported timeout without HTTP", () => {
+  for (const current of [null, [], 1, false, {}, { ...request, timeout: 30 }, { ...request, timeout: 90 },
+    { ...request, timeout: "60" }, { ...request, timeout: null }]) {
+    const run = timeoutCli(JSON.stringify(current), 30, 35000, { expectPost: false });
+    assert.equal(run.error, undefined); assert.equal(run.signal, null);
+    assert.equal(run.status, 1); assert.equal(run.stderr, "");
+    assert.equal(run.stdout, JSON.stringify({ error: "input_invalid" }) + "\n");
+  }
+});
+
+test("explicit 60s request preserves HTTP 504 classification, unread body and no retry", async () => {
+  let calls = 0, reads = 0;
+  await assert.rejects(() => generateTyped({ request: { ...request, timeout: 60 }, provider: bindTypeLLM({
+    apiKey: "synthetic-timeout-key", deadlineMs: 65000,
+    fetch: async (_url, init) => {
+      calls++; assert.equal(JSON.parse(init.body).timeout, 60);
+      return { ok: false, status: 504, get body() { reads++; throw Error("synthetic private body"); } };
+    },
+  }) }), error => error instanceof TypedProviderError && error.code === "provider_http_error"
+    && error.upstreamStatus === 504 && error.message === "provider_http_error");
+  assert.equal(calls, 1); assert.equal(reads, 0);
+});
