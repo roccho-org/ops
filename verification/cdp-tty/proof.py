@@ -29,7 +29,8 @@ import websocket
 
 ROOT = Path(os.environ.get("CDP_TTY_PACKAGE", Path(__file__).resolve().parents[2] / "packages/cdp-tty")).resolve()
 ALLOWED = {"Page.getLayoutMetrics", "Page.getFrameTree", "Page.captureScreenshot",
-           "Input.dispatchMouseEvent", "Input.dispatchKeyEvent", "Input.insertText", "Runtime.evaluate"}
+           "Input.dispatchMouseEvent", "Input.dispatchKeyEvent", "Input.insertText", "Runtime.evaluate",
+           "DOM.describeNode", "Runtime.releaseObject"}
 RECEIPTS: list[dict] = []
 PAGE = b'''<!doctype html><meta charset=utf-8><title>fixture</title>
 <style>body{margin:0;height:2500px;background:#eee;font:18px sans-serif}
@@ -38,8 +39,8 @@ button{position:absolute;left:200px;top:120px;width:220px;height:90px}
 #stamp{position:absolute;left:20px;top:250px}</style>
 <input id=text><input id=other style="top:350px"><button id=button>fixture button</button><div id=stamp>stable</div>
 <script>window.events=[];window.clicks=0;
-for(const type of ['mousedown','mouseup','click','keydown','keyup','wheel','input'])
-addEventListener(type,e=>events.push({type,key:e.key,button:e.button,x:e.clientX,y:e.clientY,dy:e.deltaY}));
+for(const type of ['mousedown','mouseup','mousemove','click','keydown','keyup','wheel','input'])
+addEventListener(type,e=>events.push({type,key:e.key,button:e.button,x:e.clientX,y:e.clientY,dy:e.deltaY,shift:e.shiftKey,ctrl:e.ctrlKey,alt:e.altKey,meta:e.metaKey,buttons:e.buttons}));
 button.onclick=()=>clicks++;</script>'''
 
 def record(name: str, **observed):
@@ -119,6 +120,7 @@ class Audit(socketserver.ThreadingTCPServer):
     def __init__(self, upstream, fault=""):
         self.upstream, self.fault, self.methods = upstream, fault, []
         self.connections = 0
+        self.input_seen = self.stale_injected = False
         super().__init__(("127.0.0.1", 0), AuditHandler)
         self.thread = threading.Thread(target=self.serve_forever, daemon=True)
         self.thread.start()
@@ -174,8 +176,13 @@ class AuditHandler(socketserver.StreamRequestHandler):
                 self.server.methods.append(method)  # never retain params, frames or secrets
                 assert method in ALLOWED, f"forbidden wire method: {method}"
                 if method == "Runtime.evaluate":
-                    assert req["params"] == {"expression": "({width:innerWidth,height:innerHeight,dpr:devicePixelRatio})",
-                        "returnByValue": True, "throwOnSideEffect": True, "silent": True, "timeout": 1000}
+                    assert req["params"] in (
+                        {"expression": "({width:innerWidth,height:innerHeight,dpr:devicePixelRatio})",
+                         "returnByValue": True, "throwOnSideEffect": True, "silent": True, "timeout": 1000},
+                        {"expression": "document.activeElement", "returnByValue": False,
+                         "throwOnSideEffect": True, "silent": True, "timeout": 1000})
+                if method in ("DOM.describeNode", "Runtime.releaseObject"):
+                    assert set(req["params"]) == {"objectId"} and isinstance(req["params"]["objectId"],str)
                 if method == "Page.captureScreenshot":
                     assert req["params"] == {"format": "png", "captureBeyondViewport": False, "fromSurface": False}
                 fault = self.server.fault
@@ -183,6 +190,20 @@ class AuditHandler(socketserver.StreamRequestHandler):
                     time.sleep(4)
                     break
                 result = upstream.call(method, req.get("params"))
+                if method.startswith("Input."):
+                    self.server.input_seen = True
+                if fault == "always_stale" and method == "Page.captureScreenshot":
+                    target = 160 if upstream.evaluate("scrollY") == 0 else 0
+                    upstream.evaluate(f"scrollTo(0,{target})")
+                    eventually(lambda: upstream.evaluate("scrollY") == target)
+                if (fault == "stale_after_input" and self.server.input_seen and
+                        method == "Page.captureScreenshot" and not self.server.stale_injected):
+                    # Reproduce a compositor/scroll change *during* a capture.
+                    # The following metrics must reject this old PNG once; no
+                    # product input is replayed by the test.
+                    upstream.evaluate("scrollTo(0,160)")
+                    eventually(lambda: upstream.evaluate("scrollY") == 160)
+                    self.server.stale_injected = True
                 if fault == "close_after_input" and method.startswith("Input."):
                     break
                 if fault == "bad_png" and method == "Page.captureScreenshot":
@@ -438,7 +459,149 @@ def fixture_auth_proof():
         server.server_close()
         thread.join(timeout=2)
 
+def standalone_failure_proof():
+    with browser() as (page, ctl, chrome, debug, _):
+        for fault, stage in (("always_stale", "unstable-frame"), ("wrong_id", "frame-capture")):
+            with Audit(page["webSocketDebuggerUrl"], fault) as audit:
+                sink=Sink(audit.url)
+                try:
+                    eventually(lambda: sink.pump() or sink.p.poll() is not None, timeout=8)
+                finally:
+                    code, err=sink.close()
+                assert code==1 and f"stage={stage}" in err, (fault, code, err)
+                assert not any(m.startswith('Input.') for m in audit.methods)
+                assert page['webSocketDebuggerUrl'] not in err
+                record("A-bounded-failure-stage-"+fault, stage=stage, inputs=0)
+        with Audit(page["webSocketDebuggerUrl"]) as audit:
+            sink=Sink(audit.url,ack=False)
+            try:
+                sink.wait_frame()
+                eventually(lambda: sink.pump() or sink.p.poll() is not None, timeout=5)
+            finally:
+                code, err=sink.close()
+            assert code==1 and 'stage=image-ack-timeout' in err, (code, err)
+            assert not any(m.startswith('Input.') for m in audit.methods)
+            record('A-image-ack-deadline-restores-TTY')
+        ctl.evaluate("document.querySelector('#text').focus()")
+        with Audit(page["webSocketDebuggerUrl"],"close_after_input") as audit:
+            sink=Sink(audit.url)
+            try:
+                sink.wait_frame()
+                sink.send('一度だけ'.encode())
+                eventually(lambda: sink.pump() or sink.p.poll() is not None, timeout=5)
+            finally:
+                code, err=sink.close()
+            assert code==1 and 'stage=input-dispatch' in err and 'completion=unknown' in err, (code,err)
+            assert audit.methods.count('Input.insertText')==1 and audit.connections==1
+            eventually(lambda: ctl.evaluate("document.querySelector('#text').value") == '一度だけ')
+            assert '一度だけ' not in err and page['webSocketDebuggerUrl'] not in err
+            record('A-unknown-input-reply-no-reconnect-replay', count=1)
+        assert chrome.poll() is None
+
+def standalone_gesture_proof():
+    with browser() as (page, ctl, chrome, debug, _):
+        ctl.evaluate("document.querySelector('#text').value='abcdef';document.querySelector('#text').focus();document.querySelector('#text').setSelectionRange(6,6)")
+        with Audit(page["webSocketDebuggerUrl"]) as audit:
+            sink = Sink(audit.url)
+            try:
+                sink.wait_frame()
+                sink.send(b"\x1b[1;2D")  # Shift + Left: selection, not unmodified motion.
+                sink.wait_frame(sink.frames+1)
+                eventually(lambda: ctl.evaluate("document.querySelector('#text').selectionStart") == 5)
+                assert ctl.evaluate("document.querySelector('#text').selectionEnd") == 6
+                assert ctl.evaluate("events.filter(e=>e.type==='keydown').at(-1).shift")
+                record("A-modified-arrow-selection")
+                sink.send(b"\x1b[99;5u")  # Kitty Ctrl-C, preserve control meaning.
+                sink.wait_frame(sink.frames+1)
+                eventually(lambda: ctl.evaluate("events.some(e=>e.type==='keydown' && e.key==='c' && e.ctrl)"))
+                assert ctl.evaluate("document.querySelector('#text').value") == 'abcdef'
+                record("A-kitty-modified-letter-no-text-fallback")
+                ctl.evaluate("document.querySelector('#text').blur();window.moves=[];window.addEventListener('mousemove',e=>{if(e.buttons)moves.push([e.clientX,e.clientY,e.buttons])});window.addEventListener('mouseup',e=>{window.lastRelease=[e.clientX,e.clientY,e.shiftKey]})")
+                # The controller's blur changes pixels. Require the newly shown frame.
+                sink.wait_frame(sink.frames+1)
+                cols, rows = sink.last_size
+                left, top = (sink.cols-cols)//2, (sink.rows-1-rows)//2
+                start = (left+20, top+18)
+                finish = (left+50, top+21)
+                before = audit.methods.count('Input.dispatchMouseEvent')
+                sink.send(f"\x1b[<4;{start[0]};{start[1]}M\x1b[<36;{finish[0]};{finish[1]}M\x1b[<4;{finish[0]};{finish[1]}m".encode())
+                sink.wait_frame(sink.frames+1)
+                eventually(lambda: ctl.evaluate("moves.length") > 0)
+                assert ctl.evaluate("lastRelease[2]") is True
+                assert ctl.evaluate("events.filter(e=>e.type==='mousedown').at(-1).shift") is True
+                assert audit.methods.count('Input.dispatchMouseEvent')-before == 10
+                assert ctl.evaluate("moves.every(e=>e[2]===1)")
+                record("A-bounded-point-to-point-drag", moves=8, shift=True)
+            finally:
+                code, err = sink.close()
+                assert code == 0, err
+
+def silent_focus_proof():
+    """A real focus change with identical pixels must not deliver typed input."""
+    with browser() as (page,ctl,chrome,debug,_):
+        ctl.evaluate("for (const e of document.querySelectorAll('input'))e.style.outline='none';document.querySelector('#text').focus()")
+        shot={"format":"png","captureBeyondViewport":False,"fromSurface":False}
+        with Audit(page["webSocketDebuggerUrl"]) as audit, Probe(audit.url) as p:
+            p.frame()
+            pixels_before=ctl.call("Page.captureScreenshot",shot)["data"]
+            ctl.evaluate("document.querySelector('#other').focus()")
+            assert pixels_before == ctl.call("Page.captureScreenshot",shot)["data"], "focus test was visibly different"
+            assert p.command("text forbidden-hidden-focus")[0] == 2
+            assert ctl.evaluate("[document.querySelector('#text').value,document.querySelector('#other').value]")==["",""]
+            assert not any(x.startswith("Input.") for x in audit.methods)
+            assert audit.methods.count("DOM.describeNode")>0
+            record("A-silent-focus-ABA-blocked",inputs=0,pixel_identity=True)
+
+def standalone_input_proof():
+    """A regressions: real Chrome and unchanged PTY/wire observer, no B/C."""
+    with browser() as (page, ctl, chrome, debug, _):
+        # A valid UTF-8 codepoint is not necessarily a whole IME commit; terminal
+        # writes may fragment between codepoints, not just within one character.
+        ctl.evaluate("document.querySelector('#text').focus()")
+        with Audit(page["webSocketDebuggerUrl"]) as audit:
+            sink = Sink(audit.url)
+            try:
+                sink.wait_frame()
+                for char in "日本語":
+                    sink.send(char.encode())
+                    time.sleep(.01)
+                sink.wait_frame(sink.frames+1)
+                eventually(lambda: ctl.evaluate("document.querySelector('#text').value") == "日本語")
+                assert audit.methods.count("Input.insertText") == 1
+                record("A-fragmented-committed-text-once", codepoints=3)
+            finally:
+                code, err = sink.close()
+                assert code == 0, err
+        ctl.evaluate("document.querySelector('#text').blur();scrollTo(0,0)")
+        with Audit(page["webSocketDebuggerUrl"], "stale_after_input") as audit:
+            sink = Sink(audit.url)
+            try:
+                sink.wait_frame()
+                cols, rows = sink.last_size
+                x = (sink.cols-cols)//2 + cols//2
+                y = (sink.rows-1-rows)//2 + rows//2
+                sink.send(f"\x1b[<65;{x};{y}M".encode())
+                sink.wait_frame(sink.frames+1)
+                assert audit.stale_injected
+                assert audit.methods.count("Input.dispatchMouseEvent") == 1
+                eventually(lambda: ctl.evaluate("scrollY") == 160)
+                assert sink.p.poll() is None
+                record("A-readonly-frame-recapture-after-wheel", input_count=1)
+            finally:
+                code, err = sink.close()
+                assert code == 0, err
+
+def graphical_terminal_proof():
+    # Separate renderer observation from the protocol-sink tests above.
+    from renderer import prove
+    prove(ROOT, browser, eventually, record)
+
+
 def run():
+    standalone_input_proof()
+    silent_focus_proof()
+    standalone_gesture_proof()
+    standalone_failure_proof()
     independent_geometry_proof()
     assert subprocess.run([str(ROOT / "cdp-tty"), "--help"], capture_output=True).returncode == 0
     for url in ["http://127.0.0.1:1/json", "ws://0.0.0.0:1/devtools/page/a", "ws://127.0.0.1:1/devtools/browser/a",
@@ -602,13 +765,14 @@ def run():
                     record("unknown-input-result-no-retry")
     # No source-side subprocess or browser lifecycle entrypoint is allowed.
     core = (ROOT / "cdp.c").read_text()
-    wire = set(re.findall(r'"((?:Page|Input|Target|Browser|Runtime|Network|Storage|Emulation)\.[A-Za-z]+)"', core))
+    wire = set(re.findall(r'"((?:Page|Input|Target|Browser|Runtime|DOM|Network|Storage|Emulation)\.[A-Za-z]+)"', core))
     assert wire == ALLOWED
     symbols = subprocess.run(["nm", "-u", str(ROOT / "libcdp-tty.a")], capture_output=True, text=True, check=True).stdout
     assert not re.search(r"\b(exec\w*|fork|system|popen|tcsetattr|signal|sigaction|exit)\b", symbols)
     record("finite-wire-surface-no-process-tty-global-core", method_count=len(wire))
     fixture_auth_proof()
-    residuals = dict(windows_ssh="NOT_RUN", real_service_auth="NOT_RUN", real_terminal_renderer="NOT_RUN", drag="NOT_IMPLEMENTED", ime_composition="NOT_IMPLEMENTED")
+    graphical_terminal_proof()
+    residuals = dict(windows_ssh="NOT_RUN", real_service_auth="NOT_RUN", real_terminal_renderer="PASS_LINUX_X11", drag="PASS_BOUNDED_ENDPOINT", ime_composition="NOT_IMPLEMENTED")
     print(json.dumps({"test": "residuals", "status": "NOT_RUN", **residuals}), flush=True)
 
 if __name__ == "__main__":

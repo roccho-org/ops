@@ -1,0 +1,61 @@
+name: cdp-tty-proof
+# Keep the existing proof after A is merged, without enabling unrelated #460 work.
+on:
+  pull_request:
+    paths: ['packages/cdp-tty/**', 'verification/cdp-tty/**', 'flake.lock', 'ci.intent.v1.jsonl', '.github/workflows/cdp-tty-proof.yml']
+  push:
+    branches: [proposals]
+    paths: ['packages/cdp-tty/**', 'verification/cdp-tty/**', 'flake.lock', 'ci.intent.v1.jsonl', '.github/workflows/cdp-tty-proof.yml']
+jobs:
+  cdp-tty-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+      - name: Prove native library and CLI with real Chrome and a PTY
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p cdp-tty-proof
+          git rev-parse HEAD > cdp-tty-proof/source.commit
+          git archive --format=tar.gz HEAD packages/cdp-tty verification/cdp-tty flake.lock ci.intent.v1.jsonl .github/workflows/cdp-tty-proof.yml > cdp-tty-proof/source.tar.gz
+          out="$(nix-build packages/cdp-tty/proof.nix --no-out-link 2> >(tee cdp-tty-proof/build.log >&2))"
+          cp "$out"/* cdp-tty-proof/
+          cat cdp-tty-proof/raws.jsonl
+          # A6: measure existing producer outputs; do not create a new package or
+          # consumer wrapper. The source NAR is the full tracked tree, not the
+          # smaller review archive or a compiled-binary hash.
+          git rev-parse 'HEAD^{tree}' > cdp-tty-proof/source.tree
+          src="$(mktemp -d)"
+          git archive HEAD | tar -x -C "$src"
+          nix hash path --type sha256 "$src" > cdp-tty-proof/source.narHash
+          expression='source: let p = import (builtins.toPath (source + "/packages/cdp-tty/proof.nix")); in { drvPath = p.drvPath; out = p.out.outPath; dev = p.dev.outPath; proof = p.outPath; system = p.system; }'
+          # --argstr does not apply a lambda under --expr. Apply it explicitly
+          # using JSON-escaped Nix path strings; retain strict JSON/output equality.
+          checkout_literal="$(printf %s "$PWD" | jq -Rs .)"
+          archive_literal="$(printf %s "$src" | jq -Rs .)"
+          nix-instantiate --eval --strict --json --expr "($expression) $checkout_literal" > cdp-tty-proof/outputs.json
+          nix-instantiate --eval --strict --json --expr "($expression) $archive_literal" > "$RUNNER_TEMP/cdp-tty-archive-outputs.json"
+          cmp cdp-tty-proof/outputs.json "$RUNNER_TEMP/cdp-tty-archive-outputs.json"
+          runtime="$(jq -r .out cdp-tty-proof/outputs.json)"
+          development="$(jq -r .dev cdp-tty-proof/outputs.json)"
+          test "$(jq -r .proof cdp-tty-proof/outputs.json)" = "$out"
+          test -x "$runtime/bin/cdp-tty"
+          sha256sum "$runtime/bin/cdp-tty" "$development/lib/libcdp-tty.a" "$development/include/cdp-tty/cdp.h" > cdp-tty-proof/binaries.sha256
+          nix path-info --json --recursive "$runtime" > cdp-tty-proof/runtime-closure.json
+          git diff --exit-code -- flake.lock
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cdp-tty-proof-${{ github.event.pull_request.head.sha || github.sha }}
+          path: cdp-tty-proof/
+          if-no-files-found: error
