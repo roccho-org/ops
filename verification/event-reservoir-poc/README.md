@@ -43,6 +43,11 @@ save/ACK interruption and reconnect, invalid UAID, overlapping receive and backo
 The standard tool closure uses the repository's existing locked nixpkgs input;
 the dedicated workflow also runs the existing CI intent/effect boundary checker
 and Wrangler dry-run. Fixture results are not live X notification evidence.
+The same pinned Wrangler also starts a loopback-only local workerd fixture:
+both actual adapters construct real workerd Requests, Mozilla's local WebSocket
+handshake completes, and HTTP replay uses local R2. Upstream responses are fixtures.
+Worker fetches use `redirect: manual` and reject unexpected response statuses;
+workerd deliberately does not implement Node's `redirect: error` mode.
 
 ## Live CI
 

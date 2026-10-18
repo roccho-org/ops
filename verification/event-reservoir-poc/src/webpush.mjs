@@ -5,7 +5,7 @@ const WINDOW_MS = 12_000;
 
 export async function openMozilla(fetcher = fetch) {
   let response;
-  try { response = await fetcher('https://push.services.mozilla.com/', { headers: { Upgrade: 'websocket', Origin: 'https://x.com' }, signal: AbortSignal.timeout(10_000), redirect: 'error' }); }
+  try { response = await fetcher('https://push.services.mozilla.com/', { headers: { Upgrade: 'websocket', Origin: 'https://x.com' }, signal: AbortSignal.timeout(10_000), redirect: 'manual' }); }
   catch { throw new PocError('WEBPUSH_CONNECT_FAILED'); }
   const ws = response.webSocket;
   if (response.status !== 101 || !ws) throw new PocError('WEBPUSH_UPGRADE_FAILED');

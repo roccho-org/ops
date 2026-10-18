@@ -43,6 +43,10 @@ jobs:
           runtime="$(nix-build verification/event-reservoir-poc/dependencies.nix --no-out-link)"
           PATH="$runtime/bin:$PATH" "$runtime/bin/node" tools/check-ci-intent-workflow-branches.mjs
           "$runtime/bin/wrangler" deploy --dry-run --config verification/event-reservoir-poc/wrangler.jsonc --outdir "$RUNNER_TEMP/reservoir-bundle"
+          "$runtime/bin/wrangler" dev "$GITHUB_WORKSPACE/verification/event-reservoir-poc/tests/workerd.mjs" --config "$GITHUB_WORKSPACE/verification/event-reservoir-poc/wrangler.jsonc" --local --ip 127.0.0.1 --port 8787 --persist-to "$RUNNER_TEMP/reservoir-local-state" > "$RUNNER_TEMP/reservoir-workerd.log" 2>&1 &
+          fixture_pid=$!
+          trap 'kill "$fixture_pid" 2>/dev/null || true' EXIT
+          "$runtime/bin/node" verification/event-reservoir-poc/scripts/check-workerd.mjs
 
   live:
     if: github.event_name == 'workflow_dispatch' && inputs.deploy

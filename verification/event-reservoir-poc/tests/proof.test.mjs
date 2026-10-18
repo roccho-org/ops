@@ -49,7 +49,7 @@ test('conditional creation has one winner; sequential replay and changed metrics
 });
 
 test('HTTP refuses upstream failure, malformed data and wrong IDs without saving', async () => {
-  for (const response of [new Response('error', { status: 503 }), new Response('{}'), Response.json({ code: 200, tweet: { id: '21', text: 'other' } })]) {
+  for (const response of [new Response('error', { status: 503 }), new Response(null, { status: 302, headers: { location: 'https://example.invalid/' } }), new Response('{}'), Response.json({ code: 200, tweet: { id: '21', text: 'other' } })]) {
     const env = { RESERVOIR: new Bucket(), HTTP_POST_ID: '20' };
     await assert.rejects(collectHttp(env, { fetcher: async () => response }), PocError);
     assert.equal(env.RESERVOIR.objects.size, 0);

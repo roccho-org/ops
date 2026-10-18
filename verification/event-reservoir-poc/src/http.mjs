@@ -6,7 +6,7 @@ export async function collectHttp(env, { fetcher = fetch, proof = false } = {}) 
   let response;
   try {
     response = await fetcher(`https://api.fxtwitter.com/status/${id}`, {
-      headers: { accept: 'application/json' }, signal: AbortSignal.timeout(15_000), redirect: 'error',
+      headers: { accept: 'application/json' }, signal: AbortSignal.timeout(15_000), redirect: 'manual',
     });
   } catch { throw new PocError('HTTP_UPSTREAM_UNREACHABLE'); }
   if (!response.ok) throw new PocError('HTTP_UPSTREAM_STATUS');
