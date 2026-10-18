@@ -255,3 +255,183 @@ test("a late response after timeout is cancelled without reading it", async () =
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(reads, 0); assert.equal(cancels, 1);
 });
+
+
+// Public response observations stay separate from typed answer data and authority.
+import { createHash } from "node:crypto";
+import { pathToFileURL } from "node:url";
+const metadataRequest = { context: "context-private-fixture", questions: { answer: { type: "string" } } };
+const metadataRaw = (fields = {}) => ({ result: { answer: "answer-private-fixture" }, ...fields });
+const metadataInvoke = rawValue => generateTyped({ request: metadataRequest,
+  provider: { available: true, post: async () => rawValue } });
+const metadataLookup = value => generateTyped.responseMetadata(value);
+const metadataExpected = (modelStatus, model, idStatus, id) => ({
+  schema: "typellm.response-metadata.v1", publicModelStatus: modelStatus, reportedPublicModel: model,
+  responseIdStatus: idStatus, providerResponseId: id, backendIdentityStatus: "UNKNOWN",
+});
+
+test("public metadata preserves the three named exports and normalized return shape", async () => {
+  const namespace = await import(entry);
+  assert.deepEqual(Object.keys(namespace).sort(), ["TypedProviderError", "bindTypeLLM", "generateTyped"]);
+  const descriptor = Object.getOwnPropertyDescriptor(generateTyped, "responseMetadata");
+  assert.equal(typeof descriptor.value, "function");
+  assert.equal(descriptor.enumerable, false); assert.equal(descriptor.writable, false);
+  assert.equal(descriptor.configurable, false); assert.deepEqual(Object.keys(generateTyped), []);
+  const rawValue = metadataRaw({ model: "public-model", id: "public-response" });
+  const value = await metadataInvoke(rawValue);
+  assert.deepEqual(value, { result: rawValue.result });
+  assert.deepEqual(Reflect.ownKeys(value), ["result"]); assert.equal(Object.isFrozen(value), false);
+  const observation = metadataLookup(value);
+  assert.deepEqual(observation, metadataExpected("OBSERVED", "public-model", "OBSERVED", "public-response"));
+  assert.equal(Object.isFrozen(observation), true);
+  assert.throws(() => { observation.reportedPublicModel = "changed"; }, TypeError);
+  rawValue.model = "later-raw-model"; value.result.answer = "changed-answer";
+  assert.equal(metadataLookup(value), observation);
+  assert.equal(observation.reportedPublicModel, "public-model");
+  for (const copy of [{ ...value }, structuredClone(value), JSON.parse(JSON.stringify(value)), null, undefined, 1])
+    assert.equal(metadataLookup(copy), null);
+  const otherEntry = entry instanceof URL ? new URL(entry) : String(entry).startsWith("file:")
+    ? new URL(entry) : pathToFileURL(entry);
+  otherEntry.searchParams.set("metadata-module-instance", "isolated");
+  const otherModule = await import(otherEntry.href);
+  assert.equal(otherModule.generateTyped.responseMetadata(value), null);
+});
+
+test("metadata absent/accessor/descriptor failures do not fail a valid typed answer or execute getters", async () => {
+  const absent = await metadataInvoke(metadataRaw());
+  assert.deepEqual(metadataLookup(absent), metadataExpected("ABSENT", null, "ABSENT", null));
+  let reads = 0;
+  const accessor = metadataRaw();
+  for (const field of ["model", "id"]) Object.defineProperty(accessor, field, {
+    get() { reads++; throw Error("must-not-read-metadata-getter"); }, enumerable: true,
+  });
+  const value = await metadataInvoke(accessor);
+  assert.equal(reads, 0); assert.deepEqual(value, { result: metadataRaw().result });
+  assert.deepEqual(metadataLookup(value), metadataExpected("INVALID", null, "INVALID", null));
+  const proxy = new Proxy(metadataRaw(), { getOwnPropertyDescriptor(target, key) {
+    if (key === "model" || key === "id") throw Error("descriptor-private-fixture");
+    return Reflect.getOwnPropertyDescriptor(target, key);
+  } });
+  assert.deepEqual(metadataLookup(await metadataInvoke(proxy)), metadataExpected("INVALID", null, "INVALID", null));
+});
+
+test("public metadata keeps exact bounded Unicode text and independently classifies invalid fields", async () => {
+  for (const text of ["a", "a".repeat(256), "é".repeat(128), "😀".repeat(64), "model name"]) {
+    const value = await metadataInvoke(metadataRaw({ model: text, id: text }));
+    assert.deepEqual(metadataLookup(value), metadataExpected("OBSERVED", text, "OBSERVED", text));
+  }
+  for (const invalid of [undefined, null, 0, {}, ["x"], "", " ", " model", "model ", "\u00a0model",
+    "a\nb", "a\tb", "a\u0000b", "a\u007fb", "a\u0085b", "a".repeat(257),
+    "é".repeat(129), "😀".repeat(65), "\ud800", "\udc00", "a\ud800b"]) {
+    const value = await metadataInvoke(metadataRaw({ model: invalid, id: "valid-response" }));
+    assert.deepEqual(value, { result: metadataRaw().result });
+    assert.deepEqual(metadataLookup(value), metadataExpected("INVALID", null, "OBSERVED", "valid-response"));
+    const reversed = await metadataInvoke(metadataRaw({ model: "valid-model", id: invalid }));
+    assert.deepEqual(metadataLookup(reversed), metadataExpected("OBSERVED", "valid-model", "INVALID", null));
+  }
+});
+
+test("parallel out-of-order responses retain per-result observations without a global last model", async () => {
+  let releaseFirst, releaseSecond;
+  const firstPending = generateTyped({ request: metadataRequest, provider: { available: true,
+    post: () => new Promise(resolve => { releaseFirst = resolve; }) } });
+  const secondPending = generateTyped({ request: metadataRequest, provider: { available: true,
+    post: () => new Promise(resolve => { releaseSecond = resolve; }) } });
+  releaseSecond(metadataRaw({ model: "second-model", id: "second-id" }));
+  const second = await secondPending;
+  releaseFirst(metadataRaw({ model: "first-model", id: "first-id" }));
+  const first = await firstPending;
+  assert.deepEqual(first, second);
+  assert.deepEqual(metadataLookup(first), metadataExpected("OBSERVED", "first-model", "OBSERVED", "first-id"));
+  assert.deepEqual(metadataLookup(second), metadataExpected("OBSERVED", "second-model", "OBSERVED", "second-id"));
+});
+
+const metadataCliPath = fileURLToPath(new URL("../cli/index.mjs", import.meta.url));
+const metadataHash = input => createHash("sha256").update(input).digest("hex");
+function metadataCli(input, { optIn = true, hasKey = true, data = metadataRaw({ model: "cli-public-model", id: "cli-public-id" }) } = {}) {
+  // The preload replaces all HTTP with a synthetic response; no external API can run.
+  const preload = [
+    "globalThis.fetch = async (_url, init) => {",
+    "  if (init.headers.authorization !== 'Bearer synthetic-cli-key') throw Error('bad synthetic auth');",
+    "  const wire = JSON.parse(init.body);",
+    "  if (wire.model !== 'typellm-latest' || wire.context !== 'context-private-fixture') throw Error('request changed');",
+    "  return new Response(" + JSON.stringify(JSON.stringify(data)) + ", {status:200});",
+    "};",
+  ].join("\n");
+  return spawnSync(process.execPath, ["--import", "data:text/javascript," + encodeURIComponent(preload),
+    metadataCliPath, ...(optIn ? ["--response-metadata"] : [])], {
+    input, env: hasKey ? { TYPELLM_API_KEY: "synthetic-cli-key" } : {}, encoding: "utf8",
+    shell: false, windowsHide: true, maxBuffer: 4 * 1024 * 1024, timeout: 10000,
+  });
+}
+function metadataFrame(run) {
+  assert.equal(run.error, undefined); assert.equal(run.signal, null);
+  const match = /^TYPELLM_RESPONSE_METADATA_JSON_BEGIN\n([^\n]+)\nTYPELLM_RESPONSE_METADATA_JSON_END\n$/.exec(run.stderr);
+  assert.ok(match, "exactly one closed metadata frame");
+  const frame = JSON.parse(match[1]);
+  assert.deepEqual(Object.keys(frame).sort(), ["backendIdentityStatus", "metadataSchema", "providerResponseId",
+    "publicModelStatus", "reportedPublicModel", "responseIdStatus", "responseMetadataStatus", "schema",
+    "stdinBytes", "stdinComplete", "stdinSha256"]);
+  assert.ok(Object.values(frame).every(x => x === null || ["string", "number", "boolean"].includes(typeof x)));
+  assert.equal(frame.schema, "typellm.cli-response-metadata.v1"); assert.equal(frame.backendIdentityStatus, "UNKNOWN");
+  for (const privateText of ["context-private-fixture", "answer-private-fixture", "synthetic-cli-key"])
+    assert.equal(run.stderr.includes(privateText), false);
+  return frame;
+}
+
+test("CLI opt-in binds public observations to exact complete stdin without changing stdout or default stderr", () => {
+  const input = JSON.stringify(metadataRequest) + "\n";
+  const normal = metadataCli(input, { optIn: false });
+  const observed = metadataCli(input);
+  assert.equal(normal.status, 0); assert.equal(observed.status, 0);
+  assert.equal(normal.stderr, ""); assert.equal(normal.stdout, JSON.stringify({ result: metadataRaw().result }) + "\n");
+  assert.equal(observed.stdout, normal.stdout);
+  const frame = metadataFrame(observed);
+  assert.equal(frame.stdinComplete, true); assert.equal(frame.stdinBytes, Buffer.byteLength(input));
+  assert.equal(frame.stdinSha256, metadataHash(input));
+  assert.equal(frame.responseMetadataStatus, "SDK_OBSERVATION_AVAILABLE");
+  assert.equal(frame.metadataSchema, "typellm.response-metadata.v1");
+  assert.equal(frame.reportedPublicModel, "cli-public-model"); assert.equal(frame.publicModelStatus, "OBSERVED");
+  assert.equal(frame.providerResponseId, "cli-public-id"); assert.equal(frame.responseIdStatus, "OBSERVED");
+  const noLf = metadataFrame(metadataCli(input.slice(0, -1)));
+  assert.notEqual(noLf.stdinSha256, frame.stdinSha256);
+  assert.equal(noLf.stdinSha256, metadataHash(input.slice(0, -1)));
+});
+
+test("CLI opt-in preserves absent/invalid public metadata without failing valid answers", () => {
+  for (const [data, status] of [[metadataRaw(), "ABSENT"], [metadataRaw({ model: 1, id: "bad\nidentifier" }), "INVALID"]]) {
+    const run = metadataCli(JSON.stringify(metadataRequest), { data });
+    assert.equal(run.status, 0); assert.equal(run.stdout, JSON.stringify({ result: data.result }) + "\n");
+    const frame = metadataFrame(run);
+    assert.equal(frame.responseMetadataStatus, "SDK_OBSERVATION_AVAILABLE");
+    assert.equal(frame.publicModelStatus, status); assert.equal(frame.responseIdStatus, status);
+    assert.equal(frame.reportedPublicModel, null); assert.equal(frame.providerResponseId, null);
+  }
+});
+
+test("CLI opt-in errors retain original exit/stdout and distinguish complete from incomplete stdin", () => {
+  const cases = [
+    { input: "no JSON\n", code: 1, error: "input_invalid", complete: true },
+    { input: Buffer.from([255, 10]), code: 1, error: "input_invalid", complete: true },
+    { input: "x".repeat(128 * 1024 + 1), code: 1, error: "input_invalid", complete: false },
+    { input: JSON.stringify(metadataRequest), hasKey: false, code: 2, error: "auth_missing", complete: true },
+    { input: JSON.stringify(metadataRequest), data: { result: { answer: 1 }, model: "must-not-be-observed" },
+      code: 4, error: "provider_contract_error", complete: true },
+  ];
+  for (const current of cases) {
+    const options = { ...(current.hasKey === false ? { hasKey: false } : {}),
+      ...(current.data ? { data: current.data } : {}) };
+    const normal = metadataCli(current.input, { ...options, optIn: false });
+    const observed = metadataCli(current.input, options);
+    assert.equal(normal.status, current.code); assert.equal(observed.status, current.code);
+    assert.equal(normal.stderr, ""); assert.equal(normal.stdout, JSON.stringify({ error: current.error }) + "\n");
+    assert.equal(observed.stdout, normal.stdout);
+    const frame = metadataFrame(observed);
+    assert.equal(frame.responseMetadataStatus, "NOT_OBSERVED"); assert.equal(frame.metadataSchema, null);
+    assert.equal(frame.publicModelStatus, "UNKNOWN"); assert.equal(frame.responseIdStatus, "UNKNOWN");
+    assert.equal(frame.reportedPublicModel, null); assert.equal(frame.providerResponseId, null);
+    assert.equal(frame.stdinComplete, current.complete);
+    assert.equal(frame.stdinBytes, current.complete ? Buffer.byteLength(current.input) : null);
+    assert.equal(frame.stdinSha256, current.complete ? metadataHash(current.input) : null);
+  }
+});
