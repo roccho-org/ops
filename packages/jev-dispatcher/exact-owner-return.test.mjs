@@ -273,3 +273,34 @@ testNativeV2('owner return v1: legacy schema and notice stay unchanged without n
     .deliver(event), /INVALID_OWNER_RETURN_EVENT/);
   assertNativeV2.equal(c.queue.length, 1);
 });
+
+
+testNativeV2('owner return binding: true preflight cannot be weakened by postbind false/delete', async t => {
+  for (const mutation of ['false', 'delete']) {
+    const c = nativeV2Context(t), options = { ...c.options, requireEndpointPresence: true };
+    const originalBinding = sha(JSON.stringify(options));
+    const receiver = bindExactOwnerReturn(options, c.runtime);
+    if (mutation === 'false') options.requireEndpointPresence = false;
+    else delete options.requireEndpointPresence;
+    const record = await receiver.deliver(c.event);
+    assertNativeV2.equal(record.bindingSha256, originalBinding);
+    assertNativeV2.equal(record.status, 'HOLD_ENDPOINT_UNAVAILABLE');
+    assertNativeV2.equal(record.spawnInvocations, 0);
+    assertNativeV2.equal(c.queue.length, 0);
+  }
+});
+
+testNativeV2('owner return binding: adding a flag after bind cannot change legacy behavior', async t => {
+  const c = nativeV2Context(t), originalBinding = sha(JSON.stringify(c.options));
+  const receiver = bindExactOwnerReturn(c.options, c.runtime);
+  c.options.requireEndpointPresence = true;
+  const event = { schema: 'jev.product-terminal-event.v1', ownerThread: c.event.ownerThread,
+    runId: c.event.runId, sourceSha: c.event.sourceSha, outcome: 'COMPLETED',
+    resultSha256: c.event.resultSha256, transportReceiptSha256: c.event.transportReceiptSha256,
+    physicalCloseObserved: true };
+  const record = await receiver.deliver(event);
+  assertNativeV2.equal(record.bindingSha256, originalBinding);
+  assertNativeV2.equal(record.status, 'QUEUED_NOT_CONSUMED');
+  assertNativeV2.equal(c.queue.length, 1);
+  assertNativeV2.ok(!c.queue[0].argv[6].includes('one engine-operation'));
+});

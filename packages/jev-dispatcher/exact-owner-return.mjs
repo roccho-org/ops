@@ -22,7 +22,9 @@ const outputLimit = 32768;
 export function bindExactOwnerReturn(options, testRuntime) {
   if (!exact(options, optionKeys) && !exact(options, [...optionKeys, 'requireEndpointPresence']))
     fail('INVALID_OWNER_RETURN_BINDING');
-  if (Object.hasOwn(options, 'requireEndpointPresence') && options.requireEndpointPresence !== true)
+  const endpointPresenceExplicit = Object.hasOwn(options, 'requireEndpointPresence');
+  const requireEndpointPresence = endpointPresenceExplicit ? options.requireEndpointPresence : false;
+  if (endpointPresenceExplicit && requireEndpointPresence !== true)
     fail('INVALID_OWNER_RETURN_BINDING');
   const { mode, codexPath, endpoint, ownerThread, runId, sourceSha, ledgerDir,
     expiresAt, timeoutMs } = options;
@@ -47,7 +49,8 @@ export function bindExactOwnerReturn(options, testRuntime) {
   if (!directory.isDirectory() || directory.isSymbolicLink()) fail('INVALID_OWNER_RETURN_LEDGER');
   const records = [];
   const note = record => { records.push(Object.freeze(record)); return records.at(-1); };
-  const binding = hash(JSON.stringify(options));
+  const binding = hash(JSON.stringify(endpointPresenceExplicit
+    ? { ...options, requireEndpointPresence } : options));
 
   const deliver = async event => {
     const v2 = exact(event, [...eventKeys, 'transportLifecycle', 'executorInvocations'])
@@ -59,7 +62,7 @@ export function bindExactOwnerReturn(options, testRuntime) {
         : event.executorInvocations > 0 && event.transportLifecycle === 'LOCAL_SSH_CLOSED'
           && event.physicalCloseObserved === true);
     // The receiver checks structure; the owning product must establish actual counters/receipts.
-    if ((!v1 && !lifecycleValid) || (options.requireEndpointPresence === true && !v2)
+    if ((!v1 && !lifecycleValid) || (requireEndpointPresence && !v2)
         || event.ownerThread !== ownerThread || event.runId !== runId || event.sourceSha !== sourceSha
         || !['COMPLETED', 'FAILED', 'HOLD', 'RETURN_P', 'TERMINAL'].includes(event.outcome)
         || !sha64.test(event.resultSha256) || !sha64.test(event.transportReceiptSha256)
@@ -191,7 +194,7 @@ export function bindExactOwnerReturn(options, testRuntime) {
           stopped = dispatchRemaining <= 0 ? 'OWNER_RETURN_EXPIRED' : 'OWNER_THREAD_MISMATCH';
           resolve(finish()); return;
         }
-        if (options.requireEndpointPresence === true) {
+        if (requireEndpointPresence) {
           let endpointStat;
           try { endpointStat = fs.lstatSync(endpoint.slice(7)); } catch {}
           if (!endpointStat || endpointStat.isSymbolicLink()

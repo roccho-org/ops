@@ -131,6 +131,8 @@ export function bindNativeProductCaller(options, testRuntime) {
         goalCoverage: 'NOT_CERTIFIED', authority: false, utility: 'UNKNOWN',
         resultSha256: sha(resultBody), resultBytes: Buffer.byteLength(resultBody),
         resultKind: rejected ? 'SAFE_ERROR_ENVELOPE' : 'ACTUAL_ENGINE_RESULT',
+        resultArtifactBasename: 'engine.result.json', resultArtifactBytes: null,
+        resultArtifactSha256: null, resultArtifactStatus: 'NOT_VERIFIED', resultArtifactErrorCode: null,
         transportReceiptSha256: sha(receiptBody), transportReceiptBytes: Buffer.byteLength(receiptBody),
         portReceiptSha256: sha(JSON.stringify(portRecords)),
         executorInvocations: invocationIds.length, transportReceiptCount: actual.length,
@@ -145,6 +147,24 @@ export function bindNativeProductCaller(options, testRuntime) {
         latchedTransportFailure: latched, errorCode: rejected ? safeCode(error) : null,
         remoteEffects: none ? 'NOT_DISPATCHED_BY_CALLER' : 'UNKNOWN'
       };
+      // The owned result must already be readable before a queued P can consume the notice.
+      const resultArtifact = Buffer.from(resultBody + '\n');
+      const resultPath = path.join(claim, 'engine.result.json');
+      try {
+        fs.writeFileSync(resultPath, resultArtifact, { flag: 'wx', mode: 0o600 });
+        const identity = fs.lstatSync(resultPath);
+        if (!identity.isFile() || identity.isSymbolicLink() || identity.size !== resultArtifact.length)
+          fail('NATIVE_RESULT_ARTIFACT_NOT_VERIFIED');
+        const actualResult = fs.readFileSync(resultPath);
+        if (!actualResult.equals(resultArtifact) || sha(actualResult) !== sha(resultArtifact))
+          fail('NATIVE_RESULT_ARTIFACT_NOT_VERIFIED');
+        terminal.resultArtifactBytes = actualResult.length;
+        terminal.resultArtifactSha256 = sha(actualResult);
+        terminal.resultArtifactStatus = 'VERIFIED_READBACK';
+      } catch {
+        terminal.resultArtifactErrorCode = 'NATIVE_RESULT_ARTIFACT_NOT_VERIFIED';
+        fail('NATIVE_RESULT_ARTIFACT_NOT_VERIFIED');
+      }
       // Snapshot actual records privately before forming an event; no case text enters the notice.
       fs.writeFileSync(path.join(claim, 'transport.receipts.json'), receiptBody + '\n', { flag: 'wx', mode: 0o600 });
       fs.writeFileSync(path.join(claim, 'terminal.json'), JSON.stringify(terminal) + '\n', { flag: 'wx', mode: 0o600 });

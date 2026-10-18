@@ -286,3 +286,129 @@ test('native product caller: final receipt IO failure is visible without replaci
   assert.equal(caller.receipts()[0].receiptWriteFailed, true);
   assert.equal(ctx.queue.length, 1);
 });
+
+
+test('native product artifact: actual result is regular, byte-exact and readable before queue', async t => {
+  const ctx = context(t); fakeSSH(t, ctx, successfulProposal);
+  const queueSpawn = ctx.runtime.spawn;
+  let observedBeforeQueue = false, saved;
+  ctx.runtime.spawn = (exe, argv, options) => {
+    const file = path.join(ctx.options.ledgerDir, ctx.options.runId + '.engine', 'engine.result.json');
+    const stat = fs.lstatSync(file);
+    assert.ok(stat.isFile() && !stat.isSymbolicLink());
+    saved = fs.readFileSync(file);
+    assert.ok(saved.toString('utf8').endsWith('\n'));
+    assert.ok(!argv[6].includes(request().goal.content));
+    assert.ok(!argv[6].includes(file));
+    observedBeforeQueue = true;
+    return queueSpawn(exe, argv, options);
+  };
+  const caller = ctx.bind(), result = await caller.run(request()), record = caller.receipts()[0];
+  assert.equal(observedBeforeQueue, true);
+  assert.deepEqual(JSON.parse(saved.toString('utf8')), result);
+  assert.ok(saved.equals(Buffer.from(JSON.stringify(result) + '\n')));
+  assert.equal(record.resultSha256, hash(JSON.stringify(result)));
+  assert.equal(record.resultArtifactBasename, 'engine.result.json');
+  assert.equal(record.resultArtifactSha256, hash(saved));
+  assert.equal(record.resultArtifactBytes, saved.length);
+  assert.equal(record.resultArtifactStatus, 'VERIFIED_READBACK');
+  assert.equal(record.resultArtifactErrorCode, null);
+  assert.equal(noticeEvent(ctx).resultSha256, record.resultSha256);
+  assert.equal(ctx.queue.length, 1);
+});
+
+test('native product artifact: write failure suppresses queue and preserves successful engine value', async t => {
+  const ctx = context(t); fakeSSH(t, ctx, successfulProposal);
+  const originalWrite = fs.writeFileSync;
+  t.mock.method(fs, 'writeFileSync', function (file, ...args) {
+    if (file === path.join(ctx.options.ledgerDir, ctx.options.runId + '.engine', 'engine.result.json'))
+      throw new Error('synthetic result artifact write failure');
+    return originalWrite.call(this, file, ...args);
+  });
+  const caller = ctx.bind(), result = await caller.run(request()), record = caller.receipts()[0];
+  assert.equal(result.schema, 'ops.goal-evaluation.plan.v2');
+  assert.deepEqual(result.request, request());
+  assert.equal(ctx.queue.length, 0);
+  assert.equal(record.resultArtifactStatus, 'NOT_VERIFIED');
+  assert.equal(record.resultArtifactSha256, null);
+  assert.equal(record.resultArtifactErrorCode, 'NATIVE_RESULT_ARTIFACT_NOT_VERIFIED');
+  assert.equal(record.returnStatus, 'NOT_SENT_OR_UNKNOWN');
+});
+
+test('native product artifact: write failure never replaces original Core error', async t => {
+  const ctx = context(t); fakeSSH(t, ctx, () => { assert.fail('invalid Core input'); });
+  const originalWrite = fs.writeFileSync;
+  t.mock.method(fs, 'writeFileSync', function (file, ...args) {
+    if (file === path.join(ctx.options.ledgerDir, ctx.options.runId + '.engine', 'engine.result.json'))
+      throw new Error('synthetic artifact error must not replace Core error');
+    return originalWrite.call(this, file, ...args);
+  });
+  const caller = ctx.bind();
+  await assert.rejects(caller.run({ invalid: true }), /INVALID_REQUEST/);
+  assert.equal(ctx.queue.length, 0); assert.equal(ctx.ssh.length, 0);
+  assert.equal(caller.receipts()[0].errorCode, 'INVALID_REQUEST');
+  assert.equal(caller.receipts()[0].resultKind, 'SAFE_ERROR_ENVELOPE');
+  assert.equal(caller.receipts()[0].resultArtifactStatus, 'NOT_VERIFIED');
+});
+
+test('native product artifact: readback mismatch suppresses queue and retains partial artifact', async t => {
+  const ctx = context(t); fakeSSH(t, ctx, successfulProposal);
+  const file = path.join(ctx.options.ledgerDir, ctx.options.runId + '.engine', 'engine.result.json');
+  const originalRead = fs.readFileSync;
+  t.mock.method(fs, 'readFileSync', function (candidateFile, ...args) {
+    const actual = originalRead.call(this, candidateFile, ...args);
+    if (candidateFile === file) {
+      const altered = Buffer.from(actual); altered[0] ^= 1; return altered;
+    }
+    return actual;
+  });
+  const caller = ctx.bind(), result = await caller.run(request()), record = caller.receipts()[0];
+  assert.equal(result.schema, 'ops.goal-evaluation.plan.v2');
+  assert.equal(ctx.queue.length, 0);
+  assert.equal(record.resultArtifactStatus, 'NOT_VERIFIED');
+  assert.equal(record.resultArtifactSha256, null);
+  assert.equal(record.returnStatus, 'NOT_SENT_OR_UNKNOWN');
+  assert.ok(originalRead(file).equals(Buffer.from(JSON.stringify(result) + '\n')));
+});
+
+test('native product artifact: regular-file identity is required before queue', async t => {
+  const ctx = context(t); fakeSSH(t, ctx, successfulProposal);
+  const file = path.join(ctx.options.ledgerDir, ctx.options.runId + '.engine', 'engine.result.json');
+  const originalStat = fs.lstatSync;
+  t.mock.method(fs, 'lstatSync', function (candidateFile, ...args) {
+    const actual = originalStat.call(this, candidateFile, ...args);
+    return candidateFile === file ? { size: actual.size, isFile: () => false, isSymbolicLink: () => false } : actual;
+  });
+  const caller = ctx.bind(), result = await caller.run(request());
+  assert.equal(result.schema, 'ops.goal-evaluation.plan.v2');
+  assert.equal(ctx.queue.length, 0);
+  assert.equal(caller.receipts()[0].resultArtifactStatus, 'NOT_VERIFIED');
+  assert.equal(caller.receipts()[0].resultArtifactErrorCode, 'NATIVE_RESULT_ARTIFACT_NOT_VERIFIED');
+});
+
+test('native product expiry: delivery expiry does not replace a legitimate engine value', async t => {
+  const ctx = context(t); fakeSSH(t, ctx, successfulProposal);
+  ctx.runtime.now = () => Date.parse('2026-10-19T00:02:00.000Z');
+  const caller = ctx.bind(), result = await caller.run(request()), record = caller.receipts()[0];
+  assert.equal(result.schema, 'ops.goal-evaluation.plan.v2');
+  assert.equal(ctx.ssh.length, 1); assert.equal(ctx.queue.length, 0);
+  assert.equal(record.resultArtifactStatus, 'VERIFIED_READBACK');
+  assert.equal(record.returnStatus, 'NOT_SENT_OR_UNKNOWN');
+  assert.equal(record.resultSha256, hash(JSON.stringify(result)));
+});
+
+test('native product expiry: delivery expiry preserves original Core error and safe error artifact', async t => {
+  const ctx = context(t); fakeSSH(t, ctx, () => { assert.fail('invalid Core input'); });
+  ctx.runtime.now = () => Date.parse('2026-10-19T00:02:00.000Z');
+  const caller = ctx.bind();
+  await assert.rejects(caller.run({ invalid: true }), /INVALID_REQUEST/);
+  assert.equal(ctx.ssh.length, 0); assert.equal(ctx.queue.length, 0);
+  const record = caller.receipts()[0];
+  assert.equal(record.resultArtifactStatus, 'VERIFIED_READBACK');
+  assert.equal(record.resultKind, 'SAFE_ERROR_ENVELOPE');
+  assert.equal(record.errorCode, 'INVALID_REQUEST');
+  const artifact = JSON.parse(fs.readFileSync(path.join(ctx.options.ledgerDir,
+    ctx.options.runId + '.engine', 'engine.result.json'), 'utf8'));
+  assert.deepEqual(artifact, { schema: 'ops.native-product-error.v1', errorCode: 'INVALID_REQUEST' });
+  assert.equal(record.resultSha256, hash(JSON.stringify(artifact)));
+});
