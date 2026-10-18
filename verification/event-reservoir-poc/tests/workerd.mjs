@@ -1,6 +1,6 @@
 import { collectHttp } from '../src/http.mjs';
 import { collectWebpush, openMozilla } from '../src/webpush.mjs';
-import { collectRss } from '../src/rss.mjs';
+import { collectRss, readRss } from '../src/rss.mjs';
 import worker from '../src/worker.mjs';
 
 // Local workerd fixture only: no external network, credentials or Cloudflare deployment.
