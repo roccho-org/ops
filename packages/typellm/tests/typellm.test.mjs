@@ -39,6 +39,43 @@ test("single typed POST, fixed model/endpoint, no redirect/retry, exact normaliz
   assert.ok(!JSON.stringify(value).includes("canary"));
 });
 
+test("bounded top-level thinking is opt-in and never reflects reasoning text", async () => {
+  for (const budget of [1, 512, 4096]) {
+    const typed = { context: "fixture", questions: {
+      name: { type: "string", instructions: "Read its name", thinking: true, thinking_budget: budget },
+      count: { type: "integer", depends_on: ["name"] },
+      explicitOff: { type: "boolean", thinking: false },
+    } };
+    let calls = 0;
+    const value = await generateTyped({ request: typed, provider: bindTypeLLM({ apiKey: "key-canary", fetch: async (url, init) => {
+      calls++; assert.equal(url, "https://api.typellm.ai/v1/generate"); assert.equal(init.redirect, "error");
+      const wire = JSON.parse(init.body);
+      assert.deepEqual(wire.questions, { ...typed.questions, count: { ...typed.questions.count, thinking: false } });
+      assert.equal(wire.model, "typellm-latest"); assert.deepEqual(wire.options, { temperature: 0 }); assert.equal(wire.timeout, 30);
+      return response({ result: { name: "fixture", count: 1, explicitOff: false },
+        thinking: { name: "private-thinking-canary" }, usage: { input_tokens: 50, thinking_tokens: 1 }, elapsed: 0.5 });
+    } }) });
+    assert.equal(calls, 1); assert.deepEqual(value.result, { name: "fixture", count: 1, explicitOff: false });
+    assert.deepEqual(value.usage, { input_tokens: 50, thinking_tokens: 1 });
+    assert.equal(Object.hasOwn(value, "thinking"), false); assert.equal(JSON.stringify(value).includes("canary"), false);
+  }
+});
+
+test("unsupported or unbounded thinking refuses before transport", async () => {
+  let calls = 0;
+  const provider = bindTypeLLM({ apiKey: "key-canary", fetch: async () => { calls++; throw Error("must not send"); } });
+  for (const schema of [
+    { type: "string", thinking: true }, { type: "string", thinking_budget: 512 },
+    ...[0, -1, 4097, 1.5, "512", null].map(thinking_budget => ({ type: "string", thinking: true, thinking_budget })),
+    { type: "boolean", thinking: false, thinking_budget: 512 },
+    { type: "string", thinking: "auto", thinking_budget: 512 }, { type: "string", thinking_effort: "low" },
+    { type: "object", thinking: false, properties: { a: { type: "string" } } },
+    { type: "object", properties: { a: { type: "string", thinking: true, thinking_budget: 512 } } },
+    { type: "array", minItems: 0, maxItems: 1, items: { type: "string", thinking: true, thinking_budget: 512 } },
+  ]) await refuse(() => generateTyped({ request: { context: "fixture", questions: { a: schema } }, provider }), "input_invalid");
+  assert.equal(calls, 0);
+});
+
 test("hosted schema admits object/array containers without scalar-only thinking keys", async () => {
   const typed = { context: "fixture", questions: { profile: { type: "object", properties: {
     label: { type: "string" }, nested: { type: "object", properties: { ready: { type: "boolean" } } },

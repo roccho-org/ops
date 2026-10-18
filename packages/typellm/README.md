@@ -27,9 +27,19 @@ Scalar/object fields may declare `depends_on` sibling names. Object dependencies
 expand over their scalar leaves. Unknown/duplicate names, cycles and unsupported
 array dependencies are refused before sending. The existing 64-field and
 depth-six bounds remain; the service executes the declared dependencies in one
-HTTP request. Thinking is disabled for top-level scalars and omitted on object/
-array containers; callers cannot enable it. String enums admit 2–64 choices,
+HTTP request. Thinking defaults off for top-level scalars and is omitted on
+object/array containers. String enums admit 2–64 choices,
 or at most 26 inside array items. Typed validity is not semantic correctness.
+
+A top-level scalar may opt in with `thinking: true` and an explicit integer
+`thinking_budget` from 1 to 4096. The budget is required when enabled; a budget
+without enabled thinking is refused. `thinking: false` accepts no budget.
+Nested fields, containers, `auto` and `thinking_effort` remain outside this
+subset. Existing request bodies keep their exact default-off wire behavior.
+The endpoint, model, 30 s service timeout and one-send policy do not change.
+Only typed results and numeric usage/elapsed metadata are returned; reasoning
+text is still discarded. More accuracy is not guaranteed. See the official
+[thinking contract](https://typellm.ai/docs/thinking).
 
 The CLI reads one bounded JSON request on stdin and writes one JSON line. Only
 this CLI reads `TYPELLM_API_KEY`. Exit classes are input 1, auth 2, provider 3,
