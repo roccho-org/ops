@@ -57,12 +57,13 @@ ops/
 │  │  ├─ src/
 │  │  │  ├─ core.mjs        # T + J_wire: one binding, snapshot, one POST
 │  │  │  ├─ client.mjs      # J: Noul/Choice/Score; |Q| >= 1; single wrappers
-│  │  │  └─ batch.mjs       # B = adapt -> J_wire -> normalize; compatibility
+│  │  │  ├─ batch.mjs       # B = adapt -> J_wire -> normalize; compatibility
+│  │  │  └─ worker.mjs      # explicit independent Jev ESM exports
 │  │  ├─ cli/index.mjs      # stdin -> J -> one stdout line; old exit classes
 │  │  ├─ tests/             # J contract + legacy CLI/Worker counterexamples
 │  │  ├─ package.json      # Jev public module surface
 │  │  ├─ artifact.jsonl    # requires Jev capability only
-│  │  └─ default.nix       # Jev CLI + completed Jev ESM
+│  │  └─ default.nix       # Jev CLI + ESM; legacy CLI-only TypeLLM symlink
 │  ├─ jev-review/
 │  │  ├─ jev.mjs           # R = J_wire + V_review; effect boundary unchanged
 │  │  └─ tests/            # pinned model, budget and strict validation
@@ -101,7 +102,7 @@ legacy source shim may accidentally make the new Jev ESM import TypeLLM.
 | `judgeNamedChoices` | Keep a compatibility adapter only while actual consumers require it; no independent send implementation |
 | Review | Shared internal wire entry; existing fixed model, budget, decoder and authority |
 | `jev/typellm`, `packages/jev/src/typellm.mjs` | Move implementation/public API to `packages/typellm`; enumerate actual source consumers before retiring an old entry |
-| `.#jev/bin/typellm` | Independent `.#typellm/bin/typellm`; inspect Windows launcher and other current consumers before changing their pin/build entry |
+| `.#jev/bin/typellm` | Existing Windows launcher requires it; retain a deprecated symlink to independent `.#typellm/bin/typellm`, outside the Jev ESM |
 | Old `named-choices-and-typed/1` ZIP | Preserve old published bytes and pins; do not remove exports under the old contract |
 | New independent ESMs | Explicit new contracts/exports; only deliberate consumer admission switches pins |
 
@@ -201,10 +202,31 @@ existing apps quality work must compare that behavior with its baseline
 No new threshold is invented here. Typed output is not semantic correctness;
 one successful action or NONE is not goal completion.
 
-## First implementation slice
+## Implementation slices
 
 P1 introduces the mixed named source API and the shared internal snapshot/send
 entry used by the legacy single, Worker and Review adapters. It does not change
 the existing combined artifact's exports or claim the TypeLLM split, public
 supply or consumer migration. Those remain the subsequent provider and consumer
 phases above.
+
+P2 moves the existing TypeLLM implementation, CLI and tests into its sibling
+package. The existing Windows launcher's actual `.#jev/bin/typellm` entry is
+preserved by a CLI-only symlink to the independent derivation. No current
+consumer of the old source/module alias was found; this source version ends
+that alias while retaining immutable older releases.
+
+The same existing release workflow builds two explicit outputs:
+
+| Provider | Manifest / contract | Entry |
+|---|---|---|
+| Jev | `jev-provider/2` / `named-questions/1` | `jev.mjs` |
+| TypeLLM | `typellm-provider/1` / `typed-completion/1` | `typellm.mjs` |
+
+The release has exactly seven assets: both ZIPs, both checksum files, separate
+Jev/TypeLLM provenance, and one common merged-PR proof. The fixed verifier's
+default legacy mode remains available for existing combined releases. Each
+new provider selection validates its own archive, source-input set and proof;
+paired verification additionally requires the exact seven-asset set. Built
+entry execution, canonical publication and independent public readback remain
+separate acceptance stages even when the source is implemented.

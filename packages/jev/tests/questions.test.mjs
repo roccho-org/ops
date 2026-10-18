@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { askJevQuestions, askJevChoice, askJevScore, bindJev, JevError, JevContractError } from "../src/client.mjs";
+const { askJevQuestions, askJevChoice, askJevScore, bindJev, JevError, JevContractError } =
+  await import(process.env.JEV_QUESTIONS_ENTRY ?? new URL("../src/client.mjs", import.meta.url));
 import { judgeNamedChoices } from "../src/batch.mjs";
 import { bindJevReview } from "../../jev-review/jev.mjs";
 

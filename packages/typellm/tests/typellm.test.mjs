@@ -202,7 +202,7 @@ test("deadline covers body reads; cancellation and oversize release the stream",
 test("CLI refuses malformed/oversize input and absent key with one closed stdout line", () => {
   for (const [input, code, error] of [["no JSON", 1, "input_invalid"],
     ["x".repeat(128 * 1024 + 1), 1, "input_invalid"], [JSON.stringify(request), 2, "auth_missing"]]) {
-    const run = spawnSync(process.execPath, [fileURLToPath(new URL("../cli/typellm.mjs", import.meta.url))], {
+    const run = spawnSync(process.execPath, [fileURLToPath(new URL("../cli/index.mjs", import.meta.url))], {
       env: {}, encoding: "utf8", input,
     });
     assert.equal(run.status, code); assert.equal(run.stderr, "");

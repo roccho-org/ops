@@ -4,7 +4,6 @@
   "type": "module",
   "exports": {
     ".": "./src/client.mjs",
-    "./cli": "./cli/index.mjs",
-    "./typellm": "./src/typellm.mjs"
+    "./cli": "./cli/index.mjs"
   }
 }
