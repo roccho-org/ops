@@ -2,6 +2,31 @@
 
 Ask Jev a question about text. The CLI reads one JSON request on stdin and writes one JSON line.
 
+The [refactor design and phase gates](REFACTOR.md) describe the completed
+Jev/TypeLLM split and the separate provider and consumer migration phases.
+
+## Named questions (source API)
+
+`askJevQuestions({state, questions, provider, signal?, deadlineMs?})` sends a
+nonempty named map of Noul, Choice and Score questions in one POST. `state` is
+a nonempty string or JSON object. Each question has `type`, `instructions` and,
+for Choice/Score, the same `criteria` shape as the single-question client.
+The caller supplies an already bound provider; this API reads no environment
+or per-operation key and performs no retry. A deadline is optional and explicit
+(an integer from 1 to 2,147,483,647 ms, within the native timer range).
+
+The result is `{model, answers, usage?}`. Answers retain their names and types;
+missing/extra names and invalid typed values are refused. Choice uses the
+strict single-question contract (all probability keys, each in `[0,1]`), and
+Score preserves the existing fractional range and exact legend contract.
+Usage is limited to finite nonnegative `input_tokens`, `output_tokens`, and
+`total_tokens`. Transport failures expose closed codes; `JevError` represents
+input/auth errors and `JevContractError` invalid typed responses.
+
+The independent Jev Worker output exports this API under `named-questions/1`.
+Old published combined ZIPs retain their `named-choices-and-typed/1` contract
+and bytes. A new source/build alone is not formal public supply or apps migration.
+
 Intentionally narrow subset: string `text` and `question` fields; choice questions support 2-255 string-valued options; score questions support 2-10 string-valued levels. The underlying API may support richer data types; CLI constrains input to string values only.
 
 ```sh
@@ -94,91 +119,47 @@ Errors contain only a closed code: `auth_missing`, `input_invalid`,
 `provider_contract_error`, `provider_timeout`, or `cancelled`.
 No retry occurs. Fixture tests are mechanical evidence, not live Jev success.
 
-### Exact artifact handoff
+### Independent artifact handoff
 
-`nix build .#jev-worker-esm` produces one deterministic ZIP containing only
-`batch.mjs` (producer-bundled core and adapter) and a manifest
-(`jev-provider/1`, `named-choices-and-typed/1`, entry,
-exports, empty import closure and the entry's byte length/SHA256).
-Consumers verify locator/digest/contract/merged proof before import; refusal
-must not fall back to source checkout, ambient resolution or a credential read.
-Source input digests, the completed ESM digest, and a later app Worker digest
-are distinct. Provenance records the core, batch adapter and assembly definition
-as source inputs, never claims that bundled bytes equal source bytes. Old
-Earlier `named-choices/1` and `named-choices/2` releases are retained. A consumer
-must explicitly admit the new contract; old pins never silently gain generation.
+`nix build .#jev-worker-esm` produces a self-contained `jev.mjs` and
+`jev-provider.zip`. The manifest is `jev-provider/2`, contract
+`named-questions/1`, with exact exports, empty import closure and byte digest.
+The exports are the four ask functions, `bindJev`, `JevError`,
+`JevContractError`, `judgeNamedChoices`, and `JudgeProviderError`.
+The runtime module closure and completed ESM contain no TypeLLM implementation.
+The explicit legacy CLI composition is separate. The archive verifier
+checks the exact member set and refuses an unexpected contract, export or hash.
 
-The narrow `jev-provider-release.yml` verifies the actual ZIP entry, preserves
-old CLI tests, and reuses unchanged reviewed-merge proof/selftest/workflow lint.
-Only an explicit proposals publish dispatch can create
-`jev-provider-<exact-merge-SHA>` with exactly four assets:
+[TypeLLM](../typellm/README.md) owns generation, its credential, CLI, tests and
+independent ESM. Only the existing build/test/release machinery is shared.
+There is no new provider service, registry or current-state ledger.
 
-- `jev-provider.zip`
-- `jev-provider.zip.sha256`
-- `merged-pr-proof.json`
-- `provenance.json`
+The existing release workflow publishes one explicit `jev-provider-<merge-SHA>`
+release containing seven assets:
 
-Publication requires the current canonical push nix-check, latest nondismissed
-exact-head Green review and equal reviewed/merged trees. Its write job performs
-no Nix build and compares a re-download byte-for-byte; existing assets are never
-overwritten. This is unsigned, shared-principal review/provenance evidence,
-not a provider signature or host immutability guarantee. A PR build is not
-formal supply. Old artifacts/real receipts do not transfer to a new identity.
-# TypeLLM typed completion
+- `jev-provider.zip`, `jev-provider.zip.sha256`, `jev-provenance.json`
+- `typellm-provider.zip`, `typellm-provider.zip.sha256`, `typellm-provenance.json`
+- one common `merged-pr-proof.json`
 
-`src/typellm.mjs` owns the TypeLLM transport and typed-answer contract. `bindTypeLLM`
-captures one credential; `generateTyped({request, provider, signal})` returns only
-validated `result`, optional token usage and elapsed seconds. The existing Worker
-artifact exports `bindTypeLLM`, `generateTyped`, and `TypedProviderError` beside
-its three existing Jev exports, with the explicit `named-choices-and-typed/1`
-contract and TypeLLM source digest. The consumer supplies
-the questions and their meaning. No generated operator, diagram mutation, retry,
-environment lookup or credential is part of that domain API.
+Both provenance records bind the same exact proof bytes and source commit/tree.
+Each has its own source-input, manifest and entry digests. Consumers verify the
+selected artifact's contract, provenance and merged proof before import. A bad
+pin/hash/contract must not fall back to checkout or ambient resolution.
+The default verifier mode retains the old combined contract for old releases;
+new builds explicitly select `--provider jev` or `--provider typellm`.
 
-The intentionally small subset is a complete batch of string/enum, boolean,
-integer, number, object and top-level bounded array questions. All object fields
-are required, extra answer fields are refused, and arrays require `minItems` and
-`maxItems` (at most 32). Conditional/resumable calls and nested arrays are outside
-this contract. Requests are limited to 128 KiB; responses to 1 MiB; the 35 s
-deadline includes response reading. Model/endpoint are fixed, thinking is off,
-redirects are refused and each invocation sends at most once. Typed validity is
-not evidence of semantic correctness or drawing quality.
+Publication still requires canonical push checks, the latest nondismissed
+exact-head Green review and equal reviewed/merged trees. The guarded write job
+performs no Nix build, verifies the complete seven-asset set, and byte-compares
+a re-download. Existing assets are never overwritten. This is unsigned,
+shared-principal review/provenance evidence, not a provider signature or proof
+of live API success. A PR build is not formal supply.
 
-Thinking is explicitly disabled on top-level scalar questions. Object/array
-containers omit that scalar-only option and retain the API's default off on
-their properties/items; callers cannot supply thinking options anywhere.
-String enums accept 2–64 choices, or at most 26 inside an array item. These
-bounds and container rules follow the
-[upstream schema compiler](https://github.com/TypeLLM/TypeLLM/blob/deac4f40830a561adbbe5498d96aeb55107c7bbb/typellm/schema.py).
+### Legacy CLI composition
 
-The existing `.#jev` package also installs `bin/typellm`. It takes one JSON request
-on stdin and writes one JSON line. Only the CLI reads `TYPELLM_API_KEY`. Its exit
-codes match the existing CLI classes: input 1, missing auth 2, provider 3,
-typed-answer contract 4, internal failure 5. Error output contains closed codes
-and, for HTTP failures, a numeric status; no upstream body or exception text.
-
-## Local envs handoff
-
-Author `TYPELLM_API_KEY` through the `dev.typellm-authoring` target in
-[`roccho-org/envs`](https://github.com/roccho-org/envs). The OCI ciphertext is
-`ciphertexts/dev-typellm-api.oci-dev.sops.yaml`, encrypted for the existing own
-target identity. The private key stays on that target, mode 0600, owned by the
-caller. Do not copy its value or the API key to the Windows workspace.
-
-The sibling `jev.typellm` tool in `roccho-dev/windows/oci/dev/nix.nix` builds
-`ops-typellm` explicitly; it is not added to a global profile. On the existing
-own target, build it from a reviewed Windows commit with that commit's pinned
-Nixpkgs, then feed a public request to:
-
-```sh
-/nix/store/<built-launcher>/bin/ops-typellm \
-  --envs-sha <current-ciphertext-commit> --ops-sha <exact-ops-commit> < request.json
-```
-
-The launcher verifies envs ancestry/current ciphertext, the single field and
-recipient, and the target identity. It builds the exact ops program before
-decryption. Descriptor 3 hands the credential into one child, which has only
-stdio descriptors, an absent HOME and a closed environment. The caller's stdin
-remains the request; launcher diagnostics go to stderr. `ops-jev` keeps its own
-credential and command. Source tests and this handoff do not establish API
-availability, semantic effect or acceptance; those require separate live records.
+The existing Windows launcher builds `.#jev` and executes `bin/typellm`.
+That one installed entry remains a deprecated symlink to the independent
+`.#typellm` derivation. It is an explicit CLI composition dependency, separate
+from the Jev ESM's empty TypeLLM dependency set. The old source/module alias
+`jev/typellm` is removed in this source version; old pinned releases remain
+available. New consumers use the independent TypeLLM package/artifact.

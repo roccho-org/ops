@@ -1,5 +1,5 @@
 // Worker-compatible named-choice transport. Application meaning stays with callers.
-import { bindJev, JevTransportError } from "./core.mjs";
+import { bindJev, JevTransportError, postJevQuestions } from "./core.mjs";
 export { bindJev } from "./core.mjs";
 const MODEL = "jev-latest";
 const DEADLINE_MS = 10_000;
@@ -60,13 +60,13 @@ function normalize(data, questions) {
 export async function judgeNamedChoices({request, provider, signal} = {}) {
   if (!provider?.available) fail("auth_missing");
   const body = requestBody(request);
-  const questions = JSON.parse(body).questions;
   try {
-    return normalize(await provider.post(JSON.parse(body), { signal, deadlineMs: DEADLINE_MS, diagnoseRejection: true }), questions);
+    const { data, questions } = await postJevQuestions(provider, JSON.parse(body),
+      { signal, deadlineMs: DEADLINE_MS, diagnoseRejection: true });
+    return normalize(data, questions);
   } catch (error) {
     if (error instanceof JudgeProviderError) throw error;
     if (error instanceof JevTransportError) fail(error.code, error.status, error.diagnostic);
     fail("provider_contract_error");
   }
 }
-export { bindTypeLLM, generateTyped, TypedProviderError } from "./typellm.mjs";

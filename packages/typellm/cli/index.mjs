@@ -1,6 +1,6 @@
 import { bindTypeLLM, generateTyped, TypedProviderError } from "../src/typellm.mjs";
 
-// One bounded stdin request, one JSON stdout line, no retry or raw exception output.
+// Independent CLI: one bounded stdin request, one JSON stdout line, no retry.
 try {
   const chunks = [];
   let size = 0;

@@ -1,6 +1,19 @@
 // One per-target credential binding. Domain validation belongs to adapters.
 const ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 
+// Internal wire entry shared by single, named and Review adapters. Each adapter
+// owns its model and decoder; the validation snapshot never aliases the caller
+// or the body handed to an injected provider. There is exactly one post.
+export async function postJevQuestions(provider, { model, state, questions }, options) {
+  let body, expected;
+  try {
+    body = JSON.parse(JSON.stringify({ model, state, questions }));
+    expected = JSON.parse(JSON.stringify(body.questions));
+  } catch { throw new JevTransportError("input_invalid"); }
+  const data = await provider.post(body, options);
+  return { data, questions: expected };
+}
+
 export class JevTransportError extends Error {
   constructor(code, status, diagnostic) {
     super(code);
