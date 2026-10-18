@@ -69,12 +69,18 @@ function validateRequest(request) {
     }
   };
   const schema = (s, depth, inArray) => {
-    if (depth > 6 || !keys(s, ["type", "instructions", "enum", "properties", "items", "minItems", "maxItems", "depends_on"]))
+    if (depth > 6 || !keys(s, ["type", "instructions", "enum", "properties", "items", "minItems", "maxItems", "depends_on", "thinking", "thinking_budget"]))
       fail("input_invalid");
     if (s.depends_on !== undefined && (inArray || s.type === "array")) fail("input_invalid");
     if (s.instructions !== undefined && (typeof s.instructions !== "string" || s.instructions.length > 8192))
       fail("input_invalid");
     if (!["string", "boolean", "integer", "number", "object", "array"].includes(s.type)) fail("input_invalid");
+    if (s.thinking !== undefined || s.thinking_budget !== undefined) {
+      if (depth !== 0 || inArray || ["object", "array"].includes(s.type)
+          || typeof s.thinking !== "boolean") fail("input_invalid");
+      if (s.thinking ? !Number.isInteger(s.thinking_budget) || s.thinking_budget < 1 || s.thinking_budget > 4096
+        : s.thinking_budget !== undefined) fail("input_invalid");
+    }
     if (s.enum !== undefined && (s.type !== "string" || !Array.isArray(s.enum) || s.enum.length < 2 || s.enum.length > (inArray ? 26 : 64)
         || s.enum.some(x => typeof x !== "string" || !x.length || x.length > 2048)
         || new Set(s.enum).size !== s.enum.length)) fail("input_invalid");
@@ -92,10 +98,10 @@ function validateRequest(request) {
   let body;
   try {
     body = JSON.stringify({ context: request.context,
-      // TypeLLM rejects even thinking:false on object/array containers. Their
-      // properties/items retain the API's default off; callers cannot enable it.
+      // Containers keep the hosted default off. Only top-level scalars may
+      // explicitly opt in, with a validated budget; existing requests stay off.
       questions: Object.fromEntries(Object.entries(request.questions).map(([key, s]) => [key,
-        ["object", "array"].includes(s.type) ? s : { ...s, thinking: false }])),
+        ["object", "array"].includes(s.type) ? s : { ...s, thinking: s.thinking ?? false }])),
       model: "typellm-latest", options: { temperature: 0 }, timeout: 30 });
   } catch { fail("input_invalid"); }
   if (encoder.encode(body).byteLength > MAX_REQUEST) fail("input_invalid");
