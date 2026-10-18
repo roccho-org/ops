@@ -58,8 +58,11 @@ function validateDependencies(questions) {
 }
 
 function validateRequest(request) {
-  if (!keys(request, ["context", "questions"]) || typeof request.context !== "string"
+  if (!keys(request, ["context", "questions", "timeout"]) || typeof request.context !== "string"
       || !request.context.trim() || !object(request.questions)) fail("input_invalid");
+  const hasTimeout = Object.hasOwn(request, "timeout");
+  const timeout = hasTimeout ? request.timeout : 30;
+  if (hasTimeout && timeout !== 60) fail("input_invalid");
   let count = 0;
   const fields = (definitions, depth, inArray = false) => {
     if (!object(definitions) || !Object.keys(definitions).length) fail("input_invalid");
@@ -102,7 +105,7 @@ function validateRequest(request) {
       // explicitly opt in, with a validated budget; existing requests stay off.
       questions: Object.fromEntries(Object.entries(request.questions).map(([key, s]) => [key,
         ["object", "array"].includes(s.type) ? s : { ...s, thinking: s.thinking ?? false }])),
-      model: "typellm-latest", options: { temperature: 0 }, timeout: 30 });
+      model: "typellm-latest", options: { temperature: 0 }, timeout });
   } catch { fail("input_invalid"); }
   if (encoder.encode(body).byteLength > MAX_REQUEST) fail("input_invalid");
   // Snapshot both the wire and the validator before awaiting the provider.

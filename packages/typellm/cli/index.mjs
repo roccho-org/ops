@@ -20,7 +20,9 @@ try {
   let request;
   try { request = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(rawInput)); }
   catch { throw new TypedProviderError("input_invalid"); }
-  const result = await generateTyped({ request, provider: bindTypeLLM({ apiKey: process.env.TYPELLM_API_KEY }) });
+  const deadlineMs = request !== null && typeof request === "object"
+    && Object.hasOwn(request, "timeout") && request.timeout === 60 ? 65000 : 35000;
+  const result = await generateTyped({ request, provider: bindTypeLLM({ apiKey: process.env.TYPELLM_API_KEY, deadlineMs }) });
   if (responseMetadataRequested) responseMetadata = generateTyped.responseMetadata(result);
   process.stdout.write(JSON.stringify(result) + "\n");
 } catch (error) {

@@ -24,7 +24,7 @@ const codes = new Set(['auth_missing', 'cancelled', 'provider_timeout', 'provide
 const structuredCodes = new Set(['INVALID_STRUCTURED_PROPOSAL_INPUT',
   'STRUCTURED_PROPOSAL_LIMIT', 'INVALID_STRUCTURED_PROPOSAL']);
 const optionKeys = ['id', 'mode', 'executeTyped', 'executorId', 'bindingSha256',
-  'runId', 'deadlineMs', 'signal', 'maxCalls', 'proposalFormat'];
+  'runId', 'deadlineMs', 'signal', 'maxCalls', 'proposalFormat', 'requestTimeoutSeconds'];
 
 // A real normalized typed capability, not a synthetic HTTP response or API key.
 // Declared binding metadata is not proof of the actual target or source revision.
@@ -32,7 +32,7 @@ export function bindTypeLLMExecutorPorts(options = {}) {
   if (!object(options) || Object.keys(options).some(key => !optionKeys.includes(key)))
     throw new Error('INVALID_TYPELLM_EXECUTOR_PORT');
   const { id, mode, executeTyped, executorId, bindingSha256, runId,
-    deadlineMs, signal, maxCalls = 4, proposalFormat = 'json-string' } = options;
+    deadlineMs, signal, maxCalls = 4, proposalFormat = 'json-string', requestTimeoutSeconds } = options;
   if (!text(id) || !['live', 'test-double'].includes(mode) || !text(executorId)
       || typeof executeTyped !== 'function' || typeof bindingSha256 !== 'string'
       || !/^[a-f0-9]{64}$/.test(bindingSha256) || typeof runId !== 'string'
@@ -40,6 +40,7 @@ export function bindTypeLLMExecutorPorts(options = {}) {
       || !Number.isInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 95000
       || !Number.isInteger(maxCalls) || maxCalls < 1 || maxCalls > 4
       || !['json-string', 'typed-relations-v1'].includes(proposalFormat)
+      || (Object.hasOwn(options, 'requestTimeoutSeconds') && requestTimeoutSeconds !== 60)
       || (signal !== undefined && !(signal instanceof AbortSignal)))
     throw new Error('INVALID_TYPELLM_EXECUTOR_PORT');
   const records = [];
@@ -110,7 +111,7 @@ export function bindTypeLLMExecutorPorts(options = {}) {
       const built = kind === 'proposal' ? (proposalFormat === 'typed-relations-v1'
         ? buildTypeLLMStructuredProposalRequest(value) : buildTypeLLMProposalRequest(value))
         : buildTypeLLMNativeQuestionRequest(value);
-      const request = freeze(built.request);
+      const request = freeze(requestTimeoutSeconds === 60 ? { ...built.request, timeout: 60 } : built.request);
       const serialized = JSON.stringify(request);
       record.typedRequestBytes = Buffer.byteLength(serialized, 'utf8');
       record.typedRequestSha256 = hash(serialized);
