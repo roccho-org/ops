@@ -1119,7 +1119,42 @@ assert.equal(v15Controls, 11);
  assert.equal(v16Refused.cases[0].provider.statusClass, 'HTTP_4XX');
  // A generic 400 is not a proven token-limit diagnosis. No retry or shortening follows.
  v16Controls++;
- assert.equal(v16Controls, 8);
+
+ // Public client callers may supply toJSON: capture exactly once before budget measurement.
+ for (const mutablePart of ['state', 'questions']) {
+   let serializations = 0, fetches = 0;
+   const canonicalQuestions = { q0: { type: 'noul', instructions: 'Is this synthetic fixture present?' } };
+   const changing = { toJSON() {
+     serializations++;
+     return serializations <= 2
+       ? (mutablePart === 'state' ? { text: 'captured fixture' } : canonicalQuestions)
+       : (mutablePart === 'state' ? { text: 'x'.repeat(70000) }
+         : { q0: { type: 'noul', instructions: 'x'.repeat(70000) } });
+   } };
+   const capturedAsk = bindJevReview({ key: 'synthetic-v16-key', fetchImpl: async (_url, init) => {
+     fetches++;
+     assert.ok(Buffer.byteLength(init.body, 'utf8') <= 65536);
+     const wire = JSON.parse(init.body);
+     assert.deepEqual(wire.state, { text: 'captured fixture' });
+     assert.deepEqual(wire.questions, canonicalQuestions);
+     return new Response(JSON.stringify({ model: JEV_MODEL, answers: { q0: { type: 'noul', noul: 0.5 } } }),
+       { status: 200 });
+   } });
+   await capturedAsk(mutablePart === 'state' ? changing : { text: 'captured fixture' },
+     mutablePart === 'questions' ? changing : canonicalQuestions, { timeoutMs: 1000, budgetPolicy: v16Policy });
+   assert.equal(serializations, 1); assert.equal(fetches, 1);
+   v16Controls++;
+ }
+ let oversizedSnapshotFetches = 0, oversizedSnapshotCalls = 0;
+ await assert.rejects(() => bindJevReview({ key: 'synthetic-v16-key', fetchImpl: () => {
+   oversizedSnapshotFetches++; throw new Error('MUST_NOT_CALL');
+ } })({ toJSON() { oversizedSnapshotCalls++; return 'x'.repeat(70000); } },
+ { q0: { type: 'noul', instructions: 'Synthetic?' } }, { timeoutMs: 1000, budgetPolicy: v16Policy }),
+ /JEV_REQUEST_BYTE_LIMIT/);
+ assert.equal(oversizedSnapshotCalls, 1); assert.equal(oversizedSnapshotFetches, 0);
+ v16Controls++;
+ assert.equal(v16Controls, 11);
+
 
 assert.equal(providerBindingCases, 7);
 console.log(JSON.stringify({

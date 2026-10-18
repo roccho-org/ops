@@ -1,4 +1,4 @@
-import { JEV_MODEL, validateJevBudget, JEV_PROVIDER_TOKEN_BUDGET_POLICY } from './core.mjs';
+import { JEV_MODEL, validateJevBudget, JEV_PROVIDER_TOKEN_BUDGET_POLICY, JEV_PROVIDER_REQUEST_MAX_BYTES } from './core.mjs';
 import { bindJev, postJevQuestions } from '../jev/src/core.mjs';
 
 const ENDPOINT = 'https://api.typesafe.ai/v1/systemone';
@@ -72,6 +72,13 @@ export function bindJevReview({ key, fetchImpl = fetch } = {}) {
     const { timeoutMs } = options, budgetPolicy = budget?.value;
     if (typeof key !== 'string' || !key.trim()) throw new Error('JEV_API_KEY_REQUIRED');
     if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) throw new Error('INVALID_TIMEOUT');
+    if (budgetPolicy === JEV_PROVIDER_TOKEN_BUDGET_POLICY) {
+      // Capture once before measuring: a caller's toJSON cannot change the later wire.
+      const wire = JSON.stringify({ model: JEV_MODEL, state, questions });
+      if (Buffer.byteLength(wire, 'utf8') > JEV_PROVIDER_REQUEST_MAX_BYTES) throw new Error('JEV_REQUEST_BYTE_LIMIT');
+      const captured = JSON.parse(wire);
+      state = captured.state; questions = captured.questions;
+    }
     if (!questions || !Object.keys(questions).length) throw new Error('EMPTY_JEV_QUESTIONS');
     validateJevBudget(state, questions, budgetPolicy);
     let result;
