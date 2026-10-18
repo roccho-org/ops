@@ -196,3 +196,15 @@ References: [x-lookup](https://github.com/mynameistito/x-lookup),
 [current Mozilla protocol architecture](https://mozilla-services.github.io/autopush-rs/architecture.html),
 [RFC 8291](https://www.rfc-editor.org/rfc/rfc8291.html),
 [Mozilla interoperability vector](https://github.com/mozilla/gecko-dev/blob/master/dom/push/test/xpcshell/test_crypto.js).
+
+## RSS / Atom observation and readback (incremental)
+
+A third, independent fetch adapter reads **public Substack RSS** (`https://www.latent.space/feed`) and **Atom** (`https://simonwillison.net/atom/entries/`). URLs are fixed in `src/rss.mjs`, never chosen from requests, secrets, or external redirects. Their first 20 current entries per feed become `observations/rss/<sha256>.json`, with feed ID, title, canonical HTTPS article URL, published date and a bounded summary. Repeated entries retain their first observed bytes. Sources have no access to the X subscription. RSS shares only the existing conditional R2 persistence/readback.
+
+The two-minute Cron still handles HTTP and Mozilla. RSS runs only on the top of each UTC hour; manual authenticated `/collect` and `/proof` include RSS immediately. Existing `complete` and `fullPoc` retain their X/HTTP definitions. A separate `rssComplete` result and provider proof `rss` flag distinguish RSS from Mozilla; failure is never silently reported as a readable feed.
+
+Authenticated `GET /rss` reads back up to 20 newest published entries and the total number of saved RSS objects; the same private `PROOF_TOKEN` is required. Exceeding 1000 observations fails explicitly instead of returning an incomplete catalog. No UI, generic XML reader, email sender, post authoring or extra database is added.
+
+`tests/rss.test.mjs` checks the RSS/Atom parser, first-write-wins, duplicate replay, authorized R2 listing/readback, invalid sources and hourly scheduling; the local `workerd` fixture checks actual Worker Request construction and R2 readback. The CI check also fetches both public feeds over **real HTTPS** (`scripts/check-live-rss.mjs`), which only proves upstream availability and correct parser extraction **at that CI run**. It is not a live Cloudflare R2 result. An **explicit** workflow dispatch with `deploy=true` must independently prove Worker/R2 `/proof` followed by `/rss` to establish real provider storage and readback. Existing strict Mozilla acceptance remains unchanged.
+
+The normal PR check also POSTs `/rss-live` in the **local workerd-only test harness**: Workerd makes the real public HTTPS requests, writes through the same R2 binding, and reads article records back in the same run. This is a stronger integration proof than the separate Node live-fetch test; the R2 instance is **local**, not the deployed Cloudflare bucket. Neither fixture route nor its unsecured test interface is included in the production Worker.

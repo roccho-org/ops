@@ -22,7 +22,7 @@ async function call(path, method, stage) {
   if (!response.ok) throw new ProofError(stage, workerCodes.has(body?.code) ? body.code : 'UNRECOGNIZED_WORKER_ERROR', response.status);
   return body;
 }
-const receipt = { schema: 'event-reservoir.providerProof/1', version, worker: base, http: false, cron: false, mozilla: false, fullPoc: false };
+const receipt = { schema: 'event-reservoir.providerProof/1', version, worker: base, http: false, rss: false, cron: false, mozilla: false, fullPoc: false };
 function acceptMozilla(run) {
   const push = run.inputs?.webpush;
   if (!receipt.mozilla && push?.status === 'OK' && push.verified === true && push.reconnected === true && push.replayed === true && push.decrypted >= 2 && push.acknowledged >= 1) {
@@ -54,6 +54,15 @@ try {
   assert.equal(proof.version, version);
   receipt.http = proof.inputs.http.status === 'OK' && proof.inputs.http.replay?.oneObject === true && proof.inputs.http.replay?.unchanged === true;
   assert.equal(receipt.http, true, 'HTTP_REAL_INPUT_PROOF_FAILED');
+  // Read from the deployed Worker/R2; parsed fixture data is not acceptable live evidence.
+  // Old provider fixtures omit RSS and remain historical, not upgraded to RSS PASS.
+  if (proof.inputs.rss) {
+    stage = 'rss-readback';
+    const rssRead = await call('/rss', 'GET', stage);
+    receipt.rss = proof.inputs.rss.status === 'OK' && proof.inputs.rss.verified === true && proof.inputs.rss.replayVerified === true && rssRead.total >= proof.inputs.rss.entries && rssRead.items?.length > 0;
+    receipt.rssReadback = { total: rssRead.total, returned: rssRead.items?.length ?? 0 };
+    if (!receipt.rss) throw new ProofError(stage, 'RSS_REAL_INPUT_NOT_READABLE');
+  }
   acceptMozilla(proof);
   const deadline = Date.now() + Number(process.env.CRON_WAIT_MS ?? 25 * 60_000);
   stage = 'cron-evidence';

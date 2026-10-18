@@ -19,7 +19,7 @@ export async function hash(value) {
 }
 
 export async function observationKey(event) {
-  if (!['http', 'webpush'].includes(event.source) || typeof event.sourceId !== 'string' || !event.sourceId) throw new PocError('INVALID_OBSERVATION');
+  if (!['http', 'webpush', 'rss'].includes(event.source) || typeof event.sourceId !== 'string' || !event.sourceId) throw new PocError('INVALID_OBSERVATION');
   return `observations/${event.source}/${await hash(event.sourceId)}.json`;
 }
 
