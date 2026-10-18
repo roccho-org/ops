@@ -3,12 +3,20 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import {
   buildPhase2V5Bundle,
   verifyPhase2V5Bundle,
 } from '../src/phase2-v5.mjs';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('../../../', import.meta.url)));
+const expectedPackages = fs.readdirSync(path.join(repoRoot, 'packages'), { withFileTypes: true })
+  .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
+const claimPath = 'packages/ops-package-contract-bridge/contract/phase2-package-claims.v1.json';
+const claimBytes = fs.readFileSync(path.join(repoRoot, claimPath));
+const claimSource = JSON.parse(claimBytes);
+const claimDigest = createHash('sha256').update(claimBytes).digest('hex');
+assert.deepEqual(claimSource.packages.map(item => item.packageId).sort(), expectedPackages);
 const universeFile = process.argv[2];
 if (!universeFile) throw new Error('local source universe file argument is required');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ops-package-contract-phase2-v5-'));
@@ -52,13 +60,28 @@ try {
   assert.equal(first.unresolvedSupportCount, 0);
   assert.equal(first.combinedAssertionCount, first.relationValidAssertionCount);
   assert.equal(first.directPlacementCount, first.packageCount);
-  assert.equal(first.originalDerivedCount, 180);
-  assert.equal(first.structuredDerivedCount, 120);
-  assert.equal(first.structuredSupportCount, 300);
+  assert.equal(first.packageCount, expectedPackages.length);
+  // Per input package, v2 has three derived fields; v5 replaces placement
+  // with a direct claim and retains the two structured 2/3-support fields.
+  assert.equal(first.originalDerivedCount, expectedPackages.length * 3);
+  assert.equal(first.structuredDerivedCount, expectedPackages.length * 2);
+  assert.equal(first.structuredSupportCount, expectedPackages.length * 5);
 
   const assertions = readJsonl(path.join(run1, 'combined-source-assertions-v5.jsonl'));
   const derived = assertions.filter((item) => item.relation === 'derived_from');
-  assert.equal(derived.length, 120);
+  assert.equal(derived.length, expectedPackages.length * 2);
+  for (const packageId of expectedPackages) {
+    const packageDerived = derived.filter(item => item.packageId === packageId);
+    assert.deepEqual(packageDerived
+      .map(item => [item.field, item.supports.length]).sort(), [['mustNotOwn', 3], ['responsibility', 2]]);
+    const index = claimSource.packages.findIndex(item => item.packageId === packageId);
+    for (const item of packageDerived) {
+      const fields = item.field === 'responsibility' ? ['purpose', 'contributionMechanism'] : ['purpose', 'input', 'output'];
+      assert.deepEqual(item.supports.map(support => support.sourceRef).sort(),
+        fields.map(field => `${claimPath}#/packages/${index}/${field}`).sort());
+      assert.ok(item.supports.every(support => support.sourceFileDigest === claimDigest));
+    }
+  }
   assert.ok(derived.every((item) => item.supports.length > 0
     && item.supports.every((support) => support
       && typeof support === 'object'
