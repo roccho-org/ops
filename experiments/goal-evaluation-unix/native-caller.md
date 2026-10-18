@@ -47,3 +47,84 @@ The actual engine value, or a fixed safe envelope for its original error, is per
 The engine receipt captures delivery state when run() settles. Later host handshake state is available from returnReceipts(); it does not retroactively mutate the engine receipt or imply queueing/consumption. A host acknowledgement is only HOST_ACK_REPORTED_NOT_CONSUMED. Artifact-before-command, one status command, one send command, ordered fresh owner observation and no retry are source properties. Real status availability, normal MCP approval/caller context, native process lifetime after parent final, the approved thin data transport and exact-P idle consumption remain unproven runtime conditions.
 
 The returned caller is process-local. A functions cell cannot receive this native factory by passing a callback, evaluating source text or copying a WeakMap-branded receiver. A genuine owner-native runner must keep the state alive and an approved thin driver must only carry its typed command/observation data. NodeREPL children need not inherit the owner ID; environment rewriting to bypass this guard is prohibited. These tests are synthetic and do not establish a live host bridge, delivery, model utility or G1/G2 completion.
+## Explicit finite native/filesystem host bridge
+
+`runFiniteNativeHostBridge({callerOptions, packetDir}, value, testRuntime?)` is an
+opt-in ordinary-Node entry. It internally binds the real `bindNativeProductCaller`
+and preserves its engine value or original Error. It requires `ownerReturn` with
+`transport:'host-mcp'` and explicit `exchangeTimeoutMs` (integer 1..600000).
+`statusListLimit` is optional, integer 1..50, default 1. The inherited native
+`CODEX_THREAD_ID` must match the owner; live runtime injection is rejected. The
+NodeREPL child environment is not assumed to be the genuine owner's environment.
+No brand, tool capability, source string or environment identity is copied to a
+different process. Engine execution authority/deadline is separate from delivery.
+
+`packetDir` is an existing absolute non-symlink directory. Private parent ACLs
+and source/target admission remain caller responsibilities, not isolation from a
+hostile same-UID process. A new exclusive `<runId>.bridge` directory owns binding,
+at most two command and observation files, and the final receipt. Names are fixed:
+`binding.json`, `phase-1.command.json`, `phase-1.observation.json`, corresponding
+phase-2 names, and `receipt.json`. Each is compact JSON plus LF. Publishing uses
+mode-0600 CreateNew `.pending`, fsync/close, then an exclusive same-filesystem hard
+link. The staging inode is retained. No overwrite, rename/copy fallback, cleanup,
+reclaim or retry exists. Regular-file/no-symlink, size, canonical bytes and exact
+keys are checked on a single bounded read. Command/observation packets are <=16KiB.
+
+The engine owns and verifies `engine.result.json` before issuing a command. The
+runner awaits the real operation, takes the ready command without polling, and
+arms one filesystem watch before publication and the initial observation check.
+Each phase carries a new nonce plus owner/run/source, caller binding, event and
+command hashes, module hash and deadline. There is one accepted input per phase.
+Unknown, partial, early, wrong identity, duplicate writer, timeout or I/O leaves
+original artifacts and HOLD; no later phase is retried. Watches and timers close
+when their one wait settles. The aggregate exchange timer is monotonic and is
+never reset for phase 2; it does not stop a host tool or guarantee remote effects.
+
+The exchange ceiling does not extend observation freshness. `timeoutMs` stays
+1..30000. The native command issue time conservatively precedes a sample taken
+during the normal tool request. Both source elapsed checks and a per-command
+`commandExpiresAt` retain that bound, including time spent returning a send result.
+Phase 2 also clamps that deadline to the receiver's own `statusObservedAt` plus
+`timeoutMs`; in finite mode this is its earlier command-take origin. Missing or
+invalid receiver evidence yields HOLD rather than an inferred replacement time.
+The fixed driver must check this deadline immediately before calling the tool.
+An observed 135-second list request therefore yields HOLD, not a fresh idle claim.
+Tool start/completion are host-port reports; internal `runtimeSampledAt` remains
+null. The API-contract interpretation is not authenticated runtime instrumentation.
+
+### Mechanical normal-functions driver contract
+
+The source side exports `readFiniteNativeHostCommand({packetDir,runId,phase})` and
+`submitFiniteNativeHostToolResult({packetDir,runId,phase,toolStartedAt,toolCompletedAt}, response)`.
+These are ordinary-Node APIs, not proof that the functions surface can import this
+module or stay alive after its parent finishes. A reviewed fixed functions driver
+must use its admitted normal native helper surface to invoke those exports; it
+must not eval file contents, spoof globals/environment, or recreate the receiver.
+The same native runner remains alive and owns the branded state throughout.
+
+The complete finite procedure is: read phase 1 once; validate unexpired command;
+record real tool start; call exactly its fixed `codex_app.list_threads` tool and
+arguments through the normal MCP approval/caller context; record completion;
+submit that exact response once. If phase 2 is issued, repeat once for the fixed
+`codex_app.send_message_to_thread` command, checking the command deadline before
+the call. No model decision, semantic relay, tool selection, resubmission, manual
+fallback, new daemon/session/auth or raw pipe call belongs between these steps.
+The driver may not infer that a delay means the parent is idle.
+
+List projection accepts only the observed CallToolResult shape: `content` plus
+`isError:false`, one text block containing the exact known eight root keys, and
+the `pinnedThreads`/`threads` arrays. It reads only own scalar `id`, `hostId`, and
+`status`, requires exactly one exact owner/local match, and caps the two arrays
+at 1000 entries and the canonical whole response at 262144 bytes. Missing host,
+duplicate match, unknown shape or status yields unknown/HOLD. Title, summary,
+body, preferences and the raw response are not persisted; only canonical response
+bytes/hash and the narrow status projection enter the observation packet. This
+does not bound the tool's transport/all-pinned response allocation.
+
+The send tool has no established ACK payload contract. Explicit `isError:true`
+is reported failure; all other send results remain unknown. Non-error does not
+mean queueing or consumption. The source cannot prove after-parent-final driver
+lifetime, genuine runtime-idle semantics, delivery, or exact-owner consumption.
+Those require a separately authorized real product experiment. Source/tests do
+not establish automatic return or G1/G2 completion. Missing/partial receipt is
+not acceptance evidence; an engine result remains valid independently of return.
