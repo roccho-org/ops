@@ -856,3 +856,5 @@ test('CLI accepts --step next and still rejects unknown steps', async () => {
   assert.equal(argsOf(argv).step, 'next');
   assert.throws(() => argsOf(argv.with(3, 'later')), /usage/);
 });
+
+import './exact-owner-return.test.mjs';
