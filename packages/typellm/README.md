@@ -72,3 +72,34 @@ needed for this producer split. A new direct consumer may build `.#typellm`.
 The existing launcher still verifies its exact ops/environment inputs before
 decrypting and delivers the credential only to one closed child. This refactor
 does not authorize new keys, budgets, paid calls, runtime placement or admission.
+
+## Optional public response observations
+
+`generateTyped.responseMetadata(result)` reads bounded public `model` and `id`
+observations associated with that exact successful result object in the same SDK
+module instance. The existing three named module exports and normalized result
+keys stay unchanged. The lookup is a non-enumerable, read-only function property.
+It returns frozen metadata or `null` for an unrelated object or JSON copy.
+It does not authenticate a later mutation of the result or recover observations
+by matching a digest. Mock providers also produce observations; this lookup
+alone does not prove an HTTP request or a genuine backend.
+
+Own data-property strings are bounded to 256 UTF8 bytes and UTF16 units. Missing
+fields are ABSENT and malformed fields INVALID, with null values; no getter,
+coercion, clipping, or retry repairs them. The public model can be an alias.
+The provider response ID identifies a response, not a session or model revision.
+Backend identity stays UNKNOWN.
+
+The existing CLI optionally accepts `--response-metadata`. Its normalized JSON
+stdout and exit classes remain unchanged. This flag adds one flat JSON frame
+on stderr, between `TYPELLM_RESPONSE_METADATA_JSON_BEGIN` and
+`TYPELLM_RESPONSE_METADATA_JSON_END`. A complete stdin is bound by its exact
+bytes/SHA256, including any trailing LF. Incomplete input has no full-input hash.
+Without a validated SDK result the frame reports NOT_OBSERVED/UNKNOWN; it does
+not synthesize an identity from the requested alias. Default stderr behavior
+remains unchanged. No key, input text, answer, or raw provider body is included.
+
+A real executor must join the frame with its callId, actual stdin/stdout/stderr
+bytes/SHA, source/target pins, and physical exit/signal receipt. This optional
+mode does not itself change an installed target launcher, expose the flag
+through its fixed argv, or prove runtime fidelity, G1/G2, or same-P return.

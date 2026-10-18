@@ -196,6 +196,31 @@ export function bindTypeLLM({ apiKey, fetch: fetchFn = globalThis.fetch, deadlin
   });
 }
 
+// Observations belong to the original result object, not copies or later mutations.
+const responseMetadata = new WeakMap();
+function publicTextObservation(raw, key) {
+  try {
+    const field = Object.getOwnPropertyDescriptor(raw, key);
+    if (!field) return { status: "ABSENT", value: null };
+    if (!Object.hasOwn(field, "value")) return { status: "INVALID", value: null };
+    const value = field.value;
+    if (typeof value !== "string" || !value.length || value.length > 256
+        || value.trim() !== value || /[\u0000-\u001f\u007f-\u009f]/u.test(value))
+      return { status: "INVALID", value: null };
+    for (const point of value) {
+      const code = point.codePointAt(0);
+      if (code >= 0xd800 && code <= 0xdfff) return { status: "INVALID", value: null };
+    }
+    if (encoder.encode(value).byteLength > 256) return { status: "INVALID", value: null };
+    return { status: "OBSERVED", value };
+  } catch { return { status: "INVALID", value: null }; }
+}
+function observeResponseMetadata(raw) {
+  const model = publicTextObservation(raw, "model"), id = publicTextObservation(raw, "id");
+  return Object.freeze({ schema: "typellm.response-metadata.v1",
+    publicModelStatus: model.status, reportedPublicModel: model.value,
+    responseIdStatus: id.status, providerResponseId: id.value, backendIdentityStatus: "UNKNOWN" });
+}
 export async function generateTyped({ request, provider, signal } = {}) {
   const { body, questions } = validateRequest(request);
   if (!provider?.available) fail("auth_missing");
@@ -212,5 +237,11 @@ export async function generateTyped({ request, provider, signal } = {}) {
     if (typeof raw.elapsed !== "number" || !Number.isFinite(raw.elapsed) || raw.elapsed < 0) fail("provider_contract_error");
     normalized.elapsed = raw.elapsed;
   }
+  responseMetadata.set(normalized, observeResponseMetadata(raw));
   return normalized;
 }
+
+// Keep the independent module namespace and normalized result keys unchanged.
+Object.defineProperty(generateTyped, "responseMetadata", {
+  value: result => responseMetadata.get(result) ?? null,
+});
