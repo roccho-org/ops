@@ -9,7 +9,7 @@ flowchart LR
     S -->|"直接"| J["judge<br/>問いを変えずに評価する"]
     S -->|"不足・義務なし"| N["needs / NEED_CLARIFICATION<br/>記録して止める"]
     S -->|"Core 0件"| Z["NOTHING_PROJECTED<br/>snapshot・Core呼出なし<br/>（Sys2の判断負担は残る）"]
-    S -->|"Core 1..N"| X["project<br/>subjectRef で宣言した subject 観測だけを運ぶ<br/>他の観測が必須な問いは REQUIRED_CONTEXT_NOT_CARRIED<br/>検証済み snapshot（旧literal完了結果 または refusal の観測）と本文が完全一致<br/>CJK本文: ＋外部の英語 rendering ＋ R fidelity"]
+    S -->|"Core 1..N"| X["project<br/>宣言 subject ＋ 明示選択 contextRefs のうち投影に必要な CJKなし観測を運ぶ<br/>requiredRefs が実入力に載らない問いは REQUIRED_CONTEXT_NOT_CARRIED<br/>検証済み snapshot（旧literal完了結果 または refusal の観測）と本文が完全一致<br/>CJK本文: ＋外部の英語 rendering ＋ R fidelity"]
     X -->|"provided envelope"| D["別の posting 判断"]
     G & J & N & Z & D -->|"判断・不足・証拠"| U["use<br/>既存の利用側"]
     U -->|"新しい観測・次の判断"| P
@@ -27,7 +27,7 @@ Plan v2 (`ops.goal-evaluation.plan.v2`) adds three boundaries that the recorded 
 - A clause that the planner never quoted cannot be `UNASSESSED`. `unquotedGoalText` therefore lists, mechanically, every Goal span not covered by a Goal clause quote (UTF-16 offsets into `goal.content`; punctuation-only gaps are dropped). It judges no meaning: an unquoted span may be harmless wording or a dropped obligation.
 - The answer type is `native-three-label` (problem/ok/unknown from a ModelPort). It is not the Jev Choice primitive and not a Noul value. Judgments record the port `{id, mode}` and a `planDigest` of the exact Plan answered; `report` refuses results for another Plan, labels outside the question's criteria and malformed per-question records, and re-derives the `missing` rows and `calls` count from the Plan and judgments instead of trusting the result's values. The focused tests run in CI as the `goal-evaluation-unix` check in `build/checks.jsonl`; CI success is functional evidence only.
 
-`requiredRefs` is a declaration of which supplied observations a question depends on; it does not filter the judge input, which still receives the whole request plus the question's clauses. The provided route below carries less: only the declared subject text (and the Goal when it has no CJK). There, `project` withholds a question that requires any other observation instead of sending it without that observation. A question with `needs` is never judged under that Plan. Supplying a missing observation later changes the request and therefore the `planDigest`: it is a new Plan version and a new comparison identity, even if the question and criteria text are carried over unchanged. A quote match is mechanical provenance only; very short quotes pass it.
+`requiredRefs` is a declaration of which supplied observations a question depends on; it does not filter the judge input, which still receives the whole request plus the question's clauses. The provided route below carries less by default: the declared subject text (and the Goal when it has no CJK). With `contextRefs`, the caller may explicitly select additional CJK-free observation refs and contents; `project` carries only those required by projected checks. It withholds a question whenever its `requiredRefs` are not carried rather than evaluating without them. A question with `needs` is never judged under that Plan. Supplying a missing observation later changes the request and therefore the `planDigest`: it is a new Plan version and a new comparison identity, even if the question and criteria text are carried over unchanged. A quote match is mechanical provenance only; very short quotes pass it.
 
 ## Real-input preparer (`prepare.mjs`)
 
