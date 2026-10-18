@@ -680,3 +680,4 @@ typedProposalTest('TypeLLM proposal port consumes one attempt before awaiting an
   await typedProposalAssert.rejects(port.propose({ input: 'again' }), /PROPOSAL_ALREADY_CONSUMED/);
   typedProposalAssert.equal(calls, 1);
 });
+import './typellm-native-model-port.test.mjs';
