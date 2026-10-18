@@ -493,3 +493,190 @@ test('automatic missing-coverage annotation also fits the emitted Plan byte ceil
   }
   assert.ok(Buffer.byteLength(JSON.stringify(value), 'utf8') <= maxBytes, 'emitted Plan must obey its own host ceiling');
 });
+
+import { test as typedProposalTest } from 'node:test';
+import typedProposalAssert from 'node:assert/strict';
+import { plan as planViaTypeLLM } from './core.mjs';
+import { bindTypeLLMProposalPort } from './typellm-port.mjs';
+
+const typedProposalRequest = () => ({
+  goal: { ref: 'goal', content: 'Keep the next action with the consumer.' },
+  observations: [{ ref: 'evidence', content: 'The consumer can receive an action.' }]
+});
+const typedProposalCandidate = () => ({
+  clauses: [{ id: 'obligation-1', kind: 'obligation', ref: 'goal',
+    quote: 'Keep the next action with the consumer.' }],
+  questions: [{ id: 'question-1', core: null, question: 'Does the action remain available?',
+    criteria: { problem: 'It is unavailable.', ok: 'It is available.', unknown: 'Evidence is insufficient.' },
+    clauseIds: ['obligation-1'], basisRefs: ['goal', 'evidence'], requiredRefs: ['evidence'], needs: [] }],
+  missing: []
+});
+const typedProposalResponse = (proposal, extra = {}) => new Response(JSON.stringify({
+  status: 'completed', result: { proposal }, ...extra
+}), { status: 200, headers: { 'content-type': 'application/json' } });
+const typedProposalPort = fetchImpl => bindTypeLLMProposalPort({
+  id: 'synthetic-proposal', mode: 'test-double', apiKey: 'synthetic-test-key', deadlineMs: 1000, fetchImpl
+});
+
+typedProposalTest('TypeLLM proposal port connects the typed string to native Core validation', async () => {
+  let calls = 0;
+  let wire;
+  const port = typedProposalPort(async (url, init) => {
+    calls++;
+    typedProposalAssert.equal(url, 'https://api.typellm.ai/v1/generate');
+    typedProposalAssert.equal(init.redirect, 'error');
+    wire = JSON.parse(init.body);
+    return typedProposalResponse(JSON.stringify(typedProposalCandidate()), {
+      usage: { input_tokens: 11, thinking_tokens: 0 }, elapsed: 0.1
+    });
+  });
+  const result = await planViaTypeLLM(typedProposalRequest(), { propose: port.propose });
+  typedProposalAssert.equal(calls, 1);
+  typedProposalAssert.equal(result.schema, 'ops.goal-evaluation.plan.v2');
+  typedProposalAssert.ok(Object.isFrozen(result));
+  typedProposalAssert.deepEqual(JSON.parse(wire.context), {
+    ...typedProposalRequest(), cores: [], maxQuestions: 4, maxClauses: 16
+  });
+  typedProposalAssert.equal(wire.model, 'typellm-latest');
+  typedProposalAssert.deepEqual(Object.keys(wire.questions), ['proposal']);
+  typedProposalAssert.equal(wire.questions.proposal.type, 'string');
+  typedProposalAssert.equal(wire.questions.proposal.thinking, false);
+  const receipt = port.receipts()[0];
+  typedProposalAssert.equal(receipt.status, 'JSON_PARSED');
+  typedProposalAssert.equal(receipt.fetchAttempts, 1);
+  typedProposalAssert.equal(receipt.wireRequestBytes, Buffer.byteLength(JSON.stringify(wire)));
+  typedProposalAssert.match(receipt.wireRequestSha256, /^[a-f0-9]{64}$/);
+  typedProposalAssert.equal(receipt.usageInputTokens, 11);
+  typedProposalAssert.equal(receipt.usageThinkingTokens, 0);
+  typedProposalAssert.equal(receipt.providerElapsed, 0.1);
+  typedProposalAssert.equal(receipt.requestedModel, 'typellm-latest');
+  typedProposalAssert.equal(receipt.reportedModel, null);
+  typedProposalAssert.ok(Object.isFrozen(port.receipts()) && Object.isFrozen(receipt));
+  typedProposalAssert.ok(Object.values(receipt).every(v => v === null || ['string', 'number'].includes(typeof v)));
+  typedProposalAssert.ok(!JSON.stringify(receipt).includes('synthetic-test-key'));
+});
+
+typedProposalTest('TypeLLM proposal port does not strip fences, repair JSON, or retry', async () => {
+  for (const output of ['private malformed output', '\u0060\u0060\u0060json\n{}\n\u0060\u0060\u0060']) {
+    let calls = 0;
+    const port = typedProposalPort(async () => {
+      calls++;
+      return typedProposalResponse(output);
+    });
+    await typedProposalAssert.rejects(port.propose({ input: 'synthetic' }),
+      error => error.message === 'INVALID_PROPOSAL_JSON');
+    typedProposalAssert.equal(calls, 1);
+    const receipt = port.receipts()[0];
+    typedProposalAssert.equal(receipt.errorCode, 'INVALID_PROPOSAL_JSON');
+    typedProposalAssert.equal(receipt.proposalUnits, output.length);
+    typedProposalAssert.equal(receipt.proposalBytes, Buffer.byteLength(output));
+    typedProposalAssert.ok(!JSON.stringify(receipt).includes(output));
+  }
+});
+
+typedProposalTest('TypeLLM parsed JSON does not bypass native Plan shape validation', async () => {
+  let calls = 0;
+  const port = typedProposalPort(async () => {
+    calls++;
+    return typedProposalResponse(JSON.stringify({ clauses: [], questions: [], missing: [], extra: true }));
+  });
+  await typedProposalAssert.rejects(planViaTypeLLM(typedProposalRequest(), { propose: port.propose }),
+    /INVALID_PROPOSAL/);
+  typedProposalAssert.equal(calls, 1);
+  typedProposalAssert.equal(port.receipts()[0].status, 'JSON_PARSED');
+});
+
+typedProposalTest('TypeLLM string limit counts UTF-16 units without clipping UTF-8 content', async () => {
+  const candidate = { clauses: [], questions: [], missing: [{ need: 'evidence', reason: '' }] };
+  const overhead = JSON.stringify(candidate).length;
+  candidate.missing[0].reason = '漢'.repeat(2048 - overhead);
+  const output = JSON.stringify(candidate);
+  typedProposalAssert.equal(output.length, 2048);
+  typedProposalAssert.ok(Buffer.byteLength(output) > 2048);
+  const accepted = typedProposalPort(async () => typedProposalResponse(output));
+  const result = await planViaTypeLLM(typedProposalRequest(), { propose: accepted.propose });
+  typedProposalAssert.equal(result.missing[0].reason, candidate.missing[0].reason);
+  typedProposalAssert.equal(accepted.receipts()[0].proposalUnits, 2048);
+  typedProposalAssert.equal(accepted.receipts()[0].proposalBytes, Buffer.byteLength(output));
+  const rejected = typedProposalPort(async () => typedProposalResponse(output + ' '));
+  await typedProposalAssert.rejects(rejected.propose({ input: 'synthetic' }),
+    error => error.code === 'provider_contract_error');
+  typedProposalAssert.equal(rejected.receipts()[0].fetchAttempts, 1);
+  typedProposalAssert.equal(rejected.receipts()[0].proposalUnits, null);
+});
+
+typedProposalTest('TypeLLM missing auth and pre-abort consume no HTTP attempt', async () => {
+  const unexpectedFetch = async () => { throw new Error('UNEXPECTED_FETCH'); };
+  const missing = bindTypeLLMProposalPort({
+    id: 'no-auth', mode: 'test-double', deadlineMs: 100, fetchImpl: unexpectedFetch
+  });
+  await typedProposalAssert.rejects(missing.propose({ input: 'synthetic' }),
+    error => error.code === 'auth_missing');
+  typedProposalAssert.equal(missing.receipts()[0].fetchAttempts, 0);
+  const controller = new AbortController();
+  controller.abort();
+  const aborted = bindTypeLLMProposalPort({
+    id: 'aborted', mode: 'test-double', apiKey: 'synthetic-test-key',
+    deadlineMs: 100, signal: controller.signal, fetchImpl: unexpectedFetch
+  });
+  await typedProposalAssert.rejects(aborted.propose({ input: 'synthetic' }),
+    error => error.code === 'cancelled');
+  typedProposalAssert.equal(aborted.receipts()[0].fetchAttempts, 0);
+});
+
+typedProposalTest('TypeLLM transport deadline is mandatory and bounds a pending fetch', async () => {
+  for (const deadlineMs of [undefined, 0, 95001, 1.5]) {
+    typedProposalAssert.throws(() => bindTypeLLMProposalPort({
+      id: 'invalid', mode: 'test-double', deadlineMs, fetchImpl: async () => {}
+    }), /INVALID_TYPELLM_PROPOSAL_PORT/);
+  }
+  typedProposalAssert.throws(() => bindTypeLLMProposalPort({
+    id: 'no-fake', mode: 'test-double', apiKey: 'synthetic-test-key', deadlineMs: 100
+  }), /INVALID_TYPELLM_PROPOSAL_PORT/);
+  let calls = 0;
+  let transportSignal;
+  const port = bindTypeLLMProposalPort({
+    id: 'timeout', mode: 'test-double', apiKey: 'synthetic-test-key', deadlineMs: 10,
+    fetchImpl: async (url, init) => {
+      calls++;
+      transportSignal = init.signal;
+      return new Promise(() => {});
+    }
+  });
+  await typedProposalAssert.rejects(port.propose({ input: 'synthetic' }),
+    error => error.code === 'provider_timeout');
+  typedProposalAssert.equal(calls, 1);
+  typedProposalAssert.equal(transportSignal.aborted, true);
+  typedProposalAssert.equal(port.receipts()[0].usageInputTokens, null);
+  typedProposalAssert.equal(port.receipts()[0].reportedModel, null);
+});
+
+typedProposalTest('TypeLLM HTTP and transport errors preserve generic classification without body reflection', async () => {
+  const http = typedProposalPort(async () => new Response('PRIVATE_PROVIDER_ERROR_BODY', { status: 429 }));
+  await typedProposalAssert.rejects(http.propose({ input: 'synthetic' }),
+    error => error.code === 'provider_http_error' && error.upstreamStatus === 429
+      && !error.message.includes('PRIVATE_PROVIDER_ERROR_BODY'));
+  typedProposalAssert.equal(http.receipts()[0].upstreamStatus, 429);
+  typedProposalAssert.equal(http.receipts()[0].fetchAttempts, 1);
+  const network = typedProposalPort(async () => { throw new Error('PRIVATE_TRANSPORT_ERROR'); });
+  await typedProposalAssert.rejects(network.propose({ input: 'synthetic' }),
+    error => error.code === 'provider_unavailable' && !error.message.includes('PRIVATE_TRANSPORT_ERROR'));
+  typedProposalAssert.equal(network.receipts()[0].fetchAttempts, 1);
+});
+
+typedProposalTest('TypeLLM proposal port consumes one attempt before awaiting and cannot be reused', async () => {
+  let complete;
+  let calls = 0;
+  const port = typedProposalPort((url, init) => {
+    calls++;
+    return new Promise(resolve => { complete = resolve; });
+  });
+  const first = port.propose({ input: 'synthetic' });
+  await typedProposalAssert.rejects(port.propose({ input: 'other' }), /PROPOSAL_ALREADY_CONSUMED/);
+  complete(typedProposalResponse(JSON.stringify({ clauses: [], questions: [], missing: [] })));
+  await first;
+  typedProposalAssert.equal(calls, 1);
+  typedProposalAssert.equal(port.receipts().length, 1);
+  await typedProposalAssert.rejects(port.propose({ input: 'again' }), /PROPOSAL_ALREADY_CONSUMED/);
+  typedProposalAssert.equal(calls, 1);
+});
