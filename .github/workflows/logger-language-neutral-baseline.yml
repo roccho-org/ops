@@ -22,9 +22,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - name: Checkout Ops observation head
+      - name: Checkout exact Ops observation head
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Checkout exact Apps corrected-scope T0
@@ -79,6 +80,8 @@ jobs:
         run: |
           set -euo pipefail
           root=out/logger-language-neutral-baseline
+          observation_head=$(git rev-parse HEAD)
+          observation_tree=$(git rev-parse 'HEAD^{tree}')
           mkdir -p \
             "$root/source/ops/packages/structured-diagnostic/lib" \
             "$root/source/ops/packages/structured-diagnostic/adapters" \
@@ -94,7 +97,8 @@ jobs:
           cp apps-baseline/packages/voice-ui/web/app.mjs "$root/source/apps/packages/voice-ui/web/app.mjs"
           jq -n \
             --arg workflowRunId "$GITHUB_RUN_ID" \
-            --arg observationHead "$GITHUB_SHA" \
+            --arg observationHead "$observation_head" \
+            --arg observationTree "$observation_tree" \
             --arg opsT0 "d1ed2594aa6112f931ff3996c89d8fde8aed8690" \
             --arg opsTree "27c40aee9b923129e0feefa8477da711155c8384" \
             --arg appsT0 "c91bab56ec5e769d9788453a098a289115cdaa92" \
@@ -105,6 +109,7 @@ jobs:
               authority: false,
               workflowRunId: $workflowRunId,
               observationHead: $observationHead,
+              observationTree: $observationTree,
               correctedScopeT0: [
                 {repository: "roccho-org/ops", revision: $opsT0, tree: $opsTree},
                 {repository: "roccho-dev/apps", revision: $appsT0, tree: $appsTree}
@@ -142,6 +147,8 @@ jobs:
           sha256sum -c SHA256SUMS
           jq -e '
             .authority == false and
+            (.observationHead | test("^[0-9a-f]{40}$")) and
+            (.observationTree | test("^[0-9a-f]{40}$")) and
             .candidateMeaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
             .correctedScopeT0[0].tree == "27c40aee9b923129e0feefa8477da711155c8384" and
             .correctedScopeT0[1].tree == "a32423848d2298b4c54cf43cd22119859f25c905" and
