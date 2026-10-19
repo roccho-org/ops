@@ -34,10 +34,12 @@ jobs:
       - name: Run old/new finite proof
         run: |
           set -euo pipefail
-          mkdir -p evidence/source/packages/artifact-assembly \
-            evidence/source/packages/shiftleft-admission/adapters \
-            evidence/source/packages/shiftleft-admission/tests \
-            evidence/source/packages/structured-diagnostic/lib
+          EVIDENCE=finite-proof-evidence
+          rm -rf "$EVIDENCE"
+          mkdir -p "$EVIDENCE/source/packages/artifact-assembly" \
+            "$EVIDENCE/source/packages/shiftleft-admission/adapters" \
+            "$EVIDENCE/source/packages/shiftleft-admission/tests" \
+            "$EVIDENCE/source/packages/structured-diagnostic/lib"
 
           node --check packages/artifact-assembly/src/assemble.mjs
           node --check packages/artifact-assembly/src/index.mjs
@@ -46,7 +48,7 @@ jobs:
           node --check packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs
 
           node packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs \
-            > evidence/old-new.json
+            > "$EVIDENCE/old-new.json"
 
           jq -e '
             .kind == "ops.logger-finite-proof.old-new-comparison" and
@@ -66,22 +68,22 @@ jobs:
             .comparison.status == "closed" and
             (.comparison.residual | length) == 0 and
             ([.counterexamples[] | .classified] | any) == false
-          ' evidence/old-new.json >/dev/null
+          ' "$EVIDENCE/old-new.json" >/dev/null
 
           cp -a packages/artifact-assembly/bin \
             packages/artifact-assembly/src \
-            evidence/source/packages/artifact-assembly/
+            "$EVIDENCE/source/packages/artifact-assembly/"
           cp packages/shiftleft-admission/adapters/artifact_assembly_candidate.mjs \
-            evidence/source/packages/shiftleft-admission/adapters/
+            "$EVIDENCE/source/packages/shiftleft-admission/adapters/"
           cp packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs \
-            evidence/source/packages/shiftleft-admission/tests/
+            "$EVIDENCE/source/packages/shiftleft-admission/tests/"
           cp packages/structured-diagnostic/contract.json \
-            evidence/source/packages/structured-diagnostic/
+            "$EVIDENCE/source/packages/structured-diagnostic/"
           cp packages/structured-diagnostic/lib/diagnostic.mjs \
-            evidence/source/packages/structured-diagnostic/lib/
+            "$EVIDENCE/source/packages/structured-diagnostic/lib/"
           cp build/checks.jsonl \
             .github/workflows/logger-artifact-assembly-finite-proof.yml \
-            evidence/source/
+            "$EVIDENCE/source/"
 
           jq -n \
             --arg repository "$GITHUB_REPOSITORY" \
@@ -100,15 +102,15 @@ jobs:
               result: "old-new.json",
               sourceRoot: "source",
               claimCeiling: "one selected Ops artifact-assembly npm-tgz digest-mismatch route"
-            }' > evidence/metadata.json
+            }' > "$EVIDENCE/metadata.json"
 
           (
-            cd evidence
+            cd "$EVIDENCE"
             find . -type f ! -name SHA256SUMS -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS
             sha256sum -c SHA256SUMS
           )
 
-          cat evidence/old-new.json
+          cat "$EVIDENCE/old-new.json"
 
           {
             echo "## Artifact assembly finite proof"
@@ -125,6 +127,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: logger-artifact-assembly-finite-proof-${{ github.run_id }}
-          path: evidence/
+          path: finite-proof-evidence/
           if-no-files-found: error
           retention-days: 30
