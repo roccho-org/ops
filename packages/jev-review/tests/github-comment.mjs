@@ -398,13 +398,19 @@ assert.equal(smallTwo.status, 'NOT_ADMITTED'); // two sendable cases exceed maxC
 
 // Formal owner path: unchanged programs/argv/stdin, globalThis.fetch replaced by a counting fixture.
 // The fixture counts on stderr, separately from the entry's own stdout accounting.
-const fakeFetch = `globalThis.fetch = async (url, init) => {
+const fakeFetch = `const realNow = performance.now.bind(performance);
+let deadlineExpired = false;
+Object.defineProperty(performance, 'now', { value: () => realNow() + (deadlineExpired ? 1000 : 0) });
+globalThis.fetch = async (url, init) => {
   process.stderr.write('FIXTURE_FETCH\\n');
   const body = JSON.parse(init.body);
   if (body.state.subject.ref === 'fixture:hang') {
     // Like a pending socket, keep the loop alive; AbortSignal.timeout alone does not.
     const pending = setInterval(() => {}, 1000);
     await new Promise((resolve) => init.signal.addEventListener('abort', resolve, { once: true }));
+    // Timeout is rounded to integer milliseconds. The deadline control must
+    // actually exhaust the whole plan, not race its last fractional millisecond.
+    if (process.env.FIXTURE_EXPIRE_PLAN === '1') deadlineExpired = true;
     clearInterval(pending);
     await new Promise((resolve) => setTimeout(resolve, 100));
     throw new Error('fixture aborted');
@@ -415,10 +421,10 @@ const fakeFetch = `globalThis.fetch = async (url, init) => {
 const importFlag = '--import=data:text/javascript,' + encodeURIComponent(fakeFetch);
 const syntheticKey = 'synthetic-fixture-key-not-a-secret';
 let childFixtureHttp = 0;
-const ownerChild = (program, stdin) => {
+const ownerChild = (program, stdin, expirePlan = false) => {
   const argv = program === entry ? [] : ['--semlint-real'];
   const run = spawnSync(process.execPath, [importFlag, program, ...argv], { input: stdin, encoding: 'utf8',
-    env: { LANG: 'C.UTF-8', JEV_API_KEY: syntheticKey }, timeout: 20000 });
+    env: { LANG: 'C.UTF-8', JEV_API_KEY: syntheticKey, FIXTURE_EXPIRE_PLAN: expirePlan ? '1' : '0' }, timeout: 20000 });
   const fetches = run.stderr.split('\n').filter((x) => x === 'FIXTURE_FETCH').length;
   assert.equal(run.stderr.replaceAll('FIXTURE_FETCH\n', ''), '');
   assert.equal(run.stdout.includes(syntheticKey), false);
@@ -470,7 +476,7 @@ for (const program of [entry, compatibility]) {
   assert.equal(timed.value.cases[0].provider.statusClass, 'REQUEST_ERROR');
   assert.ok(timed.value.cases[0].result.records.every((x) => x.status === 'EXECUTION_ERROR' && x.noul === null));
   // Smaller whole-plan deadline: the later case is refused before its fetch.
-  const late = ownerChild(program, JSON.stringify(deadlinePlan));
+  const late = ownerChild(program, JSON.stringify(deadlinePlan), true);
   assert.equal(late.status, 0); assert.equal(late.fetches, 1);
   assert.equal(late.value.accounting.providerHttpCalls, 1); assert.equal(late.value.accounting.unknownHttpCalls, 1);
   assert.equal(late.value.cases[1].provider.attemptedHttpCalls, 0); assert.equal(late.value.cases[1].provider.statusClass, 'NOT_RUN');

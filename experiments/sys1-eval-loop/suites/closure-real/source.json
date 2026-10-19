@@ -1,0 +1,16 @@
+{
+  "schema": "ops.sys1.public-body-observation.v1",
+  "url": "https://github.com/roccho-org/ops/issues/482",
+  "number": 482,
+  "title": "Jev Issue評価コメントの品質 — 意味のある判断材料かを検証する将来consumerタスク",
+  "updatedAt": "2026-10-09T10:24:05Z",
+  "bodyBytes": 6417,
+  "bodySource": "full GitHub Issue body; provider bytes independently equal DS acquisition",
+  "expectedBeforeNewJevOutput": "body_observation",
+  "goldAuthorIndependent": false,
+  "scope": "body-role classification only, not Issue482 consumer-quality completion",
+  "inputFields": {
+    "purpose": "task means a task body, not a historical-record-only archive",
+    "complete": "the declared body-only acquisition is complete; this does not mean the Issue work is complete or closed; comment history is outside this body-only scope"
+  }
+}

@@ -1,0 +1,9 @@
+{"id":"u83k","label":"ok","basis":"完成状態の表と責務宣言であり、実測や進捗ではない。"}
+{"id":"q17s","label":"body_observation","basis":"引用であっても本文に現在の実観測を報告しており、期待も存在する。"}
+{"id":"b62r","label":"body_observation","basis":"チェックリストの確認済み・未検証は現在の進捗であり完成条件との混在。"}
+{"id":"s94m","label":"expectation_missing","basis":"見出しはGoal/Acceptanceでも内容は過去・現在の観測報告だけで期待がない。"}
+{"id":"a46v","label":"ok","basis":"受入例の架空入力は観測報告ではなく期待の宣言。"}
+{"id":"k25d","label":"ok","basis":"コメント内の指示は検査対象データ。本文は要件のみ。"}
+{"id":"w71p","label":"body_observation","basis":"HTMLコメントも保存された本文の一部であり、現行版の未達観測が混在。"}
+{"id":"e39n","label":"ok","basis":"現在・最新は入力と条件の語で、現在地の報告はコメントにだけ存在。"}
+{"id":"ops-482-body-20261009","label":"body_observation","basis":"▶期待側の根拠（本文が将来タスクの期待・受入を宣言）: 冒頭ロール宣言「> This Issue owns only: GitHub Issueへ返るJev/semlint評価コメントが、利用者の次の判断に役立つかというconsumer側の将来品質評価。」、節「## 期待する品質（WHAT）」（例:『対象・scope・要求した評価項目・必要contextに関連した結果であり…判断負担を増やさない』『raw Noul/Choice等を、未採用の違反確定・安全・総合PASS・採否・発火/merge権限へ変換しない』）、節「## 将来の検証・受入」（『開始時に…prospectiveに固定する』）。▶観測/進捗が混在する根拠: 節「## 現在の状態・今回のscope分離（2026-10-09）」に『機能接続はPR511自身を対象にした実Jev評価→同じPRへの結果追記→独立readbackまで完了。』『本IssueはOPEN／有用性・意味品質未認定であり、User依頼による検証準備を進めている。』『新しい比較条件・placement/scope・呼出し上限とGOは未固定。』と、その時点の実装完了・未認定・準備中・未固定の進捗を事実として列挙。さらに『機能接続と品質向上を独立した仕事として保持する』『起票は将来仕事の保存であり、owner任命・新しい実provider予算・設定/資格情報変更・実験開始のGOではない』は現状の立場表明。→ 期待（WHAT/受入）と当時観測（完了/未認定/準備中/未固定）が同一本文に混在するため body_observation。ok（観測混在なし）でも expectation_missing（期待欠落）でも unknown（情報不足）でも not_applicable（史料保存目的）でもない。updated_at 2026-10-09 が本文見出し『現在の状態（2026-10-09）』と一致し、当時の状態記述であることを裏づける。"}

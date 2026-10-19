@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {loadInput,digest} from './run.mjs';
+import {sessionContract,plannedModelCalls} from './split.mjs';
+const read=p=>fs.readFileSync(new URL(p,import.meta.url),'utf8');
+test('the new prospective suite retains all old cases and Gold, plus one full real body',()=>{
+  const i=loadInput(fileURLToPath(new URL('./candidates/baseline.json',import.meta.url)),fileURLToPath(new URL('./suites/closure-real/',import.meta.url)));
+  const oldCases=read('./suites/role-boundaries/cases.jsonl');
+  const newCases=read('./suites/closure-real/cases.jsonl');
+  const oldGold=read('./suites/role-boundaries/expected.jsonl');
+  const newGold=read('./suites/closure-real/expected.jsonl');
+  assert.ok(newCases.startsWith(oldCases));assert.ok(newGold.startsWith(oldGold));
+  assert.equal(i.cases.length,9);assert.equal(i.contract.target.correct,9);
+  assert.equal(digest(newGold),i.contract.goldSha256);
+  const real=i.cases.at(-1),source=JSON.parse(read('./suites/closure-real/source.json'));
+  assert.equal(Buffer.byteLength(real.body),source.bodyBytes);
+  assert.ok(Buffer.byteLength(JSON.stringify(real))<16000);
+  assert.ok(real.body.startsWith('<!-- semlint-issue-comment-quality-consumer-current-20261009-v2 -->'));
+  assert.ok(real.body.endsWith('機能成功だけで本Issueをcloseしない。\n'));
+  assert.equal(source.expectedBeforeNewJevOutput,'body_observation');
+  assert.equal(source.goldAuthorIndependent,false);
+  const c=sessionContract(i.contract,27);
+  assert.equal(c.maxCallsPerCandidate,18);assert.equal(c.maxCandidates,2);assert.equal(c.maxTotalCalls,27);
+  assert.equal(plannedModelCalls(i,'baseline'),9);assert.equal(plannedModelCalls(i,'binary-eo-v3'),18);
+});

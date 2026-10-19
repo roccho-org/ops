@@ -42,6 +42,14 @@ test('session changes budget and treatment, not labels/data/Gold/targets',()=>{
   for(const k of ['labels','casesSha256','goldSha256','target'])assert.deepEqual(next[k],old[k]);assert.equal(old.maxCallsPerCandidate,8);
 });
 test('invalid axis rejected',()=>assert.throws(()=>question(request,'other')));
+test('new paired split trial bounds 24 without rewriting the old 80-call contract',()=>{
+  const old={task:'fixed',labels:{ok:'expected'},target:{correct:8}};
+  assert.equal(sessionContract(old).maxTotalCalls,80);
+  assert.equal(sessionContract(old,24).maxTotalCalls,24);
+  assert.equal(sessionContract(old,24).maxCandidates,2);
+  assert.deepEqual(sessionContract(old,24).labels,old.labels);
+  assert.throws(()=>sessionContract(old,25));
+});
 
 test('body projection excludes comments and preserves raw body including HTML',()=>{
   const input={...request,text:JSON.stringify({purpose:'task',complete:true,body:'要件\n<!-- 観測 -->',comments:['COMMENT_CANARY']})};
