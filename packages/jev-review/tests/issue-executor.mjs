@@ -26,6 +26,33 @@ const sourceRoot = sourceArgs.length ? sourceArgs[1] : null;
 const hash = (x) => createHash('sha256').update(x).digest('hex');
 const REPO = 'roccho-dev/ops', OWNER = 'roccho-dev', TRUSTED = 'fixture-member', SHA = 'c'.repeat(40), WF = 900001;
 const WF_PATH = '.github/workflows/jev-issue-comment.yml';
+// Historical controls keep their original grants; they do not describe today's shipped target.
+const legacyActionsConfig = () => {
+  const raw = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const origin = raw.targets.find((t) => t.repository === 'roccho-org/ops' && t.issue === 573);
+  origin.issue = 483;
+  delete origin.subject;
+  raw.runRanges = raw.runRanges.filter((r) => r.target?.issue !== 573);
+  raw.providedRequestTargets = [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 }];
+  return raw;
+};
+// The current published configuration adds exactly one reservation and binds its sole provided origin.
+{
+  const raw = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  validateActionsConfig(raw);
+  assert.deepEqual(raw.providedRequestTargets, [{ repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 573 }]);
+  assert.deepEqual(raw.targets, [
+    { repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 573,
+      subject: { repository: 'roccho-dev/apps', repositoryId: '1375320803', kind: 'issue', number: 94 } },
+    { repository: 'roccho-org/envs', repositoryId: '1391871347', issue: 52 },
+    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 511 },
+    { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
+  ]);
+  assert.deepEqual(raw.runRanges.slice(7), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+    first: 190, last: 190, reservedCallsPerRun: 1, target: { issue: 573 } }]);
+  assert.equal(raw.runRanges.slice(0, 7).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 206);
+  assert.equal(raw.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 207);
+}
 const CHECKS = ['aligned.authority-grant', 'closed.feedback-completion', 'unique.canonical-responsibility',
   'minimal.necessary-layer', 'measurable.attempt-accounting', 'improving.comparable-evidence'];
 const ROLES = ['authorityContract', 'completionContract', 'responsibilityContract', 'requiredContracts',
@@ -336,7 +363,7 @@ await check('reservation-bound', async () => {
 
 // Public adopted history is retained; this grant adds 200 slots, never resets the first four.
 await check('reviewed-budget-addition', async () => {
-  const raw = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const raw = legacyActionsConfig();
   const shipped = validateActionsConfig(raw);
   const old = [
     { repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH, first: 1, last: 1, reservedCallsPerRun: 1 },
@@ -813,7 +840,7 @@ function providedPayload(fixture) {
 const providedBody = (payload) => REQUEST_PREFIX + JSON.stringify(payload);
 
 await check('provided-v14-independent-grant', async () => {
-  const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
+  const shipped = validateActionsConfig(legacyActionsConfig());
   assert.deepEqual(shipped.providedRequestTargets.map(row => ({ ...row })), [
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
@@ -1076,7 +1103,7 @@ await check('pull-request-closed-targets', async () => {
   ]) {
     const bad = prConfig(); alter(bad); assert.throws(() => validateActionsConfig(bad), /INVALID_ACTIONS_CONFIG/);
   }
-  const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
+  const shipped = validateActionsConfig(legacyActionsConfig());
   assert.deepEqual(shipped.targets.map(target => ({ ...target })), [
     { repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 483 },
     { repository: 'roccho-org/envs', repositoryId: '1391871347', issue: 52 },
@@ -1240,7 +1267,7 @@ await check('pull-request-native-unknown-and-exact-readback', async () => {
 });
 
 await check('configured-exact-ops511-ops536-and-legacy-targets', async () => {
-  const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
+  const shipped = validateActionsConfig(legacyActionsConfig());
   for (const alter of [
     cfg => { cfg.targets.push({ ...cfg.targets[3] }); },
     cfg => { cfg.targets.push({ ...cfg.targets[3], pullRequest: 521 }); },
@@ -1315,7 +1342,7 @@ const actualContextBudgets = [];
 // The PR536 grant is exercised with PR522's historical public body as a synthetic stand-in subject: the actual
 // PR536 body is not read in this source phase, so no PR536 size or fit is claimed.
 await check('configured-pr536-provided-full-body-and-exclusive-grant', async () => {
-  const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
+  const shipped = validateActionsConfig(legacyActionsConfig());
   for (const [repository, number, kind, cause] of [
     ['roccho-org/ops', 536, 'pull-request', null],
     ['roccho-org/ops', 511, 'pull-request', 'PROVIDED_REQUEST_NOT_AUTHORIZED'],
@@ -1401,7 +1428,7 @@ await check('exact-public-pr511-pr522-current-context-budget', async () => {
   for (const stale of ['PR511/522 only', 'PR522 grant', 'PR522 needs', 'total 204', 'candidate', 'not live']) {
     assert.equal(actualContext.includes(stale), false, stale);
   }
-  const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
+  const shipped = validateActionsConfig(legacyActionsConfig());
   assert.deepEqual(shipped.context.map(row => row.role), ROLES);
   assert.deepEqual(shipped.allowedChecks, CHECKS);
   // PR536 is planned with PR522's historical body as a stand-in subject (mechanical, not a PR536 measurement).
@@ -1867,7 +1894,7 @@ for (const required of ['semlint-goal-quality-implementation-20261015-v12', 'ret
   '`RANGE_TARGET_MISMATCH`', '`RANGE_TARGET_UNKNOWN`', 'runs 104..105 for PR536 only', 'from 204 to 206 with no reset',
   'not a live grant', 'This source is dormant', 'rejects PR536', 'It is not pin-only']) assert.ok(flatInvocation.includes(required), required);
 assert.deepEqual(JSON.parse(repoFile('packages/jev-review/issue-actions.json')).providedRequestTargets,
-  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 }]);
+  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 573 }]);
 // Historical runtime-305b5321 budget facts stay frozen; the candidate figure is recomputed from the current context.
 assert.ok(currentInvocation.includes("Current context is 2189 bytes. With PR522's exact initial 4585-byte subject"));
 assert.ok(currentInvocation.includes('state 27373 bytes, longest question 720 and all\nquestions 4079'));

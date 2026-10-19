@@ -7,7 +7,7 @@ import { JEV_MODEL } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
 import { ENTRY_LIMITS, preparePlan, runPlan, executeOwnerPlan, snapshotJson } from '../semlint-entry.mjs';
 import { REQUEST_PREFIX, RESULT_PREFIX, admitIssueComment, nextIssueEffect, composeResultComment, verifyResultReadback,
-  admitIssueCommand, subjectRevision, validateActionsConfig } from '../github-comment.mjs';
+  admitIssueCommand, subjectRevision, validateActionsConfig, selectActionsTarget, selectRunRange } from '../github-comment.mjs';
 
 const copy = (x) => JSON.parse(JSON.stringify(x));
 const hash = (x) => createHash('sha256').update(x).digest('hex');
@@ -495,12 +495,39 @@ for (const program of [entry, compatibility]) {
   assert.equal(late.value.cases[1].provider.attemptedHttpCalls, 0); assert.equal(late.value.cases[1].provider.statusClass, 'NOT_RUN');
   assert.ok(late.value.cases[1].result.records.every((x) => x.status === 'EXECUTION_ERROR'));
 }
-// Granted literal CJK refusal against the shipped settings (synthetic subject; no PR body is read): the refusal keeps
+// The shipped grant admits one Issue origin, one public subject and one first-attempt run; no provider is called.
+{
+  const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
+  const repository = 'roccho-org/ops';
+  assert.deepEqual(shipped.providedRequestTargets.map((grant) => ({ ...grant })), [{ repository, repositoryId: '1275606595', issue: 573 }]);
+  const target = selectActionsTarget(shipped, repository, 573, 'issue');
+  assert.deepEqual({ ...target.subject }, { repository: 'roccho-dev/apps', repositoryId: '1375320803', kind: 'issue', number: 94 });
+  const run = { repository, workflowId: 377399991, path: '.github/workflows/jev-issue-comment.yml', number: 190, attempt: 1, id: 1 };
+  const origin = { kind: 'issue', number: 573 };
+  const selected = selectRunRange(shipped, run, origin);
+  assert.equal(selected.callsPerRun, 1);
+  assert.equal(selected.range.first, selected.range.last);
+  assert.deepEqual(selectRunRange(shipped, { ...run, number: 189 }, origin), { cause: 'NO_RANGE' });
+  assert.deepEqual(selectRunRange(shipped, { ...run, number: 191 }, origin), { cause: 'NO_RANGE' });
+  assert.deepEqual(selectRunRange(shipped, { ...run, attempt: 2 }, origin), { cause: 'RERUN_NOT_PAID' });
+  assert.deepEqual(selectRunRange(shipped, run, { kind: 'pull-request', number: 573 }), { cause: 'RANGE_TARGET_MISMATCH' });
+  assert.deepEqual(selectRunRange(shipped, run, { kind: 'issue', number: 483 }), { cause: 'RANGE_TARGET_MISMATCH' });
+  assert.deepEqual(selectRunRange(shipped, run, { kind: 'pull-request', number: 536 }), { cause: 'RANGE_TARGET_MISMATCH' });
+  const missingSubject = copy(shipped);
+  delete missingSubject.targets.find((t) => t.repository === repository && t.issue === 573).subject;
+  assert.throws(() => validateActionsConfig(missingSubject), /INVALID_ACTIONS_CONFIG/);
+}
+// Legacy PR-grant CJK refusal controls (synthetic subject; no PR body is read): the refusal keeps
 // this admission snapshot's identity, exactly {issueNodeId, subjectRevision} and no body text. Every other refusal
 // keeps its prior three-key shape, and legacy or English literals are unchanged. Dormant code only: no command runs.
 {
   const shipped = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
   const OPS = 'roccho-org/ops', ENVS = 'roccho-org/envs', WFP = '.github/workflows/jev-issue-comment.yml';
+  const legacyOrigin = shipped.targets.find((t) => t.repository === OPS && t.issue === 573);
+  legacyOrigin.issue = 483;
+  delete legacyOrigin.subject;
+  shipped.runRanges = shipped.runRanges.filter((r) => r.target?.issue !== 573);
+  shipped.providedRequestTargets = [{ repository: OPS, repositoryId: '1275606595', pullRequest: 536 }];
   const JA = '受信記録だけで完了を確認する。', EN = 'Confirm completion from the delivery receipt alone.';
   const subject = (over = {}) => ({ number: 536, nodeId: 'PR_fixture536', body: JA, lastEditedAt: null, includesCreatedEdit: false,
     userContentEditsTotal: 0, ...over });
