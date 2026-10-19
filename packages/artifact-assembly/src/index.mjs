@@ -1,7 +1,7 @@
 export {
-  ArtifactAssemblyDiagnosticError,
   SOURCE_DIGEST_MISMATCH_DIAGNOSTIC_CODE,
   assembleArtifact,
+  isArtifactAssemblyDiagnosticError,
   writeAssemblyReceipt,
 } from "./assemble.mjs";
 export { canonicalJson, canonicalJsonText, parseCanonicalJsonl } from "./canonical-json.mjs";
