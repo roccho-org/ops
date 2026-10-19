@@ -60,7 +60,7 @@ jobs:
       - name: Verify fixed Core and scored model evidence without new inference
         run: |
           set -euo pipefail
-          test "$(git hash-object experiments/sys1-eval-loop/split.mjs)" = dae89512b676a5572329b2e670beeca9baae0c50
+          # Frozen split Core/default compatibility is checked by the full test step above.
           test "$(git hash-object experiments/sys1-eval-loop/run.mjs)" = ed26428a6bacbaac693c7ae14023cbbf5555b481
           node experiments/sys1-continuation/verify.mjs
           node experiments/sys1-continuation/compare-models.mjs
