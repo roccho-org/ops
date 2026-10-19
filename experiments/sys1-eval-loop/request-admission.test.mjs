@@ -17,7 +17,8 @@ assert.equal(lines.shift(),"node --input-type=module <<'JS'");assert.equal(lines
 const actualScript=lines.join('\n');
 const base=JSON.parse(fs.readFileSync(path.join(root,'experiments/sys1-eval-loop/results/closure-20261019/baseline.json')));
 const input=loadInput(path.join(root,'experiments/sys1-eval-loop/candidates/baseline.json'),path.join(root,'experiments/sys1-eval-loop/suites/role-boundaries'));
-const splitBase={...base,contractDigest:digest(sessionContract(input.contract,24)),runUrl:'https://github.com/roccho-org/ops/actions/runs/30',accounting:{expectedMaxCalls:8}};
+const real=loadInput(path.join(root,'experiments/sys1-eval-loop/candidates/baseline.json'),path.join(root,'experiments/sys1-eval-loop/suites/closure-real'));
+const splitBase={...base,total:9,actualCalls:9,contractDigest:digest(sessionContract(real.contract,27)),goldDigest:real.contract.goldSha256,runUrl:'https://github.com/roccho-org/ops/actions/runs/30',accounting:{expectedMaxCalls:9}};
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sys1-admission-'));
 after(()=>fs.rmdirSync(dir));
 function exercise(phase,change=()=>{}) {
@@ -62,8 +63,8 @@ for(const [name,phase,change] of [
 ]) test('actual workflow refuses '+name+' before producing an evaluation request',()=>{
   const r=exercise(phase,change);assert.notEqual(r.status,0);assert.equal(r.printed,'');
 });
-test('declared40 equals derived calls; split short-circuits are not fake model calls',()=>{
-  assert.equal(3*input.cases.length+plannedModelCalls(input,'binary-eo-v3'),40);
+test('declared43 equals derived calls; split short-circuits are not fake model calls',()=>{
+  assert.equal(2*input.cases.length+real.cases.length+plannedModelCalls(real,'binary-eo-v3'),43);
   const mixed={cases:[{purpose:'historical-record',complete:true},{purpose:'task',complete:false},{purpose:'task',complete:true}]};
   assert.equal(plannedModelCalls(mixed,'binary-eo-v3'),2);
 });

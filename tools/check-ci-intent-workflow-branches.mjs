@@ -243,7 +243,7 @@ export function analyzeEffectWorkflow(workflow, boundary) {
 // The existing Issue-command/Environment rules above remain unchanged.
 export function assertSys1ProofWorkflow(w,b) {
   need(b.secretScope==='organization' && b.secretName==='JEV_API_KEY'
-    && same(b.allowedEvents??[],['push']) && b.maxCalls===40 && !b.environment,
+    && same(b.allowedEvents??[],['push']) && b.maxCalls===43 && !b.environment,
     'Sys1 proof boundary differs');
   need(same(Object.keys(w.on??{}),['push'])
     && same(Object.keys(w.on.push??{}),['branches','paths'])
@@ -272,7 +272,7 @@ export function assertSys1ProofWorkflow(w,b) {
     && key.run?.trim()===[
       'case "$PHASE" in',
       '  baseline|candidate) entry=run.mjs ;;',
-      '  split-baseline|split-candidate) entry=split.mjs ;;',
+      '  split-baseline|split-candidate) entry=split.mjs; export TRIAL_SUITE=closure-real TRIAL_SESSION_CALLS=27 ;;',
       '  *) exit 1 ;;',
       'esac',
       'node "experiments/sys1-eval-loop/$entry" evaluate "$CANDIDATE" "$RUNNER_TEMP/sys1-result"'

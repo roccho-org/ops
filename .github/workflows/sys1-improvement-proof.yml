@@ -43,8 +43,11 @@ jobs:
           assert.match(r.candidate,/^[a-z][a-z0-9-]{0,39}$/);
           const {loadInput,digest}=await import('./experiments/sys1-eval-loop/run.mjs');
           const {sessionContract,plannedModelCalls}=await import('./experiments/sys1-eval-loop/split.mjs');
-          const i=loadInput(`experiments/sys1-eval-loop/candidates/${r.candidate}.json`,'experiments/sys1-eval-loop/suites/role-boundaries');
-          assert.equal(3*i.cases.length+plannedModelCalls(i,'binary-eo-v3'),40);
+          const suite=r.phase.startsWith('split-')?'closure-real':'role-boundaries';
+          const i=loadInput(`experiments/sys1-eval-loop/candidates/${r.candidate}.json`,`experiments/sys1-eval-loop/suites/${suite}`);
+          const original=loadInput('experiments/sys1-eval-loop/candidates/baseline.json','experiments/sys1-eval-loop/suites/role-boundaries');
+          const real=loadInput('experiments/sys1-eval-loop/candidates/baseline.json','experiments/sys1-eval-loop/suites/closure-real');
+          assert.equal(2*original.cases.length+real.cases.length+plannedModelCalls(real,'binary-eo-v3'),43);
           assert.equal(i.contract.maxCallsPerCandidate,i.cases.length);
           assert.equal(i.contract.expectedModel,'jev-1.13.0');
           // Provider history is the run identity; no second execution ledger.
@@ -63,7 +66,7 @@ jobs:
             assert.equal(next(b).action,'PROPOSE_ONE_CANDIDATE');
             assert.notEqual(r.candidate,'baseline');
             assert.ok(prior.some(x=>b.runUrl===x.html_url));
-            assert.equal(r.phase==='candidate'?i.contractDigest:digest(sessionContract(i.contract,24)),b.contractDigest);
+            assert.equal(r.phase==='candidate'?i.contractDigest:digest(sessionContract(i.contract,27)),b.contractDigest);
             assert.equal(i.contract.goldSha256,b.goldDigest);
             assert.deepEqual(b.models,[i.contract.expectedModel]);
             if(r.phase==='split-candidate') assert.equal(r.candidate,'binary-eo-v3');
@@ -78,7 +81,7 @@ jobs:
         run: |
           case "$PHASE" in
             baseline|candidate) entry=run.mjs ;;
-            split-baseline|split-candidate) entry=split.mjs ;;
+            split-baseline|split-candidate) entry=split.mjs; export TRIAL_SUITE=closure-real TRIAL_SESSION_CALLS=27 ;;
             *) exit 1 ;;
           esac
           node "experiments/sys1-eval-loop/$entry" evaluate "$CANDIDATE" "$RUNNER_TEMP/sys1-result"
@@ -90,7 +93,7 @@ jobs:
         run: |
           case "$PHASE" in
             baseline|candidate) entry=run.mjs; before=baseline ;;
-            split-baseline|split-candidate) entry=split.mjs; before=split-baseline ;;
+            split-baseline|split-candidate) entry=split.mjs; before=split-baseline; export TRIAL_SUITE=closure-real TRIAL_SESSION_CALLS=27 ;;
             *) exit 1 ;;
           esac
           node "experiments/sys1-eval-loop/$entry" score "$CANDIDATE" "$RUNNER_TEMP/sys1-result"

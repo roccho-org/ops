@@ -19,25 +19,55 @@ stops at16; the higher score is not adoption or improvement without regression.
 The paired observation is in-sample and provider nondeterminism is not excluded.
 
 Under the same User instruction to continue until a finite improvement is
-demonstrated, root selects a separate preregistered24-call comparison using the
+demonstrated, root selects a separate preregistered comparison using the
 existing single-choice versus body-only independent E/O implementation and
-existing binary-eo-v3 candidate. The new baseline is8 calls, candidate16.
-Cases, Gold, model, labels, target and scoring remain fixed. The old80-call
-session default is preserved; this new session explicitly binds24. Four native
-first-attempt phase runs bound cumulative use to40 including Trial1. No fifth
+existing binary-eo-v3 candidate. Before activation, the prospective24-call/40-total
+draft was superseded to include a real case required by the development goal:
+all original8 cases and Gold remain byte-for-byte prefixes, and one complete
+public Issue482 body is added. DS acquired all6417 UTF-8 bytes; root separately
+read back identical provider bytes. Its expected body_observation label and
+basis were fixed before any new Jev output. This is body-role classification,
+not completion of Issue482 consumer-quality work. It is not independent Gold.
+
+The new baseline is9 calls and candidate18, with target9/9 and no regression.
+Cases, Gold, model, labels, target and scoring are fixed within the new trial.
+Original16-call Trial1 is untouched. The old80-call session default is preserved;
+this new session explicitly binds27. Four native first-attempt phase runs bound
+cumulative use to43 including Trial1. No fifth
 phase, retry, automatic refill, new hidden allowance or experiment relabeling.
 The next decision additionally rejects an increase in the existing FP/FN counts.
 Those counts concern the specified violation classes, not every possible
 multiclass confusion; correctness and individual regressions remain mandatory.
 The new treatment changes question decomposition, body-only projection and
-test-time compute together (8 versus16 calls). Any observed delta concerns that
+test-time compute together (9 versus18 calls). Any observed delta concerns that
 combination, not a single-factor causal effect or lower cost. The finite bound
 assumes the explicitly trusted owner controls this branch and keeps Actions
 history; it is not isolation from a malicious owner or a provider quota.
-Only this all-task/complete eight-case suite is admitted. Deterministic archive
+Only the fixed role-boundaries and new all-task/complete nine-case suite are admitted. Deterministic archive
 or incomplete-input short circuits are not model judgments or independent
 quality. The split call plan now counts those branches without charging them
 as model calls; the old fixed model pin is checked for this suite before use.
+
+```mermaid
+flowchart TB
+  A["📌 Preserve all original8 cases and stopped Trial1"] --> B["📄 Snapshot one complete real public Issue body"]
+  B --> C["🔎 Predeclare expected label and limits before Jev output"]
+  C --> D["⚖️ Fresh9-call baseline with fixed9-case Gold"]
+  D --> E{"🎯 Target already reached?"}
+  E -->|"yes"| H["⏸️ Stop without inventing a change"]
+  E -->|"no, complete and valid"| F["🧩 Existing body-only independent E/O candidate:18 calls"]
+  F --> G["🔁 Compare all9; report synthetic8 and real1 separately"]
+  G --> I["📌 Keep better only without per-case or FP/FN regression"]
+  I --> H
+```
+
+The fresh-consumer whole-plan deadline fixture failed at a fractional timer
+boundary. A test-only clock advance now deterministically reaches expiry after
+the first abort. Original no-second-fetch/accounting assertions and the real
+per-call timeout control remain unchanged. This fixture checks deadline control
+with an injected clock; it does not measure actual whole-plan elapsed time.
+Production entry/client bytes are unchanged by that fix. Exact provided-byte
+consumer CI must confirm it; local fixture success is not live Jev evidence.
 
 Required CI correctly rejected the initially undeclared/unclassified workflow.
 Root should have checked the effect boundary before the first live run. The

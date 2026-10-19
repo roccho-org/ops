@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {analyzeEffectWorkflow} from '../../tools/check-ci-intent-workflow-branches.mjs';
-const boundary={path:'.github/workflows/sys1-improvement-proof.yml',secretScope:'organization',secretName:'JEV_API_KEY',allowedEvents:['push'],maxCalls:40};
+const boundary={path:'.github/workflows/sys1-improvement-proof.yml',secretScope:'organization',secretName:'JEV_API_KEY',allowedEvents:['push'],maxCalls:43};
 const plan=["const phases=['baseline','candidate','split-baseline','split-candidate'];",
   "assert.equal(history.total_count,phases.indexOf(r.phase)+1);",
   "assert.ok(prior.every(x=>x.status==='completed'&&x.conclusion==='success'));",
@@ -15,7 +15,7 @@ const fixture={on:{push:{branches:['codex/jev-improvement-closure-20261019'],pat
       {uses:'actions/checkout@11d5960a326750d5838078e36cf38b85af677262',with:{'persist-credentials':false}},
       {id:'request',env:{GH_TOKEN:'${{ github.token }}'},run:plan},
       {env:{JEV_API_KEY:'${{ secrets.JEV_API_KEY }}',CANDIDATE:'${{ steps.request.outputs.candidate }}',PHASE:'${{ steps.request.outputs.phase }}'},
-        run:['case "$PHASE" in','  baseline|candidate) entry=run.mjs ;;','  split-baseline|split-candidate) entry=split.mjs ;;','  *) exit 1 ;;','esac','node "experiments/sys1-eval-loop/$entry" evaluate "$CANDIDATE" "$RUNNER_TEMP/sys1-result"'].join('\n')}
+        run:['case "$PHASE" in','  baseline|candidate) entry=run.mjs ;;','  split-baseline|split-candidate) entry=split.mjs; export TRIAL_SUITE=closure-real TRIAL_SESSION_CALLS=27 ;;','  *) exit 1 ;;','esac','node "experiments/sys1-eval-loop/$entry" evaluate "$CANDIDATE" "$RUNNER_TEMP/sys1-result"'].join('\n')}
     ]}}};
 test('only the exact separate finite proof is admitted without changing the old Org route',()=>{
   assert.deepEqual(analyzeEffectWorkflow(fixture,boundary).issues,[]);
@@ -41,5 +41,5 @@ for(const [name,change] of [
   const w=structuredClone(fixture);change(w);assert.ok(analyzeEffectWorkflow(w,boundary).issues.length);
 });
 test('increasing the explicit trial allowance fails closed',()=>{
-  assert.ok(analyzeEffectWorkflow(fixture,{...boundary,maxCalls:41}).issues.length);
+  assert.ok(analyzeEffectWorkflow(fixture,{...boundary,maxCalls:44}).issues.length);
 });
