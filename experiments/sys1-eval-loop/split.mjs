@@ -49,7 +49,12 @@ export async function askSplit(request, askChoice, trace, {bodyOnly=false}={}) {
 export function sessionContract(original, calls=80) {
   if (![24,80].includes(calls)) throw Error('INVALID_SESSION_BOUND');
   return {...original,task:original.task+'/independent-eo-session-v1',maxCallsPerCandidate:16,
-    maxCandidates:calls===24?2:4,maxTotalCalls:calls,treatment:'single-choice vs independent E/O choice; same labels, cases and Gold'};
+    maxCandidates:calls===24?2:4,maxTotalCalls:calls,treatment:'single-choice vs independent E/O choice; same labels, cases and Gold',
+    ...(calls===24?{treatment:'single-choice/all fields/8 calls vs body-only independent E/O/16 calls; combined treatment, not single-factor attribution'}:{})};
+}
+export function plannedModelCalls(input,name) {
+  return name==='baseline'?input.cases.length:
+    2*input.cases.filter(c=>c.purpose!=='historical-record'&&c.complete!==false).length;
 }
 
 async function main() {
@@ -67,7 +72,7 @@ async function main() {
   if(mode==='evaluate') {
     if(process.env.GITHUB_RUN_ATTEMPT&&process.env.GITHUB_RUN_ATTEMPT!=='1') throw Error('RERUN_FORBIDDEN');
     write('attempt.json',{candidate:core.digest(input.candidate),contract:input.contractDigest});
-    const limit=name==='baseline'?8:16, traces=[];
+    const limit=input.contract.maxTotalCalls===24?plannedModelCalls(input,name):name==='baseline'?8:16, traces=[];
     let calls=0,provider;
     const choice=async request=>{
       if(!process.env.JEV_API_KEY?.trim()) throw Error('AUTH_MISSING');
@@ -109,7 +114,7 @@ async function main() {
     const result=core.score(input,raw.trim().split('\n').map(JSON.parse),predictions);
     result.inheritedContractDigest=inheritedDigest;
     result.treatment=name==='baseline'?'single-choice':name==='binary-eo-v3'?'body-only-independent-E/O-choice':'independent-E/O-choice';
-    result.accounting={expectedMaxCalls:name==='baseline'?8:16,sessionMaxCalls:input.contract.maxTotalCalls,cost:null};
+    result.accounting={expectedMaxCalls:input.contract.maxTotalCalls===24?plannedModelCalls(input,name):name==='baseline'?8:16,sessionMaxCalls:input.contract.maxTotalCalls,cost:null};
     write('scored.json',result);console.log('SYS1_EVAL_RESULT '+JSON.stringify(result));
     if(process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT,`target=${result.targetReached}\n`);
     if(result.status!=='EVALUATED') process.exitCode=2;

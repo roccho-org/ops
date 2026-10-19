@@ -29,6 +29,15 @@ phase, retry, automatic refill, new hidden allowance or experiment relabeling.
 The next decision additionally rejects an increase in the existing FP/FN counts.
 Those counts concern the specified violation classes, not every possible
 multiclass confusion; correctness and individual regressions remain mandatory.
+The new treatment changes question decomposition, body-only projection and
+test-time compute together (8 versus16 calls). Any observed delta concerns that
+combination, not a single-factor causal effect or lower cost. The finite bound
+assumes the explicitly trusted owner controls this branch and keeps Actions
+history; it is not isolation from a malicious owner or a provider quota.
+Only this all-task/complete eight-case suite is admitted. Deterministic archive
+or incomplete-input short circuits are not model judgments or independent
+quality. The split call plan now counts those branches without charging them
+as model calls; the old fixed model pin is checked for this suite before use.
 
 Required CI correctly rejected the initially undeclared/unclassified workflow.
 Root should have checked the effect boundary before the first live run. The

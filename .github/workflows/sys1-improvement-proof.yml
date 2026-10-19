@@ -41,6 +41,12 @@ jobs:
           const phases=['baseline','candidate','split-baseline','split-candidate'];
           assert.ok(phases.includes(r.phase));
           assert.match(r.candidate,/^[a-z][a-z0-9-]{0,39}$/);
+          const {loadInput,digest}=await import('./experiments/sys1-eval-loop/run.mjs');
+          const {sessionContract,plannedModelCalls}=await import('./experiments/sys1-eval-loop/split.mjs');
+          const i=loadInput(`experiments/sys1-eval-loop/candidates/${r.candidate}.json`,'experiments/sys1-eval-loop/suites/role-boundaries');
+          assert.equal(3*i.cases.length+plannedModelCalls(i,'binary-eo-v3'),40);
+          assert.equal(i.contract.maxCallsPerCandidate,i.cases.length);
+          assert.equal(i.contract.expectedModel,'jev-1.13.0');
           // Provider history is the run identity; no second execution ledger.
           const url=`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/actions/workflows/sys1-improvement-proof.yml/runs?branch=codex%2Fjev-improvement-closure-20261019&event=push&per_page=100`;
           const response=await fetch(url,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`}});
@@ -57,10 +63,6 @@ jobs:
             assert.equal(next(b).action,'PROPOSE_ONE_CANDIDATE');
             assert.notEqual(r.candidate,'baseline');
             assert.ok(prior.some(x=>b.runUrl===x.html_url));
-            const {loadInput}=await import('./experiments/sys1-eval-loop/run.mjs');
-            const i=loadInput(`experiments/sys1-eval-loop/candidates/${r.candidate}.json`,'experiments/sys1-eval-loop/suites/role-boundaries');
-            const {sessionContract}=await import('./experiments/sys1-eval-loop/split.mjs');
-            const {digest}=await import('./experiments/sys1-eval-loop/run.mjs');
             assert.equal(r.phase==='candidate'?i.contractDigest:digest(sessionContract(i.contract,24)),b.contractDigest);
             assert.equal(i.contract.goldSha256,b.goldDigest);
             assert.deepEqual(b.models,[i.contract.expectedModel]);
