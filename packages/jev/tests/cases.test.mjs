@@ -72,6 +72,8 @@ test("all invalid rows and duplicate IDs fail before any hash await or provider 
     c => {c.collections[0].blocks[0].evaluationSpan.startByte = 0.5;},
     c => {c.collections[0].blocks[0] = {...block("α"), evaluationSpan: {startByte: 1, endByte: 2}};},
     c => {c.collections[0].blocks[0] = block("\ud800");},
+    c => {c.collections[0].blocks[0] = block(" \n");},
+    c => {c.collections[0].blocks[0] = block("\uFEFF");},
     c => {c.collections[0].blocks[0].ref = "";},
     c => {c.collections[0].blocks[0].extra = true;},
     c => {c.collections[0].blocks[0].evaluationSpan.extra = true;},
