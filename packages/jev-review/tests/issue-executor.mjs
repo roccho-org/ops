@@ -49,9 +49,12 @@ const legacyActionsConfig = () => {
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
   assert.deepEqual(raw.runRanges.slice(7), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
-    first: 190, last: 190, reservedCallsPerRun: 1, target: { issue: 573 } }]);
+    first: 190, last: 190, reservedCallsPerRun: 1, target: { issue: 573 } },
+  { repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+    first: 191, last: 191, reservedCallsPerRun: 1, target: { issue: 573 } }]);
   assert.equal(raw.runRanges.slice(0, 7).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 206);
-  assert.equal(raw.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 207);
+  assert.equal(raw.runRanges.slice(0, 8).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 207);
+  assert.equal(raw.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 208);
 }
 const CHECKS = ['aligned.authority-grant', 'closed.feedback-completion', 'unique.canonical-responsibility',
   'minimal.necessary-layer', 'measurable.attempt-accounting', 'improving.comparable-evidence'];
@@ -1944,7 +1947,7 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
     }
   }
 }
-const trustedRuntime = 'aa23b0297fdebf0a3d15e7c627079599ff884c94';
+const trustedRuntime = '51af73b48d0fea05931d630180cb2b10e0c3fa30';
 assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], trustedRuntime);
 assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], trustedRuntime);
 assert.ok(currentInvocation.includes('305b5321ebc4d41d5c143cc002b82af71f140b8e')); // Historical runtime facts stay historical.

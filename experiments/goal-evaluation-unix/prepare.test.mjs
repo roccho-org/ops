@@ -326,6 +326,10 @@ const RUN_HEAD = 'c'.repeat(40), WORKFLOW_PATH = '.github/workflows/jev-issue-co
 const WORKFLOW = (() => {
   let text = repoFile(WORKFLOW_PATH).replaceAll(/(ref:\s*|runtime_source=)[0-9a-f]{40}/g, `$1${SHA}`);
   const historicalMetadata = [
+    ['# Two singleton Org run slots; no Repository/Environment copy.',
+      '# One projected Org slot; no Repository/Environment copy.'],
+    ['# Historical grants remain; no rerun spending or automatic ordinal following.',
+      '# Initial four-call history plus 200 authorized additions; no rerun spending.'],
     ['# Closed Org origins; only Ops Issue573 accepts supplied input for the fixed public Apps94 subject.',
       '# Guard binds Org Ops483/envs52/PR511/PR522; runtime is published target-bound source.'],
     ["      (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 573 &&",

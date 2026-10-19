@@ -495,7 +495,7 @@ for (const program of [entry, compatibility]) {
   assert.equal(late.value.cases[1].provider.attemptedHttpCalls, 0); assert.equal(late.value.cases[1].provider.statusClass, 'NOT_RUN');
   assert.ok(late.value.cases[1].result.records.every((x) => x.status === 'EXECUTION_ERROR'));
 }
-// The shipped grant admits one Issue origin, one public subject and one first-attempt run; no provider is called.
+// The shipped grant admits one Issue origin and public subject in two separate first-attempt runs; no provider is called.
 {
   const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   const repository = 'roccho-org/ops';
@@ -508,7 +508,13 @@ for (const program of [entry, compatibility]) {
   assert.equal(selected.callsPerRun, 1);
   assert.equal(selected.range.first, selected.range.last);
   assert.deepEqual(selectRunRange(shipped, { ...run, number: 189 }, origin), { cause: 'NO_RANGE' });
-  assert.deepEqual(selectRunRange(shipped, { ...run, number: 191 }, origin), { cause: 'NO_RANGE' });
+  const provided = selectRunRange(shipped, { ...run, number: 191 }, origin);
+  assert.equal(provided.callsPerRun, 1);
+  assert.equal(provided.range.first, 191);
+  assert.equal(provided.range.last, 191);
+  assert.deepEqual(selectRunRange(shipped, { ...run, number: 192 }, origin), { cause: 'NO_RANGE' });
+  assert.deepEqual(selectRunRange(shipped, { ...run, number: 191, attempt: 2 }, origin), { cause: 'RERUN_NOT_PAID' });
+  assert.deepEqual(selectRunRange(shipped, { ...run, number: 191 }, { kind: 'issue', number: 483 }), { cause: 'RANGE_TARGET_MISMATCH' });
   assert.deepEqual(selectRunRange(shipped, { ...run, attempt: 2 }, origin), { cause: 'RERUN_NOT_PAID' });
   assert.deepEqual(selectRunRange(shipped, run, { kind: 'pull-request', number: 573 }), { cause: 'RANGE_TARGET_MISMATCH' });
   assert.deepEqual(selectRunRange(shipped, run, { kind: 'issue', number: 483 }), { cause: 'RANGE_TARGET_MISMATCH' });

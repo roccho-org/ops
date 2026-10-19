@@ -1,8 +1,8 @@
 name: Jev Issue comment evaluation
 
 # Closed Org origins; only Ops Issue573 accepts supplied input for the fixed public Apps94 subject.
-# One projected Org slot; no Repository/Environment copy.
-# Initial four-call history plus 200 authorized additions; no rerun spending.
+# Two singleton Org run slots; no Repository/Environment copy.
+# Historical grants remain; no rerun spending or automatic ordinal following.
 on:
   issue_comment:
     types: [created]
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: roccho-org/ops
-          ref: aa23b0297fdebf0a3d15e7c627079599ff884c94
+          ref: 51af73b48d0fea05931d630180cb2b10e0c3fa30
           persist-credentials: false
 
       - name: Install fixed toolchain provisioner
@@ -51,7 +51,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          runtime_source=aa23b0297fdebf0a3d15e7c627079599ff884c94
+          runtime_source=51af73b48d0fea05931d630180cb2b10e0c3fa30
           test "$(git rev-parse HEAD)" = "$runtime_source"
           out="$(nix build --no-link --print-out-paths .#jev-review)"
           line="$(grep '^exec ' "$out/bin/jev-review")"
