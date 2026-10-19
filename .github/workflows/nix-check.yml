@@ -71,8 +71,10 @@ jobs:
       - name: Verify Git-bound governance golden fixture
         run: node packages/ops-package-responses/tests/governance-fixture-e2e.mjs --json
       - name: Run flake check
+        # Re-score retained evidence without triggering another provider run.
         run: |
           set -euo pipefail
+          node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs
           log="nix-flake-check.log"
           if ! nix flake check --show-trace >>"$log" 2>&1; then
             tail -n 220 "$log" >&2
