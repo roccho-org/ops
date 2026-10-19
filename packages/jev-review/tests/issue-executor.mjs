@@ -36,7 +36,7 @@ const legacyActionsConfig = () => {
   raw.providedRequestTargets = [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 }];
   return raw;
 };
-// The current published configuration adds exactly one reservation and binds its sole provided origin.
+// Historical per-run reservations stay exact; a shared anchor adds one total call across its event window.
 {
   const raw = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
   validateActionsConfig(raw);
@@ -48,13 +48,17 @@ const legacyActionsConfig = () => {
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 511 },
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
-  assert.deepEqual(raw.runRanges.slice(7), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+  assert.deepEqual(raw.runRanges.slice(7, 9), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
     first: 190, last: 190, reservedCallsPerRun: 1, target: { issue: 573 } },
   { repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
     first: 191, last: 191, reservedCallsPerRun: 1, target: { issue: 573 } }]);
   assert.equal(raw.runRanges.slice(0, 7).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 206);
   assert.equal(raw.runRanges.slice(0, 8).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 207);
-  assert.equal(raw.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 208);
+  assert.equal(raw.runRanges.slice(0, 9).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 208);
+  assert.deepEqual(raw.runRanges.slice(9), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+    first: 207, last: 270, reservedCallsPerRun: 1, target: { issue: 573 }, budgetClaimCommentId: 6260070353 }]);
+  assert.equal(raw.runRanges.reduce((n, r) => n + (r.budgetClaimCommentId === undefined
+    ? r.last - r.first + 1 : 1) * r.reservedCallsPerRun, 0), 209);
 }
 const CHECKS = ['aligned.authority-grant', 'closed.feedback-completion', 'unique.canonical-responsibility',
   'minimal.necessary-layer', 'measurable.attempt-accounting', 'improving.comparable-evidence'];
@@ -202,6 +206,93 @@ const zero = { claim: 0, fetch: 0, post: 0 };
 const outcome = (r) => [r.post.outcome, r.post.cause];
 let scenarios = 0;
 const check = async (name, fn) => { await fn(); scenarios++; };
+
+await check('shared-budget-config-is-issue-only-and-one-call', async () => {
+  const anchored = range({ target: { issue: 483 }, budgetClaimCommentId: 9000 });
+  validateActionsConfig(config({ runRanges: [anchored] }));
+  for (const budgetClaimCommentId of [0, -1, 1.5, '9000', null, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => validateActionsConfig(config({ runRanges: [{ ...anchored, budgetClaimCommentId }] })), /INVALID_ACTIONS_CONFIG/);
+  }
+  const { target, ...withoutTarget } = anchored;
+  for (const invalid of [withoutTarget, { ...anchored, target: { pullRequest: 511 } },
+    { ...anchored, reservedCallsPerRun: 2 }, { ...anchored, unsupported: true }]) {
+    assert.throws(() => validateActionsConfig(config({ runRanges: [invalid] })), /INVALID_ACTIONS_CONFIG/);
+  }
+  assert.throws(() => validateActionsConfig(config({ limits: { ...ENTRY_LIMITS, maxCases: 1, maxCalls: 2 },
+    runRanges: [anchored] })), /INVALID_ACTIONS_CONFIG/);
+});
+
+await check('shared-budget-distinct-concurrent-commands-call-provider-once', async () => {
+  const w = world(), anchor = w.addComment({ body: 'One reviewed budget anchor, not a command.' });
+  const commands = [w.addComment(), w.addComment()];
+  const cfg = config({ runRanges: [range({ first: 3, last: 9, target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+  const results = await Promise.all(commands.map((c, i) => fullRun(w, c, { cfg, run: w.newRun({ run_number: i ? 9 : 3 }) })));
+  assert.equal(results.filter((r) => r.plan.budgetClaimed === true).length, 1);
+  assert.equal(results.filter((r) => r.plan.cause === 'BUDGET_ALREADY_CLAIMED').length, 1);
+  assert.equal(w.calls.fetch, 1);
+  assert.equal(anchor.reactions.filter((r) => r.user === EXECUTOR_LOGIN).length, 1);
+  assert.equal(w.calls.claim, 4);
+});
+
+await check('shared-budget-does-not-broaden-ordinal-or-attempt', async () => {
+  for (const runOver of [{ run_number: 2 }, { run_number: 10 }, { run_number: 3, run_attempt: 2 }]) {
+    const w = world(), anchor = w.addComment(), c = w.addComment();
+    const cfg = config({ runRanges: [range({ first: 3, last: 9, target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+    const r = await fullRun(w, c, { cfg, run: w.newRun(runOver) });
+    assert.equal(r.planBody, undefined);
+    assert.deepEqual(effects(w), zero);
+  }
+});
+
+await check('shared-budget-reread-drift-forfeits-the-slot-for-later-commands', async () => {
+  const w = world(), anchor = w.addComment(), first = w.addComment(), later = w.addComment();
+  w.hooks.afterClaim = (_w, comment, reply) => {
+    if (comment === anchor && reply.status === 201) first.body = '/jev-evaluate changed after claim';
+    return reply;
+  };
+  const cfg = config({ runRanges: [range({ target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+  const stopped = await fullRun(w, first, { cfg });
+  assert.equal(stopped.plan.budgetClaimed, true);
+  assert.equal(stopped.planBody, undefined);
+  assert.equal(w.calls.fetch, 0);
+  const refused = await fullRun(w, later, { cfg });
+  assert.equal(refused.plan.cause, 'BUDGET_ALREADY_CLAIMED');
+  assert.equal(refused.planBody, undefined);
+  assert.equal(w.calls.fetch, 0);
+  assert.equal(w.calls.claim, 4);
+  assert.equal(anchor.reactions.length, 1);
+});
+
+await check('shared-budget-unknown-and-foreign-response-forfeit-without-provider', async () => {
+  for (const response of [new Error('ambiguous delivery'), { status: 201, json: { user: { login: 'foreign' }, content: 'eyes' } },
+    { status: 201, json: { user: { login: EXECUTOR_LOGIN }, content: 'heart' } }, { status: 502, json: {} },
+    { status: { private: 'SYNTHETIC_PRIVATE_STATUS' }, json: {} }, { status: '201', json: {} }, null]) {
+    const w = world(), anchor = w.addComment(), c = w.addComment();
+    w.hooks.afterClaim = (_w, comment, reply) => comment === anchor ? response : reply;
+    const cfg = config({ runRanges: [range({ target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+    const r = await fullRun(w, c, { cfg });
+    assert.equal(r.plan.budgetClaimed, 'UNKNOWN');
+    assert.ok(r.plan.budgetClaimHTTPStatus === null || (Number.isInteger(r.plan.budgetClaimHTTPStatus)
+      && r.plan.budgetClaimHTTPStatus >= 100 && r.plan.budgetClaimHTTPStatus <= 599));
+    assert.equal(JSON.stringify(r.plan).includes('SYNTHETIC_PRIVATE_STATUS'), false);
+    assert.equal(r.planBody, undefined);
+    assert.equal(w.calls.fetch, 0);
+    assert.equal(w.calls.claim, 2);
+    assert.equal(anchor.reactions.length, 1);
+  }
+});
+
+await check('shared-budget-existing-claim-never-releases-or-retries', async () => {
+  const w = world(), anchor = w.addComment({ reactions: [{ user: EXECUTOR_LOGIN }] }), c = w.addComment();
+  const cfg = config({ runRanges: [range({ target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+  const r = await fullRun(w, c, { cfg });
+  assert.equal(r.plan.cause, 'BUDGET_ALREADY_CLAIMED');
+  assert.equal(r.plan.budgetClaimed, false);
+  assert.equal(r.planBody, undefined);
+  assert.equal(w.calls.fetch, 0);
+  assert.equal(w.calls.claim, 2);
+  assert.equal(anchor.reactions.length, 1);
+});
 
 await check('claim-response-allowlist', async () => {
   const empty = { httpStatus: null, requestId: null, acceptedPermissions: null, errorCode: null,

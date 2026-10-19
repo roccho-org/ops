@@ -153,7 +153,10 @@ export function validateActionsConfig(value) {
     || new Set(config.targets.map((target) => JSON.stringify(Object.hasOwn(target, 'pullRequest')
       ? [target.repository, 'pull-request', target.pullRequest] : [target.repository, 'issue']))).size !== config.targets.length
     || config.targets.filter((target) => Object.hasOwn(target, 'pullRequest')).length > 2
-    || !Array.isArray(ranges) || !ranges.every((r) => (exact(r, RANGE_KEYS) || exact(r, [...RANGE_KEYS, 'target']) && rangeTarget(r.target))
+    || !Array.isArray(ranges) || !ranges.every((r) => (exact(r, RANGE_KEYS) || exact(r, [...RANGE_KEYS, 'target']) && rangeTarget(r.target)
+      || exact(r, [...RANGE_KEYS, 'target', 'budgetClaimCommentId']) && rangeTarget(r.target)
+        && Object.hasOwn(r.target, 'issue') && positive(r.budgetClaimCommentId)
+        && r.reservedCallsPerRun === 1 && config.limits.maxCalls === 1)
       && REPOSITORY.test(r.repository) && positive(r.workflowId)
       && WORKFLOW_PATH.test(r.path) && positive(r.first) && positive(r.last) && r.first <= r.last
       && positive(r.reservedCallsPerRun) && r.reservedCallsPerRun <= ENTRY_LIMITS.maxCalls)) throw new Error('INVALID_ACTIONS_CONFIG');
