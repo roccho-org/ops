@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import process from "node:process";
 import {
-  ArtifactAssemblyDiagnosticError,
   assembleArtifact,
+  isArtifactAssemblyDiagnosticError,
   readArtifactLock,
   sha256Tree,
   writeAssemblyReceipt,
@@ -69,6 +69,6 @@ try {
     fail("usage: check-lock|digest-tree|assemble");
   }
 } catch (error) {
-  if (error instanceof ArtifactAssemblyDiagnosticError) failDiagnostic(error);
+  if (isArtifactAssemblyDiagnosticError(error)) failDiagnostic(error);
   fail(error instanceof Error ? error.message : String(error));
 }
