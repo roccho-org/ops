@@ -252,3 +252,78 @@ Offline tests use synthetic responses to verify transport count, mapping,
 thresholds, retained uncertainty and failure handling. Decoder order tests do
 not establish model order invariance. This addition has no live quality,
 latency, token-cost or savings measurement.
+
+
+## JSONL cases and exact raw blocks
+
+`jev/cases` exports `prepareCases(jsonlText)` and
+`runCases(prepared, {provider, maxCalls, signal?})`. Preparation is asynchronous
+only for computed SHA-256 hashes; all nonempty lines are parsed, validated and
+snapshotted before the first hash await. One line is one case:
+
+```json
+{"id":"output-modes","collections":[{"id":"reference","blocks":[{"ref":"reference.txt","revision":"fixture-1","content":"Mode alpha emits text.","evaluationSpan":{"startByte":0,"endByte":22}}]},{"id":"candidate","blocks":[{"ref":"candidate.txt","revision":"fixture-1","content":"Mode alpha emits text.","evaluationSpan":{"startByte":0,"endByte":22}}]}],"question":"Which output behavior is stated?","choices":{"alpha_text":"Mode alpha emits text.","alpha_numbers":"Mode alpha emits numbers."},"thresholds":{"reject":0.2,"accept":0.8}}
+```
+
+Case IDs are unique across all lines. Each case has at least two uniquely named
+collections, each containing at least one block. Its one question stem and
+candidate map apply to every collection; use another JSONL object for another
+question. Unknown fields, malformed lines, duplicate case/collection IDs and
+invalid or empty definitions are refused before any provider call. JSON parsing
+does not detect duplicate raw object keys; ID checks apply to decoded values.
+
+A block is one inline original snapshot, with a half-open UTF-8 byte span.
+`startByte` and `endByte` must be safe integers on character boundaries with
+`0 <= startByte < endByte <= UTF8length(content)`. Whole content uses
+`[0, UTF8length(content)]`. Text is not normalized, reconstructed or truncated.
+Lone-surrogate replacement is refused, and leading U+FEFF is preserved.
+Block order is retained and selected fragments are joined with exactly two LF
+characters.
+
+The immutable, identity-branded prepared object contains `plannedCalls` and
+`preview`: every logical case/collection slot with its exact state, question,
+choices, thresholds and block provenance, selected text, spans, raw-content
+SHA-256 and selected-text SHA-256. The runner consumes that same captured
+preview. A serialized copy or caller-constructed object cannot replace it.
+`prepareMultiSelect(request, thresholds)` is the shared pure input planner
+used by both the API and case preparation; it makes no provider call.
+
+```js
+import {prepareCases, runCases} from "jev/cases";
+const prepared = await prepareCases(jsonlText);
+const dry = await runCases(prepared, {maxCalls: 0}); // every slot remains NOT_RUN
+const report = await runCases(prepared, {provider, maxCalls: 2});
+```
+
+`maxCalls` is an explicit nonnegative safe integer, with no implicit execution
+budget. Slots run sequentially, one API invocation per case/collection, with no
+hidden deduplication or retry and no combination of collection states.
+`admittedCalls` counts API invocations admitted by this runner, including a
+local binding failure; it does not measure HTTP requests, model evaluations or
+billing. All slots are returned, including the remainder after a budget stop,
+failure or cancellation.
+
+Each slot has `execution` OBSERVED, ERROR, UNKNOWN or NOT_RUN, an `answer`
+(the complete API result only for OBSERVED), and a closed `cause`.
+HTTP errors, invalid response JSON, missing authentication and invalid decoded
+answers are ERROR. Timeout, cancellation and network failures are UNKNOWN;
+unrecognized failures use a generic closed cause, without raw exception text.
+ERROR does not prove zero remote work or zero cost. The first failure stops
+execution and preserves remaining slots as NOT_RUN. Cancellation before the
+first invocation admits no calls. A changed resolved model retains that
+slot's observed answer but stops the run as incomplete.
+
+The outer `status` is COMPLETE only when all slots were observed, none remains
+undecided, and no stop occurred; REVIEW means all were observed but at least
+one needs a decision; otherwise it is INCOMPLETE. `stop` records a closed code
+and logical slot. Low scores and empty selections never become source absence,
+unrun evidence or an equality/coverage verdict.
+
+Ref/revision declarations and computed hashes bind supplied bytes; they do not
+authenticate a Git source or prove semantic context completeness. Producers
+resolve Git, AST, CST or marker selections into snapshots before this API.
+Those resolvers, implicit helper discovery, filesystem access and legacy
+comparison relations are outside this package path. JSONL definitions and
+returned results are separate; no registry, database, cache or evidence store
+is created. The full path is exercised with offline synthetic fixtures only,
+not a live quality, cost, latency, usability or resolver benchmark.

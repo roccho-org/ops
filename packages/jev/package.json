@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/client.mjs",
     "./cli": "./cli/index.mjs",
-    "./multi-select": "./src/multi-select.mjs"
+    "./multi-select": "./src/multi-select.mjs",
+    "./cases": "./src/cases.mjs"
   }
 }
