@@ -19,7 +19,16 @@ const project = (value, subject, options = {}) => projectPlan(value, subject, { 
 const sha256 = value => createHash('sha256').update(value, 'utf8').digest('hex');
 const repoFile = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
 // The reviewed shipped settings, read unchanged, serve only as the admission oracle for this synthetic case.
-const SETTINGS = JSON.parse(repoFile('packages/jev-review/issue-actions.json'));
+// These historical PR536 fixtures keep the settings under which their bytes were recorded.
+const SETTINGS = (() => {
+  const raw = JSON.parse(repoFile('packages/jev-review/issue-actions.json'));
+  const origin = raw.targets.find((t) => t.repository === 'roccho-org/ops' && t.issue === 573);
+  origin.issue = 483;
+  delete origin.subject;
+  raw.runRanges = raw.runRanges.filter((r) => r.target?.issue !== 573);
+  raw.providedRequestTargets = [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 }];
+  return raw;
+})();
 const REPO = 'roccho-org/ops', NUMBER = 536, SHA = 'a'.repeat(40), NODE = 'PR_test536';
 const TARGET = { repository: REPO, number: NUMBER };
 const BODY = 'Adds a retry for the delivery job. The job records each attempt and reads back the final destination state.';
@@ -313,7 +322,26 @@ test('the Plan missing list survives every projection outcome, including the aut
 // N-a fixtures: synthetic observations shaped like the public REST documents and the executor's printed plan receipt.
 const RUN_HEAD = 'c'.repeat(40), WORKFLOW_PATH = '.github/workflows/jev-issue-comment.yml';
 // The repository's own workflow text, with its two runtime pins pointed at the synthetic runtime source SHA.
-const WORKFLOW = repoFile(WORKFLOW_PATH).replaceAll(/(ref:\s*|runtime_source=)[0-9a-f]{40}/g, `$1${SHA}`);
+// Restore only historical receipt metadata; current workflow admission is tested separately.
+const WORKFLOW = (() => {
+  let text = repoFile(WORKFLOW_PATH).replaceAll(/(ref:\s*|runtime_source=)[0-9a-f]{40}/g, `$1${SHA}`);
+  const historicalMetadata = [
+    ['# Closed Org origins; only Ops Issue573 accepts supplied input for the fixed public Apps94 subject.',
+      '# Guard binds Org Ops483/envs52/PR511/PR522; runtime is published target-bound source.'],
+    ["      (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 573 &&",
+      "      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 522 &&"],
+    ["((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) ||",
+      "((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) ||"],
+    ['      github.event.issue.number == 511))',
+      '      (github.event.issue.number == 511 || github.event.issue.number == 522)))'],
+  ];
+  for (const [current, historical] of historicalMetadata) {
+    assert.equal(text.split(current).length - 1, 1);
+    text = text.replace(current, historical);
+  }
+  assert.equal(sha256(text), '1c8e905f88e20f326c71b0c3e20230807cc60a3ef11182b7b0947989326cc6bd');
+  return text;
+})();
 const ACTIVATION = 'f'.repeat(40);
 const APPROVED = { repository: REPO, number: NUMBER, principal: 'roccho-dev', commandBody: '/jev-evaluate', workflowId: RUN.workflowId,
   workflowPath: WORKFLOW_PATH, runRange: { first: 104, last: 105 }, runtimeSource: SHA, activationCommit: ACTIVATION };
