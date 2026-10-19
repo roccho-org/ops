@@ -2038,7 +2038,7 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
     }
   }
 }
-const trustedRuntime = '51af73b48d0fea05931d630180cb2b10e0c3fa30';
+const trustedRuntime = '2d7e43c307e0a341e5c19841253decb2c311212a';
 assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], trustedRuntime);
 assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], trustedRuntime);
 assert.ok(currentInvocation.includes('305b5321ebc4d41d5c143cc002b82af71f140b8e')); // Historical runtime facts stay historical.
