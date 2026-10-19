@@ -137,6 +137,18 @@
       "target": {
         "issue": 573
       }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 207,
+      "last": 270,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 573
+      },
+      "budgetClaimCommentId": 6260070353
     }
   ],
   "targets": [

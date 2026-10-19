@@ -201,6 +201,18 @@ export async function planIssueCommand(ctx, configValue, deps) {
     return end('UNKNOWN', claim ? 'CLAIM_NOT_OURS' : 'CLAIM_UNKNOWN', { claimed: 'UNKNOWN' });
   }
   receipt.claimed = true;
+  // A reviewed anchor shares one authorization across commands and unrelated workflow events.
+  // The existing per-command claim remains; an unknown anchor effect is never retried or released.
+  if (selected.range.budgetClaimCommentId !== undefined) {
+    const anchor = await call(deps, 'POST', `repos/${ctx.repository}/issues/comments/${selected.range.budgetClaimCommentId}/reactions`, { content: CLAIM.rest });
+    receipt.budgetClaimCommentId = selected.range.budgetClaimCommentId;
+    receipt.budgetClaimHTTPStatus = claimResponseDiagnostics(anchor).httpStatus;
+    if (anchor?.status === 200) return end('NONE', 'BUDGET_ALREADY_CLAIMED', { budgetClaimed: false });
+    if (!anchor || anchor.status !== 201 || anchor.json?.user?.login !== EXECUTOR_LOGIN || anchor.json?.content !== CLAIM.rest) {
+      return end('UNKNOWN', anchor ? 'BUDGET_CLAIM_NOT_OURS' : 'BUDGET_CLAIM_UNKNOWN', { budgetClaimed: 'UNKNOWN' });
+    }
+    receipt.budgetClaimed = true;
+  }
   // Checkpoint before any paid call: same subject, same command, exactly our claim, workflow still active.
   const again = await observe(deps, ctx.repository, e.issue.number, e.comment.node_id, e.comment.id, targetKind);
   if (!again) return end('NONE', 'REREAD_UNKNOWN');
