@@ -26,11 +26,12 @@ semlint-core/
 ├─ pyproject.toml                 package/build metadata
 ├─ src/semlint_core/__init__.py   request bytes, grouping, validity and status
 ├─ tests/test_core.py             offline contract vectors and negative controls
-├─ tests/run.mjs                  standard CI launcher for the generated test command
+├─ tests/run.mjs                  standard CI launcher for source and distribution checks
+├─ tests/distribution.py         fresh-wheel contents and isolated installed-consumer check
 └─ README.md                     public contract and limits
 
 build/packages.jsonl             existing runtime/package declaration (Python)
-build/checks.jsonl               existing source-mode check declaration
+build/checks.jsonl               existing source and distribution check declaration
 ```
 
 A collection is `{id, units:[{ref, revision, text, sha256}]}`. Unit text is
@@ -151,31 +152,52 @@ takes precedence over a non-exact record. They never fabricate source or answers
 The existing build JSONL declares the Python runtime and generated
 `semlint-core-check` test command. The existing generated check runs
 `tests/run.mjs`, which directly invokes that command with `--source` and
-propagates its output and failure. No purity rule, flake or workflow is changed.
-CI tests the source; the installed-wheel verification below is separate.
+propagates its output and failure. It then runs `tests/distribution.py` with
+the declared Python and uv tools. No purity rule, flake or workflow is changed.
+The two gates test source mechanics and the actual fresh distribution separately.
 
 ## Offline validation and distribution
 
 From this package directory, with the existing Python (no key or provider):
 ```sh
 python3 -I -B tests/test_core.py --source
-uv build --offline --out-dir /absolute/evidence/wheels .
-uv venv --offline --python /absolute/system/python /absolute/evidence/venv
-uv pip install --offline --python /absolute/evidence/venv/bin/python /absolute/evidence/wheels/semlint_core-0.1.0-py3-none-any.whl
-/absolute/evidence/venv/bin/python -I -B tests/test_core.py
+python3 -B tests/distribution.py
 ```
 
 Only the explicit test-only `--source` option adds `src` to the test harness
 import path. The installed-wheel test has no import fallback. Consumer code uses
 the installed package, including under `python -I`.
 
+The distribution check uses standard offline `uv build`, `uv venv` and
+`uv pip install`, with an explicit existing Python and Python downloads disabled.
+It builds into a fresh test directory and reads every wheel entry. For this
+package's current single-module layout, the only file payloads are the module,
+METADATA, WHEEL and RECORD; the two ordinary empty directory entries are allowed.
+Module bytes match source, metadata fields match `pyproject.toml`, its body is
+the exact README, and RECORD hashes and sizes bind every payload.
+
+Three synthetic in-memory payload changes must fail specifically for a changed
+README body, changed module bytes or an extra entry. They are never installed.
+Only the normal fresh wheel is installed into a fresh virtual environment.
+The check confirms the actual imported module and distribution metadata are
+inside that environment and match the wheel/source, then runs the unchanged
+core tests with `-I -B`, without `--source` or an import fallback.
+
+This is a package-specific regression check, not a general wheel safety verifier.
+Its closed metadata/header and payload expectations describe this declared
+package layout. It neither reuses an old wheel nor inspects a consumer project.
+Test directories are retained for inspection; the check never recursively
+deletes them. The normal Nix/CI workspace owns their lifetime.
+
 Consumers pin the merged package revision and `packages/semlint-core`
-subdirectory in their lock. Offline installation requires that revision and the
-build backend in the local cache. Where source verification is required, verify
+subdirectory in their lock. Offline installation requires that revision and a compatible
+build backend. uv uses its bundled backend when it satisfies the declared range;
+otherwise the required backend must already be available offline. Where source verification is required, verify
 the installed module bytes; a package version alone does not prove exact source
 bytes. Missing dependencies or a wrong core identity fail closed.
 
 These tests prove deterministic mechanics and package consumption for declared
 examples. They do not measure model accuracy, unknown-case coverage, savings or
-the completion of a consumer's migration. The registered upstream check runs source-mode tests; report installed-wheel
-evidence separately and bind both results to the exact source head.
+the completion of a consumer's migration. The registered upstream check now runs
+both source and fresh-distribution checks; bind both results to the exact source
+head and report unavailable or unrun checks separately.
