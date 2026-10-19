@@ -57,6 +57,29 @@ eventsの不正な最終未完行だけはtruncatedフラグ付きで除外し�
 
 途中失敗時のFA/FR/合格後リスク値はnullとし、未判定を暗黙の正解にして誤り率0を表示しない。分子・予定分母・失敗/未実行件数は残す。
 
-## 現在の状態
-SOURCE_PREPARATION。実採点0、実artifact未取得。通常試験の合格を実測へ読み替えない。
+## 実測結果（2026-10-20 JST）
+
+**測定経路は成立した。ただし、この自己採点だけで改善を採用する根拠は得られなかった。**
+
+source6c729a1aの[nix-check39332562168](https://github.com/roccho-org/ops/actions/runs/39332562168)は鍵なし300/300・fresh consumerを含め成功。DS双方の実source反証を是正後、activation1e2df792（親6c、開始入力だけの差分）を一回push。[実run39333984688](https://github.com/roccho-org/ops/actions/runs/39333984688)はattempt1で成功。native履歴total1、追加run/retry/refillなし。
+
+|観測|結果|
+|---|---:|
+|実Jev採点・coverage|18/18、abstain0、error0、notRun0|
+|誤りを合格FA|1/4 = 25%|
+|正解を不合格FR|6/14 = 42.9%|
+|合格したものに残る誤り|1/9 = 11.1%|
+|元の固定Gold正解率|5/9→9/9（+4/9）|
+|Jev自己採点のaccept率|4/9→5/9（+1/9）|
+|同一requestの5組|choice不一致0/5（有限確認）|
+|実際に改善した4組への採点|改善と判定2、逆方向1、両方reject1|
+|入力/出力tokens|19076 / 720、usage報告18/18|
+|各判定処理時間の合計|1951.52ms（job全体時間ではない）|
+|金額|UNKNOWN|
+
+逆方向のu83kでは、元の誤分類をaccept・修正後の正分類をrejectした。a46vでは誤分類も正分類もrejectした。自己採点の増分+1/9を独立な品質増分+4/9と取り違えない。固定9例・誤り4件であり、母集団精度/統計的検出力/自己修正因果効果を確立したものではない。afterは全件正しいためafter FAは分母0で推定不能。q11/q12の命令混入対照を含むpooled率をclean calibrationと呼ばない。
+
+artifact12226221227（19449bytes、provider digest sha256:61083d50bb536b66678aed8d51349d156d20406e2702374e2f6bf922e89250d2）を実取得し、archive hash/size照合、全6fileのbytes一致、canonical input/Gold/全18request/保存metricの再計算一致を確認。原fileとnative receiptは[results/self-grading-20261020](results/self-grading-20261020)へ保持し、self-grading-evidence.test.mjsで再推論なしに再検証する。
+
+**OBSERVATION_COMPLETEはこの有限校正の収集完了であり、judge品質PASSではない。** 自己修正pipeline・Apps実行はNOT_TESTED。既存Bestを自己採点だけで変更しない。過去43-call試行は閉じたまま、このpilotの18callで停止。merge/close/本番採用は行わない。
 
