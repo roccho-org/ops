@@ -199,7 +199,8 @@ It is separate from single-option Choice and the named-choice Worker artifact.
 Question and candidate text are preserved verbatim, including conditions.
 Candidate IDs are opaque metadata, mapped to neutral wire question IDs and
 returned safely even for IDs such as `__proto__`. Output IDs are sorted by
-JavaScript string comparison. State accepts JSON strings, objects and arrays;
+JavaScript string comparison. State accepts JSON strings, objects and arrays,
+with nesting depth at most 64;
 non-JSON values, cycles, accessors and implicit `toJSON` conversions are refused.
 Empty text remains representable; its applicability and sufficiency belong to
 the caller. Structured candidate descriptions are outside this adapter.
