@@ -1,0 +1,89 @@
+name: Sys1 paired improvement proof
+
+on:
+  push:
+    branches: [codex/jev-improvement-closure-20261019]
+    paths: [experiments/sys1-eval-loop/live-request.json]
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: sys1-improvement-proof
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    if: github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      TRIAL_SUITE: role-boundaries
+      TRIAL_SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify contracts and stopping decisions without credentials
+        run: node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs
+      - name: Read the bounded request before credentials
+        id: request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const r=JSON.parse(fs.readFileSync('experiments/sys1-eval-loop/live-request.json','utf8'));
+          assert.deepEqual(Object.keys(r).sort(),['candidate','phase']);
+          assert.ok(['baseline','candidate'].includes(r.phase));
+          assert.match(r.candidate,/^[a-z][a-z0-9-]{0,39}$/);
+          // Provider history is the run identity; no second execution ledger.
+          const url=`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/actions/workflows/sys1-improvement-proof.yml/runs?branch=codex%2Fjev-improvement-closure-20261019&event=push&per_page=100`;
+          const response=await fetch(url,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`}});
+          assert.equal(response.status,200);
+          const history=await response.json();
+          assert.equal(history.total_count,r.phase==='baseline'?1:2);
+          assert.ok(history.workflow_runs.some(x=>String(x.id)===process.env.GITHUB_RUN_ID));
+          const prior=history.workflow_runs.filter(x=>String(x.id)!==process.env.GITHUB_RUN_ID);
+          assert.ok(prior.every(x=>x.status==='completed'&&x.conclusion==='success'));
+          if(r.phase==='baseline') assert.equal(r.candidate,'baseline');
+          else {
+            const {next}=await import('./experiments/sys1-eval-loop/next.mjs');
+            const b=JSON.parse(fs.readFileSync('experiments/sys1-eval-loop/results/closure-20261019/baseline.json','utf8'));
+            assert.equal(next(b).action,'PROPOSE_ONE_CANDIDATE');
+            assert.notEqual(r.candidate,'baseline');
+            assert.equal(b.runUrl,prior[0].html_url);
+            const {loadInput}=await import('./experiments/sys1-eval-loop/run.mjs');
+            const i=loadInput(`experiments/sys1-eval-loop/candidates/${r.candidate}.json`,'experiments/sys1-eval-loop/suites/role-boundaries');
+            assert.equal(i.contractDigest,b.contractDigest);
+            assert.equal(i.contract.goldSha256,b.goldDigest);
+            assert.deepEqual(b.models,[i.contract.expectedModel]);
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,`candidate=${r.candidate}\nphase=${r.phase}\n`);
+          JS
+      - name: Evaluate once with the existing Jev client; no retry
+        env:
+          JEV_API_KEY: ${{ secrets.JEV_API_KEY }}
+          CANDIDATE: ${{ steps.request.outputs.candidate }}
+        run: node experiments/sys1-eval-loop/run.mjs evaluate "$CANDIDATE" "$RUNNER_TEMP/sys1-result"
+      - name: Score with the fixed Gold without a credential
+        if: always() && steps.request.outcome == 'success'
+        env:
+          CANDIDATE: ${{ steps.request.outputs.candidate }}
+          PHASE: ${{ steps.request.outputs.phase }}
+        run: |
+          node experiments/sys1-eval-loop/run.mjs score "$CANDIDATE" "$RUNNER_TEMP/sys1-result"
+          if [ "$PHASE" = baseline ]; then
+            node experiments/sys1-eval-loop/next.mjs "$RUNNER_TEMP/sys1-result/scored.json"
+          else
+            node experiments/sys1-eval-loop/next.mjs experiments/sys1-eval-loop/results/closure-20261019/baseline.json "$RUNNER_TEMP/sys1-result/scored.json"
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: sys1-improvement-${{ github.run_id }}
+          path: ${{ runner.temp }}/sys1-result
+          if-no-files-found: ignore
+          retention-days: 30
