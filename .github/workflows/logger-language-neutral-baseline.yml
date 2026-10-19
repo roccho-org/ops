@@ -1,0 +1,158 @@
+name: logger-language-neutral-baseline
+
+on:
+  pull_request:
+    branches:
+      - proposals
+    paths:
+      - ".github/workflows/logger-language-neutral-baseline.yml"
+      - "packages/structured-diagnostic/**"
+      - "packages/artifact-assembly/**"
+      - "packages/shiftleft-admission/adapters/artifact_assembly_candidate.mjs"
+      - "packages/shiftleft-admission/fixtures/diagnostic/**"
+      - "packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs"
+      - "packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  observe-baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Ops observation head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout exact Apps corrected-scope T0
+        uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/apps
+          ref: c91bab56ec5e769d9788453a098a289115cdaa92
+          path: apps-baseline
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.16.0"
+
+      - name: Observe fixed two-repository baseline
+        env:
+          APPS_BASELINE: ${{ github.workspace }}/apps-baseline
+        run: |
+          set -euo pipefail
+          mkdir -p out/logger-language-neutral-baseline
+          node packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs \
+            > out/logger-language-neutral-baseline/finding.json
+          jq -e '
+            .kind == "ops.logger-language-neutral.baseline-finding" and
+            .authority == false and
+            .admittedNormativeViolation == false and
+            .candidate.meaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
+            .baseline.correctedScopeT0[0].revision == "d1ed2594aa6112f931ff3996c89d8fde8aed8690" and
+            .baseline.correctedScopeT0[1].revision == "c91bab56ec5e769d9788453a098a289115cdaa92" and
+            .coverage.applicable == 13 and
+            .coverage.evaluated == 13 and
+            .coverage.met == 8 and
+            .coverage.unmet == 5 and
+            .coverage.unknown == 0 and
+            .coverage.conflict == 0 and
+            .coverage.stale == 0 and
+            .finding.unmet == [
+              "cross_language_interoperability",
+              "environment_transport",
+              "supply_consumption_binding",
+              "bounded_safe_failure",
+              "causal_design_closure"
+            ] and
+            .repairAllowed == false and
+            (.supportMatrix.runtimeProfiles | keys | length) == 5 and
+            .supportMatrix.crossRepository.baselineStatus == "unmet"
+          ' out/logger-language-neutral-baseline/finding.json >/dev/null
+          cat out/logger-language-neutral-baseline/finding.json
+
+      - name: Assemble independently readable evidence
+        run: |
+          set -euo pipefail
+          root=out/logger-language-neutral-baseline
+          mkdir -p \
+            "$root/source/ops/packages/structured-diagnostic/lib" \
+            "$root/source/ops/packages/structured-diagnostic/adapters" \
+            "$root/source/apps/packages/voice-ui/src" \
+            "$root/source/apps/packages/voice-ui/web"
+          cp packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs "$root/evaluator.mjs"
+          cp packages/structured-diagnostic/contract.json "$root/source/ops/packages/structured-diagnostic/contract.json"
+          cp packages/structured-diagnostic/README.md "$root/source/ops/packages/structured-diagnostic/README.md"
+          cp packages/structured-diagnostic/lib/diagnostic.mjs "$root/source/ops/packages/structured-diagnostic/lib/diagnostic.mjs"
+          cp packages/structured-diagnostic/adapters/node.mjs "$root/source/ops/packages/structured-diagnostic/adapters/node.mjs"
+          cp apps-baseline/flake.nix "$root/source/apps/flake.nix"
+          cp apps-baseline/packages/voice-ui/src/log.mjs "$root/source/apps/packages/voice-ui/src/log.mjs"
+          cp apps-baseline/packages/voice-ui/web/app.mjs "$root/source/apps/packages/voice-ui/web/app.mjs"
+          jq -n \
+            --arg workflowRunId "$GITHUB_RUN_ID" \
+            --arg observationHead "$GITHUB_SHA" \
+            --arg opsT0 "d1ed2594aa6112f931ff3996c89d8fde8aed8690" \
+            --arg opsTree "27c40aee9b923129e0feefa8477da711155c8384" \
+            --arg appsT0 "c91bab56ec5e769d9788453a098a289115cdaa92" \
+            --arg appsTree "a32423848d2298b4c54cf43cd22119859f25c905" \
+            --arg meaning "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" \
+            '{
+              schema: "ops.logger-language-neutral.baseline-evidence/1",
+              authority: false,
+              workflowRunId: $workflowRunId,
+              observationHead: $observationHead,
+              correctedScopeT0: [
+                {repository: "roccho-org/ops", revision: $opsT0, tree: $opsTree},
+                {repository: "roccho-dev/apps", revision: $appsT0, tree: $appsTree}
+              ],
+              candidateMeaningSha256: $meaning,
+              repairAllowed: false
+            }' > "$root/metadata.json"
+          (
+            cd "$root"
+            find . -type f ! -name SHA256SUMS -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS
+            sha256sum -c SHA256SUMS
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: logger-language-neutral-baseline-${{ github.run_id }}
+          path: out/logger-language-neutral-baseline/
+          if-no-files-found: error
+          retention-days: 30
+
+  independent-readback:
+    needs: observe-baseline
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: logger-language-neutral-baseline-${{ github.run_id }}
+          path: evidence
+
+      - name: Read back exact baseline evidence
+        run: |
+          set -euo pipefail
+          cd evidence
+          sha256sum -c SHA256SUMS
+          jq -e '
+            .authority == false and
+            .candidateMeaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
+            .correctedScopeT0[0].tree == "27c40aee9b923129e0feefa8477da711155c8384" and
+            .correctedScopeT0[1].tree == "a32423848d2298b4c54cf43cd22119859f25c905" and
+            .repairAllowed == false
+          ' metadata.json >/dev/null
+          jq -e '
+            .coverage.applicable == 13 and
+            .coverage.met == 8 and
+            .coverage.unmet == 5 and
+            .coverage.unknown == 0 and
+            .coverage.conflict == 0 and
+            .coverage.stale == 0 and
+            .repairAllowed == false
+          ' finding.json >/dev/null
