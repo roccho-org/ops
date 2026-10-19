@@ -56,8 +56,8 @@ test("explicit threshold endpoints are inclusive; all candidates may be selected
   assert.equal((await invoke(response([0, 0, 1, 1]), {thresholds: {reject: 0, accept: 1}})).status, "COMPLETE");
 });
 test("conditional candidate text and question bytes are preserved; IDs are metadata", async () => {
-  const input = {state: "DEV uses MFA; STG uses a role.", question: "  Which conditional requirements hold?\n",
-    choices: {opaque_a: " DEV requires MFA.\n", opaque_b: "STG requires a role.", opaque_c: "DEV requires a role.", opaque_d: "STG requires MFA."}};
+  const input = {state: "Mode alpha emits text; mode beta emits numbers.", question: "  Which conditional requirements hold?\n",
+    choices: {opaque_a: " Mode alpha emits text.\n", opaque_b: "Mode beta emits numbers.", opaque_c: "Mode alpha emits numbers.", opaque_d: "Mode beta emits text."}};
   await invoke(response(), {request: input, provider: provider(response(), (_, init) => {
     const wire = JSON.parse(init.body);
     assert.equal(wire.questions.q0.instructions.question, input.question);
