@@ -10,21 +10,26 @@ import { extractNpmTgz } from "./tar.mjs";
 
 export const SOURCE_DIGEST_MISMATCH_DIAGNOSTIC_CODE = "artifact-assembly.source-digest-mismatch";
 
-export class ArtifactAssemblyDiagnosticError extends Error {
-  constructor({ code, fields, message }, options = {}) {
-    super(message, options);
-    this.name = "ArtifactAssemblyDiagnosticError";
-    this.diagnostic = Object.freeze({
-      schema: "diagnostic/1",
-      code,
-      level: "error",
-      message,
-      fields: Object.freeze({ ...fields }),
-    });
-  }
-}
+const diagnosticErrors = new WeakSet();
 
-const sourceDigestMismatch = (row, actualSha256) => new ArtifactAssemblyDiagnosticError({
+const artifactAssemblyDiagnosticError = ({ code, fields, message }, options = {}) => {
+  const error = new Error(message, options);
+  error.name = "ArtifactAssemblyDiagnosticError";
+  error.diagnostic = Object.freeze({
+    schema: "diagnostic/1",
+    code,
+    level: "error",
+    message,
+    fields: Object.freeze({ ...fields }),
+  });
+  diagnosticErrors.add(error);
+  return error;
+};
+
+export const isArtifactAssemblyDiagnosticError = (value) =>
+  value instanceof Error && diagnosticErrors.has(value);
+
+const sourceDigestMismatch = (row, actualSha256) => artifactAssemblyDiagnosticError({
   code: SOURCE_DIGEST_MISMATCH_DIAGNOSTIC_CODE,
   message: `lock ${row.id}: npm tgz digest mismatch`,
   fields: {
