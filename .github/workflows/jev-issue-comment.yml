@@ -1,7 +1,7 @@
 name: Jev Issue comment evaluation
 
 # Closed Org origins; only Ops Issue573 accepts supplied input for the fixed public Apps94 subject.
-# Historical singleton slots remain; the current event window shares one claim. No secret copy.
+# Two singleton Org run slots; no Repository/Environment copy.
 # Historical grants remain; no rerun spending or automatic ordinal following.
 on:
   issue_comment:
