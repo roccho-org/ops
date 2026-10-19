@@ -8,6 +8,34 @@ import { inspectPackageExport } from "./package-export.mjs";
 import { assertSafeRelativePath, resolveInside, toPosix } from "./path.mjs";
 import { extractNpmTgz } from "./tar.mjs";
 
+export const SOURCE_DIGEST_MISMATCH_DIAGNOSTIC_CODE = "artifact-assembly.source-digest-mismatch";
+
+export class ArtifactAssemblyDiagnosticError extends Error {
+  constructor({ code, fields, message }, options = {}) {
+    super(message, options);
+    this.name = "ArtifactAssemblyDiagnosticError";
+    this.diagnostic = Object.freeze({
+      schema: "diagnostic/1",
+      code,
+      level: "error",
+      message,
+      fields: Object.freeze({ ...fields }),
+    });
+  }
+}
+
+const sourceDigestMismatch = (row, actualSha256) => new ArtifactAssemblyDiagnosticError({
+  code: SOURCE_DIGEST_MISMATCH_DIAGNOSTIC_CODE,
+  message: `lock ${row.id}: npm tgz digest mismatch`,
+  fields: {
+    actual_sha256: actualSha256,
+    expected_sha256: row.sha256,
+    source_id: row.id,
+    source_kind: row.kind,
+    source_revision: row.revision ?? null,
+  },
+});
+
 const copyDirectory = (source, destination, occupied) => {
   const entries = fs.readdirSync(source, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name));
   fs.mkdirSync(destination, { recursive: true });
@@ -67,7 +95,7 @@ const processFile = (row, source, stagingRoot, occupied) => {
 
 const processNpmTgz = (row, source, stagingRoot, occupied, scratchRoot) => {
   const digest = sha256File(source);
-  if (digest !== row.sha256) throw new Error(`lock ${row.id}: npm tgz digest mismatch`);
+  if (digest !== row.sha256) throw sourceDigestMismatch(row, digest);
   const packageRoot = path.join(scratchRoot, row.id);
   extractNpmTgz(source, packageRoot);
   const inspected = inspectPackageExport(packageRoot, row);

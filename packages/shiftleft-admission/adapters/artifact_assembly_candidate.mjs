@@ -34,6 +34,14 @@ const HOST_OWNED_FIELDS = Object.freeze([
   "final",
 ]);
 
+const SOURCE_BINDING_FIELDS = Object.freeze([
+  "source_id",
+  "source_kind",
+  "source_revision",
+  "expected_sha256",
+  "actual_sha256",
+]);
+
 const lines = (text) => {
   if (text === "") return [];
   const result = text.split("\n");
@@ -43,27 +51,129 @@ const lines = (text) => {
 
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 
+const diagnosticSha256 = (diagnostic) => sha256(Buffer.from(`${JSON.stringify(diagnostic)}\n`, "utf8"));
+
 const observationId = (value) => sha256(Buffer.from(JSON.stringify(value), "utf8"));
 
 const evidence = (status, detail, extra = {}) => ({ status, detail, ...extra });
 
-const parseDiagnostics = (stderr, contract) => {
+const expectedSourceBinding = (source) => ({
+  source_id: source.id,
+  source_kind: source.kind,
+  source_revision: source.revision ?? null,
+  expected_sha256: source.lockSha256,
+  actual_sha256: source.actualSha256,
+});
+
+const sourceBindingDifferences = (diagnostic, source) => {
+  const expected = expectedSourceBinding(source);
+  const observed = diagnostic.fields ?? {};
+  return SOURCE_BINDING_FIELDS
+    .filter((field) => observed[field] !== expected[field])
+    .map((field) => ({ field, expected: expected[field], observed: observed[field] ?? null }));
+};
+
+export function consumeArtifactAssemblyDiagnostic({
+  contractMeaningSha256,
+  diagnostic,
+  line,
+  source,
+}) {
+  if (diagnostic.code !== REQUIRED_DIAGNOSTIC_CODE) {
+    return {
+      accepted: false,
+      reason: "diagnostic-code",
+      diagnosticCode: diagnostic.code,
+      diagnosticLine: line,
+      messageParsingUsed: false,
+    };
+  }
+
+  const differences = sourceBindingDifferences(diagnostic, source);
+  if (differences.length > 0) {
+    return {
+      accepted: false,
+      reason: "source-binding",
+      diagnosticCode: diagnostic.code,
+      diagnosticLine: line,
+      diagnosticSha256: diagnosticSha256(diagnostic),
+      differences,
+      messageParsingUsed: false,
+    };
+  }
+
+  return {
+    accepted: true,
+    reason: null,
+    classification: {
+      type: FAILURE_CLASSIFICATION,
+      nextAction: NEXT_ACTION,
+      diagnosticLine: line,
+      diagnosticCode: diagnostic.code,
+      diagnosticSha256: diagnosticSha256(diagnostic),
+      messageParsingUsed: false,
+      binding: {
+        contractMeaningSha256,
+        ...expectedSourceBinding(source),
+      },
+    },
+  };
+}
+
+export function consumeArtifactAssemblyStderr({
+  contract,
+  contractMeaningSha256,
+  source,
+  stderr,
+}) {
   const diagnostics = [];
   const invalid = [];
+  const consumptions = [];
+  const hostFields = [];
+
   for (const [index, line] of lines(stderr).entries()) {
     if (line.trim() === "") {
       invalid.push({ line: index + 1, code: "DIAGNOSTIC_JSONL_EMPTY_LINE", detail: "blank stderr line" });
       continue;
     }
     try {
-      diagnostics.push({ line: index + 1, value: parseDiagnosticLine(line, contract) });
+      const raw = JSON.parse(line);
+      if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+        for (const field of HOST_OWNED_FIELDS) {
+          if (Object.hasOwn(raw, field)) hostFields.push({ line: index + 1, field });
+        }
+      }
+    } catch {
+      // Contract parsing below owns the invalid-JSON result.
+    }
+    try {
+      const value = parseDiagnosticLine(line, contract);
+      const parsed = { line: index + 1, value };
+      diagnostics.push(parsed);
+      consumptions.push({
+        line: parsed.line,
+        value,
+        result: consumeArtifactAssemblyDiagnostic({
+          contractMeaningSha256,
+          diagnostic: value,
+          line: parsed.line,
+          source,
+        }),
+      });
     } catch (error) {
       if (!(error instanceof DiagnosticContractError)) throw error;
       invalid.push({ line: index + 1, code: error.code, detail: error.message });
     }
   }
-  return { diagnostics, invalid };
-};
+
+  return {
+    diagnostics,
+    invalid,
+    consumptions,
+    hostFields,
+    accepted: consumptions.find(({ result }) => result.accepted) ?? null,
+  };
+}
 
 const stdoutDiagnosticRows = (stdout, contract) => {
   const rows = [];
@@ -81,9 +191,6 @@ const stdoutDiagnosticRows = (stdout, contract) => {
   return rows;
 };
 
-const forgedHostFields = (diagnostics) => diagnostics.flatMap(({ line, value }) =>
-  HOST_OWNED_FIELDS.filter((field) => Object.hasOwn(value, field)).map((field) => ({ line, field })));
-
 const readEvaluatorIdentity = () => {
   const file = fileURLToPath(import.meta.url);
   const bytes = fs.readFileSync(file);
@@ -97,8 +204,9 @@ export function evaluateArtifactAssemblyCandidate({
   candidate,
   contract,
   failure,
-  success,
+  implementation,
   source,
+  success,
 }) {
   const requiredKeys = Object.keys(candidate.meaning.required).sort();
   const expectedKeys = [...APPLICABLE_OBLIGATIONS].sort();
@@ -112,17 +220,16 @@ export function evaluateArtifactAssemblyCandidate({
     throw new Error("selected route is not a real source digest mismatch");
   }
 
-  const parsed = parseDiagnostics(failure.stderr, contract);
+  const consumed = consumeArtifactAssemblyStderr({
+    contract,
+    contractMeaningSha256: candidate.meaningSha256,
+    source,
+    stderr: failure.stderr,
+  });
   const stdoutDiagnostics = stdoutDiagnosticRows(failure.stdout, contract);
-  const matching = parsed.diagnostics.find(({ value }) => value.code === REQUIRED_DIAGNOSTIC_CODE) ?? null;
-  const classification = matching ? {
-    type: FAILURE_CLASSIFICATION,
-    nextAction: NEXT_ACTION,
-    diagnosticLine: matching.line,
-    diagnosticCode: matching.value.code,
-    messageParsingUsed: false,
-  } : null;
-  const hostFields = forgedHostFields(parsed.diagnostics);
+  const matchingCode = consumed.diagnostics.filter(({ value }) => value.code === REQUIRED_DIAGNOSTIC_CODE);
+  const classification = consumed.accepted?.result.classification ?? null;
+  const hostFields = consumed.hostFields;
   const rawLeak = [failure.stdout, failure.stderr].some((text) => text.includes(source.sentinel));
   const successPrimary = (() => {
     try {
@@ -140,32 +247,50 @@ export function evaluateArtifactAssemblyCandidate({
     separation: stdoutDiagnostics.length === 0
       ? evidence("met", "failure stdout contains no diagnostic/1 row", { stdoutBytes: Buffer.byteLength(failure.stdout) })
       : evidence("unmet", "diagnostic/1 polluted primary stdout", { rows: stdoutDiagnostics.map(({ line }) => line) }),
-    diagnostic: parsed.diagnostics.length > 0
-      ? evidence("met", "at least one valid diagnostic/1 row was emitted", { rows: parsed.diagnostics.length })
-      : evidence("unmet", "selected digest-mismatch route emitted no valid diagnostic/1 row", { invalid: parsed.invalid }),
-    identification: matching
-      ? evidence("met", "stable diagnostic identity denotes source digest mismatch", { code: matching.value.code })
+    diagnostic: consumed.diagnostics.length > 0 && consumed.invalid.length === 0
+      ? evidence("met", "the selected route emitted valid diagnostic/1 JSONL without invalid stderr rows", {
+          rows: consumed.diagnostics.length,
+          invalidRows: 0,
+        })
+      : evidence("unmet", "selected digest-mismatch stderr was not clean valid diagnostic/1 JSONL", {
+          validRows: consumed.diagnostics.length,
+          invalid: consumed.invalid,
+        }),
+    identification: matchingCode.length > 0
+      ? evidence("met", "stable diagnostic identity denotes source digest mismatch", {
+          code: REQUIRED_DIAGNOSTIC_CODE,
+          rows: matchingCode.map(({ line }) => line),
+        })
       : evidence("unmet", "no valid diagnostic carries the required stable source-digest-mismatch identity", {
           requiredCode: REQUIRED_DIAGNOSTIC_CODE,
-          observedCodes: parsed.diagnostics.map(({ value }) => value.code),
+          observedCodes: consumed.diagnostics.map(({ value }) => value.code),
         }),
     consumer_use: classification
-      ? evidence("met", "receiver classified the failure from diagnostic code without message parsing", classification)
+      ? evidence("met", "receiver classified the failure from diagnostic code and machine fields without message parsing", classification)
       : evidence("unmet", "receiver could not produce the typed classification or next action from diagnostic identity", {
           requiredCode: REQUIRED_DIAGNOSTIC_CODE,
+          rejections: consumed.consumptions.map(({ line, result }) => ({
+            line,
+            reason: result.reason,
+            differences: result.differences ?? [],
+          })),
           messageParsingUsed: false,
         }),
     traceability: classification
-      ? evidence("met", "classification links contract, selected source, execution, and consumed diagnostic", {
+      ? evidence("met", "classification binds the actual diagnostic, selected source, execution, and candidate Contract", {
           contractMeaningSha256: candidate.meaningSha256,
           selectedSourceId: source.id,
+          sourceKind: source.kind,
+          sourceRevision: source.revision,
           actualSourceSha256: source.actualSha256,
           lockSha256: source.lockSha256,
           diagnosticLine: classification.diagnosticLine,
+          diagnosticSha256: classification.diagnosticSha256,
         })
       : evidence("unmet", "no consumed diagnostic/classification exists to bind to the selected source and execution", {
           contractMeaningSha256: candidate.meaningSha256,
           selectedSourceId: source.id,
+          sourceRevision: source.revision,
           actualSourceSha256: source.actualSha256,
           lockSha256: source.lockSha256,
         }),
@@ -173,12 +298,13 @@ export function evaluateArtifactAssemblyCandidate({
       ? evidence("unmet", "raw source bytes leaked into process output")
       : evidence("met", "sentinel source bytes are absent from stdout/stderr", { sentinelSha256: sha256(Buffer.from(source.sentinel, "utf8")) }),
     ownership: hostFields.length === 0
-      ? evidence("met", "no parsed diagnostic claims Host-owned identity, ordering, time, lifecycle, or final result", { parsedDiagnostics: parsed.diagnostics.length })
+      ? evidence("met", "no parsed diagnostic claims Host-owned identity, ordering, time, lifecycle, or final result", { parsedDiagnostics: consumed.diagnostics.length })
       : evidence("unmet", "diagnostic claims Host-owned fields", { hostFields }),
     compatibility: success.status === 0 && success.signal === null && success.receiptExists === true && success.receiptStatus === "PASS" && successPrimary
       ? evidence("met", "matching-digest control preserves normal exit, primary result, and receipt semantics", {
           exitCode: success.status,
           receiptStatus: success.receiptStatus,
+          receiptSha256: success.receiptSha256,
         })
       : evidence("unmet", "matching-digest control did not preserve normal assembly semantics", {
           exitCode: success.status,
@@ -196,14 +322,44 @@ export function evaluateArtifactAssemblyCandidate({
   const execution = {
     route: "artifact-assembly assemble / required npm-tgz digest mismatch",
     sourceId: source.id,
+    sourceKind: source.kind,
+    sourceRevision: source.revision,
     lockSha256: source.lockSha256,
     actualSourceSha256: source.actualSha256,
     exitCode: failure.status,
     signal: failure.signal,
     stdout: failure.stdout,
     stderr: failure.stderr,
-    diagnosticRows: parsed.diagnostics.map(({ line, value }) => ({ line, code: value.code, level: value.level })),
-    invalidDiagnosticRows: parsed.invalid,
+    diagnosticRows: consumed.consumptions.map(({ line, result, value }) => ({
+      line,
+      value,
+      sha256: diagnosticSha256(value),
+      consumption: result.accepted
+        ? {
+            accepted: true,
+            type: result.classification.type,
+            nextAction: result.classification.nextAction,
+            messageParsingUsed: false,
+          }
+        : {
+            accepted: false,
+            reason: result.reason,
+            differences: result.differences ?? [],
+            messageParsingUsed: false,
+          },
+    })),
+    invalidDiagnosticRows: consumed.invalid,
+    hostOwnedFieldClaims: consumed.hostFields,
+    receiptExists: failure.receiptExists,
+  };
+  const evaluator = readEvaluatorIdentity();
+  const observation = {
+    candidate: candidate.meaningSha256,
+    target: candidate.target,
+    implementation,
+    evaluator,
+    execution,
+    classification,
   };
 
   return {
@@ -217,8 +373,10 @@ export function evaluateArtifactAssemblyCandidate({
       claimCeiling: candidate.meaning.claim_ceiling,
     },
     target: candidate.target,
-    evaluator: readEvaluatorIdentity(),
-    observationId: observationId({ candidate: candidate.meaningSha256, target: candidate.target, execution }),
+    implementation,
+    evaluator,
+    observationId: observationId(observation),
+    classification,
     finding: {
       status: unmet.length > 0 ? "unmet" : "met",
       code: unmet.length > 0 ? "candidate-contract-unmet" : "candidate-contract-met",
@@ -243,7 +401,11 @@ export function evaluateArtifactAssemblyCandidate({
       stderr: success.stderr,
       receiptExists: success.receiptExists,
       receiptStatus: success.receiptStatus,
+      receiptSha256: success.receiptSha256,
+      receipt: success.receipt,
     },
-    nextBoundary: "independent R material true-positive review before producer or downstream consumer repair",
+    nextBoundary: unmet.length === 0
+      ? "independent R old/new, counterexample, evidence, and finite residual review; no merge/release/deploy authority"
+      : "independent R material true-positive review before producer or downstream consumer repair",
   };
 }

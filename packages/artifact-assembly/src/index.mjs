@@ -1,4 +1,9 @@
-export { assembleArtifact, writeAssemblyReceipt } from "./assemble.mjs";
+export {
+  ArtifactAssemblyDiagnosticError,
+  SOURCE_DIGEST_MISMATCH_DIAGNOSTIC_CODE,
+  assembleArtifact,
+  writeAssemblyReceipt,
+} from "./assemble.mjs";
 export { canonicalJson, canonicalJsonText, parseCanonicalJsonl } from "./canonical-json.mjs";
 export { sha256Bytes, sha256File, sha256Tree } from "./digest.mjs";
 export { parseArtifactLock, readArtifactLock, validateArtifactLock } from "./lock.mjs";

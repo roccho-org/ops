@@ -1,9 +1,20 @@
 #!/usr/bin/env node
 import process from "node:process";
-import { assembleArtifact, readArtifactLock, sha256Tree, writeAssemblyReceipt } from "../src/index.mjs";
+import {
+  ArtifactAssemblyDiagnosticError,
+  assembleArtifact,
+  readArtifactLock,
+  sha256Tree,
+  writeAssemblyReceipt,
+} from "../src/index.mjs";
 
 const fail = (message) => {
   process.stderr.write(`artifact-assembly: ${message}\n`);
+  process.exit(1);
+};
+
+const failDiagnostic = (error) => {
+  process.stderr.write(`${JSON.stringify(error.diagnostic)}\n`);
   process.exit(1);
 };
 
@@ -58,5 +69,6 @@ try {
     fail("usage: check-lock|digest-tree|assemble");
   }
 } catch (error) {
+  if (error instanceof ArtifactAssemblyDiagnosticError) failDiagnostic(error);
   fail(error instanceof Error ? error.message : String(error));
 }

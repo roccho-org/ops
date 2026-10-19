@@ -1,0 +1,130 @@
+name: logger-artifact-assembly-finite-proof
+
+on:
+  pull_request:
+    branches:
+      - proposals
+    paths:
+      - ".github/workflows/logger-artifact-assembly-finite-proof.yml"
+      - "packages/artifact-assembly/**"
+      - "packages/shiftleft-admission/adapters/artifact_assembly_candidate.mjs"
+      - "packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs"
+      - "packages/structured-diagnostic/**"
+      - "build/checks.jsonl"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.16.0"
+
+      - name: Run old/new finite proof
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/source/packages/artifact-assembly \
+            evidence/source/packages/shiftleft-admission/adapters \
+            evidence/source/packages/shiftleft-admission/tests \
+            evidence/source/packages/structured-diagnostic/lib
+
+          node --check packages/artifact-assembly/src/assemble.mjs
+          node --check packages/artifact-assembly/src/index.mjs
+          node --check packages/artifact-assembly/bin/artifact-assembly.mjs
+          node --check packages/shiftleft-admission/adapters/artifact_assembly_candidate.mjs
+          node --check packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs
+
+          node packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs \
+            > evidence/old-new.json
+
+          jq -e '
+            .kind == "ops.logger-finite-proof.old-new-comparison" and
+            .authority == false and
+            .admittedNormativeViolation == false and
+            .old.finding.status == "unmet" and
+            .old.coverage.met == 5 and
+            .old.coverage.unmet == 4 and
+            .new.finding.status == "met" and
+            .new.coverage.applicable == 9 and
+            .new.coverage.evaluated == 9 and
+            .new.coverage.met == 9 and
+            .new.coverage.unmet == 0 and
+            .new.coverage.unknown == 0 and
+            .new.coverage.conflict == 0 and
+            .new.coverage.stale == 0 and
+            .comparison.status == "closed" and
+            (.comparison.residual | length) == 0 and
+            ([.counterexamples[] | .classified] | any) == false
+          ' evidence/old-new.json >/dev/null
+
+          cp -a packages/artifact-assembly/bin \
+            packages/artifact-assembly/src \
+            evidence/source/packages/artifact-assembly/
+          cp packages/shiftleft-admission/adapters/artifact_assembly_candidate.mjs \
+            evidence/source/packages/shiftleft-admission/adapters/
+          cp packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs \
+            evidence/source/packages/shiftleft-admission/tests/
+          cp packages/structured-diagnostic/contract.json \
+            evidence/source/packages/structured-diagnostic/
+          cp packages/structured-diagnostic/lib/diagnostic.mjs \
+            evidence/source/packages/structured-diagnostic/lib/
+          cp build/checks.jsonl \
+            .github/workflows/logger-artifact-assembly-finite-proof.yml \
+            evidence/source/
+
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg head "$(git rev-parse HEAD)" \
+            --arg tree "$(git rev-parse 'HEAD^{tree}')" \
+            --arg run "$GITHUB_RUN_ID" \
+            --arg attempt "$GITHUB_RUN_ATTEMPT" \
+            '{
+              schema: "ops.logger-finite-proof.evidence/1",
+              authority: false,
+              repository: $repository,
+              head: $head,
+              tree: $tree,
+              workflowRunId: $run,
+              workflowRunAttempt: $attempt,
+              result: "old-new.json",
+              sourceRoot: "source",
+              claimCeiling: "one selected Ops artifact-assembly npm-tgz digest-mismatch route"
+            }' > evidence/metadata.json
+
+          (
+            cd evidence
+            find . -type f ! -name SHA256SUMS -print0 | LC_ALL=C sort -z | xargs -0 sha256sum > SHA256SUMS
+            sha256sum -c SHA256SUMS
+          )
+
+          cat evidence/old-new.json
+
+          {
+            echo "## Artifact assembly finite proof"
+            echo
+            echo "- head: \`$(git rev-parse HEAD)\`"
+            echo "- tree: \`$(git rev-parse 'HEAD^{tree}')\`"
+            echo "- retained T0: 5 met / 4 unmet"
+            echo "- repaired implementation: 9 met / 0 unmet"
+            echo "- residual: 0"
+            echo "- counterexamples classified: 0"
+            echo "- authority: false"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: logger-artifact-assembly-finite-proof-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+          retention-days: 30
