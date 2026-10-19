@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 const EXACT = "${{ github.sha }}";
 const JEV_ORG_WORKFLOW = ".github/workflows/jev-issue-comment.yml";
 const SYS1_PROOF_WORKFLOW = ".github/workflows/sys1-improvement-proof.yml";
+const SELF_GRADING_WORKFLOW = ".github/workflows/sys1-self-grading-proof.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
   'set -euo pipefail',
@@ -144,6 +145,10 @@ export function analyzeEffectWorkflow(workflow, boundary) {
     need(!hasSecret(workflow.env), "workflow-scoped secret forbidden");
     if (boundary.path === SYS1_PROOF_WORKFLOW) {
       assertSys1ProofWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === SELF_GRADING_WORKFLOW) {
+      assertSelfGradingWorkflow(workflow,boundary);
       return {issues,contributingJobs:['evaluate']};
     }
     const jobs = workflow.jobs ?? {};
@@ -294,6 +299,41 @@ export function assertSys1ProofWorkflow(w,b) {
     if(s.uses) need(/^[\w/-]+@[0-9a-f]{40}$/.test(s.uses),'Sys1 proof Action must be immutable');
     if(s.run) need(!/\b(?:npx|npm\s+(?:install|ci)|pip\s+install|git\s+(?:clone|fetch|checkout|switch))\b/.test(s.run),
       'Sys1 proof cannot acquire mutable executable source');
+  }
+}
+
+export function assertSelfGradingWorkflow(w,b) {
+  need(b.secretScope==='organization'&&b.secretName==='JEV_API_KEY'&&b.maxCalls===18&&!b.environment
+    &&same(b.allowedEvents??[],['push']),'self-grading finite boundary differs');
+  need(same(Object.keys(w.on??{}),['push'])&&same(Object.keys(w.on.push??{}),['branches','paths'])
+    &&same(w.on.push.branches??[],['codex/jev-self-grading-measurement-20261020'])
+    &&same(w.on.push.paths??[],['experiments/sys1-eval-loop/self-grading-live.json']),'self-grading entry differs');
+  need(JSON.stringify(w.permissions)===JSON.stringify({actions:'read',contents:'read'})
+    &&w.concurrency?.group==='sys1-self-grading-proof'&&w.concurrency['cancel-in-progress']===false,'self-grading permissions/serialization differs');
+  need(same(Object.keys(w.jobs??{}),['evaluate']),'self-grading job set differs');
+  const j=w.jobs.evaluate,s=j.steps??[];
+  need(j.if==="github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1"
+    &&j['runs-on']==='ubuntu-24.04'&&j['timeout-minutes']===8
+    &&!j.environment&&!j.env&&!j.secrets&&!j.strategy&&!j.uses&&!j.permissions&&!j['continue-on-error'],'self-grading actor/job differs');
+  need(s.length===6&&s.filter(hasSecret).length===1,'self-grading steps differ');
+  const cli='node experiments/sys1-eval-loop/self-grading.mjs ';
+  need(s[0].uses==='actions/checkout@11d5960a326750d5838078e36cf38b85af677262'
+    &&JSON.stringify(s[0].with)===JSON.stringify({'persist-credentials':false,'fetch-depth':0}),'self-grading source differs');
+  need(s[1].run==='node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs'
+    &&s[2].id==='prepare'&&s[2].run===cli+'prepare "$RUNNER_TEMP/self-grading"'
+    &&JSON.stringify(s[2].env)===JSON.stringify({GH_TOKEN:'${{ github.token }}'}),'self-grading preflight differs');
+  need(JSON.stringify(s[3].env)===JSON.stringify({JEV_API_KEY:'${{ secrets.JEV_API_KEY }}'})
+    &&s[3].run===cli+'evaluate "$RUNNER_TEMP/self-grading"','self-grading credential command differs');
+  need(s[4].run===cli+'score "$RUNNER_TEMP/self-grading"'
+    &&s[4].if==="always() && steps.prepare.outcome == 'success'"
+    &&s[5].uses==='actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'
+    &&s[5].if==='always()','self-grading score/receipt differs');
+  need(JSON.stringify(s[5].with)===JSON.stringify({name:'sys1-self-grading-${{ github.run_id }}',
+    path:'${{ runner.temp }}/self-grading','if-no-files-found':'ignore','retention-days':30}),'self-grading artifact destination differs');
+  for(const [n,step] of s.entries()) {
+    need(!step['continue-on-error']&&!step['working-directory']&&!step.shell,'self-grading step override');
+    if(n<4)need(!step.if,'self-grading mandatory admission skipped');
+    if(n!==2&&n!==3)need(!step.env,'self-grading extra environment');
   }
 }
 
