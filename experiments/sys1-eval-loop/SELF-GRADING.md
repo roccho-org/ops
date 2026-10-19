@@ -11,6 +11,7 @@ Userの2026-10-20指示で、自己採点ループの前提となる測定可能
 - 新しい実POST上限18、各15000ms、全job8分。18×15秒の最大評価時間にtests/score/uploadの余裕を加えた。総呼出しはこのpilotだけの18。過去43の上限を更新しない。失敗/応答不明で停止、追加・自動retry・refill・別runなし。
 - model要求jev-latest、応答報告jev-1.13.0のみ比較可能。aliasはimmutable modelの証明ではない。異なれば値を保存し停止。
 - 新規専用branchのself-grading-live.json pushだけが一回の入口。初回attempt/固定owner/native Actions履歴total1をcredential前に確認。activation fileはsource確認まで存在させない。
+- 起動入力のsourceShaはレビュー済みcommitとし、native GitでHEADの親と一致し、差分がactivation file一つだけであることを確認する。手転記blob SHAの別台帳は設けず、既存Gitの親・差分を実行入力へ結び付ける。これは協働するownerの誤操作防止であり、悪性owner/runnerへの暗号的attestationではない。
 - 既存Org JEV_API_KEYはその一stepだけに注入、値取得/複写/表示なし。通常のJev clientと既存transportを使い、scorerに鍵を渡さない。
 
 ## 何をもって測定可能というか
@@ -51,6 +52,8 @@ root著者、同じnative DS A/Bがsource/方法を反証。policy0dd39ca41718fa
 prepareはinputだけを書き、truthは鍵なしscore内でcanonicalに再構成して初めて書く。checkout内の元Goldは公開済みであり、これはOS隔離や敵対的runnerの機密保証ではなく、実際のjudge requestにGold/過去正誤を入れないという監査済みプログラム境界。
 
 各attempt/rowをevents.jsonlとnative job logへ逐次記録する。通常の終端predictionsが無ければscoreは保存済みrowから部分receiptを作り、HTTP実作用は不明（actualCalls:null）としてINCOMPLETE、rate値nullで失敗終了する。runnerごとの喪失や外部強制終了ではupload/ログ配送も保証できない。終端証拠を失ったrunは成功とせず、native履歴を残して停止し、同じ試行を再送しない。eventsは出力証拠であって実行許可や再開台帳ではない。
+
+eventsの不正な最終未完行だけはtruncatedフラグ付きで除外し、途中行破損は黙認しない。壊れたterminal JSONも原bytesを保持してeventsへfallbackする。空ファイル/切れた末尾/壊れたterminalを実際のscore CLIと一時fileで検証する。terminalReceipt:falseや終端が不明な場合、actualCalls値だけで完了にしない。usageが報告されなければnull＋usageRows0とし、消費0にしない。semanticHintRowsで既存ラベル文字列を含む対照を示し、pooled率をclean calibrationと呼ばない。
 
 途中失敗時のFA/FR/合格後リスク値はnullとし、未判定を暗黙の正解にして誤り率0を表示しない。分子・予定分母・失敗/未実行件数は残す。
 

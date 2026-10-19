@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {prepare,judgeRequest,evaluateJudge,scoreJudge,partialReport,admit,MAX_CALLS,BRANCH} from './self-grading.mjs';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {spawnSync} from 'node:child_process';
+import {prepare,judgeRequest,evaluateJudge,scoreJudge,partialReport,parseEvents,admit,MAX_CALLS,BRANCH} from './self-grading.mjs';
 
 const {input,truth}=prepare();
 const answer=(choice,model='jev-1.13.0')=>({choice,model,probabilities:{accept:choice==='accept'?1:0,reject:choice==='reject'?1:0,abstain:choice==='abstain'?1:0},confidence:1,usage:{input_tokens:2,output_tokens:1}});
@@ -77,12 +82,47 @@ test('finite native run identity refuses replay, second trigger, stale head and 
   const env={GITHUB_REPOSITORY:'roccho-org/ops',GITHUB_ACTOR:'roccho-dev',GITHUB_REF:'refs/heads/'+BRANCH,
     GITHUB_RUN_ATTEMPT:'1',GITHUB_SHA:'a'.repeat(40),GITHUB_RUN_ID:'123'};
   const h={total_count:1,workflow_runs:[{id:123,head_sha:env.GITHUB_SHA,event:'push',head_branch:BRANCH}]};
-  admit({trial:'judge-feasibility-20261020'},env,h);
+  const request={trial:'judge-feasibility-20261020',sourceSha:'b'.repeat(40)};
+  const source={head:env.GITHUB_SHA,parent:request.sourceSha,changed:['experiments/sys1-eval-loop/self-grading-live.json']};
+  admit(request,env,h,source);
   for(const edit of [e=>e.GITHUB_ACTOR='other',e=>e.GITHUB_REF='refs/heads/proposals',e=>e.GITHUB_RUN_ATTEMPT='2'])
-    {const e={...env};edit(e);assert.throws(()=>admit({trial:'judge-feasibility-20261020'},e,h));}
-  assert.throws(()=>admit({trial:'judge-feasibility-20261020'},env,{...h,total_count:2}));
-  assert.throws(()=>admit({trial:'judge-feasibility-20261020'},env,{...h,workflow_runs:[{...h.workflow_runs[0],head_sha:'b'.repeat(40)}]}));
-  assert.throws(()=>admit({trial:'judge-feasibility-20261020',maxCalls:999},env,h));
+    {const e={...env};edit(e);assert.throws(()=>admit(request,e,h,source));}
+  assert.throws(()=>admit(request,env,{...h,total_count:2},source));
+  assert.throws(()=>admit(request,env,{...h,workflow_runs:[{...h.workflow_runs[0],head_sha:'b'.repeat(40)}]},source));
+  assert.throws(()=>admit({...request,maxCalls:999},env,h,source));
+  assert.throws(()=>admit(request,env,h,{...source,parent:'c'.repeat(40)}));
+  assert.throws(()=>admit(request,env,h,{...source,changed:[...source.changed,'experiments/sys1-eval-loop/self-grading.mjs']}));
   assert.equal(MAX_CALLS,18);
+});
+test('partial JSON tail is flagged, complete rows remain, and malformed middle is not silently ignored',()=>{
+  const prefix=JSON.stringify({kind:'attempt',id:'q01'})+'\n';
+  const p=parseEvents(prefix+'{"kind":"row"');assert.equal(p.events.length,1);assert.equal(p.truncatedFinalRecord,true);
+  assert.equal(scoreJudge(input,truth,partialReport(input,p.events)).measurementStatus,'INCOMPLETE');
+  assert.throws(()=>parseEvents(prefix+'{broken}\n'+prefix));
+  assert.equal(parseEvents(prefix.trim()).events.length,1);
+});
+test('a nonterminal receipt cannot publish complete rates, and missing token metadata is unknown',async()=>{
+  const r=await run(()=>({...answer('accept'),usage:{}}));r.terminalReceipt=false;
+  const s=scoreJudge(input,truth,r);assert.equal(s.measurementStatus,'INCOMPLETE');assert.equal(s.falseAccept.value,null);
+  assert.equal(s.usage,null);assert.equal(s.usageRows,0);assert.deepEqual(s.semanticHintRows,['q11','q12']);
+});
+for(const interrupted of [false,true])test('real keyless score CLI recovers '+(interrupted?'truncated events/terminal bytes':'empty events and no terminal')+' as incomplete',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'sys1-judge-score-'));
+  try {
+    fs.writeFileSync(path.join(dir,'input.json'),JSON.stringify(input));
+    fs.writeFileSync(path.join(dir,'events.jsonl'),interrupted?JSON.stringify({kind:'attempt',id:'q01'})+'\n{"kind":"row"':'');
+    if(interrupted)fs.writeFileSync(path.join(dir,'predictions.json'),'{');
+    const env={...process.env};delete env.JEV_API_KEY;
+    const r=spawnSync(process.execPath,[fileURLToPath(new URL('./self-grading.mjs',import.meta.url)),'score',dir],{env,encoding:'utf8'});
+    assert.equal(r.status,2,r.stderr);
+    const s=JSON.parse(fs.readFileSync(path.join(dir,'measurement.json'),'utf8'));
+    assert.equal(s.measurementStatus,'INCOMPLETE');assert.equal(s.actualCalls,null);assert.equal(s.falseAccept.value,null);
+    assert.equal(s.counts.errors,interrupted?1:0);assert.equal(s.counts.notRun,interrupted?17:18);
+    assert.equal(fs.existsSync(path.join(dir,'truth.json')),true);
+  } finally {
+    for(const n of ['input.json','events.jsonl','predictions.json','recovered-predictions.json','truth.json','measurement.json'])
+      if(fs.existsSync(path.join(dir,n)))fs.unlinkSync(path.join(dir,n));
+    fs.rmdirSync(dir);
+  }
 });
 

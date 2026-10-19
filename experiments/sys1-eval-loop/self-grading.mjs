@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {loadInput,digest,score,compare,requestFor} from './run.mjs';
 import {sessionContract,question,projectBody,classify} from './split.mjs';
@@ -16,8 +17,9 @@ const write=(p,v)=>fs.writeFileSync(p,JSON.stringify(v)+'\n',{flag:'wx',mode:0o6
 const lines=p=>fs.readFileSync(p,'utf8').trim().split('\n').map(JSON.parse);
 const ratio=(n,d)=>({numerator:n,denominator:d,value:d?n/d:null});
 
-export function admit(request,env,history) {
-  assert.deepEqual(request,{trial:'judge-feasibility-20261020'});
+export function admit(request,env,history,source) {
+  assert.deepEqual(Object.keys(request).sort(),['sourceSha','trial']);
+  assert.equal(request.trial,'judge-feasibility-20261020');assert.match(request.sourceSha,/^[0-9a-f]{40}$/);
   assert.equal(env.GITHUB_REPOSITORY,'roccho-org/ops');assert.equal(env.GITHUB_ACTOR,'roccho-dev');
   assert.equal(env.GITHUB_REF,'refs/heads/'+BRANCH);assert.equal(env.GITHUB_RUN_ATTEMPT,'1');
   assert.match(env.GITHUB_SHA,/^[0-9a-f]{40}$/);
@@ -25,6 +27,8 @@ export function admit(request,env,history) {
   const r=history.workflow_runs[0];
   assert.equal(String(r.id),env.GITHUB_RUN_ID);assert.equal(r.head_sha,env.GITHUB_SHA);
   assert.equal(r.event,'push');assert.equal(r.head_branch,BRANCH);
+  assert.equal(source.head,env.GITHUB_SHA);assert.equal(source.parent,request.sourceSha);
+  assert.deepEqual(source.changed,['experiments/sys1-eval-loop/self-grading-live.json']);
 }
 export function prepare(root=ROOT,execution={mode:'test-double'}) {
   const gold=lines(path.join(root,'suites/closure-real/expected.jsonl'));
@@ -90,7 +94,7 @@ export async function evaluateJudge(input,ask,observe=()=>{}) {
       stopped=true;
     }
   }
-  return {schema:'ops.sys1.judge-predictions.v1',execution:input.execution,inputDigest:digest(input),attempts,rows};
+  return {schema:'ops.sys1.judge-predictions.v1',execution:input.execution,inputDigest:digest(input),attempts,terminalReceipt:true,rows};
 }
 export function partialReport(input,events) {
   const attempted=events.filter(e=>e.kind==='attempt').map(e=>e.id);
@@ -101,6 +105,18 @@ export function partialReport(input,events) {
     attempts:attempted.length,actualCalls:null,terminalReceipt:false,
     rows:input.rows.map(r=>done.find(d=>d.id===r.id)??{id:r.id,
       status:attempted.includes(r.id)?'error':'not_run',request:judgeRequest(r,input.labels)})};
+}
+export function parseEvents(text) {
+  const parts=text.split('\n'),events=[];let truncatedFinalRecord=false;
+  for(const [n,line] of parts.entries()) {
+    if(!line.trim())continue;
+    try {events.push(JSON.parse(line));}
+    catch(error) {
+      if(n!==parts.length-1||text.endsWith('\n'))throw error;
+      truncatedFinalRecord=true;
+    }
+  }
+  return {events,truncatedFinalRecord};
 }
 export function scoreJudge(input,truth,report) {
   assert.equal(truth.inputDigest,digest(input));assert.equal(report.inputDigest,truth.inputDigest);
@@ -127,7 +143,7 @@ export function scoreJudge(input,truth,report) {
   assert.equal(arms.before.total,9);assert.equal(arms.after.total,9);
   assert.equal(report.attempts,MAX_CALLS-counts.notRun);
   const pos=truth.rows.filter(t=>t.correct).length,neg=MAX_CALLS-pos;
-  const complete=counts.errors===0&&counts.notRun===0&&report.actualCalls===MAX_CALLS;
+  const complete=report.terminalReceipt===true&&counts.errors===0&&counts.notRun===0&&report.actualCalls===MAX_CALLS;
   const judged=MAX_CALLS-counts.errors-counts.notRun-counts.abstainCorrect-counts.abstainWrong;
   const used=new Set(report.rows.filter(r=>r.status==='ok'&&r.answer.choice!=='abstain').map(r=>r.answer.choice));
   // An incomplete run cannot publish an apparently perfect zero error rate.
@@ -137,6 +153,7 @@ export function scoreJudge(input,truth,report) {
     a.falseReject=measuredRate(a.rejectCorrect,a.correct,a.acceptCorrect+a.rejectCorrect);
     a.coverage=ratio(a.binary,a.total);
   }
+  const usages=report.rows.filter(r=>r.status==='ok'&&Object.values(r.answer.usage??{}).some(v=>Number.isFinite(v)));
   return {schema:'ops.sys1.judge-measurement.v1',execution:input.execution,inputDigest:report.inputDigest,
     measurementStatus:complete?'OBSERVATION_COMPLETE':'INCOMPLETE',counts,
     falseAccept:measuredRate(counts.acceptWrong,neg,counts.acceptWrong+counts.rejectWrong),
@@ -148,8 +165,9 @@ export function scoreJudge(input,truth,report) {
     judgedAcceptanceDelta:complete&&arms.before.binary&&arms.after.binary?(arms.after.accepted-arms.before.accepted)/9:null,
     judgeSignal:used.size===2?'NON_CONSTANT':used.size===1?'CONSTANT':'NO_BINARY_SIGNAL',
     attemptedCalls:report.attempts,actualCalls:report.actualCalls??null,
-    usage:report.rows.filter(r=>r.status==='ok').reduce((s,r)=>{for(const k of ['input_tokens','output_tokens','total_tokens'])
-      if(Number.isFinite(r.answer.usage?.[k]))s[k]=(s[k]??0)+r.answer.usage[k];return s;},{}),
+    usage:usages.length?usages.reduce((s,r)=>{for(const k of ['input_tokens','output_tokens','total_tokens'])
+      if(Number.isFinite(r.answer.usage?.[k]))s[k]=(s[k]??0)+r.answer.usage[k];return s;},{}):null,
+    usageRows:usages.length,semanticHintRows:input.rows.filter(r=>Object.keys(input.labels).some(k=>JSON.stringify(r.task).includes(k))).map(r=>r.id),
     elapsedMs:report.rows.reduce((s,r)=>s+(r.elapsedMs??0),0),cost:null,
     evidenceScope:'known development outputs, 18 correlated judgments on nine cases; four negative outputs',
     goldAuthorIndependent:false,holdout:'NOT_AVAILABLE',qualityAdoptionAuthorized:false,
@@ -164,8 +182,13 @@ async function main() {
     if(process.env.GITHUB_ACTIONS==='true') {
       const u='https://api.github.com/repos/roccho-org/ops/actions/workflows/sys1-self-grading-proof.yml/runs?branch='+BRANCH+'&event=push&per_page=100';
       const h=await fetch(u,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN}});
-      assert.equal(h.status,200);admit(json(path.join(ROOT,'self-grading-live.json')),process.env,await h.json());
-      execution={mode:'live',sourceSha:process.env.GITHUB_SHA,runUrl:'https://github.com/roccho-org/ops/actions/runs/'+process.env.GITHUB_RUN_ID};
+      const request=json(path.join(ROOT,'self-grading-live.json'));
+      const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+      const source={head:git('rev-parse','HEAD'),parent:git('rev-parse','HEAD^'),
+        changed:git('diff','--name-only','HEAD^','HEAD').split('\n')};
+      assert.equal(h.status,200);admit(request,process.env,await h.json(),source);
+      execution={mode:'live',sourceSha:process.env.GITHUB_SHA,reviewedSourceSha:request.sourceSha,
+        runUrl:'https://github.com/roccho-org/ops/actions/runs/'+process.env.GITHUB_RUN_ID};
     }
     const p=prepare(ROOT,execution);fs.mkdirSync(dir,{recursive:true});write(at('input.json'),p.input);return;
   }
@@ -174,9 +197,15 @@ async function main() {
     assert.ok(!process.env.JEV_API_KEY);
     const canonical=prepare(ROOT,input.execution),truth=canonical.truth;
     assert.deepEqual(input,canonical.input);write(at('truth.json'),truth);
-    const report=fs.existsSync(at('predictions.json'))?json(at('predictions.json'))
-      :partialReport(input,fs.existsSync(at('events.jsonl'))?lines(at('events.jsonl')):[]);
-    if(!fs.existsSync(at('predictions.json')))write(at('predictions.json'),report);
+    let report;
+    if(fs.existsSync(at('predictions.json'))) {
+      try {report=json(at('predictions.json'));}catch { /* Preserve corrupt terminal bytes; recover only as incomplete. */ }
+    }
+    if(!report) {
+      const events=parseEvents(fs.existsSync(at('events.jsonl'))?fs.readFileSync(at('events.jsonl'),'utf8'):'');
+      report={...partialReport(input,events.events),truncatedFinalRecord:events.truncatedFinalRecord};
+      write(at(fs.existsSync(at('predictions.json'))?'recovered-predictions.json':'predictions.json'),report);
+    }
     const s=scoreJudge(input,truth,report);
     write(at('measurement.json'),s);console.log(JSON.stringify(s));
     if(s.measurementStatus==='INCOMPLETE')process.exitCode=2;
