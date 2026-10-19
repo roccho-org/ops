@@ -5,12 +5,15 @@ import {pathToFileURL} from 'node:url';
 import {compare} from './run.mjs';
 
 export function next(best, candidate = null) {
+  const calls = r => r.accounting?.expectedMaxCalls ?? r.total;
   if (!best || best.mode !== 'live' || best.status !== 'EVALUATED'
-      || best.errors !== 0 || best.actualCalls !== best.total) throw Error('INCOMPLETE_LIVE_RESULT');
+      || best.errors !== 0 || best.actualCalls !== calls(best)) throw Error('INCOMPLETE_LIVE_RESULT');
   let comparison = null;
   if (candidate) {
-    if (candidate.errors !== 0 || candidate.actualCalls !== candidate.total) throw Error('INCOMPLETE_LIVE_RESULT');
+    if (candidate.errors !== 0 || candidate.actualCalls !== calls(candidate)) throw Error('INCOMPLETE_LIVE_RESULT');
     comparison = compare(best, candidate);
+    const riskIncreased = candidate.falsePositives > best.falsePositives || candidate.falseNegatives > best.falseNegatives;
+    if (riskIncreased) comparison = {...comparison,best:best.candidateDigest,targetReached:false,riskIncreased:true};
     if (comparison.best === candidate.candidateDigest) best = candidate;
   }
   return {

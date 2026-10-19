@@ -46,9 +46,10 @@ export async function askSplit(request, askChoice, trace, {bodyOnly=false}={}) {
   }
   return {label:classify(...answers),model:EXPECTED_MODEL,usage};
 }
-export function sessionContract(original) {
+export function sessionContract(original, calls=80) {
+  if (![24,80].includes(calls)) throw Error('INVALID_SESSION_BOUND');
   return {...original,task:original.task+'/independent-eo-session-v1',maxCallsPerCandidate:16,
-    maxCandidates:4,maxTotalCalls:80,treatment:'single-choice vs independent E/O choice; same labels, cases and Gold'};
+    maxCandidates:calls===24?2:4,maxTotalCalls:calls,treatment:'single-choice vs independent E/O choice; same labels, cases and Gold'};
 }
 
 async function main() {
@@ -60,7 +61,7 @@ async function main() {
   const core=await import('./run.mjs');
   const input=core.loadInput(path.join(ROOT,'candidates',name+'.json'),suite);
   const inheritedDigest=input.contractDigest;
-  input.contract=sessionContract(input.contract);input.contractDigest=core.digest(input.contract);
+  input.contract=sessionContract(input.contract,process.env.TRIAL_SESSION_CALLS===undefined?80:Number(process.env.TRIAL_SESSION_CALLS));input.contractDigest=core.digest(input.contract);
   const write=(name,value)=>fs.writeFileSync(path.join(out,name),JSON.stringify(value)+'\n',{flag:'wx',mode:0o600});
   fs.mkdirSync(out,{recursive:true});
   if(mode==='evaluate') {
@@ -108,7 +109,7 @@ async function main() {
     const result=core.score(input,raw.trim().split('\n').map(JSON.parse),predictions);
     result.inheritedContractDigest=inheritedDigest;
     result.treatment=name==='baseline'?'single-choice':name==='binary-eo-v3'?'body-only-independent-E/O-choice':'independent-E/O-choice';
-    result.accounting={expectedMaxCalls:name==='baseline'?8:16,sessionMaxCalls:80,cost:null};
+    result.accounting={expectedMaxCalls:name==='baseline'?8:16,sessionMaxCalls:input.contract.maxTotalCalls,cost:null};
     write('scored.json',result);console.log('SYS1_EVAL_RESULT '+JSON.stringify(result));
     if(process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT,`target=${result.targetReached}\n`);
     if(result.status!=='EVALUATED') process.exitCode=2;

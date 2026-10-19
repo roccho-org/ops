@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const EXACT = "${{ github.sha }}";
 const JEV_ORG_WORKFLOW = ".github/workflows/jev-issue-comment.yml";
+const SYS1_PROOF_WORKFLOW = ".github/workflows/sys1-improvement-proof.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
   'set -euo pipefail',
@@ -141,6 +142,10 @@ export function analyzeEffectWorkflow(workflow, boundary) {
       : Array.isArray(workflow.on) ? workflow.on : Object.keys(workflow.on ?? {});
     need(!events.includes("pull_request_target"), "pull_request_target forbidden");
     need(!hasSecret(workflow.env), "workflow-scoped secret forbidden");
+    if (boundary.path === SYS1_PROOF_WORKFLOW) {
+      assertSys1ProofWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
     const jobs = workflow.jobs ?? {};
     const effectNames = Object.keys(jobs).filter(name => hasSecret(jobs[name]));
     need(effectNames.length > 0, "declared effect workflow has no visible secret job");
@@ -232,6 +237,64 @@ export function analyzeEffectWorkflow(workflow, boundary) {
     }
     return { issues, contributingJobs: [...contributing].sort() };
   } catch (error) { issues.push(error.message); return { issues, contributingJobs: [] }; }
+}
+
+// Separate, explicit admission for the User-requested finite development trial.
+// The existing Issue-command/Environment rules above remain unchanged.
+export function assertSys1ProofWorkflow(w,b) {
+  need(b.secretScope==='organization' && b.secretName==='JEV_API_KEY'
+    && same(b.allowedEvents??[],['push']) && b.maxCalls===40 && !b.environment,
+    'Sys1 proof boundary differs');
+  need(same(Object.keys(w.on??{}),['push'])
+    && same(Object.keys(w.on.push??{}),['branches','paths'])
+    && same(w.on.push.branches??[],['codex/jev-improvement-closure-20261019'])
+    && same(w.on.push.paths??[],['experiments/sys1-eval-loop/live-request.json']),
+    'Sys1 proof source entry differs');
+  need(JSON.stringify(w.permissions)===JSON.stringify({actions:'read',contents:'read'}),
+    'Sys1 proof permissions differ');
+  need(w.concurrency?.group==='sys1-improvement-proof' && w.concurrency['cancel-in-progress']===false,
+    'Sys1 proof must serialize without cancellation');
+  need(same(Object.keys(w.jobs??{}),['evaluate']),'Sys1 proof job set differs');
+  const j=w.jobs.evaluate;
+  need(j.if==="github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1"
+    && j['runs-on']==='ubuntu-24.04' && j['timeout-minutes']===5
+    && !j.environment && !j.secrets && !j.strategy && !j.uses && !j['continue-on-error']
+    && !j.permissions && !hasSecret(j.env),'Sys1 proof actor/attempt/job boundary differs');
+  need(JSON.stringify(j.env)===JSON.stringify({TRIAL_SUITE:'role-boundaries',TRIAL_SOURCE_SHA:EXACT,TRIAL_SESSION_CALLS:'24'}),
+    'Sys1 proof fixed suite/source/session differs');
+  const steps=j.steps??[], keyed=steps.filter(hasSecret), request=steps.find(s=>s.id==='request');
+  need(keyed.length===1 && request && steps.indexOf(request)<steps.indexOf(keyed[0])
+    && !hasSecret(request) && !request.if && !request['continue-on-error'],
+    'Sys1 proof must admit before the only secret step');
+  const key=keyed[0];
+  need(!key.if && !key['continue-on-error'] && !key.uses
+    && JSON.stringify(key.env)===JSON.stringify({JEV_API_KEY:'${{ secrets.JEV_API_KEY }}',CANDIDATE:'${{ steps.request.outputs.candidate }}',PHASE:'${{ steps.request.outputs.phase }}'})
+    && key.run?.trim()===[
+      'case "$PHASE" in',
+      '  baseline|candidate) entry=run.mjs ;;',
+      '  split-baseline|split-candidate) entry=split.mjs ;;',
+      '  *) exit 1 ;;',
+      'esac',
+      'node "experiments/sys1-eval-loop/$entry" evaluate "$CANDIDATE" "$RUNNER_TEMP/sys1-result"'
+    ].join('\n'),'Sys1 proof credential command differs');
+  for(const text of ["const phases=['baseline','candidate','split-baseline','split-candidate'];",
+    "assert.equal(history.total_count,phases.indexOf(r.phase)+1);",
+    "assert.ok(prior.every(x=>x.status==='completed'&&x.conclusion==='success'));",
+    "assert.equal(next(b).action,'PROPOSE_ONE_CANDIDATE');",
+    "if(r.phase==='split-candidate') assert.equal(r.candidate,'binary-eo-v3');"])
+    need(request.run?.includes(text),'Sys1 proof finite history/admission differs');
+  need(JSON.stringify(request.env)===JSON.stringify({GH_TOKEN:'${{ github.token }}'}),
+    'Sys1 proof keyless history identity differs');
+  const checkout=steps.filter(s=>s.uses?.startsWith('actions/checkout@'));
+  need(checkout.length===1 && checkout[0].with?.['persist-credentials']===false
+    && (checkout[0].with?.ref??EXACT)===EXACT && !checkout[0].with?.repository,
+    'Sys1 proof exact source checkout differs');
+  for(const s of steps) {
+    need(!s['continue-on-error'],'Sys1 proof cannot continue failures');
+    if(s.uses) need(/^[\w/-]+@[0-9a-f]{40}$/.test(s.uses),'Sys1 proof Action must be immutable');
+    if(s.run) need(!/\b(?:npx|npm\s+(?:install|ci)|pip\s+install|git\s+(?:clone|fetch|checkout|switch))\b/.test(s.run),
+      'Sys1 proof cannot acquire mutable executable source');
+  }
 }
 
 export function selftest() {
