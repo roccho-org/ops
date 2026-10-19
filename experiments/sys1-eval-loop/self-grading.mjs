@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {loadInput,digest,score,requestFor} from './run.mjs';
+import {loadInput,digest,score,compare,requestFor} from './run.mjs';
 import {sessionContract,question,projectBody,classify} from './split.mjs';
 
 const ROOT=fileURLToPath(new URL('./',import.meta.url));
@@ -46,8 +46,10 @@ export function prepare(root=ROOT,execution={mode:'test-double'}) {
       row.modelTrace.forEach((t,n)=>{assert.equal(t.model,'jev-1.13.0');assert.deepEqual(t.request,index?question(projectBody(q),n?'O':'E'):q);});
       assert.equal(row.prediction,index?classify(...row.modelTrace.map(t=>t.answer)):row.modelTrace[0].answer);
     }
+    if(index){assert.deepEqual(i.cases,cases);assert.deepEqual(i.contract.labels,labels);}
     cases=i.cases;labels=i.contract.labels;
   }
+  compare(reports[0],reports[1]); // Same case/Gold/model/contract, notwithstanding different producing treatments.
   const rows=[],truth=[];
   for(const [n,c] of cases.entries()) {
     // The order is fixed before live output. Arm, IDs, Gold and old correctness never enter the judge request.
@@ -70,23 +72,35 @@ export function judgeRequest(row,labels) {
       +'課題の分類規約は次の通りです。'+JSON.stringify(labels)
       +'提案が規約上のunknown分類である場合も、その提案自体が正しいならacceptです。実際の過去成績や出力元は示しません。'};
 }
-export async function evaluateJudge(input,ask) {
+export async function evaluateJudge(input,ask,observe=()=>{}) {
   assert.equal(input.rows.length,MAX_CALLS);assert.equal(input.maxCalls,MAX_CALLS);
   const rows=[];let stopped=false,attempts=0;
+  const record=row=>{rows.push(row);observe({kind:'row',row});};
   for(const row of input.rows) {
     const request=judgeRequest(row,input.labels);
-    if(stopped){rows.push({id:row.id,status:'not_run',request});continue;}
+    if(stopped){record({id:row.id,status:'not_run',request});continue;}
     const start=performance.now();let answer;
+    observe({kind:'attempt',id:row.id});
     try {
       attempts++;answer=await ask(request);
       assert.ok(Object.hasOwn(JUDGMENTS,answer.choice));assert.equal(answer.model,input.expectedModel);
-      rows.push({id:row.id,status:'ok',request,answer,elapsedMs:performance.now()-start});
+      record({id:row.id,status:'ok',request,answer,elapsedMs:performance.now()-start});
     } catch {
-      rows.push({id:row.id,status:'error',request,answer:answer??null,elapsedMs:performance.now()-start});
+      record({id:row.id,status:'error',request,answer:answer??null,elapsedMs:performance.now()-start});
       stopped=true;
     }
   }
   return {schema:'ops.sys1.judge-predictions.v1',execution:input.execution,inputDigest:digest(input),attempts,rows};
+}
+export function partialReport(input,events) {
+  const attempted=events.filter(e=>e.kind==='attempt').map(e=>e.id);
+  assert.deepEqual(attempted,input.rows.slice(0,attempted.length).map(r=>r.id));
+  const done=events.filter(e=>e.kind==='row').map(e=>e.row);
+  assert.equal(new Set(done.map(r=>r.id)).size,done.length);
+  return {schema:'ops.sys1.judge-predictions.v1',execution:input.execution,inputDigest:digest(input),
+    attempts:attempted.length,actualCalls:null,terminalReceipt:false,
+    rows:input.rows.map(r=>done.find(d=>d.id===r.id)??{id:r.id,
+      status:attempted.includes(r.id)?'error':'not_run',request:judgeRequest(r,input.labels)})};
 }
 export function scoreJudge(input,truth,report) {
   assert.equal(truth.inputDigest,digest(input));assert.equal(report.inputDigest,truth.inputDigest);
@@ -94,18 +108,21 @@ export function scoreJudge(input,truth,report) {
   assert.equal(truth.rows.length,MAX_CALLS);assert.equal(new Set(truth.rows.map(r=>r.id)).size,MAX_CALLS);
   assert.deepEqual(report.rows.map(r=>r.id),input.rows.map(r=>r.id));
   const counts={acceptCorrect:0,acceptWrong:0,rejectCorrect:0,rejectWrong:0,abstainCorrect:0,abstainWrong:0,errors:0,notRun:0};
-  const arms={before:{correct:0,accepted:0,abstained:0,total:0},after:{correct:0,accepted:0,abstained:0,total:0}};
+  const arm=()=>({...counts,correct:0,accepted:0,abstained:0,binary:0,total:0});
+  const arms={before:arm(),after:arm()};
   for(const [n,row] of report.rows.entries()) {
     assert.deepEqual(row.request,judgeRequest(input.rows[n],input.labels));
     const t=truth.rows.find(t=>t.id===row.id);assert.ok(t);assert.equal(typeof t.correct,'boolean');
     assert.equal(t.correct,input.rows[n].proposedLabel===t.expectedLabel);assert.ok(Object.hasOwn(arms,t.arm));
     const arm=arms[t.arm];arm.total++;arm.correct+=Number(t.correct);
-    if(row.status==='not_run'){counts.notRun++;continue;}
-    if(row.status==='error'){counts.errors++;continue;}
+    if(row.status==='not_run'){counts.notRun++;arm.notRun++;continue;}
+    if(row.status==='error'){counts.errors++;arm.errors++;continue;}
     assert.equal(row.status,'ok');assert.equal(row.answer.model,input.expectedModel);
     assert.ok(Object.hasOwn(JUDGMENTS,row.answer.choice));
     counts[row.answer.choice+(t.correct?'Correct':'Wrong')]++;
+    arm[row.answer.choice+(t.correct?'Correct':'Wrong')]++;
     arm.accepted+=Number(row.answer.choice==='accept');arm.abstained+=Number(row.answer.choice==='abstain');
+    arm.binary+=Number(row.answer.choice!=='abstain');
   }
   assert.equal(arms.before.total,9);assert.equal(arms.after.total,9);
   assert.equal(report.attempts,MAX_CALLS-counts.notRun);
@@ -113,13 +130,22 @@ export function scoreJudge(input,truth,report) {
   const complete=counts.errors===0&&counts.notRun===0&&report.actualCalls===MAX_CALLS;
   const judged=MAX_CALLS-counts.errors-counts.notRun-counts.abstainCorrect-counts.abstainWrong;
   const used=new Set(report.rows.filter(r=>r.status==='ok'&&r.answer.choice!=='abstain').map(r=>r.answer.choice));
+  // An incomplete run cannot publish an apparently perfect zero error rate.
+  const measuredRate=(n,d,observed)=>({...ratio(n,d),value:complete&&d&&observed?n/d:null});
+  for(const a of Object.values(arms)) {
+    a.falseAccept=measuredRate(a.acceptWrong,a.total-a.correct,a.acceptWrong+a.rejectWrong);
+    a.falseReject=measuredRate(a.rejectCorrect,a.correct,a.acceptCorrect+a.rejectCorrect);
+    a.coverage=ratio(a.binary,a.total);
+  }
   return {schema:'ops.sys1.judge-measurement.v1',execution:input.execution,inputDigest:report.inputDigest,
-    measurementStatus:complete?'MEASURABLE_FINITE_PILOT':'INCOMPLETE',counts,
-    falseAccept:ratio(counts.acceptWrong,neg),falseReject:ratio(counts.rejectCorrect,pos),
-    deliveredRisk:ratio(counts.acceptWrong,counts.acceptWrong+counts.acceptCorrect),
+    measurementStatus:complete?'OBSERVATION_COMPLETE':'INCOMPLETE',counts,
+    falseAccept:measuredRate(counts.acceptWrong,neg,counts.acceptWrong+counts.rejectWrong),
+    falseReject:measuredRate(counts.rejectCorrect,pos,counts.acceptCorrect+counts.rejectCorrect),
+    deliveredRisk:measuredRate(counts.acceptWrong,counts.acceptWrong+counts.acceptCorrect,judged),
+    positiveCoverage:ratio(counts.acceptCorrect+counts.rejectCorrect,pos),negativeCoverage:ratio(counts.acceptWrong+counts.rejectWrong,neg),
     coverage:ratio(judged,MAX_CALLS),arms,
     observedGoldDelta:arms.after.correct/9-arms.before.correct/9,
-    judgedAcceptanceDelta:complete?(arms.after.accepted-arms.before.accepted)/9:null,
+    judgedAcceptanceDelta:complete&&arms.before.binary&&arms.after.binary?(arms.after.accepted-arms.before.accepted)/9:null,
     judgeSignal:used.size===2?'NON_CONSTANT':used.size===1?'CONSTANT':'NO_BINARY_SIGNAL',
     attemptedCalls:report.attempts,actualCalls:report.actualCalls??null,
     usage:report.rows.filter(r=>r.status==='ok').reduce((s,r)=>{for(const k of ['input_tokens','output_tokens','total_tokens'])
@@ -141,15 +167,20 @@ async function main() {
       assert.equal(h.status,200);admit(json(path.join(ROOT,'self-grading-live.json')),process.env,await h.json());
       execution={mode:'live',sourceSha:process.env.GITHUB_SHA,runUrl:'https://github.com/roccho-org/ops/actions/runs/'+process.env.GITHUB_RUN_ID};
     }
-    const p=prepare(ROOT,execution);fs.mkdirSync(dir,{recursive:true});write(at('input.json'),p.input);write(at('truth.json'),p.truth);return;
+    const p=prepare(ROOT,execution);fs.mkdirSync(dir,{recursive:true});write(at('input.json'),p.input);return;
   }
   const input=json(at('input.json'));
   if(mode==='score') {
     assert.ok(!process.env.JEV_API_KEY);
-    const truth=json(at('truth.json')),canonical=prepare(ROOT,input.execution);
-    assert.deepEqual(input,canonical.input);assert.deepEqual(truth,canonical.truth);
-    const s=scoreJudge(input,truth,json(at('predictions.json')));
-    write(at('measurement.json'),s);console.log(JSON.stringify(s));return;
+    const canonical=prepare(ROOT,input.execution),truth=canonical.truth;
+    assert.deepEqual(input,canonical.input);write(at('truth.json'),truth);
+    const report=fs.existsSync(at('predictions.json'))?json(at('predictions.json'))
+      :partialReport(input,fs.existsSync(at('events.jsonl'))?lines(at('events.jsonl')):[]);
+    if(!fs.existsSync(at('predictions.json')))write(at('predictions.json'),report);
+    const s=scoreJudge(input,truth,report);
+    write(at('measurement.json'),s);console.log(JSON.stringify(s));
+    if(s.measurementStatus==='INCOMPLETE')process.exitCode=2;
+    return;
   }
   assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.env.GITHUB_RUN_ATTEMPT,'1');
   assert.equal(input.execution.mode,'live');assert.equal(input.execution.sourceSha,process.env.GITHUB_SHA);
@@ -175,7 +206,12 @@ async function main() {
     const r=await askJevChoice({...request,provider});
     return {...r.choice,model:r.model,usage};
   };
-  const report=await evaluateJudge(input,ask);report.actualCalls=calls;
+  const observe=event=>{
+    fs.appendFileSync(at('events.jsonl'),JSON.stringify(event)+'\n',{mode:0o600});
+    console.log('SELF_GRADING_CHECKPOINT '+JSON.stringify(event.kind==='row'
+      ?{id:event.row.id,status:event.row.status,answer:event.row.answer??null,elapsedMs:event.row.elapsedMs??null}:event));
+  };
+  const report=await evaluateJudge(input,ask,observe);report.actualCalls=calls;
   write(at('predictions.json'),report);
   if(report.rows.some(r=>r.status!=='ok'))process.exitCode=2;
 }

@@ -5,13 +5,13 @@ const b={path:'.github/workflows/sys1-self-grading-proof.yml',secretScope:'organ
 const cli='node experiments/sys1-eval-loop/self-grading.mjs ';
 const w={on:{push:{branches:['codex/jev-self-grading-measurement-20261020'],paths:['experiments/sys1-eval-loop/self-grading-live.json']}},
   permissions:{actions:'read',contents:'read'},concurrency:{group:'sys1-self-grading-proof','cancel-in-progress':false},jobs:{evaluate:{
-  if:"github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1",'runs-on':'ubuntu-24.04','timeout-minutes':5,steps:[
+  if:"github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1",'runs-on':'ubuntu-24.04','timeout-minutes':8,steps:[
     {uses:'actions/checkout@11d5960a326750d5838078e36cf38b85af677262',with:{'persist-credentials':false,'fetch-depth':0}},
     {run:'node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs'},
     {id:'prepare',env:{GH_TOKEN:'${{ github.token }}'},run:cli+'prepare "$RUNNER_TEMP/self-grading"'},
     {env:{JEV_API_KEY:'${{ secrets.JEV_API_KEY }}'},run:cli+'evaluate "$RUNNER_TEMP/self-grading"'},
     {if:"always() && steps.prepare.outcome == 'success'",run:cli+'score "$RUNNER_TEMP/self-grading"'},
-    {uses:'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02',if:'always()'}
+    {uses:'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02',if:'always()',with:{name:'sys1-self-grading-${{ github.run_id }}',path:'${{ runner.temp }}/self-grading','if-no-files-found':'ignore','retention-days':30}}
   ]}}};
 test('finite self-grading admission leaves the old Org and 43-call routes unchanged',()=>{
   assert.deepEqual(analyzeEffectWorkflow(w,b).issues,[]);
@@ -35,6 +35,9 @@ for(const [name,edit] of [
   ['ignored failure',x=>x.jobs.evaluate.steps[3]['continue-on-error']=true],
   ['changed working directory',x=>x.jobs.evaluate.steps[3]['working-directory']='other'],
   ['lost partial receipt',x=>x.jobs.evaluate.steps[5].if='success()'],
+  ['wrong artifact directory',x=>x.jobs.evaluate.steps[5].with.path='empty'],
+  ['wrong artifact identity',x=>x.jobs.evaluate.steps[5].with.name='unrelated'],
+  ['lost retention',x=>x.jobs.evaluate.steps[5].with['retention-days']=1],
 ])test('self-grading rejects '+name,()=>{
   const v=structuredClone(w);edit(v);assert.ok(analyzeEffectWorkflow(v,b).issues.length);
 });

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {prepare,judgeRequest,evaluateJudge,scoreJudge,admit,MAX_CALLS,BRANCH} from './self-grading.mjs';
+import {prepare,judgeRequest,evaluateJudge,scoreJudge,partialReport,admit,MAX_CALLS,BRANCH} from './self-grading.mjs';
 
 const {input,truth}=prepare();
 const answer=(choice,model='jev-1.13.0')=>({choice,model,probabilities:{accept:choice==='accept'?1:0,reject:choice==='reject'?1:0,abstain:choice==='abstain'?1:0},confidence:1,usage:{input_tokens:2,output_tokens:1}});
@@ -23,7 +23,7 @@ test('judge only receives task and proposed output, not arm, IDs, Gold, old scor
 });
 test('perfect judge permits actual finite calibration and reproduces a paired gain, not repair efficacy',async()=>{
   const r=await run((q,n)=>answer(truth.rows[n].correct?'accept':'reject')),s=scoreJudge(input,truth,r);
-  assert.equal(s.measurementStatus,'MEASURABLE_FINITE_PILOT');
+  assert.equal(s.measurementStatus,'OBSERVATION_COMPLETE');
   assert.deepEqual(s.falseAccept,{numerator:0,denominator:4,value:0});
   assert.deepEqual(s.falseReject,{numerator:0,denominator:14,value:0});
   assert.equal(s.observedGoldDelta,4/9);assert.equal(s.judgedAcceptanceDelta,4/9);
@@ -34,18 +34,21 @@ test('always-pass judge is exposed rather than passing as perfect accuracy or qu
   const s=scoreJudge(input,truth,await run(()=>answer('accept')));
   assert.equal(s.falseAccept.value,1);assert.deepEqual(s.deliveredRisk,{numerator:4,denominator:18,value:4/18});
   assert.equal(s.judgedAcceptanceDelta,0);assert.equal(s.judgeSignal,'CONSTANT');
-  assert.equal(s.measurementStatus,'MEASURABLE_FINITE_PILOT');
+  assert.equal(s.measurementStatus,'OBSERVATION_COMPLETE');
 });
 test('all abstention has zero coverage and no defined delivered risk; it is not perfect judging',async()=>{
   const s=scoreJudge(input,truth,await run(()=>answer('abstain')));
   assert.equal(s.coverage.value,0);assert.equal(s.deliveredRisk.value,null);
   assert.equal(s.counts.abstainCorrect,14);assert.equal(s.counts.abstainWrong,4);assert.equal(s.judgeSignal,'NO_BINARY_SIGNAL');
+  assert.equal(s.falseAccept.value,null);assert.equal(s.falseReject.value,null);assert.equal(s.judgedAcceptanceDelta,null);
+  assert.equal(s.negativeCoverage.value,0);assert.equal(s.arms.after.falseAccept.value,null);
 });
 test('transport failure stops all subsequent calls without dropping the denominator',async()=>{
   const r=await run((q,n)=>{if(n===2)throw Error('raw secret must not appear');return answer('accept');});
   const s=scoreJudge(input,truth,r);
   assert.equal(s.actualCalls,3);assert.equal(s.counts.errors,1);assert.equal(s.counts.notRun,15);
   assert.equal(s.measurementStatus,'INCOMPLETE');assert.equal(s.judgedAcceptanceDelta,null);
+  assert.equal(s.falseAccept.value,null);assert.equal(s.falseReject.value,null);assert.equal(s.deliveredRisk.value,null);
   assert.ok(!JSON.stringify(r).includes('raw secret'));
 });
 test('changed reported model stops and preserves response metadata',async()=>{
@@ -59,6 +62,17 @@ test('changed request and duplicate or inconsistent truth cannot create a valid 
   assert.throws(()=>scoreJudge(input,t,awaitedReport));
 });
 const awaitedReport=await run(()=>answer('accept'));
+test('abrupt interruption retains completed rows and cannot imply a complete or zero-error result',async()=>{
+  const events=[];
+  await assert.rejects(evaluateJudge(input,async()=>answer('accept'),e=>{
+    events.push(e);if(e.kind==='attempt'&&e.id==='q02')throw Error('simulated hard stop');
+  }));
+  const r=partialReport(input,events),s=scoreJudge(input,truth,r);
+  assert.equal(r.rows[0].status,'ok');assert.equal(r.rows[1].status,'error');
+  assert.equal(r.rows[2].status,'not_run');assert.equal(s.actualCalls,null);
+  assert.equal(s.measurementStatus,'INCOMPLETE');assert.equal(s.falseAccept.value,null);
+  const empty=scoreJudge(input,truth,partialReport(input,[]));assert.equal(empty.counts.notRun,18);
+});
 test('finite native run identity refuses replay, second trigger, stale head and broadened authorization',()=>{
   const env={GITHUB_REPOSITORY:'roccho-org/ops',GITHUB_ACTOR:'roccho-dev',GITHUB_REF:'refs/heads/'+BRANCH,
     GITHUB_RUN_ATTEMPT:'1',GITHUB_SHA:'a'.repeat(40),GITHUB_RUN_ID:'123'};

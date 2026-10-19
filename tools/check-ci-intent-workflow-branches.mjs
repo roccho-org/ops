@@ -313,7 +313,7 @@ export function assertSelfGradingWorkflow(w,b) {
   need(same(Object.keys(w.jobs??{}),['evaluate']),'self-grading job set differs');
   const j=w.jobs.evaluate,s=j.steps??[];
   need(j.if==="github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1"
-    &&j['runs-on']==='ubuntu-24.04'&&j['timeout-minutes']===5
+    &&j['runs-on']==='ubuntu-24.04'&&j['timeout-minutes']===8
     &&!j.environment&&!j.env&&!j.secrets&&!j.strategy&&!j.uses&&!j.permissions&&!j['continue-on-error'],'self-grading actor/job differs');
   need(s.length===6&&s.filter(hasSecret).length===1,'self-grading steps differ');
   const cli='node experiments/sys1-eval-loop/self-grading.mjs ';
@@ -328,6 +328,8 @@ export function assertSelfGradingWorkflow(w,b) {
     &&s[4].if==="always() && steps.prepare.outcome == 'success'"
     &&s[5].uses==='actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'
     &&s[5].if==='always()','self-grading score/receipt differs');
+  need(JSON.stringify(s[5].with)===JSON.stringify({name:'sys1-self-grading-${{ github.run_id }}',
+    path:'${{ runner.temp }}/self-grading','if-no-files-found':'ignore','retention-days':30}),'self-grading artifact destination differs');
   for(const [n,step] of s.entries()) {
     need(!step['continue-on-error']&&!step['working-directory']&&!step.shell,'self-grading step override');
     if(n<4)need(!step.if,'self-grading mandatory admission skipped');
