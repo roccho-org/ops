@@ -1918,12 +1918,11 @@ const prefixExpression = `fromJSON('${JSON.stringify(REQUEST_PREFIX)}')`;
 assert.ok(guardText.includes(prefixExpression));
 const guard = new Function('github', 'startsWith', `return (${guardText.replace(prefixExpression, JSON.stringify(REQUEST_PREFIX))});`);
 const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase().startsWith(prefix.toLowerCase()));
-// The current caller guard belongs to the deployed runtime pin 305b5321 and is deliberately unchanged here: it rejects
-// PR536 for literal and provided requests although the dormant settings grant PR536 (S-c must change both together).
+// The current caller and reviewed runtime agree on the one supplied Issue origin; retired PR grants stay closed.
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
-  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536]) {
+  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
-      const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 522].includes(number) : number === 483)
+      const allowed = repository === 'roccho-org/ops' && (pullRequest ? number === 511 : number === 573)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;
       const github = { repository, event_name: 'issue_comment', event: {
         repository: { owner: { type: 'Organization' } }, comment: { body: '/jev-evaluate' },
@@ -1932,7 +1931,7 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
       assert.equal(guardAllows(github), allowed);
       for (const body of [REQUEST_PREFIX + '{}', REQUEST_PREFIX + 'not json', REQUEST_PREFIX]) {
         const providedEvent = { ...github, event: { ...github.event, comment: { body } } };
-        assert.equal(guardAllows(providedEvent), repository === 'roccho-org/ops' && number === 522 && pullRequest !== null);
+        assert.equal(guardAllows(providedEvent), repository === 'roccho-org/ops' && number === 573 && pullRequest === null);
       }
       for (const body of ['/jev-evaluate later', '/jev-evaluate\\\\n{}', '/jev-evaluate\\r\\n{}', 'prefix' + REQUEST_PREFIX]) {
         assert.equal(guardAllows({ ...github, event: { ...github.event, comment: { body } } }), false);
@@ -1945,12 +1944,12 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
     }
   }
 }
-const trustedRuntime = '305b5321ebc4d41d5c143cc002b82af71f140b8e';
+const trustedRuntime = 'aa23b0297fdebf0a3d15e7c627079599ff884c94';
 assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], trustedRuntime);
 assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], trustedRuntime);
-assert.ok(currentInvocation.includes(trustedRuntime));
+assert.ok(currentInvocation.includes('305b5321ebc4d41d5c143cc002b82af71f140b8e')); // Historical runtime facts stay historical.
 const permissionBlock = '  actions: read\n  contents: read\n  issues: write\n  pull-requests: write\n';
-const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
+const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' && github.event.issue.number == 573 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 511))";
 const assertWorkflowBoundary = (text) => {
   assert.equal(text.match(/\npermissions:\n([\s\S]*?)\njobs:/)?.[1], permissionBlock);
   assert.equal([...text.matchAll(/^\s*permissions:/gm)].length, 1);
@@ -1966,9 +1965,10 @@ for (const forbidden of [
   workflow.replace('permissions:\n' + permissionBlock, 'permissions: write-all\n'),
   workflow.replace('  evaluate:\n', '  evaluate:\n    permissions: write-all\n'),
   workflow.replace('github.event.issue.number == 511', 'github.event.issue.number >= 511'),
-  workflow.replaceAll('github.event.issue.number == 522', 'github.event.issue.number == 520'),
-  workflow.replaceAll('github.event.issue.number == 522', 'github.event.issue.number == 522 || github.event.issue.number == 523'),
-  workflow.replace('github.event.issue.number == 522 &&', 'true &&'),
+  workflow.replaceAll('github.event.issue.number == 573', 'github.event.issue.number == 574'),
+  workflow.replaceAll('github.event.issue.number == 573', 'github.event.issue.number == 573 || github.event.issue.number == 574'),
+  workflow.replace('github.event.issue.number == 573 &&', 'true &&'),
+  workflow.replace('github.event.issue.pull_request == null &&', 'true &&'),
   workflow.replace(prefixExpression, "'/jev-evaluate'"),
   workflow.replace('startsWith(github.event.comment.body', 'contains(github.event.comment.body'),
   workflow.replace("github.repository == 'roccho-org/ops'", 'true'),
@@ -1984,10 +1984,10 @@ assert.equal(boundary[0].secretScope, 'organization'); assert.equal(Object.hasOw
 assert.equal(/^\s*environment:/m.test(workflow), false);
 assert.match(workflow, /\non:\n  issue_comment:\n    types: \[created\]\n  workflow_call:\n/);
 assert.equal(/^\s*(?:workflow_dispatch|schedule|pull_request|pull_request_target|workflow_run|repository_dispatch|concurrency):/m.test(workflow), false);
-for (const part of ['github.event.issue.number == 483', 'github.event.issue.number == 52', "github.event_name == 'issue_comment'", "github.event.repository.owner.type == 'Organization'",
+for (const part of ['github.event.issue.number == 573', 'github.event.issue.number == 52', "github.event_name == 'issue_comment'", "github.event.repository.owner.type == 'Organization'",
   "github.event.comment.body == '/jev-evaluate'", 'github.event.issue.pull_request == null',
   'github.event.issue.pull_request != null', 'github.event.issue.number == 511',
-  'github.event.issue.number == 522', prefixExpression]) assert.ok(workflow.includes(part), part);
+  prefixExpression]) assert.ok(workflow.includes(part), part);
 const uses = [...workflow.matchAll(/uses: (\S+)/g)].map((m) => m[1]);
 assert.ok(uses.length === 2 && uses.every((u) => /^[A-Za-z0-9_.\/-]+@[0-9a-f]{40}$/.test(u)), uses.join());
 assert.ok(workflow.includes('repository: roccho-org/ops') && /ref: [0-9a-f]{40}/.test(workflow) && workflow.includes('persist-credentials: false'));
