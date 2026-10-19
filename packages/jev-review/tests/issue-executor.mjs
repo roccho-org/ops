@@ -49,9 +49,12 @@ const legacyActionsConfig = () => {
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
   assert.deepEqual(raw.runRanges.slice(7), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
-    first: 190, last: 190, reservedCallsPerRun: 1, target: { issue: 573 } }]);
+    first: 190, last: 190, reservedCallsPerRun: 1, target: { issue: 573 } },
+  { repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+    first: 191, last: 191, reservedCallsPerRun: 1, target: { issue: 573 } }]);
   assert.equal(raw.runRanges.slice(0, 7).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 206);
-  assert.equal(raw.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 207);
+  assert.equal(raw.runRanges.slice(0, 8).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 207);
+  assert.equal(raw.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 208);
 }
 const CHECKS = ['aligned.authority-grant', 'closed.feedback-completion', 'unique.canonical-responsibility',
   'minimal.necessary-layer', 'measurable.attempt-accounting', 'improving.comparable-evidence'];
