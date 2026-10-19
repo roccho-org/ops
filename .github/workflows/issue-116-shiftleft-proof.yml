@@ -176,8 +176,10 @@ jobs:
           set -euo pipefail
           rm -rf artifact
           mkdir -p artifact/replay artifact/proof-a artifact/proof-b \
-            artifact/logger-artifact-assembly/source/artifact-assembly \
-            artifact/logger-artifact-assembly/source/shiftleft-admission
+            artifact/logger-artifact-assembly/replay/packages/artifact-assembly \
+            artifact/logger-artifact-assembly/replay/packages/shiftleft-admission/adapters \
+            artifact/logger-artifact-assembly/replay/packages/shiftleft-admission/tests \
+            artifact/logger-artifact-assembly/replay/packages/structured-diagnostic/lib
           install -m 0755 out/policyctl artifact/policyctl
           install -m 0755 "$(command -v ast-grep)" artifact/ast-grep
           cp -a policy adapters providers rulepacks toolchains fixtures artifact/replay/
@@ -190,10 +192,16 @@ jobs:
             artifact/logger-artifact-assembly/old-new.json
           cp -a "$GITHUB_WORKSPACE/packages/artifact-assembly/bin" \
             "$GITHUB_WORKSPACE/packages/artifact-assembly/src" \
-            artifact/logger-artifact-assembly/source/artifact-assembly/
+            artifact/logger-artifact-assembly/replay/packages/artifact-assembly/
           cp adapters/artifact_assembly_candidate.mjs \
-            tests/artifact-assembly-diagnostic-candidate.mjs \
-            artifact/logger-artifact-assembly/source/shiftleft-admission/
+            adapters/diagnostic_process.mjs \
+            artifact/logger-artifact-assembly/replay/packages/shiftleft-admission/adapters/
+          cp tests/artifact-assembly-diagnostic-candidate.mjs \
+            artifact/logger-artifact-assembly/replay/packages/shiftleft-admission/tests/
+          cp "$GITHUB_WORKSPACE/packages/structured-diagnostic/contract.json" \
+            artifact/logger-artifact-assembly/replay/packages/structured-diagnostic/
+          cp "$GITHUB_WORKSPACE/packages/structured-diagnostic/lib/diagnostic.mjs" \
+            artifact/logger-artifact-assembly/replay/packages/structured-diagnostic/lib/
           cp "$GITHUB_WORKSPACE/build/packages.jsonl" "$GITHUB_WORKSPACE/build/checks.jsonl" artifact/
           python3 - <<'PY'
           import hashlib
@@ -235,6 +243,7 @@ jobs:
                   'counterexampleClassifications': sum(
                       1 for value in logger['counterexamples'].values() if value['classified']
                   ),
+                  'artifactOnlyReplaySource': 'logger-artifact-assembly/replay',
               },
               'toolchain': {
                   'go': subprocess.check_output(['go', 'version'], text=True).strip(),
@@ -272,5 +281,89 @@ jobs:
         with:
           name: issue-116-shiftleft-proof-${{ github.run_id }}
           path: packages/shiftleft-admission/artifact/
+          if-no-files-found: error
+          retention-days: 30
+
+  logger-artifact-only-replay:
+    needs: proof
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.16.0"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: issue-116-shiftleft-proof-${{ github.run_id }}
+          path: artifact
+
+      - name: Replay finite proof from artifact bytes only
+        run: |
+          set -euo pipefail
+          cd artifact
+          sha256sum -c SHA256SUMS
+          mkdir -p "$RUNNER_TEMP/logger-artifact-home" "$RUNNER_TEMP/logger-artifact-tmp"
+          cd logger-artifact-assembly/replay
+          env -i \
+            PATH="$PATH" \
+            HOME="$RUNNER_TEMP/logger-artifact-home" \
+            TMPDIR="$RUNNER_TEMP/logger-artifact-tmp" \
+            LANG=C.UTF-8 \
+            node packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs \
+              > ../artifact-only-replay.json
+          cmp ../old-new.json ../artifact-only-replay.json
+          jq -e '
+            .authority == false and
+            .new.coverage.met == 9 and
+            .new.coverage.unmet == 0 and
+            .comparison.status == "closed" and
+            (.comparison.residual | length) == 0 and
+            ([.counterexamples[] | .classified] | any) == false
+          ' ../artifact-only-replay.json >/dev/null
+          original_sha=$(sha256sum ../old-new.json | cut -d' ' -f1)
+          replay_sha=$(sha256sum ../artifact-only-replay.json | cut -d' ' -f1)
+          sums_sha=$(sha256sum ../../SHA256SUMS | cut -d' ' -f1)
+          head=$(jq -r '.commit' ../../metadata.json)
+          tree=$(jq -r '.candidateTree' ../../metadata.json)
+          jq -n \
+            --arg head "$head" \
+            --arg tree "$tree" \
+            --arg sourceRun "$GITHUB_RUN_ID" \
+            --arg sourceSumsSha256 "sha256:$sums_sha" \
+            --arg originalSha256 "sha256:$original_sha" \
+            --arg replaySha256 "sha256:$replay_sha" \
+            '{
+              schema: "ops.logger-finite-proof.artifact-replay/1",
+              authority: false,
+              head: $head,
+              tree: $tree,
+              sourceWorkflowRunId: $sourceRun,
+              sourceSha256Sums: $sourceSumsSha256,
+              originalResultSha256: $originalSha256,
+              replayResultSha256: $replaySha256,
+              byteIdentical: ($originalSha256 == $replaySha256),
+              sourceCloneUsed: false,
+              sourceBuildRequired: false,
+              status: "PASS"
+            }' > ../artifact-only-replay-receipt.json
+          jq -e '.byteIdentical == true and .status == "PASS" and .authority == false' \
+            ../artifact-only-replay-receipt.json >/dev/null
+          cat ../artifact-only-replay-receipt.json
+          {
+            echo "## Logger artifact-only replay"
+            echo
+            echo "- source clone: false"
+            echo "- source build: false"
+            echo "- byte-identical result: true"
+            echo "- authority: false"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue-116-logger-artifact-replay-${{ github.run_id }}
+          path: |
+            artifact/logger-artifact-assembly/artifact-only-replay.json
+            artifact/logger-artifact-assembly/artifact-only-replay-receipt.json
           if-no-files-found: error
           retention-days: 30
