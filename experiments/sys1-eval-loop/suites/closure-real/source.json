@@ -8,5 +8,9 @@
   "bodySource": "full GitHub Issue body; provider bytes independently equal DS acquisition",
   "expectedBeforeNewJevOutput": "body_observation",
   "goldAuthorIndependent": false,
-  "scope": "body-role classification only, not Issue482 consumer-quality completion"
+  "scope": "body-role classification only, not Issue482 consumer-quality completion",
+  "inputFields": {
+    "purpose": "task means a task body, not a historical-record-only archive",
+    "complete": "the declared body-only acquisition is complete; this does not mean the Issue work is complete or closed; comment history is outside this body-only scope"
+  }
 }

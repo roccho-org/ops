@@ -28,6 +28,9 @@ public Issue482 body is added. DS acquired all6417 UTF-8 bytes; root separately
 read back identical provider bytes. Its expected body_observation label and
 basis were fixed before any new Jev output. This is body-role classification,
 not completion of Issue482 consumer-quality work. It is not independent Gold.
+The input purpose=task distinguishes a task body from an archive. complete=true
+means the declared body-only acquisition is complete, not that the Issue work
+is complete/closed; comment history is outside this body-only scope.
 
 The new baseline is9 calls and candidate18, with target9/9 and no regression.
 Cases, Gold, model, labels, target and scoring are fixed within the new trial.
