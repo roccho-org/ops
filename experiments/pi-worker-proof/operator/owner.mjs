@@ -56,8 +56,8 @@ export function proofIdentity(values) {
       url.username || url.password || url.search || url.hash ||
       values.session !== "owner-jev-proof-20261020" ||
       values.host !== "64a8f191-83c2-5eeb-8dc0-612bc80970db" ||
-      !["login","reauth","refresh","seed","recall","reconcile"].includes(values.stage) ||
-      (["seed","recall","reconcile"].includes(values.stage) && values.continue !== true) ||
+      !["login","reauth","refresh","seed","recall","reconcile","history"].includes(values.stage) ||
+      (["seed","recall","reconcile","history"].includes(values.stage) && values.continue !== true) ||
       (values["forensic-once"] === true && values.stage !== "reconcile")) throw new Error("Proof identity mismatch");
 }
 export async function loadOwnerOAuth() {
@@ -108,6 +108,145 @@ export function closeOwnerSocket(socket, signal) {
 const recordObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const emptyObject = value => recordObject(value) && Object.keys(value).length === 0;
 const emptyArray = value => Array.isArray(value) && value.length === 0;
+function conversationSnapshot(value) {
+  const required = ["agent","compactions","entries","inbox","nestedTools","tools","type","usage"];
+  return recordObject(value) && value.type === "snapshot" &&
+    required.every(key => Object.hasOwn(value, key)) &&
+    Object.keys(value).every(key => [...required,"run","generation","compactionFailure"].includes(key)) &&
+    ["entries","tools","nestedTools","compactions","inbox"].every(key => Array.isArray(value[key])) &&
+    recordObject(value.agent) && recordObject(value.usage) &&
+    recordObject(value.usage.models) && recordObject(value.usage.tools) && Object.keys(value.usage).sort().join(",") === "models,tools";
+}
+function emptyConversationSnapshot(value) {
+  return conversationSnapshot(value) && !["run","generation","compactionFailure"].some(key => Object.hasOwn(value,key)) &&
+    ["entries","tools","nestedTools","compactions","inbox"].every(key => emptyArray(value[key])) &&
+    emptyObject(value.usage.models) && emptyObject(value.usage.tools);
+}
+function automaticSnapshot(frames, id) {
+  const snapshots = frames.filter(frame => frame?.type === "conversation.events" && frame.conversationId === id)
+    .flatMap(frame => Array.isArray(frame.events) ? frame.events : []).filter(event => event?.type === "snapshot");
+  assert.equal(snapshots.length, 1);
+  assert.ok(conversationSnapshot(snapshots[0]));
+  const inboxes = frames.filter(frame => frame?.type === "conversation.inbox" && frame.conversationId === id);
+  assert.ok(inboxes.length > 0 && inboxes.every(frame => Array.isArray(frame.items)));
+  return { snapshot: snapshots[0], inboxes };
+}
+export function historyTarget(frames, witness) {
+  let inventoryCount = null;
+  try {
+    proofWitness(witness, witness?.posts);
+    assert.ok(witness.posts >= 1 && witness.posts <= 3);
+    const sessions = frames.filter(frame => frame?.type === "session.snapshot");
+    assert.equal(sessions.length, 1);
+    const session = sessions[0].session;
+    assert.ok(recordObject(session) && Array.isArray(session.conversations));
+    inventoryCount = session.conversations.length;
+    const ids = session.conversations.map(row => {
+      assert.ok(recordObject(row) && Object.keys(row).length === 1 && Object.hasOwn(row,"id") &&
+        Number.isSafeInteger(row.id) && row.id > 0);
+      return row.id;
+    });
+    assert.equal(new Set(ids).size, ids.length);
+    assert.ok(ids.includes(1));
+    assert.ok(recordObject(session.activity) && recordObject(session.activity.tasks));
+    const root = automaticSnapshot(frames, 1);
+    if (!emptyObject(session.activity.tasks) || frames.some(frame =>
+      frame?.type === "session.activity" && (!recordObject(frame.activity) || !emptyObject(frame.activity.tasks)))) {
+      return { classification: "LIVE_OR_UNKNOWN_ACTIVITY", inventoryCount };
+    }
+    assert.ok(frames.every(frame => frame && ["session.snapshot","session.activity","conversation.events","conversation.inbox","presence.typing"].includes(frame.type) &&
+      (!Object.hasOwn(frame,"conversationId") || frame.conversationId === 1)));
+    const rootEvents = frames.filter(frame => frame.type === "conversation.events").flatMap(frame => frame.events);
+    assert.ok(rootEvents.every(event => event?.type === "snapshot"));
+    if (ids.length === 1) return { classification: "ROOT_AUTOMATIC", inventoryCount, conversationId: 1 };
+    if (ids.length === 2 && emptyConversationSnapshot(root.snapshot) && root.inboxes.every(frame => emptyArray(frame.items))) {
+      return { classification: "UNIQUE_OWNERLESS_NONROOT", inventoryCount, conversationId: ids.find(id => id !== 1) };
+    }
+    return { classification: "AMBIGUOUS_INVENTORY_OR_ROOT_WORK", inventoryCount };
+  } catch { return { classification: "UNKNOWN_SCHEMA_OR_WITNESS", inventoryCount }; }
+}
+export function summarizeHistory(frames, id, witness) {
+  proofWitness(witness, witness?.posts); assert.ok(witness.posts >= 1 && witness.posts <= 3);
+  const { snapshot, inboxes } = automaticSnapshot(frames, id);
+  const messages = snapshot.entries.flatMap(entry => {
+    assert.ok(recordObject(entry));
+    if (entry.model === undefined) return [];
+    assert.ok(Array.isArray(entry.model)); return entry.model;
+  });
+  assert.ok(messages.every(recordObject));
+  const assistants = messages.filter(message => message.role === "assistant");
+  const completed = assistants.filter(message => ["stop","toolUse"].includes(message.stopReason) &&
+    message.rawStopReason === "completed" && typeof message.responseId === "string" && message.responseId.length > 0);
+  const calls = assistants.flatMap(message => Array.isArray(message.content) ? message.content : [])
+    .filter(part => part?.type === "toolCall" && part.name === "ask_jev" && typeof part.id === "string" && part.id.length > 0);
+  const results = messages.filter(message => message.role === "toolResult" && message.toolName === "ask_jev");
+  const matchedTyped = results.filter(result => {
+    if (result.isError !== false || typeof result.toolCallId !== "string" || result.toolCallId.length === 0 ||
+        calls.filter(call => call.id === result.toolCallId).length !== 1 || !Array.isArray(result.content) ||
+        result.content.length !== 1 || result.content[0]?.type !== "text" || typeof result.content[0].text !== "string") return false;
+    try {
+      const assessment = JSON.parse(result.content[0].text);
+      return recordObject(assessment) && Object.keys(assessment).sort().join(",") === "noul,type" &&
+        assessment.type === "noul" && Number.isFinite(assessment.noul) && assessment.noul >= 0 && assessment.noul <= 1;
+    } catch { return false; }
+  }).length;
+  const otherEvents = frames.filter(frame => frame?.type === "conversation.events" && frame.conversationId === id)
+    .flatMap(frame => frame.events).filter(event => event?.type !== "snapshot").length;
+  const pending = ["run","generation"].some(key => Object.hasOwn(snapshot,key)) ||
+    snapshot.inbox.length > 0 || snapshot.tools.length > 0 || snapshot.nestedTools.length > 0 ||
+    inboxes.some(frame => frame.items.length > 0);
+  const errors = assistants.filter(message => ["error","aborted"].includes(message.stopReason)).length;
+  const distinctCompletions = new Set(completed.map(message => message.responseId)).size === completed.length;
+  const classification = otherEvents > 0 ? "ACTIVITY_DURING_INSPECTION" : pending ? "LIVE_OR_UNRESOLVED_STATE" :
+    Object.hasOwn(snapshot,"compactionFailure") ? "COMPACTION_FAILURE_OBSERVED" :
+    errors > 0 ? "MODEL_ERROR_OR_ABORT_OBSERVED" : !distinctCompletions ? "AMBIGUOUS_COMPLETIONS" :
+    matchedTyped > 0 ? "COMMITTED_JEV_RESULT_OBSERVED" : "SNAPSHOT_OBSERVED_ONLY";
+  return { classification, postsAtUpgrade: witness.posts, entryCount: snapshot.entries.length,
+    userMessageCount: messages.filter(message => message.role === "user").length, assistantCount: assistants.length,
+    completedAssistantCount: completed.length, distinctCompletions, errorOrAbortCount: errors,
+    askJevCallCount: calls.length, askJevResultCount: results.length, matchedTypedJevResultCount: matchedTyped,
+    pendingObserved: pending, subsequentEventCount: otherEvents,
+    providerHttpCause: "UNAVAILABLE_FROM_MASKED_HISTORY" };
+}
+export async function inspectHistoryConnection(connection) {
+  await connection.wait(frame => frame?.type === "conversation.events" && frame.conversationId === 1 &&
+    Array.isArray(frame.events) && frame.events.some(event => event?.type === "snapshot"));
+  await connection.wait(frame => frame?.type === "conversation.inbox" && frame.conversationId === 1);
+  const selected = historyTarget(connection.frames, connection.witness);
+  if (selected.conversationId === undefined) {
+    await connection.close();
+    return { classification: selected.classification, inventoryCount: selected.inventoryCount, openedConversationCount: 0, inspected: false };
+  }
+  if (selected.conversationId !== 1) {
+    await connection.command({ type: "conversation.open", requestId: randomUUID(), conversationId: selected.conversationId });
+    await connection.wait(frame => frame?.type === "conversation.events" && frame.conversationId === selected.conversationId &&
+      Array.isArray(frame.events) && frame.events.some(event => event?.type === "snapshot"));
+    await connection.wait(frame => frame?.type === "conversation.inbox" && frame.conversationId === selected.conversationId);
+  }
+  await connection.close();
+  // Reject foreign/unknown frames rather than silently filtering them from the inspected snapshot.
+  assert.ok(connection.frames.every(frame => recordObject(frame) &&
+    ["session.snapshot","session.activity","conversation.events","conversation.inbox","presence.typing","command.result"].includes(frame.type) &&
+    (!Object.hasOwn(frame,"conversationId") || [1,selected.conversationId].includes(frame.conversationId))));
+  if (connection.frames.filter(frame => frame.type === "session.snapshot").length !== 1 ||
+      connection.frames.some(frame => frame.type === "session.activity" &&
+        (!recordObject(frame.activity) || !emptyObject(frame.activity.tasks)))) {
+    return { classification: "ACTIVITY_OR_INVENTORY_CHANGED", inventoryCount: selected.inventoryCount,
+      openedConversationCount: selected.conversationId === 1 ? 0 : 1, inspected: false };
+  }
+  return { ...summarizeHistory(connection.frames, selected.conversationId, connection.witness),
+    inventoryCount: selected.inventoryCount, openedConversationCount: selected.conversationId === 1 ? 0 : 1, inspected: true };
+}
+export async function beginHistoryInspection(store, expires) {
+  const record = store.get();
+  proofStageAllowed(record.proof, "history");
+  assert.ok(Number.isFinite(expires) && expires > Date.now() + 30_000);
+  await store.save({ ...record, proof: { ...record.proof, historyInspection: { state: "UNKNOWN" } } });
+}
+export async function saveHistoryObservation(store, observation) {
+  const record = store.get();
+  await store.save({ ...record, proof: { ...record.proof, historyInspection: { state: "OBSERVED", ...observation } } });
+}
 export function emptyRootCertificate(frames, witness) {
   proofWitness(witness, 0);
   let sessionSeen = false, rootSeen = false, inboxSeen = false;
@@ -124,11 +263,7 @@ export function emptyRootCertificate(frames, witness) {
       assert.equal(frame.conversationId, 1);
       assert.ok(Array.isArray(frame.events) && frame.events.length > 0);
       for (const event of frame.events) {
-        assert.deepEqual(Object.keys(event).sort(), ["agent","compactions","entries","inbox","nestedTools","tools","type","usage"]);
-        assert.equal(event.type, "snapshot");
-        for (const key of ["entries","tools","nestedTools","compactions","inbox"]) assert.ok(emptyArray(event[key]));
-        assert.ok(recordObject(event.agent));
-        assert.ok(recordObject(event.usage) && emptyObject(event.usage.models) && emptyObject(event.usage.tools));
+        assert.ok(emptyConversationSnapshot(event));
         rootSeen = true;
       }
     } else if (frame.type === "conversation.inbox") {
@@ -146,6 +281,10 @@ export function proofStageAllowed(proof, stage, forensicOnce = false) {
     if (forensicOnce) assert.ok(recordObject(proof.reconciliation) && proof.reconciliation.state === "UNKNOWN" && !Object.hasOwn(proof.reconciliation, "forensicOnce"),
       "Only one explicitly admitted forensic attempt after the first UNKNOWN");
     else assert.ok(!Object.hasOwn(proof, "reconciliation"), "Only the retained unlocalized seed can be reconciled once");
+  } else if (stage === "history") {
+    assert.ok(proof?.state === "UNKNOWN" && proof.attemptedStage === "seed" &&
+      proof.reconciliation?.state === "UNKNOWN" && proof.reconciliation.forensicOnce?.state === "UNKNOWN" &&
+      !Object.hasOwn(proof,"historyInspection"), "One distinct history inspection after consumed forensic admission");
   } else if (stage === "seed" && proof !== undefined) {
     assert.ok(proof.state === "RECONCILED_EMPTY" && proof.originalUnknown?.state === "UNKNOWN" &&
       proof.reconciliation?.empty === true && proof.reconciliation.posts === 0 && proof.reconciliation.rootId === 1);
@@ -206,7 +345,7 @@ const abort = new AbortController();
 process.once("SIGINT", () => abort.abort());
 await withOwnerSockets(abort.signal, async sockets => withRegistration(path, async store => {
 const stage = values.stage;
-if (!["login", "reauth", "refresh", "seed", "recall", "reconcile"].includes(stage)) throw new Error("Explicit lifecycle stage required");
+if (!["login", "reauth", "refresh", "seed", "recall", "reconcile", "history"].includes(stage)) throw new Error("Explicit lifecycle stage required");
 const { openaiChatGPTOAuth } = await loadOwnerOAuth();
 if (stage === "login" || stage === "reauth") {
   await replaceCredential(store, values.host, stage, () => openaiChatGPTOAuth.login({
@@ -252,7 +391,8 @@ const previousProof = record.proof;
 if (stage === "recall" && (previousProof.session !== values.session || previousProof.origin !== values.url || previousProof.host !== values.host)) throw new Error("Proof binding mismatch");
 if (stage === "reconcile") {
   await beginReconciliation(store, values["forensic-once"] === true, credential.expires);
-} else await store.save({ ...record, proof: { ...previousProof, state: "UNKNOWN", attemptedStage: stage } });
+} else if (stage === "history") await beginHistoryInspection(store, credential.expires);
+else await store.save({ ...record, proof: { ...previousProof, state: "UNKNOWN", attemptedStage: stage } });
 const origin = new URL(values.url);
 assert.equal(origin.protocol, "https:");
 assert.equal(origin.pathname, "/");
@@ -260,7 +400,7 @@ phase("CF_CACHE");
 const accessJwt = execFileSync(values.cloudflared, ["access", "token", "--app", origin.origin],
   { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 const bearer = { token: credential.access, expires: credential.expires };
-if (stage !== "reconcile") {
+if (stage !== "reconcile" && stage !== "history") {
 phase("CATALOG_HTTP");
 const catalogResponse = await fetch("https://api.openai.com/v1/models", {
   headers: { Authorization: "Bearer " + bearer.token }, redirect: "error", signal: AbortSignal.any([abort.signal, AbortSignal.timeout(15_000)]),
@@ -315,6 +455,16 @@ function assistant(messages) {
   const reply = messages.filter(message => message.role === "assistant" && message.stopReason === "stop").at(-1);
   assert.ok(reply, "No completed new assistant reply");
   return reply.content.filter(part => part.type === "text").map(part => part.text).join("");
+}
+if (stage === "history") {
+  phase("HISTORY_SNAPSHOT");
+  const observation = await inspectHistoryConnection(await connect());
+  phase("HISTORY_COMMIT");
+  await saveHistoryObservation(store, observation);
+  console.log(JSON.stringify({ scope: "HISTORY_DIAGNOSIS_ONLY", proofState: "UNKNOWN", ...observation,
+    noPromptOrSeedRecovery: true, noAutomaticResend: true }));
+  if (!observation.inspected) process.exitCode = 1;
+  return;
 }
 if (stage === "reconcile") {
   phase("RECONCILE_SNAPSHOT");

@@ -494,3 +494,149 @@ test("actual owner socket observer distinguishes HTTP401,101-close,timeout and p
     }
   }
 });
+function historyFrames(children = [], rootEntries = []) {
+  const frames = automaticRootFrames();
+  frames[0].session.conversations.push(...children);
+  frames[1].events[0].entries = rootEntries;
+  return frames;
+}
+const historyWitness = posts => ({ boot: "00000000-0000-4000-8000-000000000608", posts, prior: "true" });
+test("actual history selector preserves observed posts and refuses ambiguous/task/fork/root-work inventories", async () => {
+  const { historyTarget, summarizeHistory } = await import("./owner.mjs");
+  for (const posts of [1,2,3]) {
+    assert.equal(historyTarget(historyFrames(), historyWitness(posts)).conversationId, 1);
+    assert.equal(summarizeHistory(historyFrames(), 1, historyWitness(posts)).postsAtUpgrade, posts);
+  }
+  assert.equal(historyTarget(historyFrames([{ id: 9 }]), historyWitness(1)).conversationId, 9);
+  assert.equal(historyTarget(historyFrames([], [{ model: [{ role: "user", content: "synthetic-private" }] }]), historyWitness(1)).conversationId, 1);
+  for (const frames of [
+    historyFrames([{ id: 2 }, { id: 3 }]), historyFrames([{ id: 2, parent: { conversationId: 1, at: 1 } }]),
+    historyFrames([{ id: 2, owner: { conversationId: 1 } }]), historyFrames([{ id: 1 }]),
+    historyFrames([{ id: "2" }]), historyFrames([{ id: 2 }], [{ model: [] }]),
+  ]) assert.equal(historyTarget(frames, historyWitness(1)).conversationId, undefined);
+  for (const mutate of [
+    f => { delete f[0].session.activity; }, f => { f[0].session.activity.tasks = { pending: {} }; },
+    f => { f[0].session.conversations = [{ id: 2 }]; }, f => { delete f[1].events[0].inbox; },
+    f => { f[1].events[0].usage.extra = {}; }, f => { f.push({ type: "invalid.owner.frame" }); },
+  ]) { const frames = historyFrames([{ id: 2 }]); mutate(frames); assert.equal(historyTarget(frames, historyWitness(1)).conversationId, undefined); }
+  for (const posts of [0,4,"1",undefined]) assert.equal(historyTarget(historyFrames(), historyWitness(posts)).conversationId, undefined);
+});
+test("history model-error classification and typed Jev correlation never expose private content or infer HTTP cause", async () => {
+  const { summarizeHistory } = await import("./owner.mjs");
+  const messages = [
+    { role: "user", content: "synthetic-private-marker" },
+    { role: "assistant", content: [{ type: "toolCall", name: "ask_jev", id: "call-1" }], stopReason: "toolUse", rawStopReason: "completed", responseId: "response-1" },
+    { role: "toolResult", toolName: "ask_jev", toolCallId: "call-1", isError: false, content: [{ type: "text", text: '{"type":"noul","noul":0.419}' }] },
+    { role: "assistant", stopReason: "error", errorMessage: "synthetic-private-provider-echo", content: [] },
+  ];
+  const frames = () => historyFrames([], [{ model: structuredClone(messages) }]);
+  const good = summarizeHistory(frames(), 1, historyWitness(1));
+  assert.equal(good.classification, "MODEL_ERROR_OR_ABORT_OBSERVED");
+  assert.equal(good.matchedTypedJevResultCount, 1);
+  assert.equal(good.providerHttpCause, "UNAVAILABLE_FROM_MASKED_HISTORY");
+  assert.equal(JSON.stringify(good).includes("synthetic-private"), false);
+  assert.equal(JSON.stringify(good).includes("0.419"), false);
+  for (const mutate of [
+    m => { m[2].isError = true; }, m => { m[2].toolCallId = "other"; },
+    m => { m[1].content[0].name = "another-tool"; }, m => { m[2].toolName = "another-tool"; },
+    m => { m[2].content[0].text = "synthetic-private-invalid"; },
+    m => { m[2].content[0].text = '{"type":"noul","noul":2}'; },
+    m => { m[2].content.push({ type: "image", data: "synthetic-private" }); },
+    m => { m[1].content.push({ ...m[1].content[0] }); },
+  ]) {
+    const changed = frames(); mutate(changed[1].events[0].entries[0].model);
+    assert.equal(summarizeHistory(changed, 1, historyWitness(1)).matchedTypedJevResultCount, 0);
+  }
+});
+test("history admission is a distinct durable one-shot and observation preserves all UNKNOWN audits", async () => {
+  const { mkdtemp, readFile, unlink, rmdir } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const { withRegistration } = await import("./custody.mjs");
+  const { beginHistoryInspection, saveHistoryObservation, proofStageAllowed } = await import("./owner.mjs");
+  const dir = await mkdtemp(tmpdir() + "/owner-history-"), path = dir + "/registration.json";
+  const prior = { state: "UNKNOWN", attemptedStage: "seed", reconciliation: { state: "UNKNOWN", forensicOnce: { state: "UNKNOWN" } } };
+  try {
+    await withRegistration(path, store => store.save({ state: "READY", proof: prior }));
+    const before = await readFile(path, "utf8");
+    await withRegistration(path, async store => {
+      await assert.rejects(beginHistoryInspection(store, Date.now() - 1));
+      assert.equal(await readFile(path, "utf8"), before);
+    });
+    const child = `
+      const {withRegistration}=await import(${JSON.stringify(new URL("./custody.mjs", import.meta.url).href)});
+      const {beginHistoryInspection}=await import(${JSON.stringify(new URL("./owner.mjs", import.meta.url).href)});
+      await withRegistration(process.argv[1], async store => {
+        await beginHistoryInspection(store,Date.now()+300000);console.log("HISTORY_ADMISSION_DURABLE_BEFORE_EXTERNAL");
+      }).catch(()=>{console.error("HISTORY_REFUSED");process.exitCode=1;});
+    `;
+    const execute = () => promisify(execFile)(process.execPath, ["--input-type=module", "-e", child, path], { timeout: 5000 });
+    assert.equal((await execute()).stdout.trim(), "HISTORY_ADMISSION_DURABLE_BEFORE_EXTERNAL");
+    await assert.rejects(execute(), error => error.stderr.trim() === "HISTORY_REFUSED");
+    await withRegistration(path, async store => {
+      assert.deepEqual(store.get().proof, { ...prior, historyInspection: { state: "UNKNOWN" } });
+      await saveHistoryObservation(store, { classification: "MODEL_ERROR_OR_ABORT_OBSERVED", inspected: true, errorOrAbortCount: 1 });
+      assert.deepEqual(store.get().proof.reconciliation, prior.reconciliation);
+      assert.equal(store.get().proof.state, "UNKNOWN");
+      assert.equal(store.get().proof.historyInspection.state, "OBSERVED");
+      assert.throws(() => proofStageAllowed(store.get().proof, "seed"));
+      assert.throws(() => proofStageAllowed(store.get().proof, "history"));
+    });
+    for (const marker of [null,false,{}, { state: "UNKNOWN" }]) assert.throws(() => proofStageAllowed({ ...prior, historyInspection: marker }, "history"));
+    assert.throws(() => proofStageAllowed({ ...prior, reconciliation: { state: "UNKNOWN" } }, "history"));
+  } finally {
+    for (const name of ["registration.json","registration.json.lock"]) await unlink(dir + "/" + name).catch(() => {});
+    await rmdir(dir);
+  }
+});
+test("real history loopback sends ZERO commands for root/ambiguity or exactly ONE inventory-selected open", async () => {
+  const { observeOwnerSocket, withOwnerSockets, waitOwnerFrame, closeOwnerSocket, inspectHistoryConnection } = await import("./owner.mjs");
+  const { WebSocket, WebSocketServer } = await import("ws");
+  const { once } = await import("node:events");
+  for (const mode of ["root", "child", "multiple", "task", "root-and-child", "private-malformed"]) {
+    const server = new WebSocketServer({ host: "127.0.0.1", port: 0 });
+    await once(server, "listening");
+    const commands = [];
+    server.on("headers", headers => headers.push("Pi-Proof-Boot: 00000000-0000-4000-8000-000000000608", "Pi-Proof-Prior-Token: true", "Pi-Proof-Posts: 1"));
+    server.on("connection", socket => {
+      const children = mode === "multiple" ? [{ id: 9 },{ id: 10 }] : mode === "task" ? [{ id: 9, owner: { conversationId: 1 } }] :
+        ["child","root-and-child"].includes(mode) ? [{ id: 9 }] : [];
+      const entries = ["root","root-and-child"].includes(mode) ? [{ model: [{ role: "assistant", stopReason: "error", errorMessage: "synthetic-private" }] }] : [];
+      for (const frame of historyFrames(children, entries)) socket.send(JSON.stringify(frame));
+      if (mode === "private-malformed") socket.send("synthetic-private-malformed");
+      socket.on("message", data => {
+        const command = JSON.parse(String(data)); commands.push(command);
+        assert.equal(command.type, "conversation.open"); assert.equal(command.conversationId, 9);
+        const opened = historyFrames([], [{ model: [{ role: "assistant", stopReason: "error", errorMessage: "synthetic-private" }] }]);
+        for (const frame of opened.slice(1,3)) socket.send(JSON.stringify({ ...frame, conversationId: 9 }));
+        socket.send(JSON.stringify({ type: "command.result", command: "conversation.open", requestId: command.requestId, ok: true }));
+      });
+    });
+    const abort = new AbortController();
+    try {
+      await withOwnerSockets(abort.signal, async sockets => {
+        const frames = [], socket = new WebSocket("ws://127.0.0.1:" + server.address().port);
+        sockets.add(socket); const trace = observeOwnerSocket(socket, frames);
+        await once(socket, "open");
+        const wait = predicate => waitOwnerFrame(frames, socket, predicate, abort.signal, 500);
+        await wait(frame => frame?.type === "session.snapshot");
+        const report = await inspectHistoryConnection({ frames, witness: trace.witness, wait,
+          close: () => closeOwnerSocket(socket, abort.signal),
+          async command(command) {
+            socket.send(JSON.stringify(command));
+            const result = await wait(frame => frame?.type === "command.result" && frame.requestId === command.requestId);
+            assert.equal(result.ok, true); return result;
+          } });
+        assert.equal(report.inspected, ["root","child"].includes(mode));
+        assert.equal(report.postsAtUpgrade, report.inspected ? 1 : undefined);
+        assert.equal(JSON.stringify(report).includes("synthetic-private"), false);
+        assert.equal(socket.readyState, WebSocket.CLOSED);
+      });
+      assert.equal(commands.length, mode === "child" ? 1 : 0);
+    } finally {
+      for (const socket of server.clients) socket.terminate();
+      await new Promise(resolve => server.close(resolve));
+    }
+  }
+});
