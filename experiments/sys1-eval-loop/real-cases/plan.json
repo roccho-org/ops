@@ -96,7 +96,7 @@
   },
   "execution": {
     "plannedPhysicalCalls": "two prospectively fixed passes, 3*n each; actual M=n118 means 708 POST total; run both regardless of first outcome",
-    "route": "reuse existing native standard Jev client/CI/credential boundary; no new route exists in this slice",
+    "route": "existing native standard Jev client and six-step secret boundary reused; new dedicated request-only workflow implemented but no request/corpus exists, current-source reviews/checks and Gold freeze required before activation",
     "retry": "do not resend successful or effect-uncertain requests",
     "money": "record physical usage and unknown money, not alias rows",
     "mergeOrAdoption": false,

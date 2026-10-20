@@ -34,7 +34,7 @@ rootとcounterreviewがモデル出力を見る前に、bodyとopaque IDだけ�
 
 ## paired測定と近似判定
 
-1caseにつきBestE/scopedE/sharedOの3physical request、固定循環順、各pass上限3n<=900とし、出力前に2passを固定する。今回のM=n118では各354、計708 POST。初回の意味結果が不成立でも2回目を取消・再抽選しない。model drift等の技術停止guardは維持し、未試行は割当分母のunknownへ残す。両passそれぞれprimary条件を満たすことを要求し、平均による退行救済はしない。repIDをattempt/post/usageへ保持し、共有Oはpass内だけ、pass間は別物理観測。各jobは15秒deadline×354=88.5分と保存余裕を満たす110分を予定する。共有Oは同じreceipt/unknownを両roleへ投影し、独立二証拠・追加callにしない。既存標準Jev client/CI/認証境界を使う予定で、現sliceに実行routeはない。model drift/資格拒否/輸送不明はunknown、盲再送をしない。
+1caseにつきBestE/scopedE/sharedOの3physical request、固定循環順、各pass上限3n<=900とし、出力前に2passを固定する。今回のM=n118では各354、計708 POST。初回の意味結果が不成立でも2回目を取消・再抽選しない。model drift等の技術停止guardは維持し、未試行は割当分母のunknownへ残す。両passそれぞれprimary条件を満たすことを要求し、平均による退行救済はしない。repIDをattempt/post/usageへ保持し、共有Oはpass内だけ、pass間は別物理観測。各jobは15秒deadline×354=88.5分と保存余裕を満たす110分を予定する。共有Oは同じreceipt/unknownを両roleへ投影し、独立二証拠・追加callにしない。既存標準Jev client/CI/認証境界を使う予定で、runtime.mjsと限定workflowは実装したが、実corpus/Goldは未取込みで実作用できない。source/必要CI/3者受容とGold固定後だけrequest-onlyで各pass一回起動する。model drift/資格拒否/輸送不明はunknown、盲再送をしない。
 
 完全正答の改善b=Best誤→候補正、改悪c=Best正→候補誤をcase単位に数える。case内E/Oのどちらか一つでも既正答を壊せばcase退行event。両完全誤答間のE修復/O破壊も退行なので、cとcase退行rを混同しない。
 
@@ -92,3 +92,10 @@ flowchart TB
 ```
 
 現状はframe保持済み、sampler source/区間方式/2pass受入を3者counter中。sampler受容後の一回抽出をnative9311bb9d31a224e36e32f199eb95f85cd7e88de7へ保持し、root/Rが原body-onlyのopaque Gold viewから各独立Goldを進める。モデル作用は実source/資格境界/必要CI/3者受容後。費用は物理usage/人手と不明額を分離し、共有callの節約を配備後効率へ読み替えない。false positiveを避けるため不成立/unknownの枝も閉包として残し、改善成功そのものを保証しない。
+
+
+## 実行入口の現在境界
+
+real-case runtimeは2つのrepを同じ標準clientで各一回測る。新workflowは専用branchのrequest.json変更だけを入口とし、request fileはまだ置かない。preflightはnative parent・request-only diff・actor/run_attempt1・履歴件数・保持済み前rep原rawを照合する。rep2はrep1の正gainを条件にしないが、model drift等技術無効化では起動を止め未試行をunknownとして残す。Goldはproject時だけ使用、provider requestはbodyと611固定設定だけ。
+
+専用workflowは既存regression profileへ限定差分を変換して既存6step/credential位置/permissions/checkout/artifact境界の全検査を再用。各110分は354×15秒=88.5分に保持余裕を加える。実Gold/corpus未取得・3者実entry受容未了のためモデル0。
