@@ -143,13 +143,13 @@
       "repository": "roccho-org/ops",
       "workflowId": 377399991,
       "path": ".github/workflows/jev-issue-comment.yml",
-      "first": 293,
-      "last": 356,
+      "first": 300,
+      "last": 363,
       "reservedCallsPerRun": 1,
       "target": {
-        "pullRequest": 609
+        "pullRequest": 606
       },
-      "budgetClaimCommentId": 6284906525
+      "budgetClaimCommentId": 6289512028
     }
   ],
   "targets": [
@@ -177,14 +177,14 @@
     {
       "repository": "roccho-org/ops",
       "repositoryId": "1275606595",
-      "pullRequest": 609
+      "pullRequest": 606
     }
   ],
   "providedRequestTargets": [
     {
       "repository": "roccho-org/ops",
       "repositoryId": "1275606595",
-      "pullRequest": 609
+      "pullRequest": 606
     }
   ],
   "provider": {
