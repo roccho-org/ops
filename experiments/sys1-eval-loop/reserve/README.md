@@ -2,7 +2,7 @@
 
 [PR615](https://github.com/roccho-org/ops/pull/615) は実案件300件の二回比較を保持して閉じた。正答は220→233/231だったが、既正答Oの退行が両回にあり採用条件は不成立。H1/H2の退行unionは101/155/196/289。元Bestを維持し、採用・mergeはしない。この300件を今回のDへ退役し、未使用評価とは呼ばない。
 
-現在は最初のDが不受容で、別候補C2のsource受容・実測待ち。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。source4961の三者受容後、必要CI実547/547・fresh consumer・repo-health成功を自読し、一度だけ実行した。モデル作用は新O300、生成役呼出し0。reserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
+現在はD1/D2とも不受容で、次の別処置を事前反証中。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。各sourceの三者受容と必要CI実成功後に、それぞれ一度だけ実行した。モデル作用は新O600、生成役呼出し0。reserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
 
 ## 最初のD結果（不変の失敗記録）
 
@@ -10,15 +10,21 @@
 
 実300attempt/POST/qualified、未試行0、技術unknown0、観測model IDは一致。既知Gold293件では機械H1 baseline220→candidate236、修復17/complete退行1（held-289）。補助union軸退行はheld-101 Oとheld-289 Oの2件。H1/H2どちらかの既知正答を保持する条件が不成立なので `DEVELOPMENT_GUARD_FAIL`。Gold O null7はそのまま。workflow SUCCESSを性能受容へ読み替えず、23を開かない。元Best維持・候補不採用。
 
-新O物理300の既知usageはinput873992/output9300、各300call分。total_tokensは300件とも未提供であり、既知総額0ではない。金額・運用効率改善は未証明。次はこの失敗を保持したまま、公開D/元rubricだけに基づく別の一般O処置を三者で反証する。同じ候補を再抽選・再送して救済しない。
+新O物理300の既知usageはinput873992/output9300、各300call分。total_tokensは300件とも未提供であり、既知総額0ではない。歴史H1 E587492＋元O593192の論理運用相当input1180684に対し、新O＋同E歴史aliasは1461484（+280800/+23.78%）。これは非同時の組合せで、物理新規O300/input873992と分け、E aliasをHTTPへ二重計上しない。金額・将来の運用効率改善は未証明。同じ候補を再抽選・再送して救済しない。
 
-## C2の事前変更（実測前）
+## C2の処置とD2結果
 
-三者の公開D101/289・元rubricに基づく反証で、C1の長い肯定列挙と後置の規範例外の競合を仮説とした。C2は補足全体を短い一貫した判断手順へ置換する。規範・定義・受入条件の内部にある現在形/完了等の語だけを既達報告へ昇格せず、実操作・現状・未達・未確認の報告が本文内に一つでもあればyesとする。「具体的」「別箇所」「数値/成功/外部証拠」を要件にしない。構成・採用先の実際の状態報告は、規範形式という理由だけで除外しない。caseID/正答lookupやGold変更はしない。C2が改善するかは未測定。
+三者の公開D101/289・元rubricに基づく反証で、C1の長い肯定列挙と後置の規範例外の競合を仮説とした。回答の理由は保持していないので誤答の内部原因を断定しない。C2は補足全体を短い一貫した判断手順へ置換した。規範・定義・受入条件の内部にある現在形/完了等の語だけを既達報告へ昇格せず、実操作・現状・未達・未確認の報告が本文内に一つでもあればyesとする。「具体的」「別箇所」「数値/成功/外部証拠」を要件にしない。構成・採用先の実際の状態報告は、規範形式という理由だけで除外しない。caseID/正答lookupやGold変更はしない。
 
 旧C1を既定値に保持してD1全raw/inputをそのまま再生する。新C2だけinputの `candidateVersion:2` とsource固定のscopeで区別し、恣意的な入力scope文字列を信頼しない。native phase `development2` はhistory2/attempt1/request-only childへ限定し、実D1run39436861326のnative identityと原raw全値再生・Dguard不成立・技術全資格を先に確認する。D1の技術SUCCESSを意味FAILと混同せず、同じC1の再送ではなく実wireが異なるC2を一度だけ割り当てる。D2も元Best/H1機械primaryとH1/H2 unionを使い、C1の良い回答をbaselineへ選び直さない。
 
-予算はD1実300を消さず、新D2上限300＋将来H138を合わせseries技術上限738へ事前更新した。各Dは90分/300上限、現入口はD1/D2のみ。Userの呼出予算なしというGOに新たな通算1000停止を足さない。D2source・必要CI・三者受容前に追加モデル作用を行わない。H23は引き続き非開示。
+source60b65a4c9689131440049888dc491a2a20e86619の三者受容、必要CI実550/550・fresh consumer・repo-health成功後、request-only activation236fec7a12dd00b138f6fb0403b6808fdc7d6160から [D2 run39440524102](https://github.com/roccho-org/ops/actions/runs/39440524102) をattempt1で一度実行した。artifact12273995767/1357203B/provider SHA256 93405c2e49f1f52fb7621eda889c386b4d010602bd8563f1abffbef343723c4b を自己取得ZIPと照合し、原5file全値再生一致。保存先は `results/reserve-development2-20261020/`。
+
+D2も300attempt/POST/qualified、技術unknown0、観測model ID一致。機械H1完全正答220→230、修復10/complete退行0、Goldnull7不変。ただしheld-101 OがH2だけで保護されていた既知正答を維持できず、補助union軸退行1で `DEVELOPMENT_GUARD_FAIL`。held-289を保持できたことや、H1比退行0だけでは受容しない。23未開示・C2不採用・元Best維持。
+
+D2新O物理usageはinput746792/output9300、total_tokens300未知。歴史Eとの論理運用相当input1334284（元1180684比+13.01%）であり、非同時・金額不明。D1+D2実物理600、既知input1620784/output18600、provider total_tokensは600件未知。C2の小さいwireや単回使用量差を因果的効率改善と呼ばない。
+
+予算はD1実300を消さず、新D2上限300＋将来H138を合わせseries技術上限738へ事前更新して実行した。各Dは90分/300上限、現入口はD1/D2のみ。Userの呼出予算なしというGOに新たな通算1000停止を足さない。次処置は公開D/元rubricだけから事前反証し、新source・必要CI・三者受容前の追加モデル作用0を維持する。H23は引き続き非開示。
 
 ## 主張と反証を行う三者
 
@@ -57,13 +63,14 @@ flowchart TB
   D --> C[✅ 公開Dだけの一般O候補・旧wire既定値維持]
   C --> T[✅ complete gain＋両履歴union guardの敵対tests]
   T --> ENTRY[✅ D専用native入口・共有資格/会計/標準writer・実path鍵なしtests]
-  ENTRY --> REVIEW[⏳ sourceと必要checkの3者受容]
-  REVIEW --> LIVE[✅ 新O300一回・H1機械primary・歴史E alias]
-  LIVE --> G{Dguard成立?}
-  G -->|不成立・unknown| STOP[❌ D1 joint220→236でもunion2退行・候補不受容・23未開示]
+  ENTRY --> LIVE[✅ C1source/必要CI/三者受容・D1実O300]
+  LIVE --> STOP[❌ D1 joint220→236でもunion2退行・C1不受容・原版保持]
   STOP --> NEXT[✅ 公開DだけでC2短い一貫手順・C1default/旧raw維持]
-  NEXT --> D2[⏳ D2source/必要CI/三者受容後だけ別O300・同じgain/unionguard]
-  D2 --> G
+  NEXT --> D2[✅ C2source/必要CI/三者受容・別D2実O300]
+  D2 --> STOP2[❌ D2 joint220→230/c0でもunion1退行・C2不受容・原版保持]
+  STOP2 --> NEW[⏳ 公開D由来の別処置を事前反証・同候補再送禁止・23未開示]
+  NEW --> G{新source/必要CI/三者受容後のDguard成立?}
+  G -->|負・unknown| HOLD[保持して23未開示・次処置は別の事前契約]
   G -->|成立| FREEZE[⏳ 候補fullwire固定・その後だけ23開示]
   FREEZE --> H[⏳ 別受容後69 POST二回・全raw保持]
   H --> A{両回の全受入成立?}
@@ -73,4 +80,4 @@ flowchart TB
   NEG --> CLOSE
 ```
 
-最小共有の反証として、旧folder全bytes不変を目的にすると重複executorが増える。今回は旧公開requestの任意引数だけを変更し、既定fullwireと閉615再生を実検査する。旧保存inputへ新fieldを後付けしない。新汎用executor、任意endpoint/callback、独自ledger、認証追加は作らない。厳格資格は維持し、最終exactheadの通常CIを成功確認するまで完了と呼ばない。
+最小共有の反証として、旧folder全bytes不変を目的にすると重複executorが増える。公開requestの任意引数と専用資格/writer共有を最小化し、既定fullwireと閉615/D1/D2再生を実検査する。旧保存inputへ新fieldを後付けしない。新汎用executor、任意endpoint/callback、独自ledger、認証追加は作らない。厳格資格は維持し、最終exactheadの通常CIを成功確認するまで完了と呼ばない。
