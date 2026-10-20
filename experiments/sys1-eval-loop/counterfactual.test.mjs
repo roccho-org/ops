@@ -1,0 +1,91 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {repairInputs,parseCandidate,pairedComparison,judgeRequest,deriveDiagnosis,REPAIR_PROMPT} from './counterfactual/comparison.mjs';
+import {hasExpectation} from './split.mjs';
+import {generatePayloads,receiveCandidate} from './counterfactual/repair-route.mjs';
+import fs from 'node:fs';
+const cases=Array.from({length:24},(_,n)=>({id:'d'+n,body:'body '+n,gold:{E:'yes',O:'no',basis:'private'}}));
+const outputs=cases.map(c=>({id:c.id,status:'qualified',E:'yes',O:'no'}));
+const advice=cases.map(c=>({id:c.id,status:'qualified',diagnosis:'no_change',rationale:'not a real typed field'}));
+
+test('native repair candidates replay from unmodified standard API response text',()=>{
+  const read=name=>JSON.parse(fs.readFileSync(new URL('./results/counterfactual-repair-20261020/'+name,import.meta.url)));
+  const saved=read('parsed.json');const best=JSON.parse(read('feedback.request.json').prompt).common.best;
+  for(const arm of ['feedback','no-feedback']){
+    assert.deepEqual(receiveCandidate(read(arm+'.response.json'),best),saved.results[arm]);
+    assert.equal(read(arm+'.receipt.json').standardCliInvocations,1);
+    assert.equal(read(arm+'.receipt.json').status,0);
+  }
+  assert.deepEqual(read('before.json'),read('after.json'));
+  assert.equal(saved.plan.uniqueConfigCount,3);assert.equal(saved.plan.plannedPosts,224);
+});
+test('judge independently receives body only; code derives diagnosis after its immutable answer',()=>{
+  const q=judgeRequest('complete body');assert.deepEqual(JSON.parse(q.text),{body:'complete body'});
+  assert.deepEqual(Object.keys(q.criteria),['neither','requirements','observations','both']);assert.ok(!JSON.stringify(q).includes('proposed'));
+  assert.deepEqual(deriveDiagnosis('neither',{E:'yes',O:'no'}),{status:'qualified',diagnosis:'requirement_scope'});
+  assert.deepEqual(deriveDiagnosis('both',{E:'no',O:'no'}),{status:'qualified',diagnosis:'both_scope'});
+  assert.deepEqual(deriveDiagnosis(null,{E:'yes',O:'no'}),{status:'unknown',diagnosis:null});
+});
+test('judge keeps the original broad E contract including human responsibilities',()=>{
+  const q=judgeRequest('担当者は異議を独立確認者へ返し、確認者は証拠を照合する責務を持つ。');
+  assert.ok(q.criteria.requirements.includes(hasExpectation.yes));assert.ok(q.criteria.both.includes(hasExpectation.yes));
+  assert.ok(q.instructions.includes('人や役割の必要責務も含む'));assert.deepEqual(JSON.parse(q.text),{body:'担当者は異議を独立確認者へ返し、確認者は証拠を照合する責務を持つ。'});
+});
+test('repair arms have identical common input; only typed advice differs, without Gold or rationale',()=>{
+  const p=repairInputs(cases,outputs,advice,'Best');assert.deepEqual(p.feedback.common,p.noFeedback.common);
+  assert.equal(p.feedback.advice.rows.length,24);assert.equal(p.noFeedback.advice.rows.length,0);
+  const text=JSON.stringify(p);for(const value of ['gold','basis','private','rationale','not a real'])assert.ok(!text.includes(value));
+});
+test('unknown diagnosis remains unknown and does not prevent repair input construction',()=>{
+  const a=structuredClone(advice);a[0]={id:cases[0].id,status:'unknown',diagnosis:null};
+  assert.deepEqual(repairInputs(cases,outputs,a,'Best').feedback.advice.rows[0],{index:0,status:'unknown',diagnosis:null});
+  a[0].diagnosis='uncertain';assert.throws(()=>repairInputs(cases,outputs,a,'Best'));
+});
+test('missing target or duplicate advice cannot silently shrink development',()=>{
+  assert.throws(()=>repairInputs(cases,outputs.slice(1),advice,'Best'));
+  assert.throws(()=>repairInputs(cases,outputs,[...advice.slice(1),advice[1]],'Best'));
+});
+test('candidate parser preserves Best and rejects a second candidate or non-JSON prose',()=>{
+  assert.deepEqual(parseCandidate('{"instructions":"Best supplement"}','Best'),{instructions:'Best supplement'});
+  assert.throws(()=>parseCandidate('{"instructions":"replacement"}','Best'));
+  assert.throws(()=>parseCandidate('{"instructions":"Best","another":"Best"}','Best'));
+});
+test('repair models receive the byte boundary in advance and oversized Best is rejected before execution',()=>{
+  assert.ok(REPAIR_PROMPT.includes('6000 UTF-8 bytes'));
+  assert.throws(()=>repairInputs(cases,outputs,advice,'あ'.repeat(2001)));
+  assert.equal(Buffer.byteLength(parseCandidate(JSON.stringify({instructions:'あ'.repeat(2000)}),'あ').instructions),6000);
+  assert.throws(()=>parseCandidate(JSON.stringify({instructions:'あ'.repeat(2001)}),'あ'));
+});
+test('standard stateless generation requests differ only in advice and never repair a malformed model output',()=>{
+  const pair=repairInputs(cases,outputs,advice,'Best'),p=generatePayloads({targetComplete:true,repair:pair});
+  assert.deepEqual(p.feedback.model,p['no-feedback'].model);const f=JSON.parse(p.feedback.prompt),n=JSON.parse(p['no-feedback'].prompt);assert.deepEqual(f.common,n.common);
+  assert.equal(receiveCandidate({data:{text:'{"instructions":"Best supplement"}'}},'Best').status,'valid');
+  const text='</think>\n```json\n{"instructions":"Best"}\n```';const invalid=receiveCandidate({data:{text}},'Best');assert.equal(invalid.status,'invalid');assert.equal(invalid.rawText,text);assert.equal(invalid.candidate,null);
+});
+test('retained real D projection fixes both actual repair payloads without Gold-derived selection',()=>{
+  const at=p=>JSON.parse(fs.readFileSync(new URL('./results/counterfactual-development-20261020/'+p,import.meta.url),'utf8'));
+  const projection=at('projection.json');assert.equal(projection.targetComplete,true);assert.equal(projection.modelStable,true);
+  assert.deepEqual(generatePayloads(projection),at('repair-payloads.json'));assert.equal(at('predictions.json').actualPosts,72);
+});
+const gold=[{id:'a',gold:{E:'yes',O:'no'}},{id:'b',gold:{E:'no',O:'no'}}];
+const row=(id,arm,E,O)=>({id,arm,E,O,status:'qualified',model:'fixed'});
+const good=()=>gold.flatMap(c=>['best','feedback','no-feedback'].map(a=>row(c.id,a,c.gold.E,c.gold.O)));
+test('perfect ceiling is no observed gain rather than invented improvement',()=>{
+  const s=pairedComparison(gold,good(),'fixed');assert.equal(s.A.outcome,'NO_GAIN_OBSERVED');assert.equal(s.B.outcome,'NO_GAIN_OBSERVED');
+});
+test('control transport unknown preserves independently measurable A',()=>{
+  const rows=good().filter(r=>r.arm!=='no-feedback');rows.find(r=>r.id==='a'&&r.arm==='best').E='no';
+  const s=pairedComparison(gold,rows,'fixed');assert.equal(s.A.outcome,'FINITE_GAIN');assert.equal(s.B.outcome,'UNKNOWN');assert.equal(s.arms['no-feedback'].unknown,2);
+});
+test('feedback extra difference cannot hide a formerly-correct control axis broken',()=>{
+  const rows=good();rows.find(r=>r.id==='a'&&r.arm==='no-feedback').E='no';rows.find(r=>r.id==='b'&&r.arm==='feedback').O='yes';
+  const s=pairedComparison(gold,rows,'fixed');assert.equal(s.B.outcome,'OBSERVED_REGRESSION');assert.deepEqual(s.B.axisRegressed,[{id:'b',axis:'O'}]);
+});
+test('partial axis repair is retained even when the complete case remains wrong',()=>{
+  const rows=good();for(const arm of ['best','no-feedback']){const r=rows.find(r=>r.id==='a'&&r.arm===arm);r.E='no';r.O='yes';}
+  rows.find(r=>r.id==='a'&&r.arm==='feedback').O='yes';
+  const s=pairedComparison(gold,rows,'fixed');assert.deepEqual(s.A.resolved,[]);assert.deepEqual(s.A.axisResolved,[{id:'a',axis:'E'}]);assert.deepEqual(s.B.axisResolved,[{id:'a',axis:'E'}]);
+});
+test('changed model and duplicate identities do not count as qualified paired evidence',()=>{
+  const rows=good();rows[0].model='other';assert.equal(pairedComparison(gold,rows,'fixed').A.outcome,'UNKNOWN');
+  assert.throws(()=>pairedComparison(gold,[...rows,rows[0]],'fixed'));
+});

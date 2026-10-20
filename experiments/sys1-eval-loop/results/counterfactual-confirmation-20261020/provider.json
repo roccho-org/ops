@@ -1,0 +1,15 @@
+{
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39376630329",
+  "runId": 39376630329,
+  "runAttempt": 1,
+  "event": "push",
+  "actor": "roccho-dev",
+  "head": "7dcf84e9fe6f4d277f5497953d9afb746eda7715",
+  "conclusion": "failure",
+  "artifact": {
+    "id": 12243702088,
+    "name": "sys1-counterfactual-39376630329",
+    "size": 72912,
+    "digest": "sha256:038640155985adbd2d30936ead61b592466f506d070757636503e1871df15f9b"
+  }
+}

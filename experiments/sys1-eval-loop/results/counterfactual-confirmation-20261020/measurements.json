@@ -1,0 +1,134 @@
+{
+  "schema": "ops.sys1.counterfactual-measurements.v1",
+  "nativeJevPosts": 296,
+  "standardGenerateInvocations": 2,
+  "providerInternalGenerateAttempts": null,
+  "generateUsage": null,
+  "money": null,
+  "humanTime": null,
+  "qualifiedJevCalls": 295,
+  "unqualifiedJevCalls": 1,
+  "failedCallUsage": null,
+  "arms": {
+    "best": {
+      "assigned": 32,
+      "qualified": 32,
+      "correct": 29,
+      "E": {
+        "TP": 16,
+        "TN": 14,
+        "FP": 2,
+        "FN": 0
+      },
+      "O": {
+        "TP": 15,
+        "TN": 16,
+        "FP": 0,
+        "FN": 1
+      }
+    },
+    "feedback": {
+      "assigned": 32,
+      "qualified": 32,
+      "correct": 31,
+      "E": {
+        "TP": 16,
+        "TN": 15,
+        "FP": 1,
+        "FN": 0
+      },
+      "O": {
+        "TP": 16,
+        "TN": 16,
+        "FP": 0,
+        "FN": 0
+      }
+    },
+    "no-feedback": {
+      "assigned": 32,
+      "qualified": 32,
+      "correct": 30,
+      "E": {
+        "TP": 16,
+        "TN": 14,
+        "FP": 2,
+        "FN": 0
+      },
+      "O": {
+        "TP": 16,
+        "TN": 16,
+        "FP": 0,
+        "FN": 0
+      }
+    }
+  },
+  "usage": {
+    "development-target": {
+      "qualifiedCalls": 48,
+      "knownUsage": {
+        "input_tokens": 48632,
+        "output_tokens": 1488
+      },
+      "missingUsage": {
+        "total_tokens": 48
+      },
+      "sumQualifiedCallMs": 4490.463434000002
+    },
+    "development-judge": {
+      "qualifiedCalls": 24,
+      "knownUsage": {
+        "input_tokens": 22600,
+        "output_tokens": 1171
+      },
+      "missingUsage": {
+        "total_tokens": 24
+      },
+      "sumQualifiedCallMs": 2259.7198279999993
+    },
+    "confirmation-best": {
+      "qualifiedCalls": 64,
+      "knownUsage": {
+        "input_tokens": 64894,
+        "output_tokens": 1984
+      },
+      "missingUsage": {
+        "total_tokens": 64
+      },
+      "sumQualifiedCallMs": 4619.966562000003
+    },
+    "confirmation-feedback": {
+      "qualifiedCalls": 64,
+      "knownUsage": {
+        "input_tokens": 100606,
+        "output_tokens": 1984
+      },
+      "missingUsage": {
+        "total_tokens": 64
+      },
+      "sumQualifiedCallMs": 4390.501634999995
+    },
+    "confirmation-no-feedback": {
+      "qualifiedCalls": 64,
+      "knownUsage": {
+        "input_tokens": 119038,
+        "output_tokens": 1984
+      },
+      "missingUsage": {
+        "total_tokens": 64
+      },
+      "sumQualifiedCallMs": 4223.344425999996
+    },
+    "confirmation-judge": {
+      "qualifiedCalls": 31,
+      "knownUsage": {
+        "input_tokens": 29220,
+        "output_tokens": 1512
+      },
+      "missingUsage": {
+        "total_tokens": 31
+      },
+      "sumQualifiedCallMs": 2179.884137000001
+    }
+  },
+  "limitations": "knownUsage sums only exposed qualified-call fields; missing total_tokens and the rejected judge call are unknown, never zero; elapsed values are summed client times, not speed significance or total monetary cost"
+}

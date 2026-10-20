@@ -1,0 +1,903 @@
+{
+  "scores": {
+    "best": {
+      "correct": 29,
+      "qualified": 32,
+      "unknown": 0,
+      "E": {
+        "FP": 2,
+        "FN": 0
+      },
+      "O": {
+        "FP": 0,
+        "FN": 1
+      },
+      "usage": {
+        "input_tokens": 64894,
+        "output_tokens": 1984
+      },
+      "usageObservedRequests": 64,
+      "usageUnknownRequests": 0,
+      "attemptedRequests": 64
+    },
+    "feedback": {
+      "correct": 31,
+      "qualified": 32,
+      "unknown": 0,
+      "E": {
+        "FP": 1,
+        "FN": 0
+      },
+      "O": {
+        "FP": 0,
+        "FN": 0
+      },
+      "usage": {
+        "input_tokens": 100606,
+        "output_tokens": 1984
+      },
+      "usageObservedRequests": 64,
+      "usageUnknownRequests": 0,
+      "attemptedRequests": 64
+    },
+    "no-feedback": {
+      "correct": 30,
+      "qualified": 32,
+      "unknown": 0,
+      "E": {
+        "FP": 2,
+        "FN": 0
+      },
+      "O": {
+        "FP": 0,
+        "FN": 0
+      },
+      "usage": {
+        "input_tokens": 119038,
+        "output_tokens": 1984
+      },
+      "usageObservedRequests": 64,
+      "usageUnknownRequests": 0,
+      "attemptedRequests": 64
+    },
+    "judge": {
+      "correct": 30,
+      "qualified": 31,
+      "unknown": 1,
+      "E": {
+        "FP": 0,
+        "FN": 0
+      },
+      "O": {
+        "FP": 0,
+        "FN": 1
+      },
+      "usage": {
+        "input_tokens": 29220,
+        "output_tokens": 1512
+      },
+      "usageObservedRequests": 31,
+      "usageUnknownRequests": 1,
+      "attemptedRequests": 32
+    }
+  },
+  "A": {
+    "base": "best",
+    "delta": 2,
+    "resolved": [
+      "confirmation-12",
+      "confirmation-17",
+      "confirmation-21"
+    ],
+    "regressed": [
+      "confirmation-01"
+    ],
+    "axisResolved": [
+      "confirmation-12/O",
+      "confirmation-17/E",
+      "confirmation-21/E"
+    ],
+    "axisRegressed": [
+      "confirmation-01/E"
+    ],
+    "unknown": [],
+    "outcome": "OBSERVED_REGRESSION"
+  },
+  "B": {
+    "base": "no-feedback",
+    "delta": 1,
+    "resolved": [
+      "confirmation-17"
+    ],
+    "regressed": [],
+    "axisResolved": [
+      "confirmation-17/E"
+    ],
+    "axisRegressed": [],
+    "unknown": [],
+    "outcome": "FINITE_GAIN"
+  },
+  "diagnosis": {
+    "errors": 3,
+    "detected": 2,
+    "exactScope": 2,
+    "wrongScope": 0,
+    "missed": 1,
+    "errorUnknown": 0,
+    "targetCorrect": 29,
+    "falseAlarms": 0,
+    "noChange": 28,
+    "correctUnknown": 1,
+    "targetUnknown": 0
+  },
+  "actualPosts": 224,
+  "attempts": 224,
+  "modelDrift": false,
+  "cases": [
+    {
+      "id": "confirmation-01",
+      "gold": {
+        "E": "no",
+        "O": "no",
+        "basis": "適用を否定した語彙見本。"
+      },
+      "best": {
+        "E": "no",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-02",
+      "gold": {
+        "E": "yes",
+        "O": "no",
+        "basis": "表示の仕様。更新済みは文字列。"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-03",
+      "gold": {
+        "E": "no",
+        "O": "yes",
+        "basis": "実際の貼替えと旧表示の記録だけ。"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "best": {
+        "E": "no",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-04",
+      "gold": {
+        "E": "yes",
+        "O": "yes",
+        "basis": "実貼替えと文字サイズ要求。"
+      },
+      "best": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-05",
+      "gold": {
+        "E": "no",
+        "O": "no",
+        "basis": "架空の作文例で適用された要求/観測でない。"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "best": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-06",
+      "gold": {
+        "E": "yes",
+        "O": "no",
+        "basis": "表示保持要求のみ。"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": null
+    },
+    {
+      "id": "confirmation-07",
+      "gold": {
+        "E": "no",
+        "O": "yes",
+        "basis": "配布物と実受領の報告のみ。"
+      },
+      "best": {
+        "E": "no",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-08",
+      "gold": {
+        "E": "yes",
+        "O": "yes",
+        "basis": "実受領と資料番号記録要求。"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "best": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-09",
+      "gold": {
+        "E": "no",
+        "O": "no",
+        "basis": "想像上の対話だけ。"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "best": {
+        "E": "no",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-10",
+      "gold": {
+        "E": "yes",
+        "O": "no",
+        "basis": "架空入力条件下の引用保持要求。"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-11",
+      "gold": {
+        "E": "no",
+        "O": "yes",
+        "basis": "連絡を実際に受けたとの報告。"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "best": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-12",
+      "gold": {
+        "E": "yes",
+        "O": "yes",
+        "basis": "実受信と記録要求。"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-13",
+      "gold": {
+        "E": "no",
+        "O": "no",
+        "basis": "仮ログデータで実行報告なし。"
+      },
+      "best": {
+        "E": "no",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-14",
+      "gold": {
+        "E": "yes",
+        "O": "no",
+        "basis": "配信禁止と応答例の仕様のみ。"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-15",
+      "gold": {
+        "E": "no",
+        "O": "yes",
+        "basis": "実際に採取したログ。"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "best": {
+        "E": "no",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-16",
+      "gold": {
+        "E": "yes",
+        "O": "yes",
+        "basis": "実ログ報告と禁止要求。"
+      },
+      "best": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-17",
+      "gold": {
+        "E": "no",
+        "O": "no",
+        "basis": "架空素材内の二文は適用要求/観測でない。"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-18",
+      "gold": {
+        "E": "yes",
+        "O": "no",
+        "basis": "今回へ適用した編集権限要求。"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-19",
+      "gold": {
+        "E": "no",
+        "O": "yes",
+        "basis": "実施と未実施の記録。"
+      },
+      "best": {
+        "E": "no",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-20",
+      "gold": {
+        "E": "yes",
+        "O": "yes",
+        "basis": "要求と実際の権限不具合。"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "best": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-21",
+      "gold": {
+        "E": "no",
+        "O": "no",
+        "basis": "用語と読み方の対応のみ。"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-22",
+      "gold": {
+        "E": "yes",
+        "O": "no",
+        "basis": "要求する状態遷移の定義。"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-23",
+      "gold": {
+        "E": "no",
+        "O": "yes",
+        "basis": "見出しと異なり内容は現況表だけ。"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "best": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-24",
+      "gold": {
+        "E": "yes",
+        "O": "yes",
+        "basis": "停止要求と実試験結果。"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "best": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-25",
+      "gold": {
+        "E": "no",
+        "O": "no",
+        "basis": "架空のカードの想定。"
+      },
+      "best": {
+        "E": "no",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-26",
+      "gold": {
+        "E": "yes",
+        "O": "no",
+        "basis": "運用の許容と禁止だけ。"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-27",
+      "gold": {
+        "E": "no",
+        "O": "yes",
+        "basis": "実際の未予約/未発行状態。"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "best": {
+        "E": "no",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-28",
+      "gold": {
+        "E": "yes",
+        "O": "yes",
+        "basis": "状態報告と禁止要求。"
+      },
+      "best": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-29",
+      "gold": {
+        "E": "no",
+        "O": "no",
+        "basis": "命令を含む文字列も架空入力データ。"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "no"
+      },
+      "best": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-30",
+      "gold": {
+        "E": "yes",
+        "O": "no",
+        "basis": "入力に対する保存要求のみ。"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "best": {
+        "E": "yes",
+        "O": "no"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      }
+    },
+    {
+      "id": "confirmation-31",
+      "gold": {
+        "E": "no",
+        "O": "yes",
+        "basis": "実入力ログの観測。"
+      },
+      "best": {
+        "E": "no",
+        "O": "yes"
+      },
+      "feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      }
+    },
+    {
+      "id": "confirmation-32",
+      "gold": {
+        "E": "yes",
+        "O": "yes",
+        "basis": "実記録の報告と今後の要求。"
+      },
+      "feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "no-feedback": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "best": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      }
+    }
+  ]
+}
