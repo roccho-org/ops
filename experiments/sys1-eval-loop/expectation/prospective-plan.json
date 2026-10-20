@@ -6,7 +6,13 @@
     "cases": "all retired old300 plus all retired census207, existing body/source/Gold unchanged; original IDs preserved",
     "jointAnchor": "mechanical first snapshot: observation-pass1-20261020 for old300 and census-and-pass1-20261021 for retired207; their original BestE and BestO receipts, never a favorable snapshot",
     "protection": "known-correct E union from all four actual sharedE histories: observation-pass1/pass2-20261020 and census-and-pass1/pass2-20261021; 1014 physical E receipts. All five reserve-development phases' first-snapshot E aliases must equal their original receipt and add no physical evidence or cost",
-    "knownBeforeCandidate": {"cases": 507, "physicalHistoricalE": 1014, "protectedE": 486, "firstJointCorrect": 392, "jointGoldUnresolved": 16},
+    "knownBeforeCandidate": {
+      "cases": 507,
+      "physicalHistoricalE": 1014,
+      "protectedE": 486,
+      "firstJointCorrect": 392,
+      "jointGoldUnresolved": 16
+    },
     "acceptance": "all507 new E qualified and expected model, positive complete E/O known joint gain against fixed first-snapshot historical O, and zero known-correct E union destruction; missing candidate E is UNKNOWN, not a known regression; known regression and missing remain separately visible",
     "newPosts": 507,
     "proposedJobMinutes": 150,
@@ -26,10 +32,21 @@
     "visibility": "Same public ID/name/Issue-enabled checks before/after body, complete source/clock/query/reply originals, one-hour cap, changes or uncertainty invalidate; non-atomic visibility race is not absolutely excluded",
     "gold": "Existing real-case corpus/body-only view; original split.mjs rubric, mutually unread prediction-blinded root/R initials native-frozen before adjudication; unresolved null and every eligible case remain; candidate-known same-model-rater limitation",
     "M0": "NO_CASES/model0 retained; no post hoc window/repository/prefix expansion or substitution",
-    "scopeLimit": "Operational nonoverlap with actual retained typed IDs and exact bodies, not semantic/author/template/pretraining independence; 1 Issue 1 weight including duplicate bodies. Existing prior-reference transfer limits remain"
+    "scopeLimit": "Operational nonoverlap with actual retained typed IDs and exact bodies, not semantic/author/template/pretraining independence; 1 Issue 1 weight including duplicate bodies. Existing prior-reference transfer limits remain",
+    "priorReferenceLimit": "Old38d5 resolution evidence covers only the previously accepted35 repository names/2211 references. New literal URLs found in the additional210 bodies are untyped residual private metadata, not resolved by that old evidence and not equivalent to observed task bodies. No new resolver API is authorized here; actual typed IDs and exact bodies are the primary nonoverlap boundary.",
+    "knownPriorAggregate": {
+      "typedIssueIds": 740,
+      "exactBodies": 1916,
+      "newUntypedIssueOrPullUrls": 29,
+      "basis": "root/R independent union of original407 plus all actual210 body captures, including exclusions;29 is new literal Issue/pull refs inside body strings only, self node.url210 already typed; prior counts only, not next target count"
+    }
   },
   "freshMeasurement": {
-    "physicalKeys": ["bestE", "scopedE", "sharedO"],
+    "physicalKeys": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
     "perPassMaximum": 900,
     "passes": 2,
     "maximumPosts": 1800,
@@ -40,9 +57,24 @@
     "combinedNewMaximum": 2307,
     "accounting": "507 development plus at most1800 fresh H posts. Historical aliases have no new cost. Old PR616/617 calls and all failures remain separately recorded; money/internal compute/total_tokens absence unknown; equal O call count is not same token cost"
   },
-  "currentStage": "pure candidate, historical replay, fixed guard and prospective contract only; native activation/runtime and fresh collector admission are separate later source reviews",
+  "currentStage": "fixed D507 native prepare/evaluate/project source implemented for review; request absent, no actual D/new target projection/body/model yet; fresh H entry and data require separate source acceptance",
   "newMetadataQueries": 0,
   "newBodyQueries": 0,
   "newModelPosts": 0,
-  "adopted": false
+  "adopted": false,
+  "seriesClosure": {
+    "name": "fixed-e-prospective-census-closure",
+    "inputs": [
+      "unchanged upstream617 originals, predeclared outcome and actual all-CI/Ready/public records",
+      "current native source/tree and fixed single candidate actual fullwire",
+      "four physical E histories1014 and all507 body/Gold/mechanical first/union expectations",
+      "newD507 original provider/raw/strictqualification/guard",
+      "accepted original metadata projection/prefix and new fullbody/exclusion/independentGold originals",
+      "both fresh H raw/provider/commonGold bounds/full accounting",
+      "final exacthead necessary CI, independent review, Ready/open/unmerged records"
+    ],
+    "failure": "upstream primary or Gold alteration; source/wire/denominator/qualification mismatch; incomplete originals; Dguard failure; either H not accepted, technicalunknown/modeldrift; unresolved required CI/review/records",
+    "implementation": "evidence conjunction only; not a new custom runtime gate, executor or ledger"
+  },
+  "manualContinuation": "Same User GO: preserve each negative/unknown and actual accounting; W/root/R rebut causes and a distinct meaningful hypothesis, specify finite assignment/timeout and source review before the next D. H not accepted retires that H into D and requires another unused-H contract. No blind resend, averaging/winner selection, Gold changes, same-H rescue, new User budget gate or infinite retry executor."
 }

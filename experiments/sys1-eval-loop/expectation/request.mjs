@@ -6,3 +6,7 @@ export const EXPECTATION_SUPPLEMENT=Object.freeze({
 });
 export function expectationRequest(body,best,key){assert.ok(['bestE','scopedE','sharedO'].includes(key));const original=targetRequest(body,best,key==='sharedO'?'O':'E');return key==='scopedE'?{...original,criteria:Object.fromEntries(Object.entries(original.criteria).map(([label,value])=>[label,value+EXPECTATION_SUPPLEMENT[label]]))}:original;}
 export async function expectationTemplates(best){const proof={};for(const key of ['bestE','scopedE','sharedO'])proof[key]=await wireTemplate(expectationRequest('fixed body for request identity only',best,key));assert.notDeepEqual(proof.bestE,proof.scopedE);return proof;}
+// Secret-safe input comparison only. Base templates are read from the retained
+// first actual census input; keyless preparation verifies the standard client
+// produces these complete payloads. Actual requests still use the client.
+export function expectationTemplatesFromOriginal(base){const proof={bestE:structuredClone(base.bestE),scopedE:structuredClone(base.bestE),sharedO:structuredClone(base.sharedO)};for(const label of ['yes','no'])proof.scopedE.questions.live.criteria[label]+=EXPECTATION_SUPPLEMENT[label];return proof;}

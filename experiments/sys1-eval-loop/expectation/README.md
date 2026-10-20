@@ -12,7 +12,11 @@
 
 `prospective-plan.json` は新count/本文/予測前の窓・prefix300・補充0と最大資源を記す。次target案は既取得native8bcの観測metadata内だけのUTC `[2026-10-20T00:00Z,18:00Z)`。全履歴APIの再取得はせず、新snapshot/全日網羅を称さない。元407に実210bodyを加えるpriorは除外empty/oversize3も含み、metadata-only322718 IDsをtask本文既使用へ混ぜて自己除外しない。候補actual fullwireと開発guardを閉じるまで新H本文/Goldを候補作者へ渡さない。M0も保存し、件数/成績を見た窓拡大をしない。
 
-新D507・新H3M×2最大1800の新scope上限は2307。元Best Oは変えず新Hの当回sharedOを一物理receiptだけ共有する。両armのO呼出し数が同じでも、E補足のtoken/時間/費用が同じとは言わない。既存標準client/recorder/資格と共通Gold補完の再用を優先し、任意profile/endpoint/constructor override、新executor/auth/ledgerを加えない。現sliceはnative entry/実source CI/作用の受容ではなく、次独立source反証が必要である。新API/body/model0。
+新D507・新H3M×2最大1800の新scope上限は2307。元Best Oは変えず新Hの当回sharedOを一物理receiptだけ共有する。両armのO呼出し数が同じでも、E補足のtoken/時間/費用が同じとは言わない。既存標準client/recorder/資格と共通Gold補完の再用を優先し、任意profile/endpoint/constructor override、新executor/auth/ledgerを加えない。新API/body/model0。
+
+固定D入口はrequest-only pushの最初の一回だけを認め、request.jsonは作用開始まで存在しない。鍵前に全507/1014原資格・request・projectionを再生し、四原providerの実API run/actor/branch/workflowと実Git親/固定request path/phase/repを照合する。鍵下は固定sourceからbody/best/原templateを読み直すsecret-safe比較だけを行い、wireTemplateやGold採点を呼ばない。既存standardRecorderの507上限・15秒・redirect拒否・flags/failureを用い、鍵なしprojectionで原rawから資格/guardを再生する。意味FAILでも原結果を保存し、欠測と既知退行を別に保持する。workflow150分は507×15秒=126.75分＋検証/保存余裕の技術capで、完了保証ではない。現sourceの独立受容/必要CI前には作用せず、新H入口/本文/Goldは後続source受容である。
+
+`prefix.mjs` は既受容8bcの全原metadataを旧窓で再生して保存prefix全値と一致させた後だけ、新事前窓へ投影するpure readerである。原11blob/command stdout/cursor/visibilityのnative真性はroot/Rが原版から独立照合する。関数への任意capturesや自己申告native文字列だけで実取得真性を証明しない。新countの実投影はこのsource/読取入口の三者受容後で、現在未実行。旧metadata観測を再用し、追加API/新snapshotを作らない。
 
 ```mermaid
 flowchart TB
@@ -24,10 +28,22 @@ flowchart TB
   PURE --> REVIEW[⏳ 実source三者review/既wireと新507wire]
   REVIEW --> ENTRY[⏳ 固定native D507 entry/必要CI]
   ENTRY --> D[⏳ 一回D507・全結果と費用保持]
-  D -->|未達| KEEP[負/unknown保持・同候補盲再送なし]
+  D -->|未達/unknown| KEEP[全負結果/unknown/実会計保持]
+  KEEP --> COUNTER[W/root/R 原因と別の意味ある仮説を反証]
+  COUNTER --> CONTRACT[同GO内で有限assignment/timeout/全会計をsource化]
+  CONTRACT --> REVIEW
   D -->|事前guard成立| FREEZE[⏳ actual fullwire固定]
   FREEZE --> H[⏳ 事前窓の本文/独立Gold/当回3M二回]
-  H --> END[⏳ 全原版/差包絡/二回AND/全CI・未merge]
+  H -->|両回受容| END[⏳ 全原版/差包絡/二回AND/全CI・未merge]
+  H -->|未達/unknown| RETIRE[当HをDへ退役・結果保持]
+  RETIRE --> NEW[三者で別未使用H契約と別仮説を反証]
+  NEW --> CONTRACT
 ```
 
 三者の意味反証は公開D507/元split rubricだけを根拠とする。boilerplate条件を拾うE proxy改善は実製品missing-expectation検知/E2EやApps全体改善へ昇格しない。旧616/617の全失敗・追加compute・不確実性を保持した別処置であり、過去holdoutを再Hにしない。
+
+継続辺は同GO内の手動設計・開発運用であり、自動無限retryや追加User予算承認を作らない。同候補の盲再送、良い回選択/平均、Gold変更、同H再試験による救済は禁止する。2307は現在の一候補系列の有限最大割当である。
+
+`fixed-e-prospective-census-closure` は元617の原結果/全CI/Ready/記録、現source/treeとactual候補wire、4原E履歴/507/機械first/union、D507原rawと資格/guard、固定新prefix/body/除外/独立Gold、同時新H両原raw/共通Gold包絡/会計、最終全CI/独立review/Ready未mergeという証拠のANDを表す。原判定/Gold変更、source/wire/分母/資格不一致、原版不足、D不成立、H片回未達/unknown/drift又はCI/記録未閉包では成立としない。別runtime gate/executor/ledgerは追加しない。
+
+次priorは受容済407原版と実210本文から740 typed Issue IDs/1916 exact bodyを固定する。追加29件は210の本文文字列内Issue/pull参照の旧集合との差分であり未型解決残余として私的保持する。自Issueの出典URL210はtyped IDと結合済みである。旧38d5の35repo/2211参照解決を新29へ拡張済みとは称さず、typed実観測ID/exactbody非重複が主境界で、URL露出や意味/作者/学習への独立性は保証しない。
