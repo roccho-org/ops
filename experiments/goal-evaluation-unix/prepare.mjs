@@ -526,6 +526,7 @@ export function prepareMain(args = process.argv.slice(2)) {
   const commandWritten = projection.emittable === true;
   if (commandWritten) writeFileSync(join(outputDirectory, 'command.txt'), projection.envelope, { flag: 'wx', mode: 0o600 });
   return { status: projection.status, emittable: commandWritten, postingAuthorized: false,
+    nextAction: commandWritten ? 'REQUIRE_EXPLICIT_GO' : projection.status === 'ELIGIBLE' ? 'REVIEW_PROJECTION' : 'REVIEW_INPUT',
     projectionBytes: Buffer.byteLength(artifact), commandBytes: commandWritten ? Buffer.byteLength(projection.envelope) : null,
     notProjected: projection.notProjected?.length ?? null, missing: projection.missing?.length ?? null };
 }

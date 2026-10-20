@@ -162,6 +162,14 @@ bytes and no added newline. The CLI makes no network or model call and never pos
 review or grant. Failure leaves any partial output for inspection, without cleanup
 or automatic retry. File modes are requested, not a Windows owner-only ACL guarantee.
 
+The bounded stdout summary includes `nextAction`: `REVIEW_INPUT` means inspect
+the private input and projection; `REVIEW_PROJECTION` means inspect
+`projection.json` for unmet conditions (not necessarily fidelity alone);
+`REQUIRE_EXPLICIT_GO` means preparation succeeded, but posting still needs a
+separate authorization. Unverified causes stay in the private projection, outside
+stdout. These hints do not change admission or resolve missing
+observations. They never instruct an automatic retry or post.
+
 ### Reading GitHub results
 
 For admitted provided requests, the existing bot posts one human-readable result with its bound JSON evidence folded below it. Literal/no-grant results keep their historical JSON-only format and size admission. `parseResultComment` reads both formats. Callers must still validate the request identity, author, result and exact readback; parsing is not admission. A Jev value or `OBSERVED` status is not a verified finding, approval or repair instruction. The request link supplies the actual questions and scope. Nothing here posts a second summary, recalls a provider, or resumes an automation.
