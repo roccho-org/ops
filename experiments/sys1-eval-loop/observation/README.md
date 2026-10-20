@@ -42,9 +42,9 @@ metadata scopeを基にopen/closed非PR issueの作成cutoff2026-10-20T00:00:00Z
 
 既使用identityは従前の全保存source references＋613全118。完全同本文も旧保持全body集合と照合して事前除外。旧metadata100を本文100と偽らない。新public対象repo IDsを先に確定し、その範囲だけissue identityを解決する。private/out-of-scope参照の存在情報を公開receiptへ混ぜず、外部未解決だけでframeをINVALIDにしない。対象内の未解決/不完全取得はfail closed。新frame内同文は1issue1weightのまま記述する。
 
-[capture-plan.json](capture-plan.json)が次の取得契約。[prior.mjs](prior.mjs)は旧4alias制限を外し、ce906の実191JSONから791references/401exact bodiesを抽出する（root独立全集合と一致）。さらにnative256443の旧known-used-identities原版を再利用し、明示Issue型・issueNodeId・既定corpus sourceIdだけからglobal既使用IDsを抽出する。旧57Issue参照/56uniqueと613118のunion174は、現在repoや本文が変わっても保守的除外対象。任意id文字列からIssueと推測しない。metadata-only参照を本文閲読実績へ読み替えない。
+[capture-plan.json](capture-plan.json)が次の取得契約。[prior.mjs](prior.mjs)は旧4alias制限を外し、ce906の実191JSONから791references/401exact bodiesを抽出する（root独立全集合と一致）。さらにnative256443の旧known-used-identities原版を再利用し、明示Issue型・issueNodeId・既定corpus sourceIdだけからglobal既使用IDsを抽出する。旧57Issue参照/56uniqueと613118のunion174に、旧取得でoversize除外されたIssue2件のmetadataを加え176 IDsを保守的除外する。現在repoや本文が変わっても保持する。旧frameはPR除外記録にもissueNodeId欄を使うが、明示pullRequests/PR型はIssueに数えない。任意id文字列からIssueと推測せず、metadata-only参照を本文閲読実績へ読み替えない。nested JSONも構文エラーだけを無視し、解析できたtyped identityの不正はfail closedとする。
 
-rootは原APIを私的に取得・保持、Wの[frame.mjs](frame.mjs)は固定scope全件/公開前後確認/全page/除外/actual3wireを純再生する。本文前後に全固定repo nodeIDのcurrent name/isPrivateを確認し、変更/不明ならframe全体INVALIDで補充しない。metadata時のnameと取得時current nameを分ける。認証APIは非原子的なので途中のprivate化を絶対取得しない保証にはせず、不整合原応答は私的保持し公開/抽出へ渡さない。追加auth/proxyは置かない。
+rootは原APIを私的に取得・保持、Wの[frame.mjs](frame.mjs)は固定scope全件/公開前後確認/全page/除外/actual3wireを純再生する。本文前後に全固定repo nodeIDのcurrent name/isPrivateを確認し、取得中の変更/不明ならframe全体INVALIDで補充しない。metadata固定後から取得開始前までのrename/移管は、同じ固定nodeIDで同定できれば許し、metadata時のnameをscopeRepository、取得時current nameをrepositoryへ分ける。認証APIは非原子的なので途中のprivate化を絶対取得しない保証にはせず、不整合原応答は私的保持し公開/抽出へ渡さない。追加auth/proxyは置かない。
 
 whole-body frameの原bytesをnative保持後、一回の標準crypto Fisher–Yates。n=min(300,M)、残ればreserve封印、小Mならcensus。空frameはNO_ELIGIBLE_FRAMEで成功ではない。300は最小必要精度の保証でなく、情報/Gold600判定/効果資源の**事前上限**。M/結果を見て標本数を下げて選別しない。
 
@@ -85,7 +85,8 @@ flowchart TB
   D --> DG{"✅ 開発guard/全118資格・modelStable成立"}
   DG -->|不成立/不明| NEG["❌ 負/unknownを保持・H選択で救済しない"]
   DG -->|成立| FREEZE["✅🔒 実wireをnative Git固定・変更なし"]
-  FREEZE --> FRAME["⏳ 固定117repo全文frame/除外/一回抽出"]
+  FREEZE --> CAP["⏳ 取得契約/純source/標準gh helperの3者受容"]
+  CAP --> FRAME["⏳ 固定117repo全文frame/除外/一回抽出"]
   FRAME --> GOLD["⏳ root/R独立Gold→原稿凍結→合議/null"]
   GOLD --> SOURCE["⏳ Gold-free実wire/3者受容/必要CI"]
   SOURCE --> P1["⏳ 新H pass1/oldO-newO-sharedE"]

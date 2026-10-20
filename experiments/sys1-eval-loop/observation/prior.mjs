@@ -10,10 +10,12 @@ export function collectPriorInputs(blobs){
   if(!refs.has(url))refs.set(url,{repository,kind,number,url,sources:[]});const r=refs.get(url);if(!r.sources.includes(source))r.sources.push(source);
  }}
  function visit(value,source,schema){
-  if(typeof value==='string'){urls(value,source);if(/^[\s]*[\[{]/.test(value)){try{const nested=JSON.parse(value);if(nested&&typeof nested==='object')visit(nested,source,nested.schema);}catch{}}return;}
+  if(typeof value==='string'){urls(value,source);if(/^[\s]*[\[{]/.test(value)){let nested;try{nested=JSON.parse(value);}catch{}if(nested&&typeof nested==='object')visit(nested,source,nested.schema);}return;}
   if(!value||typeof value!=='object')return;
   const currentSchema=value.schema??schema;
-  if(typeof value.issueNodeId==='string')issue(value.issueNodeId,source,'explicit issueNodeId');
+  // The older frame also used the issueNodeId field on excluded PR records;
+  // its explicit pullRequests reason is authoritative over that broad field.
+  if(typeof value.issueNodeId==='string'&&value.reason!=='pullRequests'&&value.__typename!=='PullRequest'&&!Object.hasOwn(value,'pull_request'))issue(value.issueNodeId,source,'explicit issueNodeId (not typed/excluded PR)');
   if(value.__typename==='Issue')issue(value.id,source,'provider typed Issue');
   if(typeof value.node_id==='string'&&typeof value.html_url==='string'&&/^https:\/\/github\.com\/[^/]+\/[^/]+\/issues\/\d+(?:$|[?#])/.test(value.html_url)&&!Object.hasOwn(value,'pull_request'))issue(value.node_id,source,'REST issue node_id with issue URL');
   if(currentSchema==='ops.sys1.real-case-corpus.v1'&&typeof value.sourceId==='string'){const parts=value.sourceId.split('/');assert.equal(parts.length,2);assert.ok(parts.every(Boolean));issue(parts[1],source,'real-case corpus compound sourceId');}
