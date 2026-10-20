@@ -208,9 +208,11 @@ const outcome = (r) => [r.post.outcome, r.post.cause];
 let scenarios = 0;
 const check = async (name, fn) => { await fn(); scenarios++; };
 
-await check('shared-budget-config-is-issue-only-and-one-call', async () => {
+await check('shared-budget-config-is-closed-target-and-one-call', async () => {
   const anchored = range({ target: { issue: 483 }, budgetClaimCommentId: 9000 });
   validateActionsConfig(config({ runRanges: [anchored] }));
+  validateActionsConfig(config({ targets: [...config().targets, { repository: REPO, repositoryId: '456', pullRequest: 511 }],
+    runRanges: [{ ...anchored, target: { pullRequest: 511 } }] }));
   for (const budgetClaimCommentId of [0, -1, 1.5, '9000', null, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => validateActionsConfig(config({ runRanges: [{ ...anchored, budgetClaimCommentId }] })), /INVALID_ACTIONS_CONFIG/);
   }
@@ -223,10 +225,15 @@ await check('shared-budget-config-is-issue-only-and-one-call', async () => {
     runRanges: [anchored] })), /INVALID_ACTIONS_CONFIG/);
 });
 
-await check('shared-budget-distinct-concurrent-commands-call-provider-once', async () => {
-  const w = world(), anchor = w.addComment({ body: 'One reviewed budget anchor, not a command.' });
+for (const sharedKind of ['issue', 'pull-request']) {
+  const sharedTarget = sharedKind === 'issue' ? { issue: 483 } : { pullRequest: 511 };
+  const sharedWorld = () => world(REPO, sharedKind === 'issue' ? 483 : 511, WF, sharedKind);
+  const sharedConfig = (over) => config({ ...over, targets: [...config().targets, ...(sharedKind === 'issue' ? [] : [{ repository: REPO, repositoryId: '456', pullRequest: 511 }])] });
+  const sharedCheck = (name, fn) => check(name + '-' + sharedKind, fn);
+await sharedCheck('shared-budget-distinct-concurrent-commands-call-provider-once', async () => {
+  const w = sharedWorld(), anchor = w.addComment({ body: 'One reviewed budget anchor, not a command.' });
   const commands = [w.addComment(), w.addComment()];
-  const cfg = config({ runRanges: [range({ first: 3, last: 9, target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+  const cfg = sharedConfig({ runRanges: [range({ first: 3, last: 9, target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
   const results = await Promise.all(commands.map((c, i) => fullRun(w, c, { cfg, run: w.newRun({ run_number: i ? 9 : 3 }) })));
   assert.equal(results.filter((r) => r.plan.budgetClaimed === true).length, 1);
   assert.equal(results.filter((r) => r.plan.cause === 'BUDGET_ALREADY_CLAIMED').length, 1);
@@ -235,23 +242,23 @@ await check('shared-budget-distinct-concurrent-commands-call-provider-once', asy
   assert.equal(w.calls.claim, 4);
 });
 
-await check('shared-budget-does-not-broaden-ordinal-or-attempt', async () => {
+await sharedCheck('shared-budget-does-not-broaden-ordinal-or-attempt', async () => {
   for (const runOver of [{ run_number: 2 }, { run_number: 10 }, { run_number: 3, run_attempt: 2 }]) {
-    const w = world(), anchor = w.addComment(), c = w.addComment();
-    const cfg = config({ runRanges: [range({ first: 3, last: 9, target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+    const w = sharedWorld(), anchor = w.addComment(), c = w.addComment();
+    const cfg = sharedConfig({ runRanges: [range({ first: 3, last: 9, target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
     const r = await fullRun(w, c, { cfg, run: w.newRun(runOver) });
     assert.equal(r.planBody, undefined);
     assert.deepEqual(effects(w), zero);
   }
 });
 
-await check('shared-budget-reread-drift-forfeits-the-slot-for-later-commands', async () => {
-  const w = world(), anchor = w.addComment(), first = w.addComment(), later = w.addComment();
+await sharedCheck('shared-budget-reread-drift-forfeits-the-slot-for-later-commands', async () => {
+  const w = sharedWorld(), anchor = w.addComment(), first = w.addComment(), later = w.addComment();
   w.hooks.afterClaim = (_w, comment, reply) => {
     if (comment === anchor && reply.status === 201) first.body = '/jev-evaluate changed after claim';
     return reply;
   };
-  const cfg = config({ runRanges: [range({ target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+  const cfg = sharedConfig({ runRanges: [range({ target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
   const stopped = await fullRun(w, first, { cfg });
   assert.equal(stopped.plan.budgetClaimed, true);
   assert.equal(stopped.planBody, undefined);
@@ -264,13 +271,13 @@ await check('shared-budget-reread-drift-forfeits-the-slot-for-later-commands', a
   assert.equal(anchor.reactions.length, 1);
 });
 
-await check('shared-budget-unknown-and-foreign-response-forfeit-without-provider', async () => {
+await sharedCheck('shared-budget-unknown-and-foreign-response-forfeit-without-provider', async () => {
   for (const response of [new Error('ambiguous delivery'), { status: 201, json: { user: { login: 'foreign' }, content: 'eyes' } },
     { status: 201, json: { user: { login: EXECUTOR_LOGIN }, content: 'heart' } }, { status: 502, json: {} },
     { status: { private: 'SYNTHETIC_PRIVATE_STATUS' }, json: {} }, { status: '201', json: {} }, null]) {
-    const w = world(), anchor = w.addComment(), c = w.addComment();
+    const w = sharedWorld(), anchor = w.addComment(), c = w.addComment();
     w.hooks.afterClaim = (_w, comment, reply) => comment === anchor ? response : reply;
-    const cfg = config({ runRanges: [range({ target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+    const cfg = sharedConfig({ runRanges: [range({ target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
     const r = await fullRun(w, c, { cfg });
     assert.equal(r.plan.budgetClaimed, 'UNKNOWN');
     assert.ok(r.plan.budgetClaimHTTPStatus === null || (Number.isInteger(r.plan.budgetClaimHTTPStatus)
@@ -283,9 +290,9 @@ await check('shared-budget-unknown-and-foreign-response-forfeit-without-provider
   }
 });
 
-await check('shared-budget-existing-claim-never-releases-or-retries', async () => {
-  const w = world(), anchor = w.addComment({ reactions: [{ user: EXECUTOR_LOGIN }] }), c = w.addComment();
-  const cfg = config({ runRanges: [range({ target: { issue: 483 }, budgetClaimCommentId: anchor.databaseId })] });
+await sharedCheck('shared-budget-existing-claim-never-releases-or-retries', async () => {
+  const w = sharedWorld(), anchor = w.addComment({ reactions: [{ user: EXECUTOR_LOGIN }] }), c = w.addComment();
+  const cfg = sharedConfig({ runRanges: [range({ target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
   const r = await fullRun(w, c, { cfg });
   assert.equal(r.plan.cause, 'BUDGET_ALREADY_CLAIMED');
   assert.equal(r.plan.budgetClaimed, false);
@@ -293,6 +300,18 @@ await check('shared-budget-existing-claim-never-releases-or-retries', async () =
   assert.equal(w.calls.fetch, 0);
   assert.equal(w.calls.claim, 2);
   assert.equal(anchor.reactions.length, 1);
+});
+
+}
+
+await check('shared-budget-PR-anchor-does-not-grant-other-targets', async () => {
+  const cfg = config({ targets: [...config().targets, { repository: REPO, repositoryId: '456', pullRequest: 511 }],
+    runRanges: [range({ target: { pullRequest: 511 }, budgetClaimCommentId: 9000 })] });
+  for (const w of [world(REPO, 512, WF, 'pull-request'), world(REPO, 511, WF, 'issue'), world('other/ops', 511, WF, 'pull-request')]) {
+    const r = await fullRun(w, w.addComment(), { cfg });
+    assert.equal(r.planBody, undefined);
+    assert.deepEqual(effects(w), zero);
+  }
 });
 
 await check('claim-response-allowlist', async () => {
@@ -2030,7 +2049,7 @@ const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase()
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
   for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574, 609, 610]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
-      const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 609].includes(number) : number === 573)
+      const allowed = repository === 'roccho-org/ops' && (pullRequest ? number === 511 : number === 573)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;
       const github = { repository, event_name: 'issue_comment', event: {
         repository: { owner: { type: 'Organization' } }, comment: { body: '/jev-evaluate' },
@@ -2063,7 +2082,7 @@ assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], pinnedRuntime);
 assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], pinnedRuntime);
 assert.ok(currentInvocation.includes('305b5321ebc4d41d5c143cc002b82af71f140b8e')); // Historical runtime facts stay historical.
 const permissionBlock = '  actions: read\n  contents: read\n  issues: write\n  pull-requests: write\n';
-const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 609 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 609)))";
+const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 609 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 609)))";
 const assertWorkflowBoundary = (text) => {
   assert.equal(text.match(/\npermissions:\n([\s\S]*?)\njobs:/)?.[1], permissionBlock);
   assert.equal([...text.matchAll(/^\s*permissions:/gm)].length, 1);

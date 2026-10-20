@@ -385,7 +385,8 @@ const RUN_HEAD = 'c'.repeat(40), WORKFLOW_PATH = '.github/workflows/jev-issue-co
 const WORKFLOW = (() => {
   let text = repoFile(WORKFLOW_PATH).replaceAll(/(ref:\s*|runtime_source=)[0-9a-f]{40}/g, `$1${SHA}`);
   const historicalMetadata = [
-    ['# Two fresh singleton PR slots; no shared reaction claim.',
+    ["      ((github.event.comment.body == '/jev-evaluate' &&\n      (github.event.issue.pull_request == null || github.event.issue.number == 511)) ||", "      (github.event.comment.body == '/jev-evaluate' ||"],
+    ['# One PR budget claim across a finite ordinal window; no refill.',
       '# One projected Org slot; no Repository/Environment copy.'],
     ['# Historical grants remain; no rerun spending or automatic ordinal following.',
       '# Initial four-call history plus 200 authorized additions; no rerun spending.'],
