@@ -60,6 +60,18 @@ D4も300attempt/POST/qualified、技術unknown0、model ID安定、Goldnull7不�
 
 D4物理新O usageはinput682592/output9300、total_tokens300未知。歴史Eとの非同時論理運用相当input1270084（元1180684比+7.57%）、金額や将来効率改善は未証明。実D1..D4計1200POST、既知input3120968/output37200、provider total_tokens1200未知。予定H138はまだ作用0。同C4再送をせず、次処置を公開D/元rubricに基づく別事前契約として三者で反証する。
 
+## 次処置：固定C2＋C4のAND（未実測）
+
+公開の退役D原D2/C2とD4/C4を非同時にANDすると、完全正答220→230/b10c0/union退行0となる。W/root/Rが別算術で確認したが、これは開発仮説の選択根拠であり、新Dguard成立・H解禁の証拠ではない。ORはunion退行を残す。ANDは一方のyesを捨てるため見逃しを増やし得る。旧Oの混同行列はbaseline TP79/TN144/FP9/FN61、C2 89/144/9/51、C4 92/143/10/48、offline AND88/145/8/52、Goldnull7。元baselineを改善しても各componentのrecallより下がるtradeoffを隠さない。
+
+単回O instructionsへの情報配置変更も反証案として比較した。そちらは小さく安価だが未測定の文言仮説で、ANDには公開D上の補完性という根拠があるため、次の別設定として固定2call ANDを採る。追加計算戦略全体の比較であり、単一Jevや同原価での改善・component独立性・孤立した因果効果を主張しない。旧usageによる非同時論理input2016876対1180684（+70.82%）という大きい原価tradeoffも、将来の実費や新effect値と区別する。
+
+原 `prospective-plan.json` はd678同bytesのまま、別 `prospective-and-plan.json` に新物理会計と戦略を予測前・W23開示前に記録する。C2/C4の実requestをそのまま固定componentとして毎case両方必ず呼び、両qualifiedかつ両yesならderived O=yes、それ以外の両qualifiedならno。片方noでも短絡せず、片方invalid/欠落/未試行ならderived O=unknown。derived値にnative probability/confidence/model usageを捏造せず、元2receiptを保存する。既定単回C1-C4の全raw/default/guardを変えず、固定AND専用schema・薄い投影と既存recorder/資格を共有する。任意componentやcallback/endpointの汎用executorは作らない。
+
+新D5は同時取得の新O600、論理300件、case indexでcomponent順を交互に固定。旧componentと同じpayloadが意図的に再登場する新戦略測定で、旧run再実行や全unique queryとは呼ばない。機械H1完全正答gain/両履歴union/Goldnull7/全600資格・300derived既知/model安定を維持する。phase development5/history5は先行4失敗すべてのnative来歴・raw・技術全資格と意味不受容を鍵前再生する。600×15秒=150分＋保持余裕でjob170分、元6step秘密境界は維持。
+
+改訂した予定Hは元Best O/C2 O/C4 O/sharedEの4固定physical×23×2回＝184。元23の順序・census母数・origin323分離・Gold・j3/各tail1/1600・両回AND・全unknown・known退行0は変えない。E共有は回内だけ、componentの2答も独立標本ではない。新D600と原actual1200、将来H184のseries上限1984を事前記録する。新D/Hの必要source/check/三者受容は別で、現在AND実作用0・23非開示。元planのH138は旧単回戦略の履歴として残し、未実行を実費へ数えない。
+
 ## 主張と反証を行う三者
 
 ```mermaid
@@ -75,7 +87,7 @@ flowchart TB
   K --> B[📏 候補意味reviewは公開Dと元rubricのみ・封印例由来の添削禁止]
 ```
 
-旧O補足は現在の未達・未確認報告を拾えた一方、権限・branch・完了条件の規範定義を現実報告へ過包含した。各phaseでは一候補だけをO yes/no両criteriaへ同じ補足で適用する。設計や規範という形式だけで実報告を一律に除外しない。実権限状態、実操作、進行、未達・未確認の報告は元のO意味を保つ。外部真偽・成功・証拠リンクを要求しない。元BestのE、instructions、質問、protocolは変更しない。ケースIDや正答一覧をmodel入力へ渡さない。効果は設定変更全体のもので、Jev評価助言の因果価値とは称さない。
+旧O補足は現在の未達・未確認報告を拾えた一方、権限・branch・完了条件の規範定義を現実報告へ過包含した。C1-C3は両criteriaへ共通補足、C4はlabel別補足、次ANDは固定C2/C4二答の組合せで、一度に一つの戦略だけを検証する。設計や規範という形式だけで実報告を一律に除外せず、実権限状態、実操作、進行、未達・未確認の報告は元のO意味を保つ。外部真偽・成功・証拠リンクを要求しない。元BestのE、instructions、質問、binary protocolは変更せず、ANDの二componentも各々元binary応答を保つ。ケースIDや正答一覧をmodel入力へ渡さない。効果は追加計算を含む設定戦略全体のもので、Jev評価助言の因果価値とは称さない。
 
 ## 受入と知識境界
 
@@ -85,11 +97,11 @@ D300は機械的H1の元Best O/sharedEを歴史aliasとし、新O300だけを測
 
 資格再生と標準clientの記録部分を旧615入口と共有した。旧raw readerだけで新writerを検証したと見なさず、dummy keyとHTTPを外へ出さないfetch stubで標準writer実pathも検査する。全serialized wire・redirect拒否・15秒deadline・実post/flags順序・usage既知/欠損・確率和拒否・model drift・上限超過時追加HTTP0を確認。生産用endpoint/transport/retry/callback設定は追加しない。旧615保存input/rawは改変せず、旧writerのロジックを専用共有関数へ移した。新Dの欠測はunknownProtectedAxesと資格未完了へ、実誤答はknown regressionへ別保持し、混在でも片方を消さない。
 
-D入口は専用branchでrequest-only child/attempt1/native履歴D1=1・D2=2・D3=3・D4=4へ限定。prepareのみGH_TOKEN、evaluateのみ既存Org JEV_API_KEY、project/uploadはalways原保持の元6step境界へ限定翻訳する。300×15秒=75分にsource検証と保持余裕を足してjob90分。各実作用前に新source必要CIを確認し、最終exacthead通常CIも別途閉じる。
+D入口は専用branchでrequest-only child/attempt1/native履歴D1=1・D2=2・D3=3・D4=4・新AND D5=5へ限定。prepareのみGH_TOKEN、evaluateのみ既存Org JEV_API_KEY、project/uploadはalways原保持の元6step境界へ限定翻訳する。旧D300はjob90分だったが、新AND D600は15秒deadline最大150分＋検証/保持余裕で170分へ改訂する。各実作用前に新source必要CIを確認し、最終exacthead通常CIも別途閉じる。新component同士が同時でも、Dの元H1 baseline O/Eは歴史aliasのままで非同時。freshな比較証拠は将来Hだけである。
 
 元frame323の一回SRSWORで封印したreserve23を、元reserveIdsの全順序そのままで使う。再抽選・新API・補充・後付け除外はしない。確認の母数は条件付き補集合23のcensus、originFrame323は別属性。旧300から学習した候補を旧323全体の未使用評価に見せない。本文開示前に一候補fullwireとDguardを固定する。
 
-HはbestO/newO/sharedEの3物理request×23×2回＝138上限。Eは各回内だけ共有、回間再利用なし。各回の正gain下限・sample最悪gain・既正答軸退行0・全資格をAND受入とし、片回平均/取消/再抽選で救済しない。round3 alpha=1/160、二回×5tailの各tail=1/1600を継承しresetしない。Goldnull/資格不明・未試行を全母数へ残す。これは有限23での二回差まで。23を独立46例にせず、旧323・Apps・未来の期待性能・Gold無謬を保証しない。一回の予定二回確認後は23も退役し、修正後に同じ23を再Hにしない。
+元planは単回候補のH138だった。新AND planではbestO/c2O/c4O/sharedEの4物理request×23×2回＝184上限とする。Eは各回内だけ共有、回間再利用なし。各回の正gain下限・sample最悪gain・既正答軸退行0・全資格をAND受入とし、片回平均/取消/再抽選で救済しない。round3 alpha=1/160、二回×5tailの各tail=1/1600を継承しresetしない。Goldnull/資格不明・未試行を全母数へ残す。これは有限23での二回差まで。23を独立46例にせず、旧323・Apps・未来の期待性能・Gold無謬を保証しない。一回の予定二回確認後は23も退役し、修正後に同じ23を再Hにしない。
 
 ```mermaid
 flowchart TB
@@ -110,9 +122,13 @@ flowchart TB
   C4 --> CHECK4[✅ C4新source/必要CI/三者受容]
   CHECK4 --> D4[✅ 別D4新O300一回・history4]
   D4 --> HOLD4[❌ joint220→232でも155/230O退行・原版保持・23未開示]
-  HOLD4 --> NEXT4[⏳ 次処置は別の事前契約・同C4再送禁止]
-  NEXT4 --> FREEZE[⏳ 将来のDguard成立＋候補fullwire固定後だけ23開示]
-  FREEZE --> H[⏳ 別受容後69 POST二回・全raw保持]
+  HOLD4 --> NEXT4[✅ 公開Dだけのoffline補完性・固定C2C4 AND事前改訂・live証拠ではない]
+  NEXT4 --> CHECK5[⏳ 新source/必要CI/三者受容・23未開示]
+  CHECK5 --> D5[⏳ 別設定D5実O600・両component必須・history5]
+  D5 --> G5{完全gain正・union退行0・全資格?}
+  G5 -->|負・unknown| HOLD5[保持して23未開示・次処置は別の事前契約]
+  G5 -->|成立| FREEZE[⏳ actual両request fullwire固定後だけ23開示]
+  FREEZE --> H[⏳ 別受容後92 POST二回・全raw保持]
   H --> A{両回の全受入成立?}
   A -->|成立| FIN[⏳ 成立時の主張は有限23二回の差のみ・採用は別判断]
   A -->|退行・負・unknown| NEG[⏳ 負／不明を全件保持・同23で修正再試験禁止]

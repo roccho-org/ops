@@ -489,9 +489,9 @@ export function assertObservationWorkflow(w,b) {
 }
 
 export function assertReserveWorkflow(w,b){
-  need(b.maxCalls===1338,'reserve series bound differs');
+  need(b.maxCalls===1984,'reserve series bound differs');
   need(same(w.on?.push?.branches??[],['codex/jev-observation-reserve-20261020'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/reserve/request.json']),'reserve entry differs');
-  need(w.concurrency?.group==='sys1-observation-reserve'&&w.jobs?.evaluate?.['timeout-minutes']===90,'reserve deadline/retention differs');
+  need(w.concurrency?.group==='sys1-observation-reserve'&&w.jobs?.evaluate?.['timeout-minutes']===170,'reserve deadline/retention differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;
   for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/reserve/runtime.mjs '+mode+' "$RUNNER_TEMP/reserve"','reserve command differs');s[n].run='node experiments/sys1-eval-loop/observation/runtime.mjs '+mode+' "$RUNNER_TEMP/observation"';}
   need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-reserve-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/reserve','if-no-files-found':'ignore','retention-days':30}),'reserve receipt differs');
