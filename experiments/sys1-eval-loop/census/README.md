@@ -10,7 +10,11 @@
 
 候補は616で実D5から固定した `../reserve/and-selection.json` のC2/C4 ANDのまま。新候補生成も追加Dも行わない。既存native metadataの117 repo IDを使い、旧cutoff `2026-10-20T00:00:00Z` より後、新固定cutoff `2026-10-20T16:57:23Z` までにcreatedされた非PR Issueをmetadataだけで列挙する。createdAt＋immutable issue ID順の先頭最大300を**本文前に**固定し、全文eligibleで減っても補充しない。その全eligibleを新有限cohortのcensusとする。window全体への代表性、無作為抽出、意味/作者/案件の統計独立性は主張しない。
 
-全既使用immutable issue IDを現在repoに関わらず除外し、全既使用bodyの完全同bytesも除外する。タイトル/コメント/リンク先を補わずwholebody、全4wireが24000 serialized bytes未満、切詰めなし。新Issue identityでも意味的新規性やpretraining未見は保証しない。原候補全件と除外理由を保持し、semantic難易度で選別しない。root/Rは原取得をprivate native保持して独立Gold初稿→凍結→合議/null、Wへは固定cohort原版だけを渡す。実MをGold/予測前にnative固定する。M0ならNO_CASES/作用0を保存し、窓を後付け拡大して成功へ救済しない。
+`metadata.mjs` の固定GraphQL queryは全OPEN/CLOSED Issueのid/number/createdAt/updatedAt/__typenameだけを選択し、body/title/comments/labelsを取得しない。[field選択](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql#about-queries)と[cursor pagination](https://docs.github.com/en/graphql/guides/using-pagination-in-the-graphql-api)の一次根拠はRが独立調査した。標準ghの全終端と原APIを保持し、Search1000上限やupdated-sinceをcreated窓に代用しない。純粋readerは全117 ID/公開/page形状/終端とfield whitelistを検証するが、provider全件性・実gh正常終端・実native来歴を単独で証明しない。各native呼出しの固定query・非secret variables・exit・原replyを保持し、afterが直前endCursorに等しいchainをroot/Rが独立照合する。token付きHTTP debug/proxyは加えない。実collectorの事前受容は別であり、queryの存在をAPI作用許可にしない。
+
+処理順はwindow内non-PR→immutable ID dedup（衝突はINVALID）→createdAt/locale非依存ordinal IDでsort→prefix300をnative固定→usedID/priorbody/empty/4wireのeligible除外→補充0。全既使用immutable Issue IDを現在repoに関わらず除外し、全既使用bodyの完全同bytesも除外する。根拠はproduct5c6の全retained experiments JSON、native034のframe全JSON/capture001..117の1376全raw body/typed Issue（afterCutoff/oversize等の除外も含む）、native256443の旧known-used-identitiesと034 frameのschema既知knownIssueNodeIds配列。既存recursive prior抽出だけでprimitive ID配列を落とさず、型付き原意味を明示unionする。原本文をWへ再配送せずroot/Rが原bytes/全集合を独立照合し、scope外/private情報は公開manifestへ入れない。
+
+タイトル/コメント/リンク先を補わずwholebody、全4wire24000 serialized bytes未満、切詰めなし。新Issue identityでも意味的新規性・言い換え/引用なし・pretraining未見・同作者/同template独立性は保証しない。新frame内の同bodyは各Issue一weightを保ち、template構成/Gold整合を記述・裁定し、意味dedupしない。createdAt・metadata updatedAt・実body updatedAt/retrievedAtを保持し、metadata固定後に編集されても取得版の観測として固定し、成績を見た除外をしない。原候補全件と除外理由を保持する。root/Rは予測と相互初稿を未読で独立Goldをnative凍結後に比較・合議/null、Wへは固定cohort原版だけを渡す。実MをGold/予測前にnative固定する。M0ならNO_CASES/作用0を保存し、窓を後付け拡大して成功へ救済しない。
 
 採取は既存gh/原API保持/全pagination終端/1時間境界を再利用する。固定IDの公開状態を本文前後で観測し、変更/不明は全frame invalid。非原子的認証APIのvisibility raceを絶対0とは言わず、失敗原版は私的保持して公開/実測へ渡さない。新認証/独自executor/ledgerを増やさない。
 
@@ -20,7 +24,9 @@
 
 ## 最小系列と完成条件
 
-同repo/Issue523、同policy0dd39、同三者・W sole writer。baseは616最終source5c6d9c44d786d9af054768a62272c84fa9802871。この一PRを、実数学→metadata/body取得契約/collector→native原frameと独立Gold→固定二回→全raw/独立算術/費用/最終CI/Ready未mergeの順に進める。後続PR番号や成功を先に作らない。cross-PR gateは `fixed-c5-prospective-census-closure` とし、入力は616不変原版/actualC5 proofと当PR最終tree・新cohort native/両回raw、失敗条件は旧判定改変/設定drift/不完全原版/資格不明/片回未達/未閉CIである。gateの実entryは未実装。
+同repo/Issue523、同policy0dd39、同三者・W sole writer。baseは616最終source5c6d9c44d786d9af054768a62272c84fa9802871。この一PRを、実数学→metadata/body取得契約/collector→native原frameと独立Gold→固定二回→全raw/独立算術/費用/最終CI/Ready未mergeの順に進める。後続PR番号や成功を先に作らない。cross-PR gateは `fixed-c5-prospective-census-closure` とし、入力は616不変原版/actualC5 proofと当PR最終tree・新cohort native/両回raw、失敗条件は旧判定改変/設定drift/不完全原版/資格不明/片回未達/未閉CIである。既存native原版・通常CI・独立reviewの結合条件を説明する名称で、独自管理・台帳・別基盤を追加しない。実entryは未実装。
+
+C5は元BestよりO呼出しを一つ多く使う追加資源bundle。新二回で得るのも固定集合の観測精度差と未確定Goldに対するrobust整数包絡であり、同原価改善・モデル重み向上・backend固定・未来期待性能・実製品E2E・費用改善は未証明のままにする。
 
 通常技術FAILは同三者で是正する。取得/モデル作用は新source・原版・必要CI・三者受容を閉じてから。結果不明はnative実体を読戻しblind resendしない。616通常CIの新FAILがあればupstream是正を優先し、下流を整列・再検証する。未達やM0も保存し、採用/mergeは別許可のまま。
 
