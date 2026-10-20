@@ -33,10 +33,18 @@ flowchart TB
 
 - 対象Bestは既存の一般E/O設定。新D24本文とそのBest実出力を両修正armへ共通入力として渡す。Eは機能要求に限定せず、元のsplit.mjsと同じ必要な状態・責務・入出力対応・要件・受入条件の宣言を扱う。D/H item Gold、basis、採点結果はjudge・修正器のmodel入力へ渡さない。rootが候補生成前にDをGold採点しても、その結果はprivate保持し、W/修正器にcase別正誤・根拠・Gold由来の修正助言を渡さない。両候補保存/freeze後だけD採点を公開する。
 - judge v2は旧v1がBestの実誤答9/9を見逃した失敗に対し、proposed回答を見せる構造を変更する。旧開発資料で設定を校正してよいが、新D出力を見る前に固定し、本比較中は変更しない。`judgeRequest`はbodyだけからE/O4組合せを既存Choiceで一回独立分類し、その実receipt後にコードでBest出力との差をtyped診断へ導く。先に読むよう指示するだけで同promptにproposedを混ぜない。自由文rationaleを創作せず、独立分類由来のtyped診断だけを助言とする。診断unknownを`uncertain`回答へ書き換えない。Goldによる誤診断採点は別で、judgeがGoldになるわけではない。
-- F/Nは**同じnative OC/DS model・同じ設定・独立fresh session・同じ修正prompt/Best/D出力・候補数1・生成上限**。差分はFにtyped助言を添付し、Nには添付しないことだけ。片armの候補や診断を他armへ渡さない。生成失敗、同一候補、変更なしでも再抽選しない。モデルaliasはimmutable backend版の証明ではない。
+- F/Nは**同じnative OC/DS model・同じbase設定・履歴のない独立stateless要求・同じ修正prompt/Best/D出力・候補数1**。差分はFにtyped助言を添付し、Nには添付しないことだけ。片armの候補や診断を他armへ渡さない。生成失敗、同一候補、変更なしでも再抽選しない。モデルaliasはimmutable backend版の証明ではない。
 - 修正器へ外部toolを使わせず、一般instructionsだけのJSON1本を受ける。既存Best prefix維持、6000byte以内。個別解答・ID lookup・Hでの追加修正は不可。生成物の適否はH開封前に3者で反証し、失敗を手修正した候補で置換しない。
-- native OC2.0.30の既存NixOS dev UID1001/Console認証と `opencode/deepseek-v4.1-flash` aliasを第一候補とする。read-onlyでrunのprivate `--standalone`/fresh session/model/json入口と、devのcwd `/home/dev` におけるConsole storedを確認した。実生成の同設定・tool禁止・上限は未確認のため、route成立をまだ主張しない。rootのcwdを継承したauth list500/standalone spawn拒否を、本人認証不足と読み替えない。再認証・新key・OCI復活は行わない。Jev Choiceに自由記述修正能力を捏造しない。
-- 予定Jev実呼出しはD24×(E/O+judge)=72、H32×Best/F/N×E/O=192、Hの独立judge32で296。これにfresh修正2sessionを加えるが、session数をmodel HTTP件数と同一視せず、内部retry/継続/tool往復を実receiptで数える。共通の修正資源上限/再抽選禁止はlive前に固定する。呼出し数同額ではなく修正資源上限を揃える。追加judge費用は差分として記録し、効率優位へ読み替えない。
+- native OC2.0.30の既存NixOS dev UID1001/Console認証と `opencode/deepseek-v4.1-flash` aliasを使う。native catalogでmodel/provider/limitをread-only確認した。rootのcwdを継承したauth list500/standalone spawn拒否はdev cwd `/home/dev` とprivate `--standalone` で解消し、Console storedを確認した。再認証・新key・OCI復活は行わない。修正器にJev Choiceの自由記述能力を捏造しない。
+- 標準 `opencode api --standalone POST /api/experimental/generate --data <payload>` のone-shotを2要求だけ使う。[公式V2 API](https://opencode.ai/v2/docs/api/#generate) と [Generate節](https://opencode.ai/v2/docs/build/plugins/#generate) はsession/history/toolsを使わない経路を示す。version対応の [core generate.ts](https://github.com/anomalyco/opencode/blob/v2.0.30/packages/core/src/generate.ts)、[server handler](https://github.com/anomalyco/opencode/blob/v2.0.30/packages/server/src/handlers/generate.ts)、[protocol](https://github.com/anomalyco/opencode/blob/v2.0.30/packages/protocol/src/groups/generate.ts) でも、明示modelの解決→単一generate→text返却を読んだ。native実行物と当該tagのbyte同一性は未確認で、観測version label以上に主張しない。
+- `repair-route.mjs` はF/Nの同一model/common入力と助言だけの差を固定する。標準APIの公開契約はprompt/model→data.textで、usage、finish_reason、内部provider試行数や推論hardmaxを返さない。その非露出値はunknownとし、6000byteを推論hardmax設定済みと偽装しない。これは候補受入上限でありpromptにも明示する。既存base/default設定を両要求で同じまま使い、同総費用・効率は主張しない。生textに`</think>`/code fence/余分な説明が混ざっても後処理で救済せずinvalid、候補null/比較UNKNOWNを保持する。
+- 予定外向け要求はJev D72＋H192＋H独立judge32=296と標準generate2。標準generate2要求をprovider内部2HTTPと断定しない。内部試行数/usageの非露出分はunknown。独自plugin/proxy/新ログbrokerは作らず、実取得rawと標準metadataを保持する。追加judge費用は差分として記録し、効率優位へ読み替えない。
+
+## 実行sourceの現在範囲
+
+現在実装するnative workflowはD72だけ。`request.json`未作成なので作用は始まらない。source/必要CI/3者受容後のrequest-only childを、同branch/owner/attempt1/native単一history/親commit/変更pathで照合してから既存org secretを最後のモデルstepだけへ渡す。手転記hash台帳や新credentialは作らない。既存strict client/model/probability検証を維持し、資格拒否はそのroleのunknown、judge失敗を別targetの停止理由にしない。model変更は比較不成立として以降を止める。raw receipts/全24分母を保持し、Goldなしprojectionを再生する。
+
+H phaseは候補固定後の別source受容で追加する。caseごとのBest/F/N順を事前循環ローテーションし、各軸を1回ずつ取得。独立judgeはbodyだけから1回、候補修正には返さない。H本文/Goldはその前に開封しない。
 
 ## 完成状態と閉包
 
@@ -45,7 +53,7 @@ flowchart TB
   A["🗃️ 新D24/H32とGoldをモデル出力前に固定"] --> B["🔒 judge v2・Best・同一修正器/生成条件を固定"]
   B --> C["🧪 新DのBest E/O出力とtyped judge診断を実取得"]
   C --> D["🔒 rootだけGold採点を保持: 修正作者へ正誤・根拠・助言を渡さない"]
-  D --> E["⚖️ 同じD本文＋Best出力から独立fresh F/Nを各1回生成"]
+  D --> E["⚖️ 同じD本文＋Best出力からstateless F/Nを各1回生成"]
   E --> F["🔒 JSON候補とsourceを固定・3者反証後だけH開封"]
   F --> PUBLISH["📏 両候補保存後にD正誤/診断妥当性を公開"]
   PUBLISH --> G["🧪 同じ新H32でBest/F/NのE/Oと独立judgeを測定"]
