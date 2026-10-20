@@ -1,0 +1,95 @@
+{
+  "schema": "ops.sys1.expectation-census-readback.v1",
+  "provider": {
+    "repository": "roccho-org/ops",
+    "workflowPath": ".github/workflows/sys1-expectation-census.yml",
+    "runId": 39506465446,
+    "runAttempt": 1,
+    "head": "4f87004785159e4d161aa48bc566397e748e2207",
+    "source": "49745ee1a2896716cdd3a2ce6fe5f23477b701cd",
+    "branch": "codex/jev-expectation-census-20261021",
+    "event": "push",
+    "actor": "roccho-dev",
+    "conclusion": "success",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39506465446",
+    "artifactId": 12302259823,
+    "artifactName": "sys1-expectation-39506465446",
+    "artifactSize": 614251,
+    "providerDigest": "sha256:5b3535ff8639b79c6510141c467e9660fabee597a12a388678684599ba25d774",
+    "archiveSha256": "5b3535ff8639b79c6510141c467e9660fabee597a12a388678684599ba25d774"
+  },
+  "repId": 2,
+  "effectCounts": {
+    "assigned": 357,
+    "attempts": 357,
+    "actualPosts": 357,
+    "qualified": 357,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "modelStable": true,
+  "knownOutcome": {
+    "resolved": 118,
+    "unresolved": 1,
+    "qualifiedPairs": 118,
+    "unknownPredictionCases": [],
+    "before": 85,
+    "after": 92,
+    "repairs": [
+      "expectation-013",
+      "expectation-034",
+      "expectation-056",
+      "expectation-057",
+      "expectation-059",
+      "expectation-082",
+      "expectation-093",
+      "expectation-116"
+    ],
+    "regressions": [
+      "expectation-052"
+    ]
+  },
+  "inference": {
+    "bounds": {
+      "differenceLowerNumerator": 7,
+      "differenceUpperNumerator": 7,
+      "regressionLowerNumerator": 1,
+      "regressionUpperNumerator": 1,
+      "denominator": 119
+    },
+    "accepted": false,
+    "disposition": "OBSERVED_REGRESSION",
+    "knownRegressionCases": [
+      "expectation-052"
+    ]
+  },
+  "reconfirmation": {
+    "schema": "ops.sys1.expectation-census-reconfirmation.v1",
+    "caseDenominator": 119,
+    "repetitions": 2,
+    "accepted": false,
+    "disposition": "NOT_RECONFIRMED",
+    "rule": "both fixed same-case passes independently satisfy all qualification/model/feasible-delta/regression conditions; no averaging, winner selection or doubled case denominator"
+  },
+  "usage": {
+    "input_tokens": {
+      "known": 357,
+      "unknown": 0,
+      "knownSum": 860975,
+      "value": 860975
+    },
+    "output_tokens": {
+      "known": 357,
+      "unknown": 0,
+      "knownSum": 11067,
+      "value": 11067
+    },
+    "total_tokens": {
+      "known": 0,
+      "unknown": 357,
+      "knownSum": 0,
+      "value": null
+    }
+  },
+  "scope": "W product replay, not independent oracle; root/R separately acquire and independently score; current physical3M unique only, total_tokens absent not filled, money/internal compute unknown"
+}

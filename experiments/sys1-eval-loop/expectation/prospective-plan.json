@@ -128,13 +128,13 @@
       "passes": 2,
       "totalFreshPosts": 714,
       "combinedDevelopmentAndPlannedFresh": 1221,
-      "currentFreshPosts": 357
+      "currentFreshPosts": 714
     }
   },
-  "currentStage": "H1 actual357 allqualified/stable, positive8/119 and zero regression accepted as one pass only; raw retained, same candidate/Gold/119 unchanged, fixed H2 not yet executed",
+  "currentStage": "both fixed passes completed and retained; positive delta8 then7 but H2 observed E regression1; predeclared AND NOT_RECONFIRMED, candidate unadopted and119 retired; final exactsource CI/reviews/records pending",
   "newMetadataQueries": 0,
   "newBodyQueries": 122,
-  "newModelPosts": 864,
+  "newModelPosts": 1221,
   "adopted": false,
   "seriesClosure": {
     "name": "fixed-e-prospective-census-closure",
@@ -196,6 +196,57 @@
       "inputTokens": 860975,
       "outputTokens": 11067,
       "totalTokensMissing": 357
+    },
+    {
+      "repId": 2,
+      "runId": 39506465446,
+      "activation": "4f87004785159e4d161aa48bc566397e748e2207",
+      "source": "49745ee1a2896716cdd3a2ce6fe5f23477b701cd",
+      "physicalPosts": 357,
+      "qualified": 357,
+      "modelStable": true,
+      "knownBefore": 85,
+      "knownAfter": 92,
+      "knownResolved": 118,
+      "unresolved": 1,
+      "difference": [
+        7,
+        7
+      ],
+      "regression": [
+        1,
+        1
+      ],
+      "knownRegressionCases": [
+        "expectation-052"
+      ],
+      "denominator": 119,
+      "accepted": false,
+      "inputTokens": 860975,
+      "outputTokens": 11067,
+      "totalTokensMissing": 357
     }
-  ]
+  ],
+  "reconfirmation": {
+    "accepted": false,
+    "disposition": "NOT_RECONFIRMED",
+    "caseDenominator": 119,
+    "repetitions": 2,
+    "retired": true
+  },
+  "actualSeries": {
+    "physicalCalls": 1221,
+    "inputTokens": 2836006,
+    "outputTokens": 37851,
+    "totalTokensMissing": 1221,
+    "oldSeriesAccounting": "retained separately, never erased or double-counted as current physical aliases"
+  },
+  "nextDiscussion": {
+    "currentPrimaryUnchanged": true,
+    "retireAll119": true,
+    "developmentCases": 626,
+    "alternatives": "one genuine help-request presentation refinement versus fixed OR(originalBestE,currentE) extra-compute configuration; choose prospectively, not both and winner-select",
+    "newTargetProposal": "observed8bc metadata only, same3repos, Oct18 UTC day/prefix300/no-refill fixed before count; no new count/body/Gold/API/model yet",
+    "prior": "fixed old407+old210 plus all new122 actual bodies including exclusions; never all metadata-only IDs, all retained references get the same conservative matching rule"
+  }
 }

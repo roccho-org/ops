@@ -1,0 +1,201 @@
+{
+  "schema": "root.expectation-census-combined-independent.v1",
+  "caseDenominator": 119,
+  "repetitions": 2,
+  "accepted": false,
+  "disposition": "NOT_RECONFIRMED",
+  "passes": [
+    {
+      "repId": 1,
+      "execution": {
+        "source": "f8487a09f8fd360aef1e46c4728aed754f9cab8c",
+        "activation": "031db1a3efb2ea0e69d2b4c51f337418a9cf87da",
+        "runUrl": "https://github.com/roccho-org/ops/actions/runs/39505411380"
+      },
+      "physical": {
+        "assigned": 357,
+        "attempts": 357,
+        "posts": 357,
+        "qualified": 357,
+        "unknown": 0
+      },
+      "resolved": 118,
+      "bestCorrect": 85,
+      "candidateCorrect": 93,
+      "repairs": [
+        "expectation-013",
+        "expectation-034",
+        "expectation-056",
+        "expectation-057",
+        "expectation-059",
+        "expectation-082",
+        "expectation-093",
+        "expectation-116"
+      ],
+      "breaks": [],
+      "knownRegressions": [],
+      "bounds": {
+        "differenceLowerNumerator": 8,
+        "differenceUpperNumerator": 8,
+        "regressionLowerNumerator": 0,
+        "regressionUpperNumerator": 0,
+        "denominator": 119
+      },
+      "accepted": true
+    },
+    {
+      "repId": 2,
+      "execution": {
+        "source": "49745ee1a2896716cdd3a2ce6fe5f23477b701cd",
+        "activation": "4f87004785159e4d161aa48bc566397e748e2207",
+        "runUrl": "https://github.com/roccho-org/ops/actions/runs/39506465446"
+      },
+      "physical": {
+        "assigned": 357,
+        "attempts": 357,
+        "posts": 357,
+        "qualified": 357,
+        "unknown": 0
+      },
+      "resolved": 118,
+      "bestCorrect": 85,
+      "candidateCorrect": 92,
+      "repairs": [
+        "expectation-013",
+        "expectation-034",
+        "expectation-056",
+        "expectation-057",
+        "expectation-059",
+        "expectation-082",
+        "expectation-093",
+        "expectation-116"
+      ],
+      "breaks": [
+        "expectation-052"
+      ],
+      "knownRegressions": [
+        {
+          "id": "expectation-052",
+          "axis": "E"
+        }
+      ],
+      "bounds": {
+        "differenceLowerNumerator": 7,
+        "differenceUpperNumerator": 7,
+        "regressionLowerNumerator": 1,
+        "regressionUpperNumerator": 1,
+        "denominator": 119
+      },
+      "accepted": false
+    }
+  ],
+  "physicalPosts": 714,
+  "usage": {
+    "bestE": {
+      "answers": 238,
+      "input_tokens": {
+        "known": 238,
+        "subtotal": 550818,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 238,
+        "subtotal": 7378,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 238
+      }
+    },
+    "scopedE": {
+      "answers": 238,
+      "input_tokens": {
+        "known": 238,
+        "subtotal": 615792,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 238,
+        "subtotal": 7378,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 238
+      }
+    },
+    "sharedO": {
+      "answers": 238,
+      "input_tokens": {
+        "known": 238,
+        "subtotal": 555340,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 238,
+        "subtotal": 7378,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 238
+      }
+    }
+  },
+  "physicalUsage": {
+    "input_tokens": {
+      "known": 714,
+      "subtotal": 1721950,
+      "unknownPhysicalPosts": 0
+    },
+    "output_tokens": {
+      "known": 714,
+      "subtotal": 22134,
+      "unknownPhysicalPosts": 0
+    },
+    "total_tokens": {
+      "known": 0,
+      "subtotal": 0,
+      "unknownPhysicalPosts": 714
+    }
+  },
+  "logicalBestUsage": {
+    "input_tokens": {
+      "known": 476,
+      "subtotal": 1106158,
+      "unknownPhysicalPosts": 0
+    },
+    "output_tokens": {
+      "known": 476,
+      "subtotal": 14756,
+      "unknownPhysicalPosts": 0
+    },
+    "total_tokens": {
+      "known": 0,
+      "subtotal": 0,
+      "unknownPhysicalPosts": 476
+    }
+  },
+  "logicalCandidateUsage": {
+    "input_tokens": {
+      "known": 476,
+      "subtotal": 1171132,
+      "unknownPhysicalPosts": 0
+    },
+    "output_tokens": {
+      "known": 476,
+      "subtotal": 14756,
+      "unknownPhysicalPosts": 0
+    },
+    "total_tokens": {
+      "known": 0,
+      "subtotal": 0,
+      "unknownPhysicalPosts": 476
+    }
+  },
+  "limit": "Same119 fixed cases in both passes; do not combine denominators to238 or average for acceptance. Logical arm usage double-attributes sharedO and its sum is not physical usage. Missing provider usage, money/internal compute and future/population/Apps effects remain unknown."
+}

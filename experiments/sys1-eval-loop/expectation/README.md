@@ -1,87 +1,96 @@
-# 元rubricのE scope一候補と退役507件の開発guard
+# 未使用119件で両回正差、H2のE退行1により再確認未達
 
-[PR617](https://github.com/roccho-org/ops/pull/617) のH1差0/H2単回差4/207・退行0、事前二回AND NOT_RECONFIRMED/未採用/207退役を変更しない。H2正差を消さず、O追加が常に無効ともE優先の原因が証明されたとも言わない。今回D507は全資格でguard PASS、次Hは旧観測metadataから事前窓の122候補を固定し、一回の本文取得と別reader再生を完了した。prior exact1/oversize2を補充せず119件が適格、モデル予測は0。原body/view native322399、両初稿fdc9、最終裁定/corpus1d9を固定し、原bytesを統合した。119件/未確定1を保持し、両回357ずつ・計714要求を鍵なしで照合した。f848の独立受容/必要CI646/consumer/healthを閉じた後、一回目の実モデル357を実行した。二回目は未実行である。
+事前固定した新E一候補を未使用の有限実案件119件で二回測定した。H1はcomplete正答85→93・差8/119・退行0、H2は85→92・差7/119だがE退行1を観測した。両回の正差を保持する一方、事前の「両回とも全資格/expected model/差下限正/退行上限0」は満たさず、二回ANDは **NOT_RECONFIRMED**。候補は未採用で元Bestを維持し、119件を開発用へ退役する。同Hの再試験/平均/良い回選択/Gold改訂で救済しない。
 
-このsliceは元Best/元E yes/no/元instructions/全bodyを保ち、E criteriaだけへ一つのlabel別補足を加える。既611の「対象について」狭義化を再送せず、本文中の真正な条件付き提出指示・実依頼引用・IO宣言もANY本文として数える仮説である。語句や作文/架空例として展示するだけなら要求にしない。テンプレ/引用/チェック欄/Please/命令形だけで一律yesにせず、未実施/未採用と要求として使われない見本を混同しない。候補の文章があることは実モデル準拠の証明ではない。
+| 段階 | 全case / Gold未確定 | complete既知正答 | 修復 / 破壊 | 共通Gold差包絡 | 軸退行包絡 | 判定 |
+| --- | --- | --- | --- | --- | --- | --- |
+| D507・非同時の歴史比較 | 507 / 16 | 392→400 | 8 / 0 | 開発known guard | E union486破壊0 | guard PASS |
+| 新H1 | 119 / 1 | 85→93 | 8 / 0 | [8,8]/119 | [0,0]/119 | 単回positive |
+| 新H2 | 119 / 1 | 85→92 | 8 / 1 | [7,7]/119 | [1,1]/119 | OBSERVED_REGRESSION |
 
-三者反証で初案noの「一般説明だけ」を撤回した。説明文でも公開023のcmd+n→new fileのようにIO対応を宣言すれば元Eに該当する。逆に公開093のrepro実施記録を要求へ昇格させない。宛先への命令を必須にせず、宣言的責務/完成状態を保つ。「主たる不具合と同じ対象は不要」も、本文で要求や仕様として提示するという条件の内側だけで使う。真のenum/許容仕様を誤除外しないよう、選択肢の独立除外も撤回した。原Goldや閾値は変更しない。
+H1約6.72pp/H2約5.88ppはこの固定119件上の差であり、確率CI・無作為母集団・将来backend期待値・Apps/E2E改善ではない。同じ119件を二回使い、独立238標本にはしない。Goldはcandidate-known same-family採点者によるため外部人間正本と同一視しない。metadataは既観測、意味/作者/テンプレ/学習への未見は保証しない。便宜的な3repo/時間窓という主張限界を保持する。
 
-`development.mjs` は旧300と退役207の全body/source/Goldを保持し、旧H1/H2と今回H1/H2の原raw資格/全request/projectionを再生する。物理Eは4群・全1014件。旧D1..5のEは旧H1の同一receipt aliasとして全値を照合し、別の物理資格/費用/成功機会に数えない。complete joint anchorは各cohortの機械first、全snapshot E既正答unionは486/507、first joint正答392・O未確定16。この候補前固定値は都合よいrun選択ではなく全原版から導く。
+## 元rubricと一候補
 
-`guard.mjs` は全507の新E資格、first-snapshot complete E/O gain>0、全4物理snapshotの既正答E union破壊0を別に判定する。Eだけの修復がhistorical O誤答と組になる場合はjoint gainへ数えない。欠測を既知退行にせず、既知退行と欠測が併存すれば両方を残す。未確定Goldも全分母へ保持する。DのE/Oは非同時の歴史比較なので、新Hの同時測定・未来期待性能を証明しない。
+元split.mjsのhasExpectation/hasObservation/question、元Best/instructions、binary yes/no、全bodyとGoldは不変。E criteriaだけに、真正な条件付き提出指示・引用された実依頼・IO対応も本文ANYの要求として数えるlabel別補足を加えた。未実施/未採用や主たる不具合との主題不一致は除外理由にせず、語句/作文/架空例の展示は要求へ昇格しない。
 
-`prospective-plan.json` は新count/本文/予測前の窓・prefix300・補充0と最大資源を記す。次target案は既取得native8bcの観測metadata内だけのUTC `[2026-10-20T00:00Z,18:00Z)`。全履歴APIの再取得はせず、新snapshot/全日網羅を称さない。元407に実210bodyを加えるpriorは除外empty/oversize3も含み、metadata-only322718 IDsをtask本文既使用へ混ぜて自己除外しない。候補actual fullwireと開発guardを閉じるまで新H本文/Goldを候補作者へ渡さない。M0も保存し、件数/成績を見た窓拡大をしない。
+三者counterではW初案の「一般説明だけならno」をRが023のcmd+n→new file IO宣言で反証して撤回した。rootは一般help/未適用見本と真正要件の文脈境界を要求し、W/Rも受容。真のenum/許容仕様を落とす選択肢の一律除外も撤回した。宛先への命令を必須にせず、宣言的責務/完成状態を保ち、093の単なるrepro実施記録という反例も保持した。611のsubject狭義化の盲再送、特定ID lookup、Gold再定義ではない。元Best Oは変更しない。
 
-新D507・新H3M×2最大1800の新scope上限は2307。元Best Oは変えず新Hの当回sharedOを一物理receiptだけ共有する。両armのO呼出し数が同じでも、E補足のtoken/時間/費用が同じとは言わない。既存標準client/recorder/資格と共通Gold補完の再用を優先し、任意profile/endpoint/constructor override、新executor/auth/ledgerを加えない。今回実物理はD507、新metadata API0、新本文122/公開前後2の計124 native CLI commands。Goldは相互未読初稿のnative固定後に三者裁定済みで、H1は357実行済み/H2未実行。内部HTTP試行数は未観測で、CLI数をHTTP数へ置換しない。
+## D507と要求の固定
 
-固定D入口はrequest-only pushの最初の一回だけを認め、request.jsonは作用開始まで存在しない。鍵前に全507/1014原資格・request・projectionを再生し、四原providerの実API run/actor/branch/workflowと実Git親/固定request path/phase/repを照合する。鍵下は固定sourceからbody/best/原templateを読み直すsecret-safe比較だけを行い、wireTemplateやGold採点を呼ばない。既存standardRecorderの507上限・15秒・redirect拒否・flags/failureを用い、鍵なしprojectionで原rawから資格/guardを再生する。意味FAILでも原結果を保存し、欠測と既知退行を別に保持する。元D実workflow150分は507×15秒=126.75分＋検証/保存余裕の技術capだった。新H実装では元の事前契約どおり同workflowを250分へ変更し、最大3×300×15秒=225分＋検証/保存余裕を取る。完了保証ではない。新H源の独立受容/必要CIと実data/Gold結合前にはモデル作用しない。
+旧300と退役207の全原body/source/GoldをDへ使用した。物理Eは旧300のH1/H2と207のH1/H2の4群1014。旧D1..5のEは原H1と全値同一のaliasで、新しい資格/呼出し/費用に数えない。complete anchorは各cohortの機械first、E既正答union486・first joint392・O未確定16を候補出力前に固定した。Eだけの修復をjoint gainへ置換せず、欠測と既知退行は別に保持する。
 
-`prefix.mjs` は既受容8bcの全原metadataを旧窓で再生して保存prefix全値と一致させた後だけ、新事前窓へ投影するpure readerである。三者入口受容後、root/Rが全11blob/5原CLI command stdout/cursor/pageInfo/visibilityを別readerで再生し、旧322718観測Issueから新窓122/prefix122の全値順序が一致した。native77477の原prefix/receipt2file34,737Bをここへ原bytesで保持し、Wもnative原版保存/bytesを確認した。関数への任意capturesや自己申告native文字列だけで実取得真性を証明せず、保存pageInfoと受容済標準CLIの終端意味を再用する。追加API/新snapshot/当日全Issue網羅を称さない。122はmetadata候補数でeligibleMではない。
+[D run39497868527](https://github.com/roccho-org/ops/actions/runs/39497868527) はsource e6、activation59ceのrequest-only child、全507qualified/model stable、392→400/b8c0、E486→494/union破壊0。原5file11,457,514Bとprovider/readback/root独立reportを保存した。root/Rは各自己ZIP/native API/Git親/request/全flagsと別算術で全値一致。これは非同時開発診断であり新Hの効果ではない。
 
-実Dは[run39497868527](https://github.com/roccho-org/ops/actions/runs/39497868527)、activation59ceのrequest-only child/source e6、全507 qualified/model stable。機械first complete392→400、修復8/破壊0、E486→494、全snapshot E union破壊0、O未確定16を全507に残してguard PASS。原5file11,457,514B、provider digest/size/実actor/branch/run/実Git親/requestと全request/資格/投影をWが再生し、root/Rが各自己ZIPと別算術で全値一致。現物理input1,114,056/output15,717、total_tokensは全507で未提供のまま、金額/内部computeは不明。これは非同時の開発診断であり新Hの改善・採用を証明しない。
+selectionは全507の実保存qualified Core requestを既存標準clientでpayload再構成し、bodyだけplaceholderへ替えた全値を固定する。元BestE/sharedOは別の受容済歴史receipt由来。root/Rは自己D507と元BestE/O各507の計1521 Coreから、製品request constructor/wireTemplateを使わず直接標準clientを通し全3templateを一致確認した。**post eventはIDだけで、network上のHTTP body全bytesの実捕捉とは称さない。** stored eligibleだけで受容せず、原5/attempt/全資格/guard/selectionを再生する。
 
-原first E入力975,645と原first O入力985,278からの論理運用相当はBest1,960,923→新E＋同O2,099,334（+138,411/+7.05846%）。これは非同時の歴史alias比較で、現507物理usageへ歴史Oを加算したり、両armの和を実usageへ再集計したりしない。同じ呼出し数でも入力資源は増えており、金額改善を主張しない。
+## 取得・未使用境界・独立Gold
 
-`selection.mjs` は原5を再生してguard成立を確認し、実保存された全507 qualified Core requestから既存標準clientでpayloadを再構成し、body stateだけを固定placeholderへ替えた全値とinput templateProofを照合する。原BestE/sharedOは受容済歴史receipt由来の別来歴として保持する。rootは製品constructor/wireTemplateを使わず、自己原D507と原BestE/O507ずつから全1521 payloadを直接標準clientで再構成し、3templates全値一致を確認した。post eventはIDのみであり、network上のHTTP body全bytesを捕捉したという証拠ではない。候補は固定済み・adopted=false。今後の本文/H sourceはこの原結果とselection全値を再生し、eligibleフラグの自己申告だけでは受容しない。
+受容済private native8bcの全11blob/5標準gh commands/3228Issuepages/322718観測Issueを再取得せず再用した。固定3public repo IDsはcli/cli、NixOS/nixpkgs、microsoft/vscode。新count/本文/Gold/予測前にUTC [2026-10-20T00:00Z,18:00Z)とcreatedAt＋ordinal immutableID順の先頭最大300を固定し、root/R別readerの全原query/pageInfo/cursor/global typed-ID/公開前後再生で122/prefix122が一致。新snapshot/全日網羅とは称さない。原prefix/receiptはnative77477から原bytesを保持する。Wはnative全bytes/契約確認を担当し、全3228pages独立再生を自身の実績へ誤帰属しない。
 
-次body pure wrapperは`body.mjs`。旧`census/body.mjs`からstrict per-Issue/source検査だけを`capturedWholeIssue`へ抽出し、旧19日custody/4wire/207結果を新窓へ移植しない。root/Rがそれぞれ原94b7全210返信（empty1/oversize2も含む）・原8bc metadata・原prior/visibility/clockから旧materializerを再生し、host付帯custody3項目を別確認したうえで全旧frame/除外/順序/source/4wireが不変と確認した。新4＋旧body5の9testsも通る。
+priorは元407原版と旧94b7の全実210 body（empty/oversizeを含む）からtyped740/exactbody1916。metadata-only322718をtask本文使用へ混ぜて自己除外しない。旧2211＋追加29の全2240 literal参照へ事前の同一保守ルールを適用し、canonical repo casefold＋正整数numberがprefix Issueへ一致すれば別referenceExcludedCandidateIdsへ除外する。issues/pull原型を保持し、型差でも参照のsafe側除外とするだけでPRをIssueへ変換しない。match/追加除外/typed overlapは0だったが規則を撤回せず、補充0を維持した。旧38d5の35repo解決は追加29を覆わず、外scope/移管/alias/意味未使用の保証を増やさない。参照URL露出と実本文閲読は区別し、私的全ID/URL集合はpublicへ複写しない。
 
-新wrapperはround5/prefix schema/00–18窓と整列、prefix native receipt、別typed/reference集合を検査し、既知・参照除外を本文query前に分離する。各captureの固定queryとvariables `{id}`、immutable Issue/source/全体clock1h、固定public repo ID/name/issue-enabledの前後一致を要求する。実D原5/selectionを再生して固定したBestE/newE/sharedOの3標準payloadすべてを厳密に24,000B未満で検査し、切詰め/補充をしない。原literal/編集版timestamp、prefix index由来のid/gap、同bodyのIssue別weightを保つ。新frameは`ops.sys1.expectation-body-frame.v1`/round5。失敗・不明・private/移管・query/source不整合はINVALIDで、適当に除外して成立させない。
+3972 source/具体hostを三者受容してから、標準ghで122body＋public前後2の124commandsを一回取得。immutable Issue/query/variables、同ID/name/issue-enabled/public前後、1h、原stdout/stderr/status、source前後と最終completion保存後のcap/source検査を拘束した。内部HTTP試行数はUNKNOWN、手動retry/resume/部分救済なし。priorExact1/oversize2/empty0/eligible119、既typed/reference0。全3標準payload<24000Bを要求し、全文切詰め/除外後補充をしなかった。
 
-pure wrapperへのnative文字列/自己申告だけでは実原版の真性を認証しない。実hostは77477原prefix/receipt、84559の原2240参照補強、元407＋全実210のtyped740/body1916、成功D原provider/API/Git親/request-only/原5/selection、実標準gh query/variables/stdout/stderr/status、全公開前後/時刻、source前後固定を別途結合する。84559はprivate custodyであり外/私的URL/IDをpublicへ複写しない。3972 source/具体hostの三者受容後にrootが一回取得し、124原command/122本文をroot/Rの別readerで全値再生した。既typed/reference0、priorExact1/oversize2/empty0/eligible119、全3wire/順序/source/時刻/公開前後が一致。原body129file＋body-only viewをprivate native322399に130file/1,641,986Bで保持し、モデル0のままGold初稿へ進んだ。Wは候補を固定したまま、両初稿native固定後に不一致2本文と元splitだけを読み第三反証し、根拠を裁定へ残した。
+原body129file＋body-only viewをnative322399に130file/1,641,986Bで固定した。その取得・Gold固定時点では予測0だった。root/Rは全119 literal bodyを互いの稿と予測を見ず採点し、両原稿をnative fdc9へ凍結後だけ比較した。117一致/2不一致はWが元split/body-onlyで第三反証。024は一般IO/条件の現在形を観測報告にしないO=no、070は回復要求に対象完全同定/具体性を新必須条件にしないE=yesへ理由付き解消し、Rは双方の反対根拠を撤回した。多数決ではなく原基準の反証解消で、初稿2本は不変。元から一致した未確定1も残した。
+
+最終native1d9 corpus/裁定、322399 frame/view/completion/visibility、fdc9両初稿の8原file1,609,454BをGit全blobまで原bytesで保持。root/Rが119全body/source12属性/sourceId/原gap順/全Gold/両初稿不変を別確認し、Wは原bytesと既DATA validatorを照合した。E103yes16no、O108yes10no1null。body-only provider stateへGold/source属性を渡さない。
+
+## 固定二回の実行と独立再生
+
+H1 activation031db親f848、H2 activation4f870親49745はともにREQUEST一fileのみ。履歴は同branch/workflowのD→H1→H2だけで、rerun/resend0。H1/H2 actual jobは鍵前に実646/647の全keyless検査とnative prepareを通り、既存standardRecorder/clientの15秒/redirect拒否/厳格flags/failureを経由した。各回bestE/scopedE/sharedOをcase-index循環で全3M実行し、Oはその回の一receiptだけを両armへ共有。歴史Oやcross-pass再用はしない。
+
+| 原結果 | run / job | artifact | ZIP bytes | 原5 bytes |
+| --- | --- | --- | --- | --- |
+| H1 | 39505411380 / 118912973990 | 12302833849 | 613922 | 7375226 |
+| H2 | 39506465446 / 118916511783 | 12302259823 | 614251 | 7375486 |
+
+各自己providerZIPのdigest/size/実actor/attempt/branch/path/Git親/request/executionと原5をW/root/Rが照合。root/Rの別readerは製品constructor/qualifier/scorerをimportせず、自己取得原Coreから全357要求/flags/order/物理資格/Gold全補完/全投影/usageを独立再計算した。各357qualified/stable、全714qualified、未知/未試行0。新closed2は両原5/attempt/同7DATA/全包絡と二回AND/全会計を再生し、原結果を上書きしない。
+
+両回の全357 Core requestと同7DATAは全値同一だが、native choiceはbestEの096、scopedEの052で各1件変化しsharedO差0。052は本文の実エラーを指す「how to solve these on my vscode」という真正解消依頼で、元Gold E=yesは不変。H1yes/H2noなので内部原因の断定や一律how規則を作らず、観測した揺れとH2既知E退行を記録する。request alias/応答model IDが同じことは決定性・backend独立性を証明せず、固有HTTP response IDの同一性は未保持である。
+
+## 全物理会計とCI
+
+| 今回物理 | 呼出し | input_tokens | output_tokens | total_tokens未提供 |
+| --- | --- | --- | --- | --- |
+| D507 | 507 | 1114056 | 15717 | 507 |
+| H1 | 357 | 860975 | 11067 | 357 |
+| H2 | 357 | 860975 | 11067 | 357 |
+| 今回系列合計 | 1221 | 2836006 | 37851 | 1221 |
+
+元最大割当2307は拡大していない。total_tokensをinput+outputで埋めず、金額/内部computeは不明。Dの非同時論理運用相当はBest1960923→新E+同historicalO2099334（+7.05846% input）。各新Hの論理Best=275409+当回O277670=553079、新E=307896+同O277670=585566（約+5.87%）。両armへ帰属するOを二重に足した和は物理usageでない。呼出数が同じでも同原価改善とは称さない。旧616/617等の失敗・費用・判定は別原版に保持する。
+
+実source f848のcanonical39503574278/flake118906812776は646/646fail0、consumer118911982344は同sourceのprovided/imported closure・clean env/unshare・実3controls true、health39503574160成功を三者が原API/logで独立読戻しした。H1保持49745ではeffect/client/workflow/同7DATAが全bytes不変である範囲だけこのCIとH1 actual Ubuntu646を再用し、H2自身の鍵前647を必須にした。headの異なる成功をcurrent全CI成功へ読み替えない。最終exactheadの全通常CI/独立review/記録/Ready open未mergeは現在終端待ちであり、性能条件不成立を技術Readyへ昇格しない。
+
+WのH1 REQUEST末尾CRLFは正規H2のphase/source更新時にLFへ同時是正し、空cleanup pushでH1を重複させなかった。現在は全PR diffcheckもPASS。旧READMEの「予測0」は上記取得・Gold固定時点の事実へ過去形で限定し、原raw/Gold/意味は変えていない。
+
+## 三者記録と次loop
+
+[source/data root5592235425](https://github.com/roccho-org/ops/pull/620#pullrequestreview-5592235425) / [R5592281338](https://github.com/roccho-org/ops/pull/620#pullrequestreview-5592281338)、[H1保持 root5592438080](https://github.com/roccho-org/ops/pull/620#pullrequestreview-5592438080) / [R5592444053](https://github.com/roccho-org/ops/pull/620#pullrequestreview-5592444053)は各provider全文/対象commitをWが自読した。原body/source3972、旧210全frame/backcompat、a0 private二context/feasible/data固定wrapperはこれらの先行正式レビューに原履歴を残す。schema/max/endpoint/任意callbackを公開する新executor、auth、ledgerは追加しない。
 
 ```mermaid
 flowchart TB
-  OLD[✅ 617単回正差と再確認未達・207退役] --> CLAIM[✅ W 真正E要求scope一候補]
-  CLAIM --> ROOT[✅ root 一般help/未実施境界の反証]
-  ROOT --> R[✅ R 一般説明/023/宛先必須の反証]
-  R --> REVISE[✅ W 一般説明と選択肢の一律除外を撤回]
-  REVISE --> PURE[✅ 4物理群1014再生・507 joint/union guard]
-  PURE --> ENTRY[✅ 今回e6受容/CI630・次回は新source/CI必須]
-  ENTRY --> D[✅ 今回D507完了392→400/union破壊0]
-  D -->|guard成立時：今回はPASS| FREEZE[✅ 実Core→標準payload再構成固定]
-  FREEZE --> REVIEW[✅ da9原版/freeze三者受容]
-  REVIEW --> BODY[✅ 3972 source/host受容・122本文→119適格・補充0]
-  BODY --> GOLD[✅ fdc9両初稿/1d9合議・119全件/未確定1]
-  GOLD --> H[✅ H1全357/差8/119・⏳ 同固定H2 357]
-  ENTRY -. 以後の別Dが未達/unknownなら .-> KEEP[全負結果/unknown/実会計保持]
-  KEEP --> COUNTER[W/root/R 原因と別の意味ある仮説を反証]
-  COUNTER --> CONTRACT[同GO内で有限assignment/timeout/全会計をsource化]
-  CONTRACT --> ENTRY
-  H -->|両回受容| END[⏳ 全原版/差包絡/二回AND/全CI・未merge]
-  H -->|未達/unknown| RETIRE[当HをDへ退役・結果保持]
-  RETIRE --> NEW[三者で別未使用H契約と別仮説を反証]
-  NEW --> CONTRACT
+  OLD[✅ 617原判定/全CI/Ready/記録・未merge] --> CLAIM[✅ W 一般説明/主題限定を撤回したE一候補]
+  CLAIM --> COUNTER[✅ root/R/W 元ANY・023/093・文脈反証]
+  COUNTER --> D[✅ D507全資格392→400/E union破壊0]
+  D --> FREEZE[✅ actual Core→標準payload再構成で候補固定]
+  FREEZE --> BODY[✅ 前固定prefix122/原本文122→119・補充0]
+  BODY --> GOLD[✅ 両初稿native固定/117一致2解消/null1]
+  GOLD --> H1[✅ f848必要CI646/三者後 H1差8/R0]
+  H1 --> H2[✅ 同候補/Gold/原版 H2差7/R1]
+  H2 --> FAIL[❌ 事前二回AND未達・未採用]
+  FAIL --> RETIRE[✅ 全原版/正差/退行保持・119をDへ退役]
+  RETIRE --> CLOSE[⏳ 最終全通常CI/独立review/記録/Ready未merge]
+  RETIRE --> NEXT[⏳ 三者で別の意味ある仮説/未使用H契約を反証]
+  NEXT --> SOURCE[⏳ 有限assignment/timeout/全会計をsource化]
+  SOURCE --> NEWD[⏳ 新source/必要CI後 別Dを一回]
+  NEWD -->|未達/unknown| KEEP[負結果/原会計保持して別仮説counter]
+  KEEP --> NEXT
+  NEWD -->|guard成立/実wire固定| NEWH[別の未使用H・独立Gold・固定二回]
+  NEWH -->|未達| RETIRE2[当H退役・平均/同H救済なし]
+  RETIRE2 --> NEXT
 ```
 
-三者の意味反証は公開D507/元split rubricだけを根拠とする。boilerplate条件を拾うE proxy改善は実製品missing-expectation検知/E2EやApps全体改善へ昇格しない。旧616/617の全失敗・追加compute・不確実性を保持した別処置であり、過去holdoutを再Hにしない。
+次は退役119＋旧507のD626を使うprospective別仮説であり、現620の救済ではない。三者反証の結果、次は元BestE/currentEの判定文を変えないOR一構成を優先支持した。help-request文言変更を同時に走らせて良い方を選ばない。fresh Dは当回BestE＋固定historicalOと、両qualified EのOR＋同Oを比較し、機械firstは別診断とする。全1997物理E receipt由来の既正答601を別ANDで保護し、既成功Dの修復8も忘れない。ORの旧raw診断はpost hoc Dに限定し、単一Jev/同原価改善や実guard/H受容とは称さない。次H案は既観測8bc内のOct18全日/同3repo/prefix300をcount前固定し、新source受容前のcount/body/Gold/新モデル0を維持する。priorには元740/1916に原322399の全実122 body（priorExact/oversizeも）を追加し、全metadata-only IDsを自己除外へ混ぜず、全保持URLへ同じ保守参照ルール/補充0を適用する。
 
-継続辺は同GO内の手動設計・開発運用であり、自動無限retryや追加User予算承認を作らない。同候補の盲再送、良い回選択/平均、Gold変更、同H再試験による救済は禁止する。2307は現在の一候補系列の有限最大割当である。
-
-`fixed-e-prospective-census-closure` は元617の原結果/全CI/Ready/記録、現source/treeとactual候補wire、4原E履歴/507/機械first/union、D507原rawと資格/guard、固定新prefix/body/除外/独立Gold、同時新H両原raw/共通Gold包絡/会計、最終全CI/独立review/Ready未mergeという証拠のANDを表す。原判定/Gold変更、source/wire/分母/資格不一致、原版不足、D不成立、H片回未達/unknown/drift又はCI/記録未閉包では成立としない。別runtime gate/executor/ledgerは追加しない。
-
-次priorは受容済407原版と実210本文から740 typed Issue IDs/1916 exact bodyを固定する。追加29件は210の本文文字列内Issue/pull参照の旧集合との差分であり未型解決残余として私的保持する。自Issueの出典URL210はtyped IDと結合済みである。旧38d5の35repo/2211参照解決を新29へ拡張済みとは称さず、typed実観測ID/exactbody非重複が主境界で、URL露出や意味/作者/学習への独立性は保証しない。
-
-本文前の追加eligibility補強を[事前記録6301559042](https://github.com/roccho-org/ops/pull/620#issuecomment-6301559042)で固定した。旧2211＋追加29の全2240正規化参照へ一律に、固定scope canonical名のcase-insensitive一致と正整数numberがprefix Issue metadataへ一致したら別集合referenceExcludedCandidateIdsへ保守除外する。原issues/pull型と実metadata Issue型を保持し、型差があっても参照のsafe側除外と記録するだけで、PRをIssueへ変換したり参照を本文既読へ昇格させない。740実観測ID/1916本文集合と原122prefix/順序/補充0は不変。root/Rの別parser実適用で参照match/追加除外/既typed overlapはすべて0。0でも規則は保持し、本文/Gold/成績後に緩和しない。旧e6契約は履歴に保持し、この補強は次H sourceへ明示して結合する。alias/改名/外scope移管/意味未使用の保証は増やさず、新APIも0。
-
-新Hの`held-measurement.mjs`/`held-runtime.mjs`はa0で先にcode-onlyとして接続し、今回sourceへ原データを統合した。既`observation/measurement.mjs`を非公開の旧O比較/newE比較という2つの固定contextへ抽出し、旧公開API・input/report fields・3呼出しのcase-index循環順・保存済み原2回の再生を保持する。新contextはbestE/scopedE/sharedO、3Mとround5専用schemaで、任意profile/schema/max/endpoint/callback executorを公開しない。既recorderのflags/failure/15秒/redirect拒否をそのまま通す。Goldやsource属性はprovider stateへ渡さず、bodyだけを使う。
-
-`census/feasible.mjs`と`data.mjs`も非公開coreと2つの名前付き固定wrapperだけを共有する。旧4M/round4/207は不変、新3M/round5は同じ実case内共通Gold全補完を使い、技術欠測/driftで包絡をnullとし、他軸Gold未確定でも既知E破壊は保持する。単回の全3M資格/expected model/差下限正/退行上限0を二回ANDで受容する。両回を足して2M件とせず、標本CI/将来モデル保証へ昇格しない。
-
-新native入口は元実Dを同workflowのnative history/原Git親/request-only phaseに結合し、原5・全507/1014・stored selectionを再生して実候補全値へ結合する。H1はhistory2、H2はhistory3。H2は先行H1のnative API/Git親/request・原5/attempt/全資格を再生し、same7 DATAの原source全値（本文/Gold/元属性/両初稿/裁定/selection）を拘束する。意味FAIL/普通の資格unknownでは予定H2を取り消さず、実model driftは技術停止する。originに非空native文字列があること自体は原blobの認証でなく、初回data統合時のroot/R原native bytes/全frame/Gold独立確認と三者受容が必要である。
-
-現在のDATA_PATHSは原frame/view/両初稿/corpus/裁定と固定selectionで全値結合済みで、原body completion/visibilityも保存した。REQUESTは元developmentのまま。実データsource/必要CI/三者受容の後だけ、request-only child一回へ進む。コード検査・人工fixtureやデータ統合を実Jev改善と混同しない。
-
-実data8原fileはnative322399 frame/view/body completion/visibility、fdc9両初稿、1d9最終corpus/裁定から原bytes1,609,454Bのまま保持した。root/Rは原119全本文・source12属性・id順・全ラベル・両初稿不変を別々に照合し、Wは原blob全bytesと既validatorによる同7DATAを確認。117初稿一致/2不一致は、元split questionで一般IO定義をOへ昇格させない024 O=no、要求対象の完全同定/具体性を新条件にしない070 E=yesという反証で解消した。多数決や予測に合わせたGold変更ではなく、初稿2本は不変で、元から一致した未確定1も119全分母に残す。E103yes/16no、O108yes/10no/1null。候補既知の同モデル採点者限界を保持する。
-
-新actual testは両回の全714要求を生成し、id/body以外をprovider stateへ入れず、保存済み各serializedRequestBytesと固定3template全値を照合した。最大BestE20,302/newE21,099/sharedO20,353Bで全て厳密24,000B未満。357/pass・714予定で、現D507と合わせた現一候補の予定物理は1,221、元の最大2,307割当は拡大しない。f848統合時の物理モデルはD507のみだった。今回差分はdata/説明/形式・全wire検査だけでa0 effect/client/workflowの全bytesを変えず、そのCI証拠は不変closureへ限定する。current全headCI成功とは読み替えず、実jobの鍵前全keylessと最終exact全通常CI/独立review/Ready未mergeを保持する。
-
-H1 actualは[run39505411380](https://github.com/roccho-org/ops/actions/runs/39505411380)/job118912973990、activation031dbのparentf848/REQUEST-only census1/sourceSha f848。実Ubuntu鍵前646/646の全検査とnative prepareを通り、357全POST/全qualified/expectedmodel stable、unknown0で全steps成功した。原5file7,375,226B、artifact12302833849/613,922B/providerSHA c4f65e820a87ae9bb2b1fb5a24d032c8dec1e72cdef7cedd9cef88d9597cba0bを保持し、root/Rが各自己ZIPと別raw reader/別全補完算術で全投影/全Core/flags/usage一致を確認した。
-
-known118/null1のcomplete正答は85→93、修復8/破壊0。全119を残した共通Gold整数包絡は差[8,8]/119（約6.72pp）、軸退行[0,0]/119で単回POSITIVE_FIXED_CENSUS_GAIN。これは確率CIや母集団/将来期待値でなく固定有限集合上の一回の結果で、予定H2を代替せず採用もまだしない。候補・Gold・case/orderは変更しない。
-
-H1物理input860,975/output11,067、total_tokensは全357未提供で埋めない。論理BestE275,409+当回O277,670=553,079、新E307,896+同O277,670=585,566（+32,487/約5.87%）で入力は増加。両armへ帰属する同じOを足し直した1,138,645を物理usageとは数えず、物理3Mだけを報告する。金額/内部compute/同原価改善は不明。現D507+H1357=864実呼出しで、次H2357は予定である。
-
-新closed1は原5/attempt/fullinput/全資格/包絡/physicalusageを再生し、同じ本文/templateの二回目357割当を鍵なしで再構成する。保持差分は原結果/provider/readback/独立report・説明・この検査のみで、f848 effect/client/workflowと同7DATAを全bytes保持する。不変closureに対するf848必要CIとH1実Ubuntu検査の限定再用は三者で差分確認し、current head全CI成功と偽らない。次jobも鍵前全検査必須、最終exacthead全通常CI/原版/二回AND/Ready未mergeを維持する。
-
-Wのactivation REQUEST書込みがCRLFだったため、その原一行だけdiffcheckに末尾CR指摘がある。JSON/実親/request-only/全rawは有効で、空是正pushによる同H1再送をしない。予定H2のphase/source更新と同時にLFで書き、最終全diffcheckで閉じる。新保持差分cleanと現PR全diffcheckの未閉を区別する。
+fixed-e-prospective-census-closureは、上流原結果/CI/記録、current native source/fixed要求、全原history/D guard、未使用frame/独立Gold、両H原raw/共通Gold/全会計、最終全CI/review/Ready未mergeという証拠ANDの条件名であり新runtime gateではない。今回はH2 R1のため成立しない。同GO内の通常loopは継続し、別仮説/有限resource/timeout/source三者受容で進める。追加User予算/再認証を待つgate、自動無限retry、同候補盲再送、閾値変更、同H再試験は作らない。
