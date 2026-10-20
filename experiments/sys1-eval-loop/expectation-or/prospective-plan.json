@@ -27,11 +27,13 @@
     "maximumPhysical": 1800,
     "timeoutMinutesPerPass": 250,
     "acceptance": "each same-fixed-case pass all qualified and expected model; common-Gold deterministic census difference lower>0 and regression upper=0; both-passAND, no averaging, case denominator doubling or outcome cancellation",
-    "bodyGoldAdmission": "actual successful development guard, original raw retention and reconstructed full-request freeze independently accepted before new H body/Gold; mutually unread native rater initials before adjudication; unresolved Gold remains"
+    "bodyGoldAdmission": "actual successful development guard, original raw retention and reconstructed full-request freeze independently accepted before new H body/Gold; mutually unread native rater initials before adjudication; unresolved Gold remains",
+    "noCases": "M0 is NO_CASES with zero model effects; no post hoc window expansion to rescue it",
+    "privatePriorCustody": {"nativeCommit": "e727e0459ad614e3c780b6140c561cd79c49a2c7", "path": "experiments/sys1-eval-loop/census-root-data/expectation-or-prior-1/inventory.json", "publicProjection": "counts/provenance only; never private full identity/body/URL sets"}
   },
   "seriesPhysicalMaximum": 3052,
   "resourceClaim": "candidate operational2E+O versus baseline1E+O; shared BestE reused physically once, no same-cost/model-weight claim; absent total_tokens, money and internal compute remain unknown",
   "unknown": "either component missing is UNKNOWN even if the other says yes; no short circuit; global model drift remains technical stop; derived OR has no provider confidence/probability/model/usage",
-  "status": "LOCAL_CODE_ONLY; no new target count, body, Gold, API or model; native execution entry and current CI/reviews remain required",
+  "status": "LOCAL_CODE_ONLY; fixed D native entry implemented with REQUEST absent; no new target count, body, Gold, API or model; current necessary CI/reviews and upstream technical closure required; held entry not implemented",
   "continuation": "retain failures and costs, three-party counter a genuinely distinct hypothesis; retire failed H to D and use a different prospective unused H, never retry the same candidate/H to rescue it"
 }
