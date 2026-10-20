@@ -373,3 +373,124 @@ test("real loopback reconciliation receives automatic root frames and sends ZERO
     }
   }
 });
+test("forensic admission is durable once before external work and retains both UNKNOWN histories", async () => {
+  const { mkdtemp, readFile, unlink, rmdir } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const { withRegistration } = await import("./custody.mjs");
+  const { beginReconciliation, saveEmptyReconciliation, proofStageAllowed, proofIdentity } = await import("./owner.mjs");
+  const dir = await mkdtemp(tmpdir() + "/owner-forensic-");
+  const path = dir + "/registration.json";
+  const initial = { state: "READY", proof: { state: "UNKNOWN", attemptedStage: "seed", reconciliation: { state: "UNKNOWN" } } };
+  try {
+    await withRegistration(path, store => store.save(initial));
+    const before = await readFile(path, "utf8");
+    await withRegistration(path, async store => {
+      await assert.rejects(beginReconciliation(store, true, Date.now() - 1));
+      assert.equal(await readFile(path, "utf8"), before);
+      await assert.rejects(beginReconciliation(store, false, Date.now() + 300000));
+    });
+    const child = `
+      const {withRegistration}=await import(${JSON.stringify(new URL("./custody.mjs", import.meta.url).href)});
+      const {beginReconciliation}=await import(${JSON.stringify(new URL("./owner.mjs", import.meta.url).href)});
+      await withRegistration(process.argv[1], async store => {
+        await beginReconciliation(store,true,Date.now()+300000);
+        console.log("DURABLE_FORENSIC_ADMISSION_BEFORE_EXTERNAL");
+      }).catch(()=>{console.error("FORENSIC_REFUSED");process.exitCode=1;});
+    `;
+    const execute = () => promisify(execFile)(process.execPath, ["--input-type=module", "-e", child, path], { timeout: 5000 });
+    assert.equal((await execute()).stdout.trim(), "DURABLE_FORENSIC_ADMISSION_BEFORE_EXTERNAL");
+    // A separate process sees the consumed admission even though no external action ran.
+    await assert.rejects(execute(), error => error.stderr.trim() === "FORENSIC_REFUSED");
+    const marked = JSON.parse(await readFile(path, "utf8"));
+    assert.deepEqual(marked.proof.reconciliation, { state: "UNKNOWN", forensicOnce: { state: "UNKNOWN" } });
+    assert.equal(marked.proof.state, "UNKNOWN");
+    await withRegistration(path, async store => {
+      assert.throws(() => proofStageAllowed(store.get().proof, "reconcile"));
+      assert.throws(() => proofStageAllowed(store.get().proof, "reconcile", true));
+      const certificate = { boot: "00000000-0000-4000-8000-000000000608", posts: 0, rootId: 1, empty: true };
+      await saveEmptyReconciliation(store, certificate);
+      assert.deepEqual(store.get().proof.originalUnknown, marked.proof);
+      assert.deepEqual(store.get().proof.reconciliation, certificate);
+      proofStageAllowed(store.get().proof, "seed");
+      assert.throws(() => proofStageAllowed(store.get().proof, "reconcile", true));
+    });
+    assert.throws(() => proofStageAllowed({ state: "UNKNOWN", attemptedStage: "seed" }, "reconcile", true));
+    assert.throws(() => proofIdentity({ url: "https://pi.roccho.workers.dev", session: "owner-jev-proof-20261020",
+      host: "64a8f191-83c2-5eeb-8dc0-612bc80970db", stage: "seed", continue: true, "forensic-once": true }));
+    for (const forensicOnce of [null, false, {}, { state: "UNKNOWN" }])
+      assert.throws(() => proofStageAllowed({ ...initial.proof, reconciliation: { state: "UNKNOWN", forensicOnce } }, "reconcile", true));
+  } finally {
+    for (const name of ["registration.json", "registration.json.lock"]) await unlink(dir + "/" + name).catch(() => {});
+    await rmdir(dir);
+  }
+});
+test("actual owner socket observer distinguishes HTTP401,101-close,timeout and poison without payload diagnostics", async () => {
+  const { observeOwnerSocket, safeOwnerErrorCode, safeWitnessStatus, withOwnerSockets, waitOwnerFrame, reconcileConnection, closeOwnerSocket } = await import("./owner.mjs");
+  const { WebSocket, WebSocketServer } = await import("ws");
+  const { createServer, validateHeaderValue } = await import("node:http");
+  const { once } = await import("node:events");
+  assert.equal(safeOwnerErrorCode({ code: "ECONNRESET", message: "synthetic-private" }), "ECONNRESET");
+  assert.equal(safeOwnerErrorCode({ code: "synthetic-private" }), "OTHER");
+  assert.equal(safeOwnerErrorCode(new Error("synthetic-private")), "UNKNOWN");
+  assert.deepEqual(safeWitnessStatus(undefined), { bootPresent: false, bootValid: false, posts: null, priorToken: null });
+  assert.deepEqual(safeWitnessStatus({ boot: "invalid", posts: "0", prior: undefined }),
+    { bootPresent: true, bootValid: false, posts: null, priorToken: null });
+  assert.deepEqual(safeWitnessStatus({ boot: "00000000-0000-4000-8000-000000000608", posts: 0, prior: "false" }),
+    { bootPresent: true, bootValid: true, posts: 0, priorToken: false });
+  try { validateHeaderValue("synthetic-header", "\n"); assert.fail("Invalid header accepted"); }
+  catch (error) { assert.equal(safeOwnerErrorCode(error), "ERR_INVALID_CHAR"); }
+  for (const mode of ["401", "close", "timeout", "malformed", "empty"]) {
+    const http = createServer();
+    const server = new WebSocketServer({ noServer: true });
+    let commands = 0;
+    server.on("headers", headers => headers.push("Pi-Proof-Boot: 00000000-0000-4000-8000-000000000608", "Pi-Proof-Prior-Token: false", "Pi-Proof-Posts: 0"));
+    http.on("upgrade", (request, socket, head) => {
+      if (mode === "401") socket.end("HTTP/1.1 401 Unauthorized\r\nContent-Length: 0\r\n\r\n");
+      else server.handleUpgrade(request, socket, head, connection => server.emit("connection", connection));
+    });
+    server.on("connection", socket => {
+      socket.on("message", () => commands++);
+      if (mode === "close") socket.close();
+      if (mode === "malformed" || mode === "empty") {
+        for (const frame of automaticRootFrames()) socket.send(JSON.stringify(frame));
+        if (mode === "malformed") socket.send("synthetic-private-malformed");
+      }
+    });
+    http.listen(0, "127.0.0.1"); await once(http, "listening");
+    const abort = new AbortController();
+    try {
+      await withOwnerSockets(abort.signal, async sockets => {
+        const frames = [];
+        const socket = new WebSocket("ws://127.0.0.1:" + http.address().port);
+        sockets.add(socket);
+        const trace = observeOwnerSocket(socket, frames);
+        const opened = new Promise((resolve, reject) => {
+          socket.once("open", resolve); socket.once("error", reject);
+        });
+        if (mode === "401") {
+          await assert.rejects(opened);
+          assert.equal(trace.httpStatus, 401); assert.equal(trace.upgradeSeen101, false);
+        } else {
+          await opened;
+          assert.equal(trace.httpStatus, 101); assert.equal(trace.upgradeSeen101, true);
+          const connection = { frames, witness: trace.witness,
+            wait: predicate => waitOwnerFrame(frames, socket, predicate, abort.signal, 80),
+            close: () => closeOwnerSocket(socket, abort.signal) };
+          let verified = false;
+          const verify = () => { assert.equal(socket.readyState, WebSocket.CLOSED); verified = true; };
+          if (mode === "empty") assert.equal((await reconcileConnection(connection, verify)).empty, true);
+          else await assert.rejects(reconcileConnection(connection, verify));
+          assert.equal(verified, mode === "empty" || mode === "malformed");
+        }
+        assert.equal(JSON.stringify(trace).includes("synthetic-private"), false);
+      });
+      assert.equal(commands, 0);
+    } finally {
+      for (const socket of server.clients) socket.terminate();
+      await new Promise(resolve => server.close(resolve));
+      await new Promise(resolve => http.close(resolve));
+    }
+  }
+});

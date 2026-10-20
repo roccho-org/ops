@@ -11,9 +11,44 @@ import { withRegistration, replaceCredential, ready, refreshTiming } from "./cus
 
 let lastPhase = "VALIDATE";
 let lastHttpStatus;
+let lastSocketTrace;
 function phase(name) { lastPhase = name; lastHttpStatus = undefined; console.log(JSON.stringify({ scope: "OWNER_PHASE_ENTERED", phase: name })); }
 export function parseOwnerFrame(data) {
   try { return JSON.parse(String(data)); } catch { return { type: "invalid.owner.frame" }; }
+}
+export function safeOwnerErrorCode(error) {
+  const codes = ["ENOTFOUND","EAI_AGAIN","ECONNREFUSED","ECONNRESET","ETIMEDOUT","ENETUNREACH","EHOSTUNREACH",
+    "EPROTO","ERR_TLS_CERT_ALTNAME_INVALID","CERT_HAS_EXPIRED","UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+    "DEPTH_ZERO_SELF_SIGNED_CERT","ERR_HTTP_INVALID_HEADER_VALUE","ERR_INVALID_CHAR","ERR_INVALID_URL"];
+  return codes.includes(error?.code) ? error.code : error?.code === undefined ? "UNKNOWN" : "OTHER";
+}
+export function observeOwnerSocket(socket, frames, invalidFrame = () => {}) {
+  const trace = { errorCode: "UNKNOWN", httpStatus: null, upgradeSeen101: false, witness: undefined };
+  socket.on("error", error => { trace.errorCode = safeOwnerErrorCode(error); });
+  socket.on("upgrade", response => {
+    trace.httpStatus = response.statusCode;
+    trace.upgradeSeen101 = response.statusCode === 101;
+    trace.witness = {
+      boot: response.headers["pi-proof-boot"], prior: response.headers["pi-proof-prior-token"],
+      posts: typeof response.headers["pi-proof-posts"] === "string" && /^[0-3]$/.test(response.headers["pi-proof-posts"]) ? Number(response.headers["pi-proof-posts"]) : NaN,
+    };
+  });
+  socket.on("unexpected-response", (_request, response) => {
+    trace.httpStatus = response.statusCode; response.resume(); socket.terminate();
+  });
+  socket.on("message", data => {
+    const frame = parseOwnerFrame(data); frames.push(frame);
+    if (frame?.type === "invalid.owner.frame") { invalidFrame(); socket.terminate(); }
+  });
+  return trace;
+}
+export function safeWitnessStatus(witness) {
+  return {
+    bootPresent: typeof witness?.boot === "string" && witness.boot.length > 0,
+    bootValid: typeof witness?.boot === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(witness.boot),
+    posts: Number.isInteger(witness?.posts) && witness.posts >= 0 && witness.posts <= 3 ? witness.posts : null,
+    priorToken: witness?.prior === "true" ? true : witness?.prior === "false" ? false : null,
+  };
 }
 export function proofIdentity(values) {
   const url = new URL(values.url);
@@ -22,7 +57,8 @@ export function proofIdentity(values) {
       values.session !== "owner-jev-proof-20261020" ||
       values.host !== "64a8f191-83c2-5eeb-8dc0-612bc80970db" ||
       !["login","reauth","refresh","seed","recall","reconcile"].includes(values.stage) ||
-      (["seed","recall","reconcile"].includes(values.stage) && values.continue !== true)) throw new Error("Proof identity mismatch");
+      (["seed","recall","reconcile"].includes(values.stage) && values.continue !== true) ||
+      (values["forensic-once"] === true && values.stage !== "reconcile")) throw new Error("Proof identity mismatch");
 }
 export async function loadOwnerOAuth() {
   delete process.env.PI_OAUTH_CALLBACK_HOST;
@@ -104,15 +140,32 @@ export function emptyRootCertificate(frames, witness) {
   assert.ok(sessionSeen && rootSeen && inboxSeen, "Complete automatic root baseline required");
   return { boot: witness.boot, posts: 0, rootId: 1, empty: true };
 }
-export function proofStageAllowed(proof, stage) {
+export function proofStageAllowed(proof, stage, forensicOnce = false) {
   if (stage === "reconcile") {
-    assert.ok(proof?.state === "UNKNOWN" && proof.attemptedStage === "seed" && !proof.reconciliation,
-      "Only the retained unlocalized seed can be reconciled once");
+    assert.ok(proof?.state === "UNKNOWN" && proof.attemptedStage === "seed");
+    if (forensicOnce) assert.ok(recordObject(proof.reconciliation) && proof.reconciliation.state === "UNKNOWN" && !Object.hasOwn(proof.reconciliation, "forensicOnce"),
+      "Only one explicitly admitted forensic attempt after the first UNKNOWN");
+    else assert.ok(!Object.hasOwn(proof, "reconciliation"), "Only the retained unlocalized seed can be reconciled once");
   } else if (stage === "seed" && proof !== undefined) {
     assert.ok(proof.state === "RECONCILED_EMPTY" && proof.originalUnknown?.state === "UNKNOWN" &&
       proof.reconciliation?.empty === true && proof.reconciliation.posts === 0 && proof.reconciliation.rootId === 1);
     proofWitness({ ...proof.reconciliation, prior: "false" }, 0, "false");
   }
+}
+export async function beginReconciliation(store, forensicOnce, expires) {
+  const record = store.get();
+  proofStageAllowed(record.proof, "reconcile", forensicOnce);
+  if (forensicOnce) assert.ok(Number.isFinite(expires) && expires > Date.now() + 30_000,
+    "Fresh effective access required before consuming forensic admission");
+  const reconciliation = forensicOnce
+    ? { ...record.proof.reconciliation, forensicOnce: { state: "UNKNOWN" } }
+    : { state: "UNKNOWN" };
+  await store.save({ ...record, proof: { ...record.proof, reconciliation } });
+}
+export async function saveEmptyReconciliation(store, certificate) {
+  const record = store.get();
+  await store.save({ ...record, proof: { state: "RECONCILED_EMPTY", originalUnknown: record.proof,
+    reconciliation: certificate } });
 }
 export async function waitOwnerFrame(frames, socket, predicate, signal, timeout = 60_000) {
   const end = Date.now() + timeout;
@@ -125,11 +178,12 @@ export async function waitOwnerFrame(frames, socket, predicate, signal, timeout 
   }
   throw new Error("Outcome unknown; do not resend");
 }
-export async function reconcileConnection(connection) {
+export async function reconcileConnection(connection, beforeVerify = () => {}) {
   await connection.wait(frame => frame.type === "conversation.events" && frame.conversationId === 1 &&
     Array.isArray(frame.events) && frame.events.some(event => event.type === "snapshot"));
   await connection.wait(frame => frame.type === "conversation.inbox" && frame.conversationId === 1);
   await connection.close();
+  beforeVerify();
   return emptyRootCertificate(connection.frames, connection.witness);
 }
 
@@ -137,6 +191,7 @@ async function run() {
 const { values } = parseArgs({ options: {
   url: { type: "string" }, session: { type: "string" }, host: { type: "string" },
   cloudflared: { type: "string" }, stage: { type: "string" }, continue: { type: "boolean" },
+  "forensic-once": { type: "boolean" },
 } });
 proofIdentity(values);
 if (!process.stderr.isTTY || !values.url || !values.session || !values.host || !values.cloudflared) {
@@ -189,14 +244,14 @@ if (stage === "refresh") {
 // paid continuation consent, never a read-only status query or an automatic recovery.
 if (!values.continue) throw new Error("Explicit --continue required before access attachment");
 const record = store.get();
-proofStageAllowed(record.proof, stage);
+proofStageAllowed(record.proof, stage, values["forensic-once"] === true);
 if (stage === "recall" && (record.proof?.state !== "SEEDED" || (record.rotations ?? 0) <= record.proof.rotations)) {
   throw new Error("Completed seed and actual durable refresh required");
 }
 const previousProof = record.proof;
 if (stage === "recall" && (previousProof.session !== values.session || previousProof.origin !== values.url || previousProof.host !== values.host)) throw new Error("Proof binding mismatch");
 if (stage === "reconcile") {
-  await store.save({ ...record, proof: { ...previousProof, reconciliation: { state: "UNKNOWN" } } });
+  await beginReconciliation(store, values["forensic-once"] === true, credential.expires);
 } else await store.save({ ...record, proof: { ...previousProof, state: "UNKNOWN", attemptedStage: stage } });
 const origin = new URL(values.url);
 assert.equal(origin.protocol, "https:");
@@ -222,6 +277,7 @@ async function connect() {
   const url = new URL("/api/sessions/" + values.session, origin);
   url.protocol = "wss:";
   phase("WORKER_WS");
+  lastSocketTrace = undefined;
   const ws = new WebSocket(url, {
     headers: { Cookie: "CF_Authorization=" + accessJwt,
       "Pi-Proof-Access": bearer.token, "Pi-Proof-Expires": String(bearer.expires) },
@@ -229,27 +285,15 @@ async function connect() {
   });
   sockets.add(ws);
   ws.once("close", () => sockets.delete(ws));
-  ws.on("error", () => {}); // All owned socket errors end this attempt; no reconnect.
   const frames = [];
-  let witness;
-  ws.on("upgrade", response => { witness = {
-    boot: response.headers["pi-proof-boot"], prior: response.headers["pi-proof-prior-token"],
-    posts: typeof response.headers["pi-proof-posts"] === "string" && /^[0-3]$/.test(response.headers["pi-proof-posts"]) ? Number(response.headers["pi-proof-posts"]) : NaN,
-  }; });
-  ws.on("unexpected-response", (_request, response) => {
-    lastHttpStatus = response.statusCode;
-    response.resume(); ws.terminate();
-  });
-  ws.on("message", data => {
-    const frame = parseOwnerFrame(data);
-    frames.push(frame);
-    if (frame?.type === "invalid.owner.frame") { phase("INVALID_WS_FRAME"); ws.terminate(); }
-  });
+  const trace = observeOwnerSocket(ws, frames, () => phase("INVALID_WS_FRAME"));
+  lastSocketTrace = trace;
   await new Promise((resolve, reject) => { ws.once("open", resolve); ws.once("error", () => reject(new Error("Owner WebSocket rejected"))); });
+  phase("AUTOMATIC_ROOT_WAIT");
   const wait = predicate => waitOwnerFrame(frames, ws, predicate, abort.signal);
   await wait(frame => frame.type === "session.snapshot");
   return {
-    witness, frames, wait,
+    witness: trace.witness, frames, wait,
     async command(command) {
       ws.send(JSON.stringify(command));
       const result = await wait(frame => frame.type === "command.result" && frame.requestId === command.requestId);
@@ -275,10 +319,9 @@ function assistant(messages) {
 if (stage === "reconcile") {
   phase("RECONCILE_SNAPSHOT");
   const connection = await connect();
-  const certificate = await reconcileConnection(connection);
+  const certificate = await reconcileConnection(connection, () => phase("CERTIFICATE_VERIFY"));
   phase("RECONCILE_COMMIT");
-  await store.save({ ...store.get(), proof: { state: "RECONCILED_EMPTY", originalUnknown: previousProof,
-    reconciliation: certificate } });
+  await saveEmptyReconciliation(store, certificate);
   console.log(JSON.stringify({ scope: "CURRENT_SESSION_RECONCILED_EMPTY", posts: certificate.posts,
     rootId: certificate.rootId, originalEffectBoundary: "UNKNOWN", noClientCommands: true,
     nextSeed: "SEPARATE_GO_AFTER_EXIT_IDLE_NEW_BOOT" }));
@@ -354,4 +397,12 @@ export function completionReceipt(messages, expected) {
   assertDistinctCompletions(completions);
   return completions;
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) run().catch(() => { console.error(JSON.stringify({ scope: "OWNER_LIFECYCLE", status: "STOPPED_NOT_PROVEN", phase: lastPhase, httpStatus: Number.isInteger(lastHttpStatus) && lastHttpStatus >= 100 && lastHttpStatus <= 599 ? lastHttpStatus : null, noAutomaticResend: true })); process.exitCode = 1; });
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) run().catch(error => {
+  const status = lastSocketTrace?.httpStatus ?? lastHttpStatus;
+  console.error(JSON.stringify({ scope: "OWNER_LIFECYCLE", status: "STOPPED_NOT_PROVEN", phase: lastPhase,
+    httpStatus: Number.isInteger(status) && status >= 100 && status <= 599 ? status : null,
+    errorCode: lastSocketTrace?.errorCode ?? safeOwnerErrorCode(error),
+    upgradeSeen101: lastSocketTrace?.upgradeSeen101 === true,
+    witness: safeWitnessStatus(lastSocketTrace?.witness), noAutomaticResend: true }));
+  process.exitCode = 1;
+});
