@@ -1,0 +1,723 @@
+{
+  "schema": "ops.sys1.real-case-rater.v1",
+  "viewNativeCommit": "322399f7ca322402270f575928538a0d959e21bb",
+  "rater": "counter",
+  "state": "FROZEN_BEFORE_ANY_MODEL_OUTPUTS_OR_ROOT_LABELS",
+  "annotations": [
+    {
+      "id": "expectation-001",
+      "E": "no",
+      "O": null,
+      "basis": "Testingとリンクのみで要求宣言はない。実進行の報告か参照見出しかは本文から確定しない。"
+    },
+    {
+      "id": "expectation-002",
+      "E": "yes",
+      "O": "yes",
+      "basis": "代替モデルの可視通知とWarning化を明示要求し、現ソース挙動と調査件数・未実行を報告。"
+    },
+    {
+      "id": "expectation-003",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Agent modeで編集ツール等を利用できるべき状態を宣言し、read-only制約と実ログを報告。"
+    },
+    {
+      "id": "expectation-004",
+      "E": "yes",
+      "O": "yes",
+      "basis": "本文内に検索・ログ添付の提出指示があり、fetch時二重承認と環境を報告。"
+    },
+    {
+      "id": "expectation-005",
+      "E": "no",
+      "O": "yes",
+      "basis": "rename実行失敗と引数処理の原因を記述するが、実現すべき状態や要求の独立した宣言はない。"
+    },
+    {
+      "id": "expectation-006",
+      "E": "yes",
+      "O": "yes",
+      "basis": "bootstrapをsh/bashで実行するよう要求し、SSH成功とAgents失敗を報告。"
+    },
+    {
+      "id": "expectation-008",
+      "E": "yes",
+      "O": "yes",
+      "basis": "灰色の途中テキストでも空白が正しいことを期待し、後処理前後の実挙動を報告。"
+    },
+    {
+      "id": "expectation-009",
+      "E": "yes",
+      "O": "yes",
+      "basis": "接続喪失時の復旧・turn失敗・exitログ記録等の修正を要求し、二回の停止と実ログを報告。"
+    },
+    {
+      "id": "expectation-010",
+      "E": "yes",
+      "O": "yes",
+      "basis": "必要時のみsubagent購読する状態を要求し、実転送量と遅延を報告。"
+    },
+    {
+      "id": "expectation-011",
+      "E": "yes",
+      "O": "yes",
+      "basis": "旧file-level表示の復元と個別accept/undoを要求し、現二手順の挙動を報告。"
+    },
+    {
+      "id": "expectation-012",
+      "E": "yes",
+      "O": "yes",
+      "basis": "canvas定義安定と調査を要求し、idleログ件数・未確認事項を明示報告。"
+    },
+    {
+      "id": "expectation-013",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerへのPR参照指示・reaction条件があり、Hydra再現とテスト失敗ログを報告。"
+    },
+    {
+      "id": "expectation-014",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Golang team参加という希望状態を述べ、過去に行ったPRを報告。"
+    },
+    {
+      "id": "expectation-015",
+      "E": "no",
+      "O": "yes",
+      "basis": "文字非表示と再起動が必要になる実挙動・環境のみで、要求条件の明示はない。"
+    },
+    {
+      "id": "expectation-016",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Discordの正常起動を期待し、実エラーと環境・利用状況を報告。"
+    },
+    {
+      "id": "expectation-017",
+      "E": "yes",
+      "O": "no",
+      "basis": "検索とログ添付を求める提出指示はあるが、環境欄・再現欄は未記入で観測報告なし。"
+    },
+    {
+      "id": "expectation-018",
+      "E": "yes",
+      "O": "yes",
+      "basis": "強制更新しない状態を期待し、現更新挙動とmod破壊を報告。"
+    },
+    {
+      "id": "expectation-019",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerの確認・PR参照を指示し、更新未存在・上流版など現状態を表明。"
+    },
+    {
+      "id": "expectation-020",
+      "E": "yes",
+      "O": "yes",
+      "basis": "本文内の報告条件指示があり、emoji入力がほぼ動かない観測と無拡張での再現を報告。"
+    },
+    {
+      "id": "expectation-021",
+      "E": "yes",
+      "O": "yes",
+      "basis": "再起動後もcanonical sessionが残る期待とbackport確認を要求し、実再現と対照結果を報告。"
+    },
+    {
+      "id": "expectation-022",
+      "E": "yes",
+      "O": "yes",
+      "basis": "bounded memory・Host継続・完了配信を要求し、二回のOOMと対照測定を報告。"
+    },
+    {
+      "id": "expectation-023",
+      "E": "yes",
+      "O": "yes",
+      "basis": "最終transcriptの返却挿入を期待し、実時刻付き失敗と外部再現を報告。"
+    },
+    {
+      "id": "expectation-024",
+      "E": "yes",
+      "O": "yes",
+      "basis": "参照を促す指示とbuild optionの入力・効果の対応を提示し、現利用条件・効果を説明。"
+    },
+    {
+      "id": "expectation-025",
+      "E": "yes",
+      "O": "yes",
+      "basis": "token補償を明示要求し、更新後のcrashと修復負担を報告。"
+    },
+    {
+      "id": "expectation-026",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Done session再発見と調査を要求し、実再起動・DB・ログ結果を報告。"
+    },
+    {
+      "id": "expectation-027",
+      "E": "no",
+      "O": "yes",
+      "basis": "auto mode endpointなしと環境の実状態のみで要求宣言なし。"
+    },
+    {
+      "id": "expectation-028",
+      "E": "yes",
+      "O": "no",
+      "basis": "read/search/feature記述の指示だけの雛形で、実観測や進行報告なし。"
+    },
+    {
+      "id": "expectation-029",
+      "E": "yes",
+      "O": "yes",
+      "basis": "keep/undo喪失の修正方法を求め、昨日との違いと実操作を報告。"
+    },
+    {
+      "id": "expectation-030",
+      "E": "yes",
+      "O": "yes",
+      "basis": "context menuが正しい中文又は英語を表示する期待を宣言し、実garbageと各検証結果を報告。"
+    },
+    {
+      "id": "expectation-032",
+      "E": "yes",
+      "O": "yes",
+      "basis": "packageのbuild成功を期待し、compilerエラー・環境・現在版を報告。"
+    },
+    {
+      "id": "expectation-033",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Qt有効時color-schemesをlinkする修正を提案し、現palette不良とworkaround成功を報告。"
+    },
+    {
+      "id": "expectation-034",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerのPR参照等を指示し、実build logとHydra未buildを報告。"
+    },
+    {
+      "id": "expectation-035",
+      "E": "yes",
+      "O": "yes",
+      "basis": "opacity warmup修正又はtimeout等を提案し、対照測定・実遅延を報告。"
+    },
+    {
+      "id": "expectation-036",
+      "E": "yes",
+      "O": "yes",
+      "basis": "progress thinkingを可視化する設定/実装を要求し、12roundの配信結果と未検証点を報告。"
+    },
+    {
+      "id": "expectation-037",
+      "E": "yes",
+      "O": "yes",
+      "basis": "SDK準備前呼出を避け最初のprompt前設定適用を期待し、実例外と回帰再現を報告。"
+    },
+    {
+      "id": "expectation-038",
+      "E": "yes",
+      "O": "yes",
+      "basis": "編集者からfeedbackをstage/batch提出する挙動を要求し、現在の実review workflowの困難を報告。"
+    },
+    {
+      "id": "expectation-039",
+      "E": "yes",
+      "O": "yes",
+      "basis": "plugin取得量を必要最小にするdepth/fetch修正を要求し、実clone失敗と対照成功を報告。"
+    },
+    {
+      "id": "expectation-040",
+      "E": "yes",
+      "O": "yes",
+      "basis": "会話内からDone化できることを要求し、現UI制約と利用workflowを報告。"
+    },
+    {
+      "id": "expectation-041",
+      "E": "yes",
+      "O": "yes",
+      "basis": "選択sessionからdetachする期待を宣言し、別sessionをdetachする現実を報告。"
+    },
+    {
+      "id": "expectation-042",
+      "E": "no",
+      "O": "yes",
+      "basis": "issueが自律作成された出来事のみを報告し、要求宣言なし。"
+    },
+    {
+      "id": "expectation-043",
+      "E": "yes",
+      "O": "no",
+      "basis": "検索・ログ添付という真正な提出指示があり、他欄は未記入で観測なし。"
+    },
+    {
+      "id": "expectation-044",
+      "E": "yes",
+      "O": "no",
+      "basis": "検索・ログ添付の提出指示だけで実操作/状況報告はない。"
+    },
+    {
+      "id": "expectation-045",
+      "E": "yes",
+      "O": "no",
+      "basis": "検索・ログ添付の指示はあるが環境・再現欄が空で現実報告なし。"
+    },
+    {
+      "id": "expectation-046",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既存worktree切替・subsession成功と独立操作を止めない要件を述べ、現失敗ログを報告。"
+    },
+    {
+      "id": "expectation-047",
+      "E": "yes",
+      "O": "yes",
+      "basis": "移行成功後だけarchiveし失敗時元履歴保持を要求し、実4回の喪失とログを報告。"
+    },
+    {
+      "id": "expectation-048",
+      "E": "yes",
+      "O": "yes",
+      "basis": "triage開始・backport条件を提示し、CVE severityと現影響package版を報告。"
+    },
+    {
+      "id": "expectation-049",
+      "E": "yes",
+      "O": "yes",
+      "basis": "新提案時以外review migrations barを隠す条件を要求し、ignore後も表示される現状を報告。"
+    },
+    {
+      "id": "expectation-050",
+      "E": "no",
+      "O": "yes",
+      "basis": "namespace欠如と環境の報告のみで要件や望む出力の宣言なし。"
+    },
+    {
+      "id": "expectation-051",
+      "E": "yes",
+      "O": "yes",
+      "basis": "時間/変更に基づくtrust再検証要件を詳細宣言し、現trustモデルや既存保護の状態を述べる。架空シナリオだけではない。"
+    },
+    {
+      "id": "expectation-052",
+      "E": "yes",
+      "O": "yes",
+      "basis": "画像表示エラーの解決を求め、実service workerエラーと環境を報告。"
+    },
+    {
+      "id": "expectation-053",
+      "E": "yes",
+      "O": "yes",
+      "basis": "native dialogをcustomへ統一する提案と機能維持条件を述べ、現設定とSlackでの確認を報告。"
+    },
+    {
+      "id": "expectation-054",
+      "E": "no",
+      "O": "yes",
+      "basis": "changes sectionに変更が見えないという状態・環境の報告のみ。"
+    },
+    {
+      "id": "expectation-055",
+      "E": "yes",
+      "O": "yes",
+      "basis": "collapse stateを保持する修正条件を要求し、実DB/logpointと対照再現を報告。"
+    },
+    {
+      "id": "expectation-056",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerのPR参照条件等があり、Handbrake patch失敗とHydra再現を報告。"
+    },
+    {
+      "id": "expectation-057",
+      "E": "yes",
+      "O": "yes",
+      "basis": "PRにissue参照する指示等があり、afew buildの実makeWrapperエラーを報告。"
+    },
+    {
+      "id": "expectation-058",
+      "E": "no",
+      "O": "yes",
+      "basis": "account切替後も旧残高を使う実挙動と環境のみで、要求宣言はない。"
+    },
+    {
+      "id": "expectation-059",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerへの参照指示等を含み、実404と依存package失敗を報告。"
+    },
+    {
+      "id": "expectation-060",
+      "E": "yes",
+      "O": "yes",
+      "basis": "issue description追加という提出指示と、実version/User Agent/embedderを報告。"
+    },
+    {
+      "id": "expectation-061",
+      "E": "yes",
+      "O": "yes",
+      "basis": "harness-aware validation等の要件を宣言し、現editor/runtimeでの前提やschema不一致を報告。"
+    },
+    {
+      "id": "expectation-062",
+      "E": "no",
+      "O": "yes",
+      "basis": "chat遅延と再起動による一時改善・環境を報告するだけで要求条件はない。"
+    },
+    {
+      "id": "expectation-063",
+      "E": "yes",
+      "O": "yes",
+      "basis": "rename永続化の条件を期待し、一時表示後に旧名へ戻る再現を報告。"
+    },
+    {
+      "id": "expectation-064",
+      "E": "yes",
+      "O": "yes",
+      "basis": "mDNS default有効化と必要command出力を要求し、現samba/cephの問題や環境を報告。"
+    },
+    {
+      "id": "expectation-065",
+      "E": "yes",
+      "O": "yes",
+      "basis": "選択plugin所有MCPの自動起動とscope保持を要求し、2SDKの実対照結果と未検証を報告。"
+    },
+    {
+      "id": "expectation-066",
+      "E": "yes",
+      "O": "yes",
+      "basis": "生きたInProgressを古いErrorより優先する修正を提案し、実badge/ログ/再現を報告。"
+    },
+    {
+      "id": "expectation-067",
+      "E": "yes",
+      "O": "yes",
+      "basis": "再接続時active turn再attach又はpending維持を要求し、時刻付き接続経過と実状態を報告。"
+    },
+    {
+      "id": "expectation-068",
+      "E": "yes",
+      "O": "yes",
+      "basis": "新providerで即Install可能にする状態を期待し、現binding順と調査で判明した回帰を報告。"
+    },
+    {
+      "id": "expectation-069",
+      "E": "yes",
+      "O": "yes",
+      "basis": "MCP失敗で履歴喪失しない要件と提出指示があり、実喪失・復元・CLIとの差を報告。"
+    },
+    {
+      "id": "expectation-070",
+      "E": null,
+      "O": "no",
+      "basis": "取り戻す方法を問うがitの参照対象がなく要求状態の宣言か確定しない。独立した現実報告はない。"
+    },
+    {
+      "id": "expectation-071",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Desktop起動がCLI tunnelを止めない条件を期待し、実audit/対照/未確定原因を報告。"
+    },
+    {
+      "id": "expectation-072",
+      "E": "yes",
+      "O": "yes",
+      "basis": "backupからDB復元する要求と提出指示があり、corrupt後の実損失・ログ・ファイル状態を報告。"
+    },
+    {
+      "id": "expectation-073",
+      "E": "yes",
+      "O": "yes",
+      "basis": "remote側の正しいパスを期待し、現誤パス・file-not-foundと実利用状況を報告。"
+    },
+    {
+      "id": "expectation-074",
+      "E": "no",
+      "O": "yes",
+      "basis": "自律作成された出来事を述べるだけで要求条件なし。"
+    },
+    {
+      "id": "expectation-075",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Quick Fix menuが正常に開く期待と提出条件があり、実flash消滅とpanel閉時の差を報告。"
+    },
+    {
+      "id": "expectation-076",
+      "E": "yes",
+      "O": "yes",
+      "basis": "model選択統一の仕様・受入条件を宣言し、現設定の詳細inventoryと既実装挙動を報告。"
+    },
+    {
+      "id": "expectation-077",
+      "E": "yes",
+      "O": "yes",
+      "basis": "外部moduleにdepmod生成物を入れない期待を宣言し、現collisionとlogを報告。"
+    },
+    {
+      "id": "expectation-078",
+      "E": "yes",
+      "O": "yes",
+      "basis": "xonedo package/integrationと条件付き移行調査を要求し、現xone設定とupstream仕様を報告。"
+    },
+    {
+      "id": "expectation-079",
+      "E": "yes",
+      "O": "yes",
+      "basis": "runtime harness context公開を要求し、企業利用状況と実assistant応答・認証制約を報告。"
+    },
+    {
+      "id": "expectation-080",
+      "E": "yes",
+      "O": "yes",
+      "basis": "変更のaccept/undoや地域model選択・並列処理を要求し、現実のversion・環境を報告。"
+    },
+    {
+      "id": "expectation-081",
+      "E": "yes",
+      "O": "yes",
+      "basis": "nvidia-smi正常実行とpatchelf分割案を示し、実segfaultと対照/検証結果を報告。"
+    },
+    {
+      "id": "expectation-082",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerへのissue参照等があり、実ceph buildエラーとHydra再現を報告。"
+    },
+    {
+      "id": "expectation-083",
+      "E": "yes",
+      "O": "no",
+      "basis": "Markdown editor向け操作/状態保持/更新/回復の要求だけで、実施・現状の独立報告はない。"
+    },
+    {
+      "id": "expectation-084",
+      "E": "yes",
+      "O": "yes",
+      "basis": "provider-backed validationの条件とテストを要求し、現static schema/runtime受理範囲を記述。"
+    },
+    {
+      "id": "expectation-085",
+      "E": "yes",
+      "O": "yes",
+      "basis": "petがsummaryを段階的説明する仕様を提案し、現Copilot summaryの挙動を説明。"
+    },
+    {
+      "id": "expectation-086",
+      "E": "yes",
+      "O": "yes",
+      "basis": "pet mini-games追加を提案し、新pet機能への現在の利用評価を報告。"
+    },
+    {
+      "id": "expectation-087",
+      "E": "no",
+      "O": "yes",
+      "basis": "添付リンクと実version/OS等の環境値だけで要求宣言なし。"
+    },
+    {
+      "id": "expectation-088",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Authenticateで認証とtool利用が成立する期待を宣言し、実時刻ログとLocal対照を報告。"
+    },
+    {
+      "id": "expectation-089",
+      "E": "yes",
+      "O": "yes",
+      "basis": "launcher統一・速度・安全な引数/cleanupを要求し、現遅延と破損条件を報告。"
+    },
+    {
+      "id": "expectation-090",
+      "E": "yes",
+      "O": "yes",
+      "basis": "nvidia serviceとsmiが失敗しない期待・提出指示があり、実SIGSEGVログを報告。"
+    },
+    {
+      "id": "expectation-091",
+      "E": "yes",
+      "O": "no",
+      "basis": "Open Withのhandler列挙/side/default/web対応の仕様のみで実施・観測の報告はない。"
+    },
+    {
+      "id": "expectation-092",
+      "E": "no",
+      "O": "yes",
+      "basis": "file cardが開けず手動やagentでは読めるという実挙動・環境だけで要求宣言なし。"
+    },
+    {
+      "id": "expectation-093",
+      "E": "yes",
+      "O": "yes",
+      "basis": "PR参照の提出指示等があり、テストの期待regexと実message不一致・build経過を報告。"
+    },
+    {
+      "id": "expectation-094",
+      "E": "yes",
+      "O": "yes",
+      "basis": "picker hintの条件と既挙動保持を要求し、実装済PRを明記報告。"
+    },
+    {
+      "id": "expectation-095",
+      "E": "yes",
+      "O": "yes",
+      "basis": "hoverでtab geometry不変を要求し、現height変化を報告。"
+    },
+    {
+      "id": "expectation-096",
+      "E": "yes",
+      "O": "yes",
+      "basis": "triage/backport手順の指示があり、現Cpanel脆弱挙動と影響版を報告。"
+    },
+    {
+      "id": "expectation-097",
+      "E": "yes",
+      "O": "yes",
+      "basis": "遅延原因調査とprogress indicatorを要求し、17秒観測とthread確認を報告。"
+    },
+    {
+      "id": "expectation-098",
+      "E": "yes",
+      "O": "yes",
+      "basis": "composer pickerのdrag/keyboard/状態保持仕様を要求し、進行中PRの現変更を説明。"
+    },
+    {
+      "id": "expectation-099",
+      "E": "yes",
+      "O": "yes",
+      "basis": "GUI正常起動と設定可能を要求し、起動失敗ログとoverlay解決を報告。"
+    },
+    {
+      "id": "expectation-100",
+      "E": "yes",
+      "O": "yes",
+      "basis": "削除後の一覧更新を要求し、実ログ・ファイル確認・制御再現を報告。"
+    },
+    {
+      "id": "expectation-101",
+      "E": "yes",
+      "O": "yes",
+      "basis": "表内改行とstreaming対応の仕様・修正案を示し、literal表示と再現結果を報告。"
+    },
+    {
+      "id": "expectation-102",
+      "E": "no",
+      "O": "yes",
+      "basis": "既存chatと新chatのMCP実行差、設定変更やログ調査の経緯のみで実現すべき状態の別宣言なし。"
+    },
+    {
+      "id": "expectation-103",
+      "E": "yes",
+      "O": "yes",
+      "basis": "PreviewのOutline対応を要求し、現表示・投票・操作失敗を報告。"
+    },
+    {
+      "id": "expectation-105",
+      "E": "yes",
+      "O": "yes",
+      "basis": "大きなpasteを添付へ変換せずtext保持するよう要求し、現変換と不可視の発生を報告。"
+    },
+    {
+      "id": "expectation-106",
+      "E": "yes",
+      "O": "yes",
+      "basis": "container比較の禁止・将来対応条件を宣言し、現comparisonの要件欠落と非対応を説明。"
+    },
+    {
+      "id": "expectation-107",
+      "E": "yes",
+      "O": "yes",
+      "basis": "client共通plugin機能と警告・文書化を要求し、実環境別の発見・未実行を報告。"
+    },
+    {
+      "id": "expectation-108",
+      "E": "yes",
+      "O": "yes",
+      "basis": "client側URIをremote変換せず適切に解決する修正を要求し、実失敗ログと欠落を報告。"
+    },
+    {
+      "id": "expectation-109",
+      "E": "yes",
+      "O": "yes",
+      "basis": "tool-onlyログのtrace化と有用field追加を要求し、実ログ比率と保持影響を報告。"
+    },
+    {
+      "id": "expectation-110",
+      "E": "yes",
+      "O": "yes",
+      "basis": "音声のchat文字化を要求し、update後の無転記とmic他app正常を報告。"
+    },
+    {
+      "id": "expectation-111",
+      "E": "yes",
+      "O": "yes",
+      "basis": "workspace URI解決・Explorer選択を要求し、各link形式の実失敗とcontext値を報告。"
+    },
+    {
+      "id": "expectation-112",
+      "E": "yes",
+      "O": "no",
+      "basis": "hover・focus時のX表示、workspace解除、accessibility等の条件仕様のみ。"
+    },
+    {
+      "id": "expectation-113",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Shared logの添付を求め、実version・system・extensions状態を報告。"
+    },
+    {
+      "id": "expectation-114",
+      "E": "yes",
+      "O": "yes",
+      "basis": "同じ選択規則に従うURI opener仕様を要求し、現優先順位無視とprompt欠落を報告。"
+    },
+    {
+      "id": "expectation-115",
+      "E": "yes",
+      "O": "yes",
+      "basis": "cacerts引数化とtracking操作を要求し、実scanner生成と修正進捗の件数を報告。"
+    },
+    {
+      "id": "expectation-116",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerのPR記載を要求し、build失敗・原因・実workaround検証を報告。"
+    },
+    {
+      "id": "expectation-117",
+      "E": "yes",
+      "O": "yes",
+      "basis": "期待結果記述とscreenshot添付を求め、実version・system状態を報告。"
+    },
+    {
+      "id": "expectation-118",
+      "E": "yes",
+      "O": "yes",
+      "basis": "暫定緩和のblacklist設定という必要状態を提示し、PRでの実装済みとchannel修正中を報告。"
+    },
+    {
+      "id": "expectation-119",
+      "E": "no",
+      "O": "yes",
+      "basis": "modelがないという現状と実環境表のみで、実現すべき状態の宣言なし。"
+    },
+    {
+      "id": "expectation-120",
+      "E": "no",
+      "O": "yes",
+      "basis": "session削除表示と実ログ・確認状況だけで期待・要件の別宣言なし。"
+    },
+    {
+      "id": "expectation-121",
+      "E": "no",
+      "O": "yes",
+      "basis": "大量例外の現発生と実ログ・環境だけを報告し、要件宣言なし。"
+    },
+    {
+      "id": "expectation-122",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Darktableの正常起動を要求し、stableからunstableへの切替失敗と実ログを報告。"
+    }
+  ],
+  "completedAt": "2026-10-20T21:43:24.750Z"
+}

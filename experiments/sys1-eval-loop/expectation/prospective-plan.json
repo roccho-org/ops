@@ -93,6 +93,17 @@
       "newModelRequests": 0,
       "internalHTTPAttempts": "UNKNOWN",
       "noRefill": true
+    },
+    "actualGold": {
+      "viewNative": "322399f7ca322402270f575928538a0d959e21bb",
+      "initialsNative": "fdc9a7a6d313cff397985095c8ffc0bad1099716",
+      "finalNative": "1d9c28eee8ff279232cae1b1b4cd36a61a9c1e50",
+      "cases": 119,
+      "initialAgreement": 117,
+      "initialDisagreement": 2,
+      "unresolved": 1,
+      "modelPostsBeforeFreeze": 0,
+      "limit": "candidate-known same-model independent initials, mutually unread and prediction-blinded before native freeze; all original labels/bodies retained"
     }
   },
   "freshMeasurement": {
@@ -110,9 +121,17 @@
     "deadlineBasis": "900*15 seconds=225 minutes plus preparation/projection/retention margin; cap, not completion guarantee",
     "combinedNewMaximum": 2307,
     "accounting": "507 development plus at most1800 fresh H posts. Historical aliases have no new cost. Old PR616/617 calls and all failures remain separately recorded; money/internal compute/total_tokens absence unknown; equal O call count is not same token cost",
-    "implementation": "two closed measurement contexts reuse standard recorder and common Gold-completion math; code-only native history2/3; actual corpus/Gold and new effect source acceptance still required"
+    "implementation": "fixed3M/round5 native entry and original actual119 data integrated; exact current source/requiredCI/three-party acceptance still precede fresh model effect",
+    "actualAssignment": {
+      "cases": 119,
+      "perPassPosts": 357,
+      "passes": 2,
+      "totalFreshPosts": 714,
+      "combinedDevelopmentAndPlannedFresh": 1221,
+      "currentFreshPosts": 0
+    }
   },
-  "currentStage": "actualD guard/freeze accepted; one readonly H body acquisition completed122->119 after priorExact1/oversize2; raw/view native fixed, independent prediction-blinded Gold in progress; new H native entry code-only, actual corpus/request/sourceCI acceptance incomplete and model0",
+  "currentStage": "actualD507 guard/freeze and original119 body/Gold data integrated; native same7DATA+all714 complete payloads checked keyless; exact data/source reviews and requiredCI pending, request still original development and fresh H model0",
   "newMetadataQueries": 0,
   "newBodyQueries": 122,
   "newModelPosts": 507,

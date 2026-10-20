@@ -1,0 +1,79 @@
+{
+  "schema": "ops.sys1.expectation-data-native-custody.v1",
+  "scope": "original accepted data bytes; strings/checksums document custody, not new runtime authentication or a copied hash gate",
+  "files": [
+    {
+      "key": "frame",
+      "ref": "322399f7ca322402270f575928538a0d959e21bb",
+      "path": "experiments/sys1-eval-loop/census-root-data/expectation-body-1/frame.json",
+      "target": "body-frame.json",
+      "bytes": 532741,
+      "sha256": "9e73bb070b419b896566d3854bf0623c1b989f2f4d74f7d501852b26e481356a"
+    },
+    {
+      "key": "view",
+      "ref": "322399f7ca322402270f575928538a0d959e21bb",
+      "path": "experiments/sys1-eval-loop/census-root-data/expectation-gold-1/view.json",
+      "target": "gold-view.json",
+      "bytes": 446214,
+      "sha256": "3a578d3a7e0791cbd27cdf1f87707555953bb53763590de28fc4efc6886f0c5f"
+    },
+    {
+      "key": "rootInitial",
+      "ref": "fdc9a7a6d313cff397985095c8ffc0bad1099716",
+      "path": "experiments/sys1-eval-loop/census-root-data/expectation-gold-1/gold-root-initial.json",
+      "target": "gold-root-initial.json",
+      "bytes": 23166,
+      "sha256": "c49ba994775c4e51e4f819cdbb06e7ed18e9258b4a71f8e783b945672960ea62"
+    },
+    {
+      "key": "counterInitial",
+      "ref": "fdc9a7a6d313cff397985095c8ffc0bad1099716",
+      "path": "experiments/sys1-eval-loop/census-root-data/expectation-gold-1/gold-counter-initial.json",
+      "target": "gold-counter-initial.json",
+      "bytes": 23812,
+      "sha256": "17a552b1a00428e97494173dc41e0cc17f404b70374e052f5a5b18dbfb5ac7ac"
+    },
+    {
+      "key": "adjudication",
+      "ref": "1d9c28eee8ff279232cae1b1b4cd36a61a9c1e50",
+      "path": "experiments/sys1-eval-loop/census-root-data/expectation-gold-1/gold-adjudication.json",
+      "target": "gold-adjudication.json",
+      "bytes": 24959,
+      "sha256": "da483be3942d056f916534319aa68dfb5679b9553fba9fc4283d493226c9eb15"
+    },
+    {
+      "key": "corpus",
+      "ref": "1d9c28eee8ff279232cae1b1b4cd36a61a9c1e50",
+      "path": "experiments/sys1-eval-loop/census-root-data/expectation-gold-1/corpus.json",
+      "target": "corpus.json",
+      "bytes": 556595,
+      "sha256": "43890a5336c04e138c5cf23b26a258f0770f55e26b7b80e24bdfc33ae85bde39"
+    },
+    {
+      "ref": "322399f7ca322402270f575928538a0d959e21bb",
+      "path": "experiments/sys1-eval-loop/census-root-data/expectation-body-1/completion.json",
+      "target": "body-completion.json",
+      "bytes": 683,
+      "sha256": "2575d3bc94099c121326d3a9bc89ce147ce16c73c79896c467af790b982181c9"
+    },
+    {
+      "ref": "322399f7ca322402270f575928538a0d959e21bb",
+      "path": "experiments/sys1-eval-loop/census-root-data/expectation-body-1/visibility.json",
+      "target": "body-visibility.json",
+      "bytes": 1284,
+      "sha256": "a1d90fbabbf9cd14f0f4ec6272ee4abf45e01886a2a90b131da0ceff977beed5"
+    }
+  ],
+  "plan": {
+    "caseDenominator": 119,
+    "perPassPosts": 357,
+    "totalPosts": 714,
+    "physicalTemplates": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
+    "scope": "census of all eligible members of the pre-body metadata prefix, without backfill, sampling CI or future-performance guarantee"
+  }
+}
