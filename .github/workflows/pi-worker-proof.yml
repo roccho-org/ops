@@ -118,6 +118,7 @@ jobs:
         with:
           name: pi-jev-runtime-${{ github.sha }}
           path: ${{ runner.temp }}/pi-jev-runtime/
+          include-hidden-files: true
       - name: Package and exercise the actual screen-only Worker over HTTP
         id: screen
         working-directory: upstream
