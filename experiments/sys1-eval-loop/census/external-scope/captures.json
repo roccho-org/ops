@@ -1,0 +1,50 @@
+[
+  {
+    "requestedFullName": "cli/cli",
+    "status": "SUCCESS",
+    "error": null,
+    "reply": {
+      "data": {
+        "repository": {
+          "__typename": "Repository",
+          "id": "MDEwOlJlcG9zaXRvcnkyMTI2MTMwNDk=",
+          "nameWithOwner": "cli/cli",
+          "isPrivate": false,
+          "hasIssuesEnabled": true
+        }
+      }
+    }
+  },
+  {
+    "requestedFullName": "NixOS/nixpkgs",
+    "status": "SUCCESS",
+    "error": null,
+    "reply": {
+      "data": {
+        "repository": {
+          "__typename": "Repository",
+          "id": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+          "nameWithOwner": "NixOS/nixpkgs",
+          "isPrivate": false,
+          "hasIssuesEnabled": true
+        }
+      }
+    }
+  },
+  {
+    "requestedFullName": "microsoft/vscode",
+    "status": "SUCCESS",
+    "error": null,
+    "reply": {
+      "data": {
+        "repository": {
+          "__typename": "Repository",
+          "id": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+          "nameWithOwner": "microsoft/vscode",
+          "isPrivate": false,
+          "hasIssuesEnabled": true
+        }
+      }
+    }
+  }
+]

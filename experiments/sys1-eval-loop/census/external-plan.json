@@ -4,21 +4,53 @@
   "roundIndex": 4,
   "previousContract": "prospective-plan.json",
   "previousResult": "metadata-zero/completion.json: NO_CASES; previous window is not expanded or rescued",
-  "unchanged": ["fixed C5 actual selection and all four provider request templates", "census common-Gold feasible formula", "all prior physical qualification and model guards", "two fixed passes with positive delta lower and zero possible regression in both", "no merge or adoption"],
-  "repositoryNames": ["cli/cli", "NixOS/nixpkgs", "microsoft/vscode"],
+  "unchanged": [
+    "fixed C5 actual selection and all four provider request templates",
+    "census common-Gold feasible formula",
+    "all prior physical qualification and model guards",
+    "two fixed passes with positive delta lower and zero possible regression in both",
+    "no merge or adoption"
+  ],
+  "repositoryNames": [
+    "cli/cli",
+    "NixOS/nixpkgs",
+    "microsoft/vscode"
+  ],
   "selectionReason": "Explicit convenience targets spanning CLI, package infrastructure and editor development, chosen before their Issue contents, Gold or model outputs. The three domains do not establish representativeness or statistical independence. No repository substitution/addition/removal after its metadata or results are observed.",
   "scopeAcquisition": "Resolve exactly these three public issue-enabled repository identities using EXTERNAL_REPOSITORY_QUERY; missing/private/uncertain/renamed/duplicate responses invalidate the scope. Freeze original replies and exact IDs in native Git before Issue metadata acquisition. No issue body/title/comments/labels are requested.",
-  "createdWindow": {"startInclusive": "2026-10-19T00:00:00Z", "endExclusive": "2026-10-20T00:00:00Z", "reason": "one completed UTC day, fixed before external repository or Issue metadata; no size- or outcome-based adjustment"},
-  "issueMetadataStrategy": "UNDECIDED; no Issue metadata call is accepted by this repository-scope slice. Compare complete all-history standard cursor pagination under a prospectively fixed technical time cap (incomplete INVALID, no shortening/replacement) against a proposed IssueFilters.since updated-since superset plus explicit created-window postfilter. The latter adds the natural updatedAt>=createdAt assumption, not an explicit provider invariant, so absence of unseen omissions is not guaranteed. Root prefers all-history to minimize assumptions. Three-party decision and exact query/host source are required before Issue metadata calls; no option is selected by this plan.",
+  "createdWindow": {
+    "startInclusive": "2026-10-19T00:00:00Z",
+    "endExclusive": "2026-10-20T00:00:00Z",
+    "reason": "one completed UTC day, fixed before external repository or Issue metadata; no size- or outcome-based adjustment"
+  },
+  "issueMetadataStrategy": "Complete all-history standard GraphQL cursor traversal, no since/Search/early timestamp stop. Every next cursor comes directly from the preceding endCursor; every filtered repository must terminate. One-hour whole metadata acquisition cap, incomplete or uncertain INVALID with originals retained; no shorter prefix, alternate repository/day, retry or replacement. Explicit inclusive-start/exclusive-end created UTC filter is applied after original metadata capture. Prior since-superset proposal is not adopted; no updated>=created omission assumption is needed.",
   "prefix": "all three fixed identities pooled; explicit UTC created-window filter, exact immutable Issue ID dedup, createdAt then ordinal Issue ID sort, first at most300 frozen before body. High-flow repositories may dominate. No retrospective repository quotas or post-exclusion replacement.",
-  "priorInputs": "same pre-cohort frozen407-blob recipe/530 known typed Issue IDs/1708 exact bodies, plus scope-relevant typed Issue IDs resolved from its2211 retained reference URLs before body; PRs remain typed PRs. Current-round metadata/prefix/body are not added to their own prior. Outside/private unresolved references are not disclosed; a known in-scope alias must not silently bypass resolution.",
+  "priorInputs": "same pre-cohort frozen407-blob recipe/530 known typed Issue IDs/1708 exact bodies, plus scope-relevant typed Issue IDs resolved from its2211 retained reference URLs before body; PRs remain typed PRs. Current-round metadata/prefix/body are not added to their own prior. Outside/private unresolved references are not disclosed; a known in-scope alias must not silently bypass resolution. Resolve every distinct retained reference repository name (currently35) by metadata ID before scope filtering, including aliases; only refs whose resolved repo ID is in native three-scope may trigger IssueOrPullRequest typename/id calls. Keep all metadata/errors privately; no non-target issue contents. Known in-scope aliases that remain unresolved INVALID. No direct-name zero-count shortcut.",
   "bodyAndGold": "previous wholebody/one-Issue-one-weight/exact-prior-body/empty/four-wire24000-byte exclusions, no backfill; root/R independently prediction-blinded initial Gold frozen before adjudication, null retained; same-model and candidate-known limits. Actual eligible M fixed before Gold and predictions.",
-  "limits": {"maximumPrefix": 300, "maximumPerPass": 1200, "maximumTotal": 2400, "deadlineMs": 15000, "proposedJobMinutes": 330, "acquisitionWindowMs": 3600000},
+  "limits": {
+    "maximumPrefix": 300,
+    "maximumPerPass": 1200,
+    "maximumTotal": 2400,
+    "deadlineMs": 15000,
+    "proposedJobMinutes": 330,
+    "acquisitionWindowMs": 3600000
+  },
   "claims": "this new finite convenience cohort only, not Ops/Apps improvement, the whole repositories, language-wide performance, sampling confidence, future backend stability, model-weight or same-cost improvement",
   "emptyOrFailure": "NO_CASES/NO_SCOPE/INVALID are retained with no automatic alternative repository, day, threshold or replacement. Any subsequent distinct contract remains visible.",
-  "implementationStatus": "repository metadata query and pure scope replay implemented; external Issue query/prefix binding, prior reference resolution, body materializer and provider entry require separate actual source/host review before their stages",
-  "newExternalRepositoryRequests": 0,
+  "implementationStatus": "native repository scope/calls retained; full-history query and fixed-native-three-scope prefix reader implemented, shared pure page reader preserves original117 default. Actual Issue host/cursor/public/time provenance still requires independent review; prior reference-resolution host, body materializer and provider entry remain separate stages.",
+  "newExternalRepositoryRequests": 3,
   "newExternalIssueMetadataRequests": 0,
   "newIssueBodyRequests": 0,
-  "newModelRequests": 0
+  "newModelRequests": 0,
+  "issueMetadataMode": "ALL_HISTORY_CURSOR",
+  "priorReferenceResolution": {
+    "mode": "separate metadata-only stage before body",
+    "maximumWindowMs": 3600000,
+    "repositoryNames": "all distinct repository names from fixed407 prior references, not direct target-name matches only",
+    "queries": "PRIOR_REPOSITORY_QUERY then in-scope-only PRIOR_ISSUE_QUERY in prior-references.mjs",
+    "native": "actual query/nonsecret variables/exit/replies/all-coverage privately retained and independently replayed; knownScopeAliases derive only from existing native repository identity evidence; native-proven alias records are explicit name/expected repositoryId pairs, exact current names also bound to their IDs; null/private/conflicting identity INVALID",
+    "publication": "private global known Issue ID set for exclusion; public projection contains current public in-scope typed resolutions/Issue IDs and aggregate coverage only; global outside/private IDs and original responses not published",
+    "failure": "known scope alias unresolved/conflicting identity or in-scope typed resolution missing INVALID; no alternate scope, retry or body request"
+  },
+  "repositoryMetadataReceipt": "external-scope/completion.json; original seven blobs retained from native2881999, plan/source before calls is preserved at fbd7ebc7"
 }

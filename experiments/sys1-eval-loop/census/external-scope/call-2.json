@@ -1,0 +1,21 @@
+{
+  "query": "query($owner:String!,$name:String!){repository(owner:$owner,name:$name){__typename id nameWithOwner isPrivate hasIssuesEnabled}}",
+  "variables": {
+    "owner": "NixOS",
+    "name": "nixpkgs"
+  },
+  "startedAt": "2026-10-20T17:32:59.591Z",
+  "endedAt": "2026-10-20T17:33:00.198Z",
+  "exitStatus": 0,
+  "reply": {
+    "data": {
+      "repository": {
+        "__typename": "Repository",
+        "id": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+        "nameWithOwner": "NixOS/nixpkgs",
+        "isPrivate": false,
+        "hasIssuesEnabled": true
+      }
+    }
+  }
+}

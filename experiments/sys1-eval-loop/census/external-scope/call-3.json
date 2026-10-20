@@ -1,0 +1,21 @@
+{
+  "query": "query($owner:String!,$name:String!){repository(owner:$owner,name:$name){__typename id nameWithOwner isPrivate hasIssuesEnabled}}",
+  "variables": {
+    "owner": "microsoft",
+    "name": "vscode"
+  },
+  "startedAt": "2026-10-20T17:33:00.199Z",
+  "endedAt": "2026-10-20T17:33:00.853Z",
+  "exitStatus": 0,
+  "reply": {
+    "data": {
+      "repository": {
+        "__typename": "Repository",
+        "id": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+        "nameWithOwner": "microsoft/vscode",
+        "isPrivate": false,
+        "hasIssuesEnabled": true
+      }
+    }
+  }
+}

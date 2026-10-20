@@ -26,11 +26,15 @@
 
 元windowは広げず、別の `external-plan.json` に `cli/cli`・`NixOS/nixpkgs`・`microsoft/vscode` を内容/Gold/予測未見で固定する。CLI・package infrastructure・editorという選択理由は便宜的な対象宣言で、代表性や作者/意味の独立性の根拠ではない。欠落/private/不明でも差替え・追加・削除しない。英語やIssue様式の分布差を記述し、Ops/Appsや言語全体の改善と称さない。
 
-まず `external.mjs` のrepository metadata-only queryとpure replayで、ちょうど3つのpublic/issue-enabled immutable IDを確認して原版をnative固定する。body/title/comments/labelsは要求せず、extra fields/欠落/duplicate/rename等は拒否する。このscope確認のsource受容を、まだ未実装のIssue一覧・本文取得・実測の許可へ読み替えない。外部APIは現時点0。
+`external.mjs` のrepository metadata-only queryをfbd sourceで標準ghから一回ずつ計3呼出し実行し、3つのpublic/issue-enabled immutable IDを確認した。root/Rが全query/variables/exit/repliesを別再生し、native `2881999e43ff27d45efae7506bd4130c1eb62829` に7原fileを保持。`external-scope/` に同7原bytesとcustodyを保存した。Issue metadata/本文/モデル呼出しは0。このscope確認の受容を、後段の取得・実測許可へ読み替えない。
 
 新windowは前UTC完了日 `2026-10-19T00:00:00Z <= createdAt < 2026-10-20T00:00:00Z` とし、件数を見る前に固定。3repo合同のcreatedAt/ordinal Issue ID prefix300を本文前に保持、既使用/全文/wire除外後に補充しない。高流量repoがprefixを占め得るが、結果を見たrepo別割当へ変更しない。既知407原版の530 Issue ID/1708 bodyに、同原版の2211参照URLから3scope内で型解決したIssue IDを本文前に加える。参照を本文既読と同一視せず、PR型やscope外/private情報を公開Issue manifestへ混ぜない。
 
-C5・原Best・式・二回AND・全分母/資格/未知・最大2400/330分案は不変。NO_CASESならその契約も保持し、日付やrepoを後付け変更して救済しない。新Issue queryの完全paginationを巨大repoでも実行可能にする具体方法は、一次資料とsource/hostの反証で取得前に固定する。現sourceはrepo scope確認だけを実装し、本文materializerの完成は偽らない。
+C5・原Best・式・二回AND・全分母/資格/未知・最大2400/330分案は不変。NO_CASESならその契約も保持し、日付やrepoを後付け変更して救済しない。三者反証で、追加のupdatedAt>=createdAt仮定を要するsince案は採用せず、全履歴標準cursor終端を1時間のtechnical capで取得する方式を選んだ。Search/updated-since/日付による途中停止なし。未完はINVALIDで原版保持し、早く得た分だけをprefixにしたり再送・別repoへ切替えたりしない。全3scope公開状態を前後確認し、各query/非secret variables/exit/原replyとcursor chainをroot/Rが検証する。1時間は完了の保証ではない。
+
+`issue-pages.mjs` は旧117と新3scopeのpage形状/field whitelist/UTC filter/ordinal prefixだけを共有するpure reader。旧default queryと境界は維持し、旧native a74の117 raw全再生で354/window0/prefix0と全既存出力・query一致を確認した。`external-issues.mjs` は保存された3scope原capturesを再生し、実scope ID・元名称・mode/window/max300/1時間へ拘束する。providerの完全性・実after=前endCursor・公開確認・native来歴はpure reader単独では証明せず、標準host原traceの独立検証を必要とする。原pageをtraceとcaptureへ二重物理複写せず、traceからメモリpagesを作ってreaderへ渡してよい。本文materializerとprovider入口は未実装である。
+
+既使用参照の型解決は全history取得とは別の1時間以内のmetadata-only stageとして本文前に行う。`prior-references.mjs` の標準queryを使い、固定407由来の参照2211から全distinct repo名（現在35）をmetadata IDへ解決してからscope IDで絞る。直接名一致が0でもこの段階を省かない。scope内だけIssueOrPullRequestのtypename/idを問い合わせ、Issue IDを既知530へunion、PRは混ぜない。null/不明・private/outside原metadataは私的保持し、既知scope aliasの未解決・矛盾ID・scope内型解決失敗はINVALIDとする。`knownScopeAliases` は原版で結合が証明されたname/expected repositoryIdの組だけをroot/Rが渡し、現在scopeの元名も対応するexact IDに拘束する。別scope IDやnull/privateへの変化も拒否する。全global既知ID集合はprivate resolutionとして保持し、case除外へ使う。公開projectionは現在の公開scope内typed参照/同Issue IDと集計だけに分け、scope外/private IDや存在情報を増やさない。標準hostでの全入力・query/variables/原応答・全coverageの受容は別に必要である。
 
 ## 最小系列と完成条件
 
@@ -56,8 +60,9 @@ flowchart TB
   MATH --> FIRST[✅ 最初の契約8f/125metadata・354Issue]
   FIRST --> ZERO[✅ window0/prefix0・NO_CASES・本文/model0]
   ZERO --> REVIEW[⏳ 別3repo便宜cohort契約/source三者反証]
-  REVIEW --> SCOPE[⏳ 公開repo metadata原版/ID固定]
-  SCOPE --> META[⏳ 別日metadata prefix300・補充0]
+  REVIEW --> SCOPE[✅ 公開repo metadata3・ID原版固定]
+  SCOPE --> ADMIT[⏳ 全history/1hと参照型解決source・host受容]
+  ADMIT --> META[⏳ 別日metadata prefix300・補充0]
   META --> FRAME[⏳ 公開wholebody eligible全原版/M固定]
   FRAME -->|M0| EMPTY[NO_CASES・作用0・後付window拡大なし]
   FRAME -->|M正| GOLD[⏳ 独立Gold凍結/合議null・全wire検証]
