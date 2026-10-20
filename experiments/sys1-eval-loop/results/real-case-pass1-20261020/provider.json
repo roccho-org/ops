@@ -1,0 +1,18 @@
+{
+  "repository": "roccho-org/ops",
+  "workflowPath": ".github/workflows/sys1-real-case-evaluation.yml",
+  "runId": 39410714744,
+  "runAttempt": 1,
+  "head": "90e5a7508308072561334adf7e2dda3e9a771c99",
+  "source": "f76fe45c721a1eccf6bb694151ef20cde4d23c5f",
+  "branch": "codex/jev-real-case-evaluation-20261020",
+  "event": "push",
+  "actor": "roccho-dev",
+  "conclusion": "success",
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39410714744",
+  "artifactId": 12258978528,
+  "artifactName": "sys1-real-cases-39410714744",
+  "artifactSize": 665863,
+  "providerDigest": "sha256:d767b959d106c06e3c3a97c9a8d2ac5b6cae046fa3e648826af31ba6d62036ac",
+  "archiveSha256": "d767b959d106c06e3c3a97c9a8d2ac5b6cae046fa3e648826af31ba6d62036ac"
+}

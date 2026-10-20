@@ -1,0 +1,108 @@
+{
+  "schema": "ops.sys1.real-case-plan.v1",
+  "status": "two-real-passes-closed-no-gain-not-reconfirmed-final-normal-ci-pending",
+  "purpose": "Approximate fixed-frame gain of the unchanged PR611 request configuration; no population-zero or deployment claim",
+  "frozenComparison": {
+    "source": "PR611 final 641fed724f3a8ec4ca4e17be8a230d01ed40fca1",
+    "best": "original full E/O request",
+    "candidate": "same Best with the retained scoped E criteria only",
+    "physicalTemplates": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
+    "candidateChanges": false
+  },
+  "frame": {
+    "repositories": [
+      "roccho-org/ops",
+      "roccho-dev/apps"
+    ],
+    "visibility": "public-only",
+    "unit": "one non-PR issue and its whole observed body version",
+    "states": [
+      "open",
+      "closed"
+    ],
+    "createdBefore": "2026-10-20T00:00:00Z",
+    "eligibility": [
+      "nonempty whole body",
+      "all three actual serialized standard-client request bodies fit below 24000 UTF8 bytes",
+      "not a known-used issue identity: all old605 snapshot100 source URLs, every other retained prior source URL and explicit known-used ops482; semantic content/model outcomes never decide exclusions"
+    ],
+    "notAllowed": [
+      "semantic or label-based selection",
+      "truncation/paragraph extraction",
+      "comments/link content as added context",
+      "late replacement of missing or ambiguous sampled cases"
+    ],
+    "snapshot": "created before cutoff; newest body actually obtained per record during a bounded acquisition window, not atomic historical snapshot; record created_at/updated_at/retrievedAt separately",
+    "identity": "resolve immutable repository IDs before acquisition; preserve issue provider ID/number/URL and captured body bytes",
+    "acquisition": {
+      "maxWindowMs": 3600000,
+      "start": "before the first metadata/body API invocation",
+      "completion": "native gh API --paginate --slurp exit0 with terminal pagination; raw pages preserved",
+      "invalid": "API error, timeout, missing identity, duplicate/invalid pagination, changed repository or >1h capture keeps partial raw and forbids sampling",
+      "version": "each item body with created_at/updated_at and per-native-invocation completion retrievedAt; no historical atomic snapshot"
+    },
+    "priorInputs": {
+      "nativeSource": "resolve the declared PR611 base ref once with native Git; read retained experiments/**/*.json objects from that commit",
+      "references": "all issue/pull URLs in those retained JSON values, plus explicit ops482; conservatively resolve all100 metadata-only old605 inventory URLs without claiming body100 observation",
+      "identity": "body-free standard GraphQL issueOrPullRequest -> repository and issue immutable node IDs; unresolved is INVALID, no URL fallback",
+      "body": "exact prior body values including serialized old provider body JSON; separate issue with identical body excluded without semantic nearclone filtering",
+      "newFrameDuplicates": "retain and describe identical-body groups inside new frame; one issue remains one weight"
+    }
+  },
+  "sampling": {
+    "method": "SRSWOR via one random permutation of the frozen eligible frame",
+    "size": "min(300, eligible frame N)",
+    "reserve": "undrawn permutation suffix stays sealed; no reserve invented when census exhausts frame",
+    "redraw": false,
+    "claim": "fixed eligible frame only, not future issues or all GitHub",
+    "receipt": "create-new output descriptor before first random draw; retain draws/permutation/native frame reference; no redraw after partial or uncertain write"
+  },
+  "gold": {
+    "raters": [
+      "root",
+      "counterreview"
+    ],
+    "independentBefore": "any new model outputs",
+    "visible": "body only plus opaque unit identifier",
+    "blindTo": "Best/scoped outputs; not blind to the known treatment design",
+    "disagreement": "retain each original label, discuss before model run; unresolved axis is null and entire case remains in assigned denominator",
+    "noResultConditionedEdits": true
+  },
+  "inference": {
+    "roundFamily": "real-case approximation, consecutive j starts at 1 and never resets for retries/new audit",
+    "alpha": "0.05 / 2**j",
+    "tails": "alpha_j / (5 * 2) per pass; first round each tail 1/400",
+    "method": "finite-population hypergeometric inverted B_L/B_U/C_L/C_U/R_U; conservative Bonferroni composition",
+    "unknown": "fully unresolved cases u remain assigned: B [b,b+u], C [c,c+u], R [r,r+u]; r counts only fully resolved cases, partial known regression is separately observed",
+    "acceptance": [
+      "delta lower bound > 0",
+      "observed known case-axis regression count = 0, including partial known regressions; no population-zero claim",
+      "assigned worst-case difference remains positive",
+      "model drift or invalid sampling/transport provenance yields UNKNOWN"
+    ],
+    "regressionUpper": "always report numerically, no arbitrary 1% acceptance threshold",
+    "assumptions": "design-based exactness presumes fixed finite binary outcomes and SRS; model stochasticity/backend/Gold uncertainty limit the actual protocol claim to an approximation",
+    "implementation": "native BigInt exact inclusive HG integer tails and two-pass AND implemented; independent oracle/source review pending",
+    "secondary": {
+      "E": "descriptive paired counts/rates/FPFN only, no additional CI/pvalue or success endpoint",
+      "repositories": "descriptive strata and natural Gold/unknown distributions; union keeps one issue one weight"
+    },
+    "tailBoundary": "retain tail >= alpha, equality included conservatively",
+    "census": "HG point intervals express zero sampling uncertainty only, not model/Gold/future uncertainty; two passes provide empirical reconfirmation, not independent-case doubling or future expected-gain confidence"
+  },
+  "execution": {
+    "plannedPhysicalCalls": "two prospectively fixed passes, 3*n each; actual M=n118 means 708 POST total; run both regardless of first outcome",
+    "route": "existing native standard Jev client and six-step secret boundary reused; new dedicated request-only workflow implemented but no request/corpus exists, current-source reviews/checks and Gold freeze required before activation",
+    "retry": "no within-pass retry or failed-run rerun; prospectively declared pass2 is a new assignment and can contain identical payloads to successful or unknown pass1 observations",
+    "money": "record physical usage and unknown money, not alias rows",
+    "mergeOrAdoption": false,
+    "repetitions": 2,
+    "perPassJobBoundMinutes": 110,
+    "replication": "both passes must meet primary conditions; no averaging rescue, n remains issue count; O shared within each pass only",
+    "technicalStop": "model drift and existing safety/qualification guards remain; unissued assigned work stays unknown, no outcome-based cancellation"
+  }
+}
