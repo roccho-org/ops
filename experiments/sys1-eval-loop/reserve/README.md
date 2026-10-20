@@ -2,7 +2,7 @@
 
 [PR615](https://github.com/roccho-org/ops/pull/615) は実案件300件の二回比較を保持して閉じた。正答は220→233/231だったが、既正答Oの退行が両回にあり採用条件は不成立。H1/H2の退行unionは101/155/196/289。元Bestを維持し、採用・mergeはしない。この300件を今回のDへ退役し、未使用評価とは呼ばない。
 
-D1/D2/D3/D4は不受容の全原版を保持し、現在ANDのD5は開発guard通過・actual wire固定まで成立した。未使用23はまだ未実測。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。各sourceの三者受容と必要CI実成功後に、それぞれ一度だけ実行した。モデル作用は新O1800、生成役呼出し0。reserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
+D1/D2/D3/D4は不受容の全原版を保持し、ANDのD5は開発guard通過・actual wire固定まで成立した。各sourceの三者受容と必要CI実成功後に一度だけ実行した。現在モデル作用は新O1800、生成役呼出し0。三者の実D5・native fullwire固定確認後に、元reserve23の原版をWへ開示し、4物理requestのH入口を実装した。H測定はまだ0で、新source・必要CI・三者受容前に実行しない。候補固定前はWが23本文・Gold・分布・類型を未読だった境界を保持し、開示後もC2/C4・Gold・順序を変更しない。
 
 ## 最初のD結果（不変の失敗記録）
 
@@ -136,8 +136,10 @@ flowchart TB
   D5 --> G5{完全gain正・union退行0・全資格?}
   G5 -->|負・unknown| HOLD5[保持して23未開示・次処置は別の事前契約]
   G5 -->|実成立| FREEZE[✅ live600資格・joint220→229/union0・actual両wire固定]
-  FREEZE --> RELEASE[⏳ 原版/freeze独立読戻し後だけ23開示]
-  RELEASE --> H[⏳ 別受容後92 POST二回・全raw保持]
+  FREEZE --> RELEASE[✅ 原版/freeze三者読戻し後に元23原版開示・候補不変]
+  RELEASE --> HENTRY[✅ 固定4request入口・原版/全184wire鍵なし検査]
+  HENTRY --> HREVIEW[⏳ 新source・必要CI・三者受容]
+  HREVIEW --> H[⏳ 92 POST二回・全raw保持]
   H --> A{両回の全受入成立?}
   A -->|成立| FIN[⏳ 成立時の主張は有限23二回の差のみ・採用は別判断]
   A -->|退行・負・unknown| NEG[⏳ 負／不明を全件保持・同23で修正再試験禁止]
@@ -146,3 +148,15 @@ flowchart TB
 ```
 
 最小共有の反証として、旧folder全bytes不変を目的にすると重複executorが増える。公開requestの任意引数と専用資格/writer共有を最小化し、既定fullwireと閉615/D1/D2/D3再生を実検査する。旧保存inputへ新fieldを後付けしない。新汎用executor、任意endpoint/callback、独自ledger、認証追加は作らない。厳格資格は維持し、最終exactheadの通常CIを成功確認するまで完了と呼ばない。
+
+## 固定23の確認入口（未測定）
+
+原7fileはnative bb1eb1ed100fd639c5e336739f4e37cc60914913の `reserve-root-data/` から同bytesで保持した。元corpusは `ops.sys1.real-case-corpus.v1`、round3/frame23で、origin323を別保持する。root/Rのbody-only・arm予測盲検の独立初稿、合議、元順序をすべて保持し、未決O null1を全23分母へ残す。自然GoldはE yes23/no0、O yes14/no8/null1で、E負例を含まない。候補既知の同モデル採点者であり、完全盲検やGold無謬を主張しない。
+
+`held-runtime.mjs` は固定phase `reserve1`/`reserve2` とnative履歴6/7だけを受ける薄い入口である。鍵前に原D1–D4の失敗全raw、D5実600の資格・guard・selection全値、native run/head/実Git親/request-only差分、元615の両履歴を再生する。H入力は成功D5のactual fullwireへ結合したbestO/c2O/c4O/sharedEに固定し、任意scope・templateProof自己申告を作用許可にしない。元3物理入口や全閉rawに新fieldを後付けしない。
+
+各回23件×4物理＝92、caseごとの順は `(caseIndex+repId-1)%4` で固定ローテーションする。全attempt/post/flags/failure/answerにrepIdを保持し、model driftは4key横断で停止する。Eは回内一回だけ、回間は別の新実測。ANDは両成分の資格成立時だけ導出し、noによる短絡省略・欠損補完・架空の確率/usageを作らない。全rawから資格と物理/論理会計を再生する。Gold採点はprojectだけ、prepareは形式・出典検証だけで、provider stateはbodyだけである。
+
+2回目は保存1回目のnative来歴・全raw・project全値を再生する。意味FAILや通常の資格unknownでも予定二回目を取消さず、model drift等の既存技術停止guardは維持する。既知退行と技術unknownは両方残し、既知FAIL、model invalid、資格未完了の順にdispositionを整合させる。旧613/615の原判定は変更しない。
+
+実physical usageは4keyの唯一のreceiptだけを計上する。論理運用相当はBest=E+bestO、AND=E+c2O+c4Oだが、その和は共有Eを重複するので物理総費用にしない。total_tokens欠落や金額不明をinput/output和で埋めず、二call追加資源の設定比較とする。既存170分jobは92×15秒=23分に保持余裕を持ち、秘密境界・raw always保持・再送禁止は同じ。現sourceの通常CI終端と三者受容は未完了である。

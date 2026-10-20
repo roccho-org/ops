@@ -1,0 +1,340 @@
+{
+  "schema": "ops.sys1.observation-reserve-origin.v1",
+  "createdAt": "2026-10-20T13:30:12.636Z",
+  "state": "SEALED_COMPLEMENT_CENSUS_VIEW_NO_NEW_RANDOMNESS",
+  "planNativeCommit": "d67843c6d593582a908e509a217754ec5e2d68db",
+  "frameNativeCommit": "034a16b70a71127bbb09175229048875db649980",
+  "samplingNativeCommit": "1959840a9b42378f5b9c08418d91610fb05dd45b",
+  "sourceFrameSize": 323,
+  "frameSize": 23,
+  "sampleSize": 23,
+  "mode": "census of original sealed reserve23; NOT new SRS of323",
+  "newApiRequests": 0,
+  "newRandomDraws": 0,
+  "modelPosts": 0,
+  "nextCandidateCreated": false,
+  "cases": [
+    {
+      "id": "reserve-001",
+      "sourceId": "R_kgDOTKJxYw/I_kwDOTKJxY88AAAABIndhgg",
+      "source": {
+        "repository": "roccho-dev/hq",
+        "repositoryId": "R_kgDOTKJxYw",
+        "issueNodeId": "I_kwDOTKJxY88AAAABIndhgg",
+        "number": 128,
+        "url": "https://github.com/roccho-dev/hq/issues/128",
+        "createdAt": "2026-07-13T11:35:55Z",
+        "updatedAt": "2026-07-14T20:00:50Z",
+        "retrievedAt": "2026-10-20T12:13:30.541Z"
+      }
+    },
+    {
+      "id": "reserve-002",
+      "sourceId": "R_kgDOTA52IA/I_kwDOTA52IM8AAAABHfn0iA",
+      "source": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "R_kgDOTA52IA",
+        "issueNodeId": "I_kwDOTA52IM8AAAABHfn0iA",
+        "number": 93,
+        "url": "https://github.com/roccho-dev/ui/issues/93",
+        "createdAt": "2026-07-02T20:15:43Z",
+        "updatedAt": "2026-07-02T21:21:31Z",
+        "retrievedAt": "2026-10-20T12:13:22.074Z"
+      }
+    },
+    {
+      "id": "reserve-003",
+      "sourceId": "R_kgDOTKJxYw/I_kwDOTKJxY88AAAABIMXebw",
+      "source": {
+        "repository": "roccho-dev/hq",
+        "repositoryId": "R_kgDOTKJxYw",
+        "issueNodeId": "I_kwDOTKJxY88AAAABIMXebw",
+        "number": 37,
+        "url": "https://github.com/roccho-dev/hq/issues/37",
+        "createdAt": "2026-07-09T09:00:07Z",
+        "updatedAt": "2026-07-09T22:47:42Z",
+        "retrievedAt": "2026-10-20T12:13:30.541Z"
+      }
+    },
+    {
+      "id": "reserve-004",
+      "sourceId": "R_kgDOTA52IA/I_kwDOTA52IM8AAAABRF-b7Q",
+      "source": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "R_kgDOTA52IA",
+        "issueNodeId": "I_kwDOTA52IM8AAAABRF-b7Q",
+        "number": 212,
+        "url": "https://github.com/roccho-dev/ui/issues/212",
+        "createdAt": "2026-09-13T18:57:55Z",
+        "updatedAt": "2026-09-13T19:43:31Z",
+        "retrievedAt": "2026-10-20T12:13:22.074Z"
+      }
+    },
+    {
+      "id": "reserve-005",
+      "sourceId": "R_kgDOUvZFcw/I_kwDOUvZFc88AAAABTnH4BA",
+      "source": {
+        "repository": "roccho-org/envs",
+        "repositoryId": "R_kgDOUvZFcw",
+        "issueNodeId": "I_kwDOUvZFc88AAAABTnH4BA",
+        "number": 13,
+        "url": "https://github.com/roccho-org/envs/issues/13",
+        "createdAt": "2026-09-28T07:40:04Z",
+        "updatedAt": "2026-09-28T22:55:06Z",
+        "retrievedAt": "2026-10-20T12:13:35.822Z"
+      }
+    },
+    {
+      "id": "reserve-006",
+      "sourceId": "R_kgDOTAn-dg/I_kwDOTAn-ds8AAAABICyEEg",
+      "source": {
+        "repository": "roccho-dev/edits",
+        "repositoryId": "R_kgDOTAn-dg",
+        "issueNodeId": "I_kwDOTAn-ds8AAAABICyEEg",
+        "number": 20,
+        "url": "https://github.com/roccho-dev/edits/issues/20",
+        "createdAt": "2026-07-08T05:52:36Z",
+        "updatedAt": "2026-07-08T08:19:44Z",
+        "retrievedAt": "2026-10-20T12:13:24.234Z"
+      }
+    },
+    {
+      "id": "reserve-007",
+      "sourceId": "R_kgDOTA3cVw/I_kwDOTA3cV88AAAABHftWBA",
+      "source": {
+        "repository": "roccho-dev/governance",
+        "repositoryId": "R_kgDOTA3cVw",
+        "issueNodeId": "I_kwDOTA3cV88AAAABHftWBA",
+        "number": 92,
+        "url": "https://github.com/roccho-dev/governance/issues/92",
+        "createdAt": "2026-07-02T20:31:03Z",
+        "updatedAt": "2026-08-24T00:56:19Z",
+        "retrievedAt": "2026-10-20T12:13:17.384Z"
+      }
+    },
+    {
+      "id": "reserve-008",
+      "sourceId": "R_kgDOTA52IA/I_kwDOTA52IM8AAAABVD0dmg",
+      "source": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "R_kgDOTA52IA",
+        "issueNodeId": "I_kwDOTA52IM8AAAABVD0dmg",
+        "number": 320,
+        "url": "https://github.com/roccho-dev/ui/issues/320",
+        "createdAt": "2026-10-05T07:39:55Z",
+        "updatedAt": "2026-10-05T23:51:13Z",
+        "retrievedAt": "2026-10-20T12:13:22.074Z"
+      }
+    },
+    {
+      "id": "reserve-009",
+      "sourceId": "R_kgDOTKJxYw/I_kwDOTKJxY88AAAABITWF0w",
+      "source": {
+        "repository": "roccho-dev/hq",
+        "repositoryId": "R_kgDOTKJxYw",
+        "issueNodeId": "I_kwDOTKJxY88AAAABITWF0w",
+        "number": 96,
+        "url": "https://github.com/roccho-dev/hq/issues/96",
+        "createdAt": "2026-07-10T04:52:34Z",
+        "updatedAt": "2026-09-23T07:18:21Z",
+        "retrievedAt": "2026-10-20T12:13:30.541Z"
+      }
+    },
+    {
+      "id": "reserve-010",
+      "sourceId": "R_kgDOTA52IA/I_kwDOTA52IM8AAAABHfnfnw",
+      "source": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "R_kgDOTA52IA",
+        "issueNodeId": "I_kwDOTA52IM8AAAABHfnfnw",
+        "number": 88,
+        "url": "https://github.com/roccho-dev/ui/issues/88",
+        "createdAt": "2026-07-02T20:14:47Z",
+        "updatedAt": "2026-07-02T21:21:30Z",
+        "retrievedAt": "2026-10-20T12:13:22.074Z"
+      }
+    },
+    {
+      "id": "reserve-011",
+      "sourceId": "R_kgDOTKJxYw/I_kwDOTKJxY88AAAABHkZJnA",
+      "source": {
+        "repository": "roccho-dev/hq",
+        "repositoryId": "R_kgDOTKJxYw",
+        "issueNodeId": "I_kwDOTKJxY88AAAABHkZJnA",
+        "number": 16,
+        "url": "https://github.com/roccho-dev/hq/issues/16",
+        "createdAt": "2026-07-03T11:01:05Z",
+        "updatedAt": "2026-07-03T18:39:20Z",
+        "retrievedAt": "2026-10-20T12:13:30.541Z"
+      }
+    },
+    {
+      "id": "reserve-012",
+      "sourceId": "R_kgDOTA52IA/I_kwDOTA52IM8AAAABUE3u-Q",
+      "source": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "R_kgDOTA52IA",
+        "issueNodeId": "I_kwDOTA52IM8AAAABUE3u-Q",
+        "number": 312,
+        "url": "https://github.com/roccho-dev/ui/issues/312",
+        "createdAt": "2026-09-30T06:46:16Z",
+        "updatedAt": "2026-09-30T09:11:36Z",
+        "retrievedAt": "2026-10-20T12:13:22.074Z"
+      }
+    },
+    {
+      "id": "reserve-013",
+      "sourceId": "R_kgDOTKJxYw/I_kwDOTKJxY88AAAABHoLZ2w",
+      "source": {
+        "repository": "roccho-dev/hq",
+        "repositoryId": "R_kgDOTKJxYw",
+        "issueNodeId": "I_kwDOTKJxY88AAAABHoLZ2w",
+        "number": 29,
+        "url": "https://github.com/roccho-dev/hq/issues/29",
+        "createdAt": "2026-07-03T23:27:33Z",
+        "updatedAt": "2026-09-23T07:21:23Z",
+        "retrievedAt": "2026-10-20T12:13:30.541Z"
+      }
+    },
+    {
+      "id": "reserve-014",
+      "sourceId": "R_kgDOTKJxYw/I_kwDOTKJxY88AAAABIMakMA",
+      "source": {
+        "repository": "roccho-dev/hq",
+        "repositoryId": "R_kgDOTKJxYw",
+        "issueNodeId": "I_kwDOTKJxY88AAAABIMakMA",
+        "number": 72,
+        "url": "https://github.com/roccho-dev/hq/issues/72",
+        "createdAt": "2026-07-09T09:07:12Z",
+        "updatedAt": "2026-07-09T22:27:15Z",
+        "retrievedAt": "2026-10-20T12:13:30.541Z"
+      }
+    },
+    {
+      "id": "reserve-015",
+      "sourceId": "R_kgDOTAn-dg/I_kwDOTAn-ds8AAAABNnHVBg",
+      "source": {
+        "repository": "roccho-dev/edits",
+        "repositoryId": "R_kgDOTAn-dg",
+        "issueNodeId": "I_kwDOTAn-ds8AAAABNnHVBg",
+        "number": 74,
+        "url": "https://github.com/roccho-dev/edits/issues/74",
+        "createdAt": "2026-08-20T22:20:28Z",
+        "updatedAt": "2026-10-03T20:04:31Z",
+        "retrievedAt": "2026-10-20T12:13:24.234Z"
+      }
+    },
+    {
+      "id": "reserve-016",
+      "sourceId": "R_kgDOTAn-dg/I_kwDOTAn-ds8AAAABIDbiIg",
+      "source": {
+        "repository": "roccho-dev/edits",
+        "repositoryId": "R_kgDOTAn-dg",
+        "issueNodeId": "I_kwDOTAn-ds8AAAABIDbiIg",
+        "number": 37,
+        "url": "https://github.com/roccho-dev/edits/issues/37",
+        "createdAt": "2026-07-08T07:47:16Z",
+        "updatedAt": "2026-07-09T00:41:40Z",
+        "retrievedAt": "2026-10-20T12:13:24.234Z"
+      }
+    },
+    {
+      "id": "reserve-017",
+      "sourceId": "R_kgDOTKUl1g/I_kwDOTKUl1s8AAAABKLijsw",
+      "source": {
+        "repository": "roccho-dev/diagrams",
+        "repositoryId": "R_kgDOTKUl1g",
+        "issueNodeId": "I_kwDOTKUl1s8AAAABKLijsw",
+        "number": 6,
+        "url": "https://github.com/roccho-dev/diagrams/issues/6",
+        "createdAt": "2026-07-25T23:17:52Z",
+        "updatedAt": "2026-07-28T11:43:41Z",
+        "retrievedAt": "2026-10-20T12:13:31.474Z"
+      }
+    },
+    {
+      "id": "reserve-018",
+      "sourceId": "R_kgDOLS5BLw/I_kwDOLS5BL88AAAABTIATBQ",
+      "source": {
+        "repository": "roccho-dev/windows",
+        "repositoryId": "R_kgDOLS5BLw",
+        "issueNodeId": "I_kwDOLS5BL88AAAABTIATBQ",
+        "number": 2,
+        "url": "https://github.com/roccho-dev/windows/issues/2",
+        "createdAt": "2026-09-25T05:07:21Z",
+        "updatedAt": "2026-09-29T05:35:58Z",
+        "retrievedAt": "2026-10-20T12:12:57.831Z"
+      }
+    },
+    {
+      "id": "reserve-019",
+      "sourceId": "R_kgDOVDniuA/I_kwDOVDniuM8AAAABYDHfwg",
+      "source": {
+        "repository": "roccho-dev/resources",
+        "repositoryId": "R_kgDOVDniuA",
+        "issueNodeId": "I_kwDOVDniuM8AAAABYDHfwg",
+        "number": 50,
+        "url": "https://github.com/roccho-dev/resources/issues/50",
+        "createdAt": "2026-10-18T11:05:21Z",
+        "updatedAt": "2026-10-18T11:09:11Z",
+        "retrievedAt": "2026-10-20T12:13:37.089Z"
+      }
+    },
+    {
+      "id": "reserve-020",
+      "sourceId": "R_kgDOTA3cVw/I_kwDOTA3cV88AAAABHgzUbA",
+      "source": {
+        "repository": "roccho-dev/governance",
+        "repositoryId": "R_kgDOTA3cVw",
+        "issueNodeId": "I_kwDOTA3cV88AAAABHgzUbA",
+        "number": 96,
+        "url": "https://github.com/roccho-dev/governance/issues/96",
+        "createdAt": "2026-07-03T00:34:26Z",
+        "updatedAt": "2026-08-30T07:10:42Z",
+        "retrievedAt": "2026-10-20T12:13:17.384Z"
+      }
+    },
+    {
+      "id": "reserve-021",
+      "sourceId": "R_kgDOVDniuA/I_kwDOVDniuM8AAAABWSdzmw",
+      "source": {
+        "repository": "roccho-dev/resources",
+        "repositoryId": "R_kgDOVDniuA",
+        "issueNodeId": "I_kwDOVDniuM8AAAABWSdzmw",
+        "number": 1,
+        "url": "https://github.com/roccho-dev/resources/issues/1",
+        "createdAt": "2026-10-10T11:18:58Z",
+        "updatedAt": "2026-10-18T23:30:27Z",
+        "retrievedAt": "2026-10-20T12:13:37.089Z"
+      }
+    },
+    {
+      "id": "reserve-022",
+      "sourceId": "R_kgDOTA3cVw/I_kwDOTA3cV88AAAABHnbGpg",
+      "source": {
+        "repository": "roccho-dev/governance",
+        "repositoryId": "R_kgDOTA3cVw",
+        "issueNodeId": "I_kwDOTA3cV88AAAABHnbGpg",
+        "number": 131,
+        "url": "https://github.com/roccho-dev/governance/issues/131",
+        "createdAt": "2026-07-03T20:10:40Z",
+        "updatedAt": "2026-08-30T07:11:06Z",
+        "retrievedAt": "2026-10-20T12:13:17.384Z"
+      }
+    },
+    {
+      "id": "reserve-023",
+      "sourceId": "R_kgDOTA52IA/I_kwDOTA52IM8AAAABPC8M-w",
+      "source": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "R_kgDOTA52IA",
+        "issueNodeId": "I_kwDOTA52IM8AAAABPC8M-w",
+        "number": 192,
+        "url": "https://github.com/roccho-dev/ui/issues/192",
+        "createdAt": "2026-08-31T20:43:48Z",
+        "updatedAt": "2026-08-31T21:55:38Z",
+        "retrievedAt": "2026-10-20T12:13:22.074Z"
+      }
+    }
+  ]
+}

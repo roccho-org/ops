@@ -1,0 +1,169 @@
+{
+  "schema": "ops.sys1.real-case-gold-adjudication.v1",
+  "state": "FROZEN_BEFORE_HELD_MODEL_OUTPUTS_AND_WRITER_DISCLOSURE",
+  "completedAt": "2026-10-20T13:39:37.176Z",
+  "planNativeCommit": "d67843c6d593582a908e509a217754ec5e2d68db",
+  "viewNativeCommit": "e8f6b4922730162c67bcaafd361c33397172c5d7",
+  "rootInitialNativeCommit": "ab09bd217a23e4ce6b955ca13363d17e3ba0c08d",
+  "counterInitialNativeCommit": "d84213c26e358cdb8c5f52c29f88ee5d09659c03",
+  "initialAgreementCases": 22,
+  "initialDisagreementCases": 1,
+  "EAgreementCases": 23,
+  "resolvedCases": 0,
+  "unresolvedCases": 1,
+  "disagreements": [
+    {
+      "id": "reserve-004",
+      "axis": "O",
+      "rootInitial": "no",
+      "counterInitial": null,
+      "rootBasis": "UI責務分類と依存・所有者の完成状態を説明する。参照完成物は入力/基点の指定で、具体的な実施・確認・進捗報告を記していない。",
+      "counterBasis": "責務分類・非重複・実装上の所有者を一意にする目標を宣言。背景の既存UI/shell/OPS配置は現状記述にも設計上の前提/定義にも読め、実際状態報告と断定できない。",
+      "final": null,
+      "basis": "全体はUI責務分類の完成状態・定義だが、UI libraryの実在/具体的repo配置を現状説明として読む余地もある。原O定義だけで二読を解消できずnull保持。参照完成物だけを観測とみなしたり候補補足・多数決で強制しない。"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "reserve-001",
+      "E": "yes",
+      "O": "yes",
+      "basis": "inspect/実行中identityの要件。parentのmerged PR122とstrictloaderで既に計算されるworld identityの状態を明示している。"
+    },
+    {
+      "id": "reserve-002",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge前checklistの必要項目と権限境界を要求するだけで、実際のmerge/検査状況を報告していない。"
+    },
+    {
+      "id": "reserve-003",
+      "E": "yes",
+      "O": "no",
+      "basis": "result/eventの型・復元可能性・受入と将来proofを定義する。Evidence箇条書きは必要物で実施済み報告ではない。"
+    },
+    {
+      "id": "reserve-004",
+      "E": "yes",
+      "O": null,
+      "basis": "全体はUI責務分類の完成状態・定義だが、UI libraryの実在/具体的repo配置を現状説明として読む余地もある。原O定義だけで二読を解消できずnull保持。参照完成物だけを観測とみなしたり候補補足・多数決で強制しない。"
+    },
+    {
+      "id": "reserve-005",
+      "E": "yes",
+      "O": "yes",
+      "basis": "環境値の責務規定と、PR17 merge・source修正確認・bootstrap実施・merge後CI成功という実際のreadbackを併記。"
+    },
+    {
+      "id": "reserve-006",
+      "E": "yes",
+      "O": "no",
+      "basis": "完成条件と将来のProof flow/未確認checklistを規定するだけで、実行した結果を報告しない。"
+    },
+    {
+      "id": "reserve-007",
+      "E": "yes",
+      "O": "no",
+      "basis": "future実装PRの破壊fixture要件・診断・受入とテンプレートのみ。テンプレートのDelta removedを実施報告とみなさない。"
+    },
+    {
+      "id": "reserve-008",
+      "E": "yes",
+      "O": "yes",
+      "basis": "新Control遠景UIの要件と、現在のTreeGrid/rel.parent/collapse実装およびparallel把握の弱さという現状を併記。"
+    },
+    {
+      "id": "reserve-009",
+      "E": "yes",
+      "O": "yes",
+      "basis": "canonical LSPへの要求に加え、hq94にstagedされたLSP/profile/Vim behaviorの現在source状態を述べる。将来canonical完成は推測しない。"
+    },
+    {
+      "id": "reserve-010",
+      "E": "yes",
+      "O": "no",
+      "basis": "current data/tests監査と残骸除去の受入条件を要求するだけで、監査結果や現在発見済みの残骸を報告しない。"
+    },
+    {
+      "id": "reserve-011",
+      "E": "yes",
+      "O": "no",
+      "basis": "core/port/schema adapterの分離とphase順序・PR各受入・期待readbackを規定。existing behaviorの維持条件は実際の結果報告ではない。"
+    },
+    {
+      "id": "reserve-012",
+      "E": "yes",
+      "O": "yes",
+      "basis": "残す不変条件/訂正設計の要求と、議論で過一般化が明確になり310で不要再編を再評価済みという実際の判断・調査経緯を併記。"
+    },
+    {
+      "id": "reserve-013",
+      "E": "yes",
+      "O": "yes",
+      "basis": "official hqへの昇格要件と、現在repoの整理状態・proven reflective runtime・Windows機能/既存proofの状態を報告。"
+    },
+    {
+      "id": "reserve-014",
+      "E": "yes",
+      "O": "no",
+      "basis": "Vimとcompilerの入力契約・受入・禁止を定義する。Evidenceは必要資料の列挙で実施報告ではない。"
+    },
+    {
+      "id": "reserve-015",
+      "E": "yes",
+      "O": "yes",
+      "basis": "OCI/PTYの完成gate要件に加え、deliberately paused handoff・ACTIVE_PROOF・既採択product意味との現時点の関係を報告。実proof成功まで推測しない。"
+    },
+    {
+      "id": "reserve-016",
+      "E": "yes",
+      "O": "yes",
+      "basis": "core/adapterへのrefactor要件と、現コードは正しい挙動/CI-provenだが概念境界にgapがあるという現状報告。"
+    },
+    {
+      "id": "reserve-017",
+      "E": "yes",
+      "O": "yes",
+      "basis": "直接mxGraphModelへの移行要件、15操作/13種等の実行proof報告、既存Venn欠落、現在PASS/NOT_RUN一覧を併記。"
+    },
+    {
+      "id": "reserve-018",
+      "E": "yes",
+      "O": "yes",
+      "basis": "継続する小Nix dev profile等の要件・責務と、方針更新/有効要件の移管/issue置換という実施経緯を報告。"
+    },
+    {
+      "id": "reserve-019",
+      "E": "yes",
+      "O": "yes",
+      "basis": "移行完了要件と権限境界に加え、任意launcherを必須と誤分類したこと・必須FAIL撤回・独立readback確認済みという実施結果を報告。"
+    },
+    {
+      "id": "reserve-020",
+      "E": "yes",
+      "O": "no",
+      "basis": "future governance join PRの入力/出力/検証条件・想定dirty fixtureと報告templateだけで、実生成/検証結果を報告しない。"
+    },
+    {
+      "id": "reserve-021",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Host/Relationの現行責務と旧提案を区別する要求、および最新User方針でADRS採択/実装未完了という現在状態を併記。"
+    },
+    {
+      "id": "reserve-022",
+      "E": "yes",
+      "O": "yes",
+      "basis": "ADRS自己packet/final monitorの完成要件に加え、既存issue coverageと分散closure、131/132/133のopen/draft/blocked等の現在gapを明示報告。"
+    },
+    {
+      "id": "reserve-023",
+      "E": "yes",
+      "O": "yes",
+      "basis": "invocation indexの完成要件と、StatusにIMPLEMENTATION_NOT_STARTED/RED_SPEC_OPENを明示し実装未着手・PR未作成という現時点を報告。"
+    }
+  ],
+  "method": "Two complete independent body-only initial ratings frozen before cross-reading; original split rubric only. Root/R retain unresolved O null. W countermoves on design/source with no reserve body/Gold/hints until next candidate full-wire freeze plus development guard; no third majority imposed on Gold.",
+  "primaryUnchanged": true,
+  "modelPosts": 0
+}

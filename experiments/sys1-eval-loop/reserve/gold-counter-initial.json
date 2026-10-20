@@ -1,0 +1,148 @@
+{
+  "schema": "ops.sys1.real-case-rater.v1",
+  "viewNativeCommit": "e8f6b4922730162c67bcaafd361c33397172c5d7",
+  "rater": "counterreview",
+  "state": "FROZEN_BEFORE_ANY_MODEL_OUTPUTS_OR_ROOT_LABELS",
+  "rubric": "Original experiments/sys1-eval-loop/split.mjs hasExpectation/hasObservation/question; body only; no candidate supplement, source/title/link or other labels",
+  "annotations": [
+    {
+      "id": "reserve-001",
+      "E": "yes",
+      "O": "yes",
+      "basis": "strict inspect/LSP/workerの必須動作・拒否条件を宣言。冒頭でPR122をmergedとし、既存strict loaderによる計算済みidentityも述べる。"
+    },
+    {
+      "id": "reserve-002",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge回答チェックリストの作成・含める項目・明示承認を要求。実施/確認済みの報告はない。"
+    },
+    {
+      "id": "reserve-003",
+      "E": "yes",
+      "O": "no",
+      "basis": "event row種別・再構成可能性・merge条件を規定。チェック欄/必要Evidenceは受入要求であり実績報告ではない。"
+    },
+    {
+      "id": "reserve-004",
+      "E": "yes",
+      "O": null,
+      "basis": "責務分類・非重複・実装上の所有者を一意にする目標を宣言。背景の既存UI/shell/OPS配置は現状記述にも設計上の前提/定義にも読め、実際状態報告と断定できない。"
+    },
+    {
+      "id": "reserve-005",
+      "E": "yes",
+      "O": "yes",
+      "basis": "入力値の配置/lifecycle責務と後続effect前条件を規定。PR17のmergeSHA、確認したsource結果、CI成功と実施済bootstrapを具体的に報告。"
+    },
+    {
+      "id": "reserve-006",
+      "E": "yes",
+      "O": "no",
+      "basis": "一コマンドでqueue/UI/receiptまで再現する完成状態と未チェックの証明条件を規定。列挙フローは期待手順で、実行済み報告はない。"
+    },
+    {
+      "id": "reserve-007",
+      "E": "yes",
+      "O": "no",
+      "basis": "将来PRで追加する破壊fixture/失敗診断/受入条件を要求。templateのDelta等は架空記入例で現状成果ではない。"
+    },
+    {
+      "id": "reserve-008",
+      "E": "yes",
+      "O": "yes",
+      "basis": "遠景UI/LOD/責務/受入proofを具体的に要求。現在ControlのTreeGrid実装と所在、AtlasStage既存動作・既存LODの不足を現状として説明。"
+    },
+    {
+      "id": "reserve-009",
+      "E": "yes",
+      "O": "yes",
+      "basis": "canonical LSP/submitの入出力、拒否条件と実Vim検査を要求。冒頭でhq94にbehaviorがstaged済みと述べ、temporary ops83 binaryへの既存依存も報告。"
+    },
+    {
+      "id": "reserve-010",
+      "E": "yes",
+      "O": "no",
+      "basis": "既存data/testsを監査し残骸があれば除去/追跡する要求。監査済み結果や発見物の報告はない。"
+    },
+    {
+      "id": "reserve-011",
+      "E": "yes",
+      "O": "no",
+      "basis": "core/port抽出→adapter追加の厳密順序、境界、各PRのDoneを宣言。current/proof保存の要求はあるが、実施済み結果や確認状況の具体的報告はない。"
+    },
+    {
+      "id": "reserve-012",
+      "E": "yes",
+      "O": "yes",
+      "basis": "projection責務・open audience・物理再編不要など更新後設計を宣言。過剰一般化が明確になったこと、#310で必要性未証明の再編を除外し再評価済みであることを報告。"
+    },
+    {
+      "id": "reserve-013",
+      "E": "yes",
+      "O": "yes",
+      "basis": "official hq entrypoint/flag/実Tab検査を受入条件化。既にWindows/Linuxでprovenのreflective runtime、Windows機能の存在、残るruntime authority gapを現状として報告。"
+    },
+    {
+      "id": "reserve-014",
+      "E": "yes",
+      "O": "no",
+      "basis": "Vimが送るbuffer/cursor等とcompile/accept境界、検査条件を要求。実装実績や確認済み状況の記載はない。"
+    },
+    {
+      "id": "reserve-015",
+      "E": "yes",
+      "O": "yes",
+      "basis": "pinned Nix/PTY/worker/OCI全証明と拒否条件を要求。引継ぎが意図的にpausedであることと、既acceptedのproduct meaningを維持する現状態を報告。"
+    },
+    {
+      "id": "reserve-016",
+      "E": "yes",
+      "O": "yes",
+      "basis": "core/portとsource/editor adapterの配置・既存検査維持を要求。current code has right behavior、CI-proven behaviorと、現境界の不足を現状報告。"
+    },
+    {
+      "id": "reserve-017",
+      "E": "yes",
+      "O": "yes",
+      "basis": "mxGraphModel直出力、IR削除、G1–G15とcutover条件を要求。既存canonicalのmetadata欠落、添付proofの実動作、baseline/proof PASSとcutover NOT_RUNを報告。"
+    },
+    {
+      "id": "reserve-018",
+      "E": "yes",
+      "O": "yes",
+      "basis": "常設windows-devを増やさない方針と移管した小Nix/host別認証/データ0等の要件を記載。方針更新済み・有効要件をresources52へ移した・置換により閉じる経緯を報告。"
+    },
+    {
+      "id": "reserve-019",
+      "E": "yes",
+      "O": "yes",
+      "basis": "任意launcherを必須へ昇格せず既存境界・通常試験を維持する処遇を宣言。誤分類、必須FAIL撤回、複数PR訂正/独立readback確認済みを具体報告。"
+    },
+    {
+      "id": "reserve-020",
+      "E": "yes",
+      "O": "no",
+      "basis": "将来governance PRのorg join入出力・blocking・Done/NotDoneを要求。Evidence欄やtemplateは提出要件であり実施済み観測ではない。"
+    },
+    {
+      "id": "reserve-021",
+      "E": "yes",
+      "O": "yes",
+      "basis": "resourcesの所有をHost/Relation宣言検証に限定し旧案を現行目標としない要求。正式ADRS採択・実装が未完了で提案/admission未了という現在進捗を明記。"
+    },
+    {
+      "id": "reserve-022",
+      "E": "yes",
+      "O": "yes",
+      "basis": "ADRS output-plane、real packet final monitor、分類/証明書/strict gateの完成条件を詳細要求。現在のissue/PR coverage、残るopen/draft/blocked、adrs133 blocked planなど実際の達成/未達状況を報告。"
+    },
+    {
+      "id": "reserve-023",
+      "E": "yes",
+      "O": "yes",
+      "basis": "決定的index/rebuild、既存Shell、RED→Greenとmerge許可/非スコープを要求。statusがRED_SPEC_OPEN/IMPLEMENTATION_NOT_STARTEDで、本IssueからPRを作っていない現在進捗を明示。"
+    }
+  ],
+  "completedAt": "2026-10-20T13:32:38.413Z"
+}
