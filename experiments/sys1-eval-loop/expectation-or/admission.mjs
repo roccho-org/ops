@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+export const BRANCH='codex/jev-expectation-or-20261021',WORKFLOW='sys1-expectation-or.yml',REQUEST='experiments/sys1-eval-loop/expectation-or/request.json';
+export function admitOrDevelopment(request,env,source,history){
+ assert.deepEqual(Object.keys(request).sort(),['phase','sourceSha']);assert.equal(request.phase,'development');assert.match(request.sourceSha,/^[0-9a-f]{40}$/);
+ for(const [key,value]of Object.entries({GITHUB_REPOSITORY:'roccho-org/ops',GITHUB_EVENT_NAME:'push',GITHUB_ACTOR:'roccho-dev',GITHUB_REF:'refs/heads/'+BRANCH,GITHUB_RUN_ATTEMPT:'1'}))assert.equal(env[key],value);
+ assert.equal(source.head,env.GITHUB_SHA);assert.equal(source.parent,request.sourceSha);assert.deepEqual(source.changed,[REQUEST]);assert.equal(history.total_count,1);assert.equal(history.workflow_runs.length,1);const current=history.workflow_runs[0];assert.equal(String(current.id),env.GITHUB_RUN_ID);assert.equal(current.head_sha,source.head);assert.equal(current.run_attempt,1);assert.equal(current.event,'push');assert.equal(current.actor.login,'roccho-dev');assert.equal(current.head_branch,BRANCH);assert.equal(current.path,'.github/workflows/'+WORKFLOW);return current;
+}
+// These three original native runs are separately qualified/replayed before
+// preparation. The old branch completed D and both H phases, never this branch.
+export function assertOriginalExpectationNative(provider,run,source,phase){
+ assert.ok(['development','census1','census2'].includes(phase));const branch='codex/jev-expectation-census-20261021',workflow='.github/workflows/sys1-expectation-census.yml',requestPath='experiments/sys1-eval-loop/expectation/request.json';
+ for(const [key,value]of Object.entries({repository:'roccho-org/ops',workflowPath:workflow,runAttempt:1,actor:'roccho-dev',event:'push',branch,conclusion:'success'}))assert.equal(provider[key],value);
+ for(const [native,retained]of [['id','runId'],['head_sha','head'],['run_attempt','runAttempt'],['event','event'],['head_branch','branch'],['path','workflowPath'],['html_url','runUrl'],['conclusion','conclusion']])assert.equal(run[native],provider[retained]);assert.equal(run.status,'completed');assert.equal(run.actor.login,provider.actor);assert.equal(provider.runUrl,`https://github.com/roccho-org/ops/actions/runs/${provider.runId}`);
+ assert.equal(source.head,provider.head);assert.equal(source.parent,provider.source);assert.deepEqual(source.changed,[requestPath]);assert.deepEqual(source.request,{phase,sourceSha:provider.source});
+}

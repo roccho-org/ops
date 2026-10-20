@@ -17,6 +17,7 @@ const OBSERVATION_WORKFLOW = ".github/workflows/sys1-observation-improvement.yml
 const RESERVE_WORKFLOW = ".github/workflows/sys1-observation-reserve.yml";
 const CENSUS_WORKFLOW = ".github/workflows/sys1-observation-census.yml";
 const EXPECTATION_WORKFLOW = ".github/workflows/sys1-expectation-census.yml";
+const EXPECTATION_OR_WORKFLOW = ".github/workflows/sys1-expectation-or.yml";
 const REGRESSION_WORKFLOW = ".github/workflows/sys1-regression-repair.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
@@ -182,6 +183,10 @@ export function analyzeEffectWorkflow(workflow, boundary) {
     }
     if (boundary.path === EXPECTATION_WORKFLOW) {
       assertExpectationWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === EXPECTATION_OR_WORKFLOW) {
+      assertExpectationOrWorkflow(workflow,boundary);
       return {issues,contributingJobs:['evaluate']};
     }
     if (boundary.path === OBSERVATION_WORKFLOW) {
@@ -517,6 +522,16 @@ export function assertExpectationWorkflow(w,b){
   need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-expectation-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation','if-no-files-found':'ignore','retention-days':30}),'expectation receipt differs');
   v.on.push.branches=['codex/jev-observation-reserve-20261020'];v.on.push.paths=['experiments/sys1-eval-loop/reserve/request.json'];v.concurrency.group='sys1-observation-reserve';v.jobs.evaluate['timeout-minutes']=170;
   s[5].with={name:'sys1-reserve-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/reserve','if-no-files-found':'ignore','retention-days':30};assertReserveWorkflow(v,{...b,maxCalls:1984});
+}
+export function assertExpectationOrWorkflow(w,b){
+  need(b.maxCalls===3052,'OR fixed series bound differs');
+  need(same(w.on?.push?.branches??[],['codex/jev-expectation-or-20261021'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/expectation-or/request.json']),'OR entry differs');
+  need(w.concurrency?.group==='sys1-expectation-or'&&w.jobs?.evaluate?.['timeout-minutes']===350,'OR development deadline differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/expectation-or/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-or"','OR command differs');s[n].run='node experiments/sys1-eval-loop/expectation/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation"';}
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-expectation-or-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation-or','if-no-files-found':'ignore','retention-days':30}),'OR receipt differs');
+  v.on.push.branches=['codex/jev-expectation-census-20261021'];v.on.push.paths=['experiments/sys1-eval-loop/expectation/request.json'];v.concurrency.group='sys1-expectation-census';v.jobs.evaluate['timeout-minutes']=250;
+  s[5].with={name:'sys1-expectation-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation','if-no-files-found':'ignore','retention-days':30};assertExpectationWorkflow(v,{...b,maxCalls:2307});
 }
 export function assertReserveWorkflow(w,b){
   need(b.maxCalls===1984,'reserve series bound differs');
