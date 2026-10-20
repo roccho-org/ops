@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const EXACT = "${{ github.sha }}";
 const JEV_ORG_WORKFLOW = ".github/workflows/jev-issue-comment.yml";
-const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' && github.event.issue.number == 573 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 511))";
+const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 609 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 609)))";
 const JEV_PLAN_RUN = [
   'set -euo pipefail',
   '"$JEV_NODE" "$JEV_SRC/issue-executor.mjs" plan "$JEV_RUN_DIR"',
@@ -319,6 +319,7 @@ export function selftest() {
     {name:"Resolve fixed jev-review runtime before any credential use",run:`runtime_source=${runtime}\ntest "$(git rev-parse HEAD)" = "$runtime_source"\necho "JEV_EXECUTION_SOURCE=$runtime_source" >> "$GITHUB_ENV"`});
   assert.deepEqual(analyzeEffectWorkflow(reusable,reusablePolicy).issues,[]);
   const reusableCases = [
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replaceAll("== 609","== 610");},
     w=>{w.on.workflow_call.inputs={program:{type:"string"}};},
     w=>{w.on.workflow_call.secrets.EXTRA={required:true};},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("== 52","== 53");},
@@ -326,7 +327,7 @@ export function selftest() {
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("== 511","== 512");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replaceAll("== 573","== 574");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replaceAll("== 573","== 573 || github.event.issue.number == 574");},
-    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.number == 573 && startsWith", "startsWith");},
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.number == 609 && startsWith", "startsWith");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.pull_request == null && ", "");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace('fromJSON(\'"/jev-evaluate\\n"\')', '\'/jev-evaluate\'');},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("startsWith(github.event.comment.body", "contains(github.event.comment.body");},
@@ -335,15 +336,16 @@ export function selftest() {
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.pull_request != null && ","");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("Organization","User");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("/jev-evaluate","/other");},
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace(" && (github.event.issue.pull_request == null || github.event.issue.number == 511)", "");},
     w=>{w.jobs.evaluate.if+=" || true";},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("== 511","== 511 || github.event.issue.number == 512");},
-    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.repository == 'roccho-org/ops' && github.event.issue.number == 511", "github.event.issue.number == 511");},
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 609)", "(github.event.issue.number == 511 || github.event.issue.number == 609)");},
     w=>{w.jobs.evaluate.steps[0].with.ref="proposals";},
     w=>{w.jobs.evaluate.steps[0].with.repository="other/ops";},
     w=>{w.jobs.evaluate.steps[0].with["persist-credentials"]=true;},
     w=>{w.jobs.evaluate.steps[1].run="echo ready";},
   ];
-  for (const mutate of reusableCases) {const w=structuredClone(reusable);mutate(w);assert.ok(analyzeEffectWorkflow(w,reusablePolicy).issues.length);}
+  for (const mutate of reusableCases) {const w=structuredClone(reusable),before=JSON.stringify(w);mutate(w);assert.notEqual(JSON.stringify(w),before);assert.ok(analyzeEffectWorkflow(w,reusablePolicy).issues.length);}
   const parity=structuredClone(safe);
   parity.jobs.materialize.steps.push({if:"github.event_name == 'pull_request'",run:"git clone public-fixture"});
   assert.deepEqual(analyzeEffectWorkflow(parity,policy).issues,[]);

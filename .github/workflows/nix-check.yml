@@ -91,6 +91,7 @@ jobs:
           [[ ${exec_lines[0]} =~ $pattern ]]
           node="${BASH_REMATCH[1]}" source="${BASH_REMATCH[2]}"
           diff -r "$source" packages/jev-review # provided source is exactly the checked package directory
+          "$node" --test experiments/goal-evaluation-unix/prepare.test.mjs
           assembly="${source%/jev-review}" sibling="$assembly/jev"
           test "$(find "$assembly" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | paste -sd ' ')" = "jev jev-review"
           diff -r "$sibling" packages/jev # the shared provider is supplied, not an ambient import

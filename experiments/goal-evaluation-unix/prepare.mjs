@@ -3,7 +3,10 @@
 // provided-request projection, optionally with a supplied English subject rendering. No client, auth, model, renderer,
 // posting or Core change; readers are caller-owned ports.
 import { createHash } from 'node:crypto';
-import { REQUEST_PREFIX, RESULT_PREFIX, COMMAND_OBSERVATION, ISSUE_KEYS, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { REQUEST_PREFIX, parseResultComment, COMMAND_OBSERVATION, ISSUE_KEYS, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { exact } from '../../packages/jev-review/semlint-entry.mjs';
 import { validateJevBudget } from '../../packages/jev-review/core.mjs';
@@ -78,8 +81,8 @@ function executorResult(commentsReceipt, expected) {
   if (commentsReceipt?.status !== 'OK' || commentsReceipt.complete !== true) return hold('INPUT_' + (commentsReceipt?.status === 'OK' ? 'INCOMPLETE' : commentsReceipt?.status ?? 'MISSING'));
   const comments = parse(commentsReceipt.content);
   if (!Array.isArray(comments)) return hold('COMMENTS_UNREADABLE');
-  const results = comments.filter(c => c?.user?.login === EXECUTOR_LOGIN && typeof c.body === 'string' && c.body.startsWith(RESULT_PREFIX))
-    .map(c => ({ comment: c, envelope: parse(c.body.slice(RESULT_PREFIX.length)) }))
+  const results = comments.filter(c => c?.user?.login === EXECUTOR_LOGIN && typeof c.body === 'string')
+    .map(c => ({ comment: c, envelope: parseResultComment(c.body) }))
     .filter(({ envelope }) => envelope?.identity?.commentId === expected.commandCommentId);
   if (results.length !== 1) return hold(results.length ? 'EXECUTOR_RESULT_AMBIGUOUS' : 'REVISION_UNOBSERVED');
   return results[0];
@@ -507,3 +510,32 @@ export function fidelityFromReview({ approved, reviewReceipt, envelopeSha256, ch
 
 // Explicit finite native product caller; importing does not start an operation.
 export { bindNativeProductCaller } from './native-caller.mjs';
+
+// Local preparation only: preserve the complete projection beside its exact, optional command.
+export function prepareMain(args = process.argv.slice(2)) {
+  const [inputFile, outputDirectory, extra] = args;
+  if (!inputFile || !outputDirectory || extra !== undefined) throw new Error('INVALID_PREPARE_ARGS');
+  const input = JSON.parse(readFileSync(inputFile, 'utf8'));
+  if (!exact(input, ['plan', 'subject']) && !exact(input, ['plan', 'subject', 'options'])) throw new Error('INVALID_PREPARE_INPUT');
+  const options = input.options === undefined ? {} : input.options;
+  if (!options || ![Object.prototype, null].includes(Object.getPrototypeOf(options))) throw new Error('INVALID_PREPARE_INPUT');
+  const projection = project(input.plan, input.subject, options);
+  const artifact = JSON.stringify(projection) + '\n';
+  mkdirSync(outputDirectory, { mode: 0o700 });
+  writeFileSync(join(outputDirectory, 'projection.json'), artifact, { flag: 'wx', mode: 0o600 });
+  const commandWritten = projection.emittable === true;
+  if (commandWritten) writeFileSync(join(outputDirectory, 'command.txt'), projection.envelope, { flag: 'wx', mode: 0o600 });
+  return { status: projection.status, emittable: commandWritten, postingAuthorized: false,
+    projectionBytes: Buffer.byteLength(artifact), commandBytes: commandWritten ? Buffer.byteLength(projection.envelope) : null,
+    notProjected: projection.notProjected?.length ?? null, missing: projection.missing?.length ?? null };
+}
+
+if (!process.execArgv.some(arg => arg === '-e' || arg === '--eval' || arg.startsWith('--eval='))
+  && process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try { process.stdout.write(JSON.stringify(prepareMain()) + '\n'); }
+  catch (error) {
+    const code = ['EEXIST', 'ENOENT', 'ENOTDIR', 'EACCES', 'EPERM', 'ENOSPC'].includes(error?.code) ? error.code : 'INVALID_INPUT';
+    process.stderr.write(JSON.stringify({ status: 'ERROR', cause: 'PREPARATION_FAILED', code }) + '\n');
+    process.exitCode = 1;
+  }
+}

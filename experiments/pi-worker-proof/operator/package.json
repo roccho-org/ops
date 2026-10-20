@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test auth.test.mjs"
+  },
+  "dependencies": {
+    "jose": "6.2.12",
+    "ws": "8.22.0"
+  }
+}

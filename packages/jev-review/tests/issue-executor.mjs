@@ -1,3 +1,4 @@
+import { historicalActionsConfig } from './historical-actions-config.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -6,8 +7,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { JEV_MODEL, validateJevBudget } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
-import { ENTRY_LIMITS, preparePlan, executeOwnerPlan } from '../semlint-entry.mjs';
-import { REQUEST_PREFIX, RESULT_PREFIX, PROVIDED_COMMAND_OBSERVATION, validateActionsConfig, selectRunRange, subjectRevision, admitIssueCommand,
+import { ENTRY_LIMITS, preparePlan, executeOwnerPlan, runPlan } from '../semlint-entry.mjs';
+import { REQUEST_PREFIX, RESULT_PREFIX, parseResultComment, PROVIDED_COMMAND_OBSERVATION, validateActionsConfig, selectRunRange, subjectRevision, admitIssueCommand,
   composeResultComment, deriveIssuePrior, verifyResultReadback } from '../github-comment.mjs';
 import { EXECUTOR_LOGIN, CLAIM, ISSUE_QUERY, PULL_REQUEST_QUERY, COMMENT_QUERY, SUBJECT_QUERY, PRE_PROVIDER_CAUSES, planIssueCommand, postIssueCommand,
   classifyOwnerOutput, decodeFullDatabaseId, claimResponseDiagnostics, githubDeps } from '../issue-executor.mjs';
@@ -28,7 +29,7 @@ const REPO = 'roccho-dev/ops', OWNER = 'roccho-dev', TRUSTED = 'fixture-member',
 const WF_PATH = '.github/workflows/jev-issue-comment.yml';
 // Historical controls keep their original grants; they do not describe today's shipped target.
 const legacyActionsConfig = () => {
-  const raw = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const raw = historicalActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   const origin = raw.targets.find((t) => t.repository === 'roccho-org/ops' && t.issue === 573);
   origin.issue = 483;
   delete origin.subject;
@@ -36,9 +37,9 @@ const legacyActionsConfig = () => {
   raw.providedRequestTargets = [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 }];
   return raw;
 };
-// The current published configuration adds exactly one reservation and binds its sole provided origin.
+// Historical per-run reservations stay exact; a shared anchor adds one total call across its event window.
 {
-  const raw = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const raw = historicalActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   validateActionsConfig(raw);
   assert.deepEqual(raw.providedRequestTargets, [{ repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 573 }]);
   assert.deepEqual(raw.targets, [
@@ -48,13 +49,17 @@ const legacyActionsConfig = () => {
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 511 },
     { repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 536 },
   ]);
-  assert.deepEqual(raw.runRanges.slice(7), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+  assert.deepEqual(raw.runRanges.slice(7, 9), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
     first: 190, last: 190, reservedCallsPerRun: 1, target: { issue: 573 } },
   { repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
     first: 191, last: 191, reservedCallsPerRun: 1, target: { issue: 573 } }]);
   assert.equal(raw.runRanges.slice(0, 7).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 206);
   assert.equal(raw.runRanges.slice(0, 8).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 207);
-  assert.equal(raw.runRanges.reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 208);
+  assert.equal(raw.runRanges.slice(0, 9).reduce((n, r) => n + (r.last - r.first + 1) * r.reservedCallsPerRun, 0), 208);
+  assert.deepEqual(raw.runRanges.slice(9), [{ repository: 'roccho-org/ops', workflowId: 377399991, path: WF_PATH,
+    first: 207, last: 270, reservedCallsPerRun: 1, target: { issue: 573 }, budgetClaimCommentId: 6260070353 }]);
+  assert.equal(raw.runRanges.reduce((n, r) => n + (r.budgetClaimCommentId === undefined
+    ? r.last - r.first + 1 : 1) * r.reservedCallsPerRun, 0), 209);
 }
 const CHECKS = ['aligned.authority-grant', 'closed.feedback-completion', 'unique.canonical-responsibility',
   'minimal.necessary-layer', 'measurable.attempt-accounting', 'improving.comparable-evidence'];
@@ -203,6 +208,112 @@ const outcome = (r) => [r.post.outcome, r.post.cause];
 let scenarios = 0;
 const check = async (name, fn) => { await fn(); scenarios++; };
 
+await check('shared-budget-config-is-closed-target-and-one-call', async () => {
+  const anchored = range({ target: { issue: 483 }, budgetClaimCommentId: 9000 });
+  validateActionsConfig(config({ runRanges: [anchored] }));
+  validateActionsConfig(config({ targets: [...config().targets, { repository: REPO, repositoryId: '456', pullRequest: 511 }],
+    runRanges: [{ ...anchored, target: { pullRequest: 511 } }] }));
+  for (const budgetClaimCommentId of [0, -1, 1.5, '9000', null, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => validateActionsConfig(config({ runRanges: [{ ...anchored, budgetClaimCommentId }] })), /INVALID_ACTIONS_CONFIG/);
+  }
+  const { target, ...withoutTarget } = anchored;
+  for (const invalid of [withoutTarget, { ...anchored, target: { pullRequest: 511 } },
+    { ...anchored, reservedCallsPerRun: 2 }, { ...anchored, unsupported: true }]) {
+    assert.throws(() => validateActionsConfig(config({ runRanges: [invalid] })), /INVALID_ACTIONS_CONFIG/);
+  }
+  assert.throws(() => validateActionsConfig(config({ limits: { ...ENTRY_LIMITS, maxCases: 1, maxCalls: 2 },
+    runRanges: [anchored] })), /INVALID_ACTIONS_CONFIG/);
+});
+
+for (const sharedKind of ['issue', 'pull-request']) {
+  const sharedTarget = sharedKind === 'issue' ? { issue: 483 } : { pullRequest: 511 };
+  const sharedWorld = () => world(REPO, sharedKind === 'issue' ? 483 : 511, WF, sharedKind);
+  const sharedConfig = (over) => config({ ...over, targets: [...config().targets, ...(sharedKind === 'issue' ? [] : [{ repository: REPO, repositoryId: '456', pullRequest: 511 }])] });
+  const sharedCheck = (name, fn) => check(name + '-' + sharedKind, fn);
+await sharedCheck('shared-budget-distinct-concurrent-commands-call-provider-once', async () => {
+  const w = sharedWorld(), anchor = w.addComment({ body: 'One reviewed budget anchor, not a command.' });
+  const commands = [w.addComment(), w.addComment()];
+  const cfg = sharedConfig({ runRanges: [range({ first: 3, last: 9, target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
+  const results = await Promise.all(commands.map((c, i) => fullRun(w, c, { cfg, run: w.newRun({ run_number: i ? 9 : 3 }) })));
+  assert.equal(results.filter((r) => r.plan.budgetClaimed === true).length, 1);
+  assert.equal(results.filter((r) => r.plan.cause === 'BUDGET_ALREADY_CLAIMED').length, 1);
+  assert.equal(w.calls.fetch, 1);
+  assert.equal(anchor.reactions.filter((r) => r.user === EXECUTOR_LOGIN).length, 1);
+  assert.equal(w.calls.claim, 4);
+});
+
+await sharedCheck('shared-budget-does-not-broaden-ordinal-or-attempt', async () => {
+  for (const runOver of [{ run_number: 2 }, { run_number: 10 }, { run_number: 3, run_attempt: 2 }]) {
+    const w = sharedWorld(), anchor = w.addComment(), c = w.addComment();
+    const cfg = sharedConfig({ runRanges: [range({ first: 3, last: 9, target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
+    const r = await fullRun(w, c, { cfg, run: w.newRun(runOver) });
+    assert.equal(r.planBody, undefined);
+    assert.deepEqual(effects(w), zero);
+  }
+});
+
+await sharedCheck('shared-budget-reread-drift-forfeits-the-slot-for-later-commands', async () => {
+  const w = sharedWorld(), anchor = w.addComment(), first = w.addComment(), later = w.addComment();
+  w.hooks.afterClaim = (_w, comment, reply) => {
+    if (comment === anchor && reply.status === 201) first.body = '/jev-evaluate changed after claim';
+    return reply;
+  };
+  const cfg = sharedConfig({ runRanges: [range({ target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
+  const stopped = await fullRun(w, first, { cfg });
+  assert.equal(stopped.plan.budgetClaimed, true);
+  assert.equal(stopped.planBody, undefined);
+  assert.equal(w.calls.fetch, 0);
+  const refused = await fullRun(w, later, { cfg });
+  assert.equal(refused.plan.cause, 'BUDGET_ALREADY_CLAIMED');
+  assert.equal(refused.planBody, undefined);
+  assert.equal(w.calls.fetch, 0);
+  assert.equal(w.calls.claim, 4);
+  assert.equal(anchor.reactions.length, 1);
+});
+
+await sharedCheck('shared-budget-unknown-and-foreign-response-forfeit-without-provider', async () => {
+  for (const response of [new Error('ambiguous delivery'), { status: 201, json: { user: { login: 'foreign' }, content: 'eyes' } },
+    { status: 201, json: { user: { login: EXECUTOR_LOGIN }, content: 'heart' } }, { status: 502, json: {} },
+    { status: { private: 'SYNTHETIC_PRIVATE_STATUS' }, json: {} }, { status: '201', json: {} }, null]) {
+    const w = sharedWorld(), anchor = w.addComment(), c = w.addComment();
+    w.hooks.afterClaim = (_w, comment, reply) => comment === anchor ? response : reply;
+    const cfg = sharedConfig({ runRanges: [range({ target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
+    const r = await fullRun(w, c, { cfg });
+    assert.equal(r.plan.budgetClaimed, 'UNKNOWN');
+    assert.ok(r.plan.budgetClaimHTTPStatus === null || (Number.isInteger(r.plan.budgetClaimHTTPStatus)
+      && r.plan.budgetClaimHTTPStatus >= 100 && r.plan.budgetClaimHTTPStatus <= 599));
+    assert.equal(JSON.stringify(r.plan).includes('SYNTHETIC_PRIVATE_STATUS'), false);
+    assert.equal(r.planBody, undefined);
+    assert.equal(w.calls.fetch, 0);
+    assert.equal(w.calls.claim, 2);
+    assert.equal(anchor.reactions.length, 1);
+  }
+});
+
+await sharedCheck('shared-budget-existing-claim-never-releases-or-retries', async () => {
+  const w = sharedWorld(), anchor = w.addComment({ reactions: [{ user: EXECUTOR_LOGIN }] }), c = w.addComment();
+  const cfg = sharedConfig({ runRanges: [range({ target: sharedTarget, budgetClaimCommentId: anchor.databaseId })] });
+  const r = await fullRun(w, c, { cfg });
+  assert.equal(r.plan.cause, 'BUDGET_ALREADY_CLAIMED');
+  assert.equal(r.plan.budgetClaimed, false);
+  assert.equal(r.planBody, undefined);
+  assert.equal(w.calls.fetch, 0);
+  assert.equal(w.calls.claim, 2);
+  assert.equal(anchor.reactions.length, 1);
+});
+
+}
+
+await check('shared-budget-PR-anchor-does-not-grant-other-targets', async () => {
+  const cfg = config({ targets: [...config().targets, { repository: REPO, repositoryId: '456', pullRequest: 511 }],
+    runRanges: [range({ target: { pullRequest: 511 }, budgetClaimCommentId: 9000 })] });
+  for (const w of [world(REPO, 512, WF, 'pull-request'), world(REPO, 511, WF, 'issue'), world('other/ops', 511, WF, 'pull-request')]) {
+    const r = await fullRun(w, w.addComment(), { cfg });
+    assert.equal(r.planBody, undefined);
+    assert.deepEqual(effects(w), zero);
+  }
+});
+
 await check('claim-response-allowlist', async () => {
   const empty = { httpStatus: null, requestId: null, acceptedPermissions: null, errorCode: null,
     reactionId: null, reactionLogin: null, reactionContent: null };
@@ -326,7 +437,7 @@ await check('normal-first-and-later', async () => {
   const posted = w.posted[0];
   assert.equal(posted.author, EXECUTOR_LOGIN); assert.ok(posted.body.startsWith(RESULT_PREFIX));
   assert.equal(posted.body.includes('synthetic-fixture-key'), false);
-  const { identity } = JSON.parse(posted.body.slice(RESULT_PREFIX.length));
+  const { identity } = parseResultComment(posted.body);
   assert.deepEqual(identity.run, { id: r1.run.id, number: 1, attempt: 1, workflowId: WF });
   assert.equal(identity.commentId, c1.databaseId); assert.equal(identity.executionSource, SHA); assert.equal(identity.author, TRUSTED);
   assert.equal(identity.observation, 'ACTIONS_TRUSTED_LITERAL_COMMAND'); assert.equal('action' in identity, false);
@@ -337,6 +448,19 @@ await check('normal-first-and-later', async () => {
   const r2 = await fullRun(w, c2);
   assert.deepEqual(outcome(r2), ['APPENDED', 'READBACK_EXACT']); assert.equal(r2.run.run_number, 2);
   assert.deepEqual(effects(w), { claim: 2, fetch: 2, post: 2 });
+});
+
+
+await check('legacy-result-redelivery-has-no-provider-or-post', async () => {
+  const w = world(), command = w.addComment();
+  const first = await fullRun(w, command);
+  assert.equal(first.post.cause, 'READBACK_EXACT');
+  const posted = w.posted[0];
+  posted.body = RESULT_PREFIX + JSON.stringify(parseResultComment(posted.body)) + '\n';
+  const before = effects(w);
+  const next = await fullRun(w, command, { run: first.run });
+  assert.equal(next.planBody, undefined);
+  assert.deepEqual(effects(w), before);
 });
 
 // Hard reservation: attempted provider calls <= sum(width x reserved), independent of comment history.
@@ -356,7 +480,7 @@ await check('reservation-bound', async () => {
   assert.equal(selectRunRange(config({ limits: { ...ENTRY_LIMITS, maxCalls: 2 } }), run).callsPerRun, 1);
   assert.equal(selectRunRange(config({ limits: { ...ENTRY_LIMITS, maxCalls: 2 }, runRanges: [range({ reservedCallsPerRun: 3 })] }), run).callsPerRun, 2);
   // Explicit unconfigured settings stay a source hold, independent of later authorized adoption.
-  const shipped = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const shipped = historicalActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   validateActionsConfig(shipped);
   const held = { ...shipped, trustedCallers: [], context: [], runRanges: [], targets: [], providedRequestTargets: [], provider: null };
   const s = world(); const rs = await fullRun(s, s.addComment(), { cfg: held });
@@ -453,7 +577,7 @@ await check('target-scoped-run-ranges', async () => {
     // The existing receipt and result identity shapes are unchanged (no target key is added to either run record).
     assert.deepEqual(r.plan.run, { id: run.id, number: runNumber, attempt: 1, workflowId: WF });
     assert.deepEqual(Object.keys(r.plan.run), ['id', 'number', 'attempt', 'workflowId']);
-    const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length));
+    const { identity } = parseResultComment(w.posted[0].body);
     assert.deepEqual(identity.run, { id: run.id, number: runNumber, attempt: 1, workflowId: WF });
   }
   // Pure admission re-selects with the snapshot target: a state rewritten to another target never spends a scoped slot.
@@ -748,7 +872,7 @@ await check('real-scale-id', async () => {
   const r = await fullRun(w, c);
   assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.equal(r.post.commentId, BIG); assert.equal(r.post.resultId, 5969700001);
   assert.deepEqual(c.reactions, [{ user: EXECUTOR_LOGIN }]);
-  assert.equal(JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length)).identity.commentId, BIG);
+  assert.equal(parseResultComment(w.posted[0].body).identity.commentId, BIG);
   for (const [wire, extra] of [[BIG], ['0'], ['05969636905'], ['1e10'], [' 1'], ['9007199254740993'], [null], [String(BIG), { databaseId: 1674670121 }]]) {
     const m = world(); m.nextId = BIG; const bad = m.addComment({ wireId: wire, ...(extra ? { extraKeys: extra } : {}) });
     assert.deepEqual(outcome(await fullRun(m, bad)), ['NONE', 'SNAPSHOT_UNKNOWN']); assert.deepEqual(effects(m), zero);
@@ -819,7 +943,7 @@ await check('same-issue-across-repositories', async () => {
   for (let i = 0; i < 2; i++) {
     const r = await fullRun(w, w.addComment(), { cfg });
     assert.deepEqual([r.post.outcome, r.post.cause], ['APPENDED', 'READBACK_EXACT']);
-    const identity = JSON.parse(w.posted[i].body.slice(RESULT_PREFIX.length)).identity;
+    const identity = parseResultComment(w.posted[i].body).identity;
     assert.deepEqual([identity.repository, identity.issue, identity.executionSource], [repo, 52, SHA]);
   }
   assert.deepEqual(effects(w), { claim: 2, fetch: 2, post: 2 });
@@ -880,14 +1004,14 @@ await check('provided-v14-native-full-subject-and-six-criteria', async () => {
   const result = await fullRun(fixture, command, { cfg });
   assert.deepEqual(outcome(result), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(fixture), { claim: 1, fetch: 1, post: 1 });
   assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases)); assert.equal(result.planBody.limits.maxCalls, 1); assert.equal(result.planBody.limits.maxCases, 1);
-  const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
+  const envelope = parseResultComment(fixture.posted[0].body);
   assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION); assert.equal(envelope.identity.executionSource, SHA);
   assert.equal(envelope.identity.bodyDigest, hash(JSON.stringify(command.body)));
   assert.equal(envelope.result.cases[0].result.schema, 'ops.semlint.result.v14');
   assert.equal(envelope.result.cases[0].result.counts.evaluated, 6); assert.ok(envelope.result.cases[0].result.projection.stateDigest);
   assert.deepEqual(outcome(await fullRun(fixture, command, { cfg })), ['NONE', 'STARTED']);
   const literal = prWorld(); assert.deepEqual(outcome(await fullRun(literal, literal.addComment(), { cfg })), ['APPENDED', 'READBACK_EXACT']);
-  assert.equal(JSON.parse(literal.posted[0].body.slice(RESULT_PREFIX.length)).identity.observation, 'ACTIONS_TRUSTED_LITERAL_COMMAND');
+  assert.equal(parseResultComment(literal.posted[0].body).identity.observation, 'ACTIONS_TRUSTED_LITERAL_COMMAND');
 });
 
 await check('provided-v14-closed-request-refusals-before-claim', async () => {
@@ -948,7 +1072,7 @@ await check('provided-v14-granted-subject-auxiliary', async () => {
     assert.deepEqual(outcome(result), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(fixture), { claim: 1, fetch: 1, post: 1 });
     assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases));
     assert.equal(CJK.test(sent), false); assert.ok(sent.includes(EN)); // the original stays the source of record, not the wire
-    const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
+    const envelope = parseResultComment(fixture.posted[0].body);
     assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION); assert.equal(envelope.result.cases[0].result.schema, 'ops.semlint.result.v14');
   }
   for (const [world_, alter, cause] of [
@@ -1024,7 +1148,7 @@ await check('provided-v14-granted-subject-auxiliary', async () => {
     const english = prWorld(), englishRun = await fullRun(english, english.addComment(), { cfg: providedConfig() });
     assert.deepEqual(outcome(englishRun), ['APPENDED', 'READBACK_EXACT']);
     assert.equal(englishRun.plan.outcome, 'PLANNED'); assert.equal(Object.hasOwn(englishRun.plan, 'observed'), false);
-    assert.equal(english.posted.some((c) => c.body.includes('observed')), false);
+    assert.equal(english.posted.some((c) => Object.hasOwn(parseResultComment(c.body), 'observed')), false);
   }
 });
 
@@ -1070,7 +1194,7 @@ await check('pull-request-first-and-next', async () => {
     assert.equal(subject.scope, 'entire body of the approved pull request at the observed revision');
     assert.deepEqual(result.planBody.cases[0].input.checks, CHECKS);
     assert.ok(result.planBody.cases[0].input.context.every(row => row.revision === SHA && row.ref.endsWith(`@${SHA}`)));
-    const envelope = JSON.parse(fixture.posted[index].body.slice(RESULT_PREFIX.length));
+    const envelope = parseResultComment(fixture.posted[index].body);
     assert.equal(envelope.authority, false); assert.equal(envelope.identity.targetKind, 'pull-request');
     assert.equal(envelope.identity.issue, PR_NUMBER); assert.equal(envelope.identity.issueNodeId, `PR_${PR_NUMBER}`);
     assert.equal(envelope.identity.executionSource, SHA); assert.equal(envelope.identity.commentId, command.databaseId);
@@ -1080,7 +1204,7 @@ await check('pull-request-first-and-next', async () => {
   assert.deepEqual(effects(fixture), { claim: 2, fetch: 2, post: 2 });
   const legacy = world();
   assert.deepEqual(outcome(await fullRun(legacy, legacy.addComment(), { cfg })), ['APPENDED', 'READBACK_EXACT']);
-  assert.equal(Object.hasOwn(JSON.parse(legacy.posted[0].body.slice(RESULT_PREFIX.length)).identity, 'targetKind'), false);
+  assert.equal(Object.hasOwn(parseResultComment(legacy.posted[0].body).identity, 'targetKind'), false);
 });
 
 await check('pull-request-closed-targets', async () => {
@@ -1316,7 +1440,7 @@ await check('configured-exact-ops511-ops536-and-legacy-targets', async () => {
     assert.deepEqual(outcome(result), admitted ? ['APPENDED', 'READBACK_EXACT'] : ['NONE', 'TARGET_NOT_AUTHORIZED']);
     assert.deepEqual(effects(fixture), admitted ? { claim: 1, fetch: 1, post: 1 } : zero);
     if (admitted) {
-      const identity = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+      const identity = parseResultComment(fixture.posted[0].body).identity;
       assert.equal(identity.repository, repository); assert.equal(identity.issue, number);
       assert.equal(identity.targetKind, targetKind === 'pull-request' ? targetKind : undefined);
     }
@@ -1386,7 +1510,7 @@ await check('configured-pr536-provided-full-body-and-exclusive-grant', async () 
     assert.deepEqual(effects(fixture), { claim: 1, fetch: 1, post: 1 });
     assert.equal(nativeReads, 9);
     assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases));
-    const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
+    const envelope = parseResultComment(fixture.posted[0].body);
     assert.equal(envelope.identity.issue, 536); assert.equal(envelope.identity.targetKind, 'pull-request');
     assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION);
     assert.deepEqual(envelope.identity.run, { id: run.id, number: 104, attempt: 1, workflowId: 377399991 });
@@ -1552,7 +1676,7 @@ await check('subject-granted-literal', async () => {
   const r = await fullRun(w, w.addComment(), { cfg });
   assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 1 });
   assert.equal(w.calls.subjectQ, 3); // admission, before the call, before posting
-  const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length)), input = r.planBody.cases[0].input;
+  const { identity } = parseResultComment(w.posted[0].body), input = r.planBody.cases[0].input;
   const originRevision = subjectRevision({ number: 483, nodeId: 'I_483', body: w.issue.body, lastEditedAt: null, includesCreatedEdit: false,
     userContentEditsTotal: 0 });
   // Top-level issue/issueNodeId/subjectRevision stay the origin; identity.subject and the semlint input name the evaluated Issue.
@@ -1653,7 +1777,7 @@ await check('subject-state-sink-and-readback', async () => {
   // Read-back and prior derivation bind identity.subject, and the sink is only ever the origin.
   const request = await admitIssueCommand(p.state.admission, cfg);
   const body = composeResultComment(request, zeroClock(JSON.parse(out.stdout)));
-  const envelope = JSON.parse(body.slice(RESULT_PREFIX.length));
+  const envelope = parseResultComment(body);
   const swapped = RESULT_PREFIX + JSON.stringify({ ...envelope, identity: { ...envelope.identity, subject: { ...envelope.identity.subject, number: 95 } } }) + '\n';
   const at = (repository, issue, text) => ({ repository, issue, id: 9001, author: EXECUTOR_LOGIN, body: text });
   assert.equal(verifyResultReadback(request, body, at(REPO, 483, body), EXECUTOR_LOGIN, 9001), true);
@@ -1741,7 +1865,7 @@ await check('issue-provided-request-first-and-next', async () => {
   assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 1 });
   assert.equal(w.calls.subjectQ, 3); // admission, before the call, before posting
   assert.equal(JSON.stringify(r.planBody.cases), JSON.stringify(payload.cases));
-  const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length));
+  const { identity } = parseResultComment(w.posted[0].body);
   assert.equal(identity.observation, PROVIDED_COMMAND_OBSERVATION);
   assert.deepEqual([identity.repository, identity.issue, identity.issueNodeId, identity.subjectRevision], [REPO, 483, 'I_483', subjectRevision(originSnapshot(w))]);
   assert.deepEqual(identity.subject, { ...SUBJECT_GRANT, nodeId: 'I_apps_94', revision: subjectRevision(subjectSnapshot(w)) });
@@ -1749,7 +1873,7 @@ await check('issue-provided-request-first-and-next', async () => {
   // The English literal on the same grant stays the admitted passthrough, with identity.subject (the English bootstrap).
   const literal = englishSubjectWorld(), lr = await fullRun(literal, literal.addComment(), { cfg });
   assert.deepEqual(outcome(lr), ['APPENDED', 'READBACK_EXACT']);
-  const literalIdentity = JSON.parse(literal.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+  const literalIdentity = parseResultComment(literal.posted[0].body).identity;
   assert.deepEqual([literalIdentity.observation, literalIdentity.subject.revision], ['ACTIONS_TRUSTED_LITERAL_COMMAND', identity.subject.revision]);
 });
 
@@ -1864,7 +1988,7 @@ await check('issue-grant-bound-to-origin-repository', async () => {
   const envsLiteral = envsWorld(), el = await fullRun(envsLiteral, envsLiteral.addComment(), { cfg: twoOrigins() });
   assert.deepEqual(outcome(el), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(envsLiteral), { claim: 1, fetch: 1, post: 1 });
   assert.equal(Object.hasOwn(el.plan, 'observed') || Object.hasOwn(el.post, 'observed'), false);
-  const { identity } = JSON.parse(envsLiteral.posted[0].body.slice(RESULT_PREFIX.length));
+  const { identity } = parseResultComment(envsLiteral.posted[0].body);
   assert.deepEqual([identity.repository, identity.issue, identity.subject.revision], [ENVS, 483, subjectRevision(subjectSnapshot(envsLiteral))]);
   // Its provided request keeps the legacy refusal before any claim.
   const envsProvided = envsWorld(SUBJECT_EN), ep = await fullRun(envsProvided, envsProvided.addComment({ body: providedBody(issuePayload(envsProvided)) }), { cfg: twoOrigins() });
@@ -1897,7 +2021,7 @@ for (const required of ['semlint-goal-quality-implementation-20261015-v12', 'ret
   '`RANGE_TARGET_MISMATCH`', '`RANGE_TARGET_UNKNOWN`', 'runs 104..105 for PR536 only', 'from 204 to 206 with no reset',
   'not a live grant', 'This source is dormant', 'rejects PR536', 'It is not pin-only']) assert.ok(flatInvocation.includes(required), required);
 assert.deepEqual(JSON.parse(repoFile('packages/jev-review/issue-actions.json')).providedRequestTargets,
-  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 573 }]);
+  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 609 }]);
 // Historical runtime-305b5321 budget facts stay frozen; the candidate figure is recomputed from the current context.
 assert.ok(currentInvocation.includes("Current context is 2189 bytes. With PR522's exact initial 4585-byte subject"));
 assert.ok(currentInvocation.includes('state 27373 bytes, longest question 720 and all\nquestions 4079'));
@@ -1921,9 +2045,9 @@ const prefixExpression = `fromJSON('${JSON.stringify(REQUEST_PREFIX)}')`;
 assert.ok(guardText.includes(prefixExpression));
 const guard = new Function('github', 'startsWith', `return (${guardText.replace(prefixExpression, JSON.stringify(REQUEST_PREFIX))});`);
 const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase().startsWith(prefix.toLowerCase()));
-// The current caller and reviewed runtime agree on the one supplied Issue origin; retired PR grants stay closed.
+// The current caller and reviewed runtime agree on the sole supplied PR609 origin; historical grants stay closed.
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
-  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574]) {
+  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574, 609, 610]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
       const allowed = repository === 'roccho-org/ops' && (pullRequest ? number === 511 : number === 573)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;
@@ -1934,7 +2058,7 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
       assert.equal(guardAllows(github), allowed);
       for (const body of [REQUEST_PREFIX + '{}', REQUEST_PREFIX + 'not json', REQUEST_PREFIX]) {
         const providedEvent = { ...github, event: { ...github.event, comment: { body } } };
-        assert.equal(guardAllows(providedEvent), repository === 'roccho-org/ops' && number === 573 && pullRequest === null);
+        assert.equal(guardAllows(providedEvent), repository === 'roccho-org/ops' && number === 609 && pullRequest !== null);
       }
       for (const body of ['/jev-evaluate later', '/jev-evaluate\\\\n{}', '/jev-evaluate\\r\\n{}', 'prefix' + REQUEST_PREFIX]) {
         assert.equal(guardAllows({ ...github, event: { ...github.event, comment: { body } } }), false);
@@ -1947,19 +2071,33 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
     }
   }
 }
-const trustedRuntime = '51af73b48d0fea05931d630180cb2b10e0c3fa30';
-assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], trustedRuntime);
-assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], trustedRuntime);
+// Structural pin consistency only. Approved runtime identity is independently fixed by P/R's live GO.
+const checkoutPattern = /- uses: actions\/checkout@[0-9a-f]{40}\n        with:\n          repository: roccho-org\/ops\n          ref: ([0-9a-f]{40})\n          persist-credentials: false/g;
+const checkoutPins = [...workflow.matchAll(checkoutPattern)];
+assert.equal(checkoutPins.length, 1);
+assert.equal([...workflow.matchAll(/uses: actions\/checkout@/g)].length, 1);
+const pinnedRuntime = checkoutPins[0][1];
+assert.match(pinnedRuntime, /^[0-9a-f]{40}$/);
+assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], pinnedRuntime);
+assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], pinnedRuntime);
 assert.ok(currentInvocation.includes('305b5321ebc4d41d5c143cc002b82af71f140b8e')); // Historical runtime facts stay historical.
 const permissionBlock = '  actions: read\n  contents: read\n  issues: write\n  pull-requests: write\n';
-const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' && github.event.issue.number == 573 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 511))";
+const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 609 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 609)))";
 const assertWorkflowBoundary = (text) => {
   assert.equal(text.match(/\npermissions:\n([\s\S]*?)\njobs:/)?.[1], permissionBlock);
   assert.equal([...text.matchAll(/^\s*permissions:/gm)].length, 1);
+  assert.equal([...text.matchAll(checkoutPattern)].length, 1);
+  assert.equal([...text.matchAll(checkoutPattern)][0][1], pinnedRuntime);
+  assert.equal(text.match(/runtime_source=([0-9a-f]{40})/)?.[1], pinnedRuntime);
   assert.equal(text.match(/\n    if: >-\n([\s\S]*?)\n    runs-on:/)?.[1].trim().replace(/\s+/g, ' '), expectedGuard);
 };
 assertWorkflowBoundary(workflow);
 for (const forbidden of [
+  workflow.replace('ref: ' + pinnedRuntime, 'ref: proposals'),
+  workflow.replace('runtime_source=' + pinnedRuntime, 'runtime_source=proposals'),
+  workflow.replace('runtime_source=' + pinnedRuntime, 'runtime_source=' + 'f'.repeat(40)),
+  workflow.replaceAll(pinnedRuntime, pinnedRuntime === 'f'.repeat(40) ? 'e'.repeat(40) : 'f'.repeat(40)),
+  workflow.replaceAll('github.event.issue.number == 609', 'github.event.issue.number == 610'),
   workflow.replace('contents: read', 'contents: write'),
   workflow.replace('actions: read', 'actions: write'),
   workflow.replace('pull-requests: write', 'pull-requests: read'),
@@ -1970,14 +2108,14 @@ for (const forbidden of [
   workflow.replace('github.event.issue.number == 511', 'github.event.issue.number >= 511'),
   workflow.replaceAll('github.event.issue.number == 573', 'github.event.issue.number == 574'),
   workflow.replaceAll('github.event.issue.number == 573', 'github.event.issue.number == 573 || github.event.issue.number == 574'),
-  workflow.replace('github.event.issue.number == 573 &&', 'true &&'),
+  workflow.replace('github.event.issue.number == 609 &&', 'true &&'),
   workflow.replace('github.event.issue.pull_request == null &&', 'true &&'),
   workflow.replace(prefixExpression, "'/jev-evaluate'"),
   workflow.replace('startsWith(github.event.comment.body', 'contains(github.event.comment.body'),
   workflow.replace("github.repository == 'roccho-org/ops'", 'true'),
   workflow.replace("github.event.comment.body == '/jev-evaluate'", 'true'),
   workflow.replace('github.event.issue.pull_request != null', 'true'),
-]) assert.throws(() => assertWorkflowBoundary(forbidden));
+]) { assert.notEqual(forbidden, workflow); assert.throws(() => assertWorkflowBoundary(forbidden)); }
 const intent = jsonl('ci.intent.v1.jsonl').filter((x) => x.path === WF_PATH);
 const boundary = jsonl('contracts/secret-effect-boundary.v1.jsonl').filter((x) => x.path === WF_PATH);
 assert.equal(intent.length, 1); assert.deepEqual(intent[0].dispatch, ['issue_comment', 'workflow_call']);
@@ -2009,6 +2147,42 @@ assert.deepEqual(keyed[0].match(/"\$JEV_NODE" "\$JEV_SRC\/[^"]+"/g), ['"$JEV_NOD
 for (const banned of ['issue-executor', 'GITHUB_TOKEN', 'github.token', 'curl', ' gh ']) assert.equal(keyed[0].includes(banned), false, banned);
 assert.equal(steps.filter((s) => s.includes('${{ github.token }}')).length, 2);
 }
+
+await check('provided-human-view-legacy-reconciliation-and-safe-text', async () => {
+  const w = prWorld(), cfg = providedConfig(), payload = providedPayload(w);
+  payload.cases[0].input.checks[0].id = '@fixture|<b>`é';
+  const command = w.addComment({ body: providedBody(payload) });
+  const first = await fullRun(w, command, { cfg });
+  assert.deepEqual(outcome(first), ['APPENDED', 'READBACK_EXACT']);
+  const body = w.posted[0].body, view = body.split('<details>')[0];
+  assert.ok(view.startsWith('### semlint: bounded evaluation'));
+  assert.ok(view.includes('not that a claim is true'));
+  assert.equal(view.includes('@fixture'), false); assert.equal(view.includes('<b>'), false);
+  assert.equal(view.includes('`'), false); assert.ok(view.includes('&#124;')); assert.ok(view.includes('&#233;'));
+  const envelope = parseResultComment(body);
+  assert.equal(envelope.result.cases[0].result.records[0].rule, payload.cases[0].input.checks[0].id);
+  for (const modified of [body + 'extra', 'Unbound findings\n' + body, body.replace('No automatic approval', 'Automatic approval'), body.replace('Execution evidence', 'Other evidence')]) assert.equal(parseResultComment(modified), null);
+  // A historical saved provided body must not cause a second provider/post on re-delivery.
+  w.posted[0].body = RESULT_PREFIX + JSON.stringify(envelope) + '\n';
+  assert.deepEqual(parseResultComment(w.posted[0].body), envelope);
+  const before = effects(w);
+  await fullRun(w, command, { cfg, run: first.run });
+  assert.deepEqual(effects(w), before);
+});
+
+await check('provided-human-view-size-refusal-before-provider', async () => {
+  const w = prWorld(), cfg = providedConfig(), payload = providedPayload(w);
+  payload.cases[0].input.checks[0].id = '|'.repeat(4500);
+  const command = w.addComment({ body: providedBody(payload) });
+  const prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: payload.cases });
+  const legacyOutput = await runPlan(prepared, async (_, questions) => ({ model: JEV_MODEL, answers: Object.fromEntries(Object.keys(questions).map(key => [key, { type: 'noul', noul: 0.5 }])) }));
+  const legacySized = { schema: 'ops.jev.issue-result.v1', requestDigest: 'f'.repeat(64), identity: {}, authority: false, result: legacyOutput };
+  assert.ok(Buffer.byteLength(RESULT_PREFIX + JSON.stringify(legacySized), 'utf8') + 4096 < 32768, 'full legacy result plus conservative identity reserve fits');
+  const result = await fullRun(w, command, { cfg });
+  assert.deepEqual(outcome(result), ['NONE', 'RESULT_WOULD_EXCEED_COMMENT_CAP']);
+  assert.deepEqual(effects(w), zero);
+});
+
 const cli = spawnSync(process.execPath, [here, 'plan', 'relative-dir'], { encoding: 'utf8', env: { LANG: 'C.UTF-8' }, timeout: 10000 });
 assert.equal(cli.status, 2); assert.equal(JSON.parse(cli.stdout).cause, 'INVALID_EXECUTOR_ARGS');
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-issue-executor', scenarios,

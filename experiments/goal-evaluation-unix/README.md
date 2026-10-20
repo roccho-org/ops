@@ -143,3 +143,35 @@ CLI-reported costs are not invoices; native HTTP-call counts are unknown. Synthe
 - [ADRS #523](https://github.com/roccho-dev/adrs/issues/523): bounded evidence with provenance and explicit unknowns.
 
 The proposed #523 boundary permitting diagnostic generation within a fixed exploration contract remains a proposal. The current user's instruction authorizes this finite synthetic local proof; it does not adopt generated criteria as policy or grant production effects.
+
+## Local projection preparation
+
+With an existing Plan, bound subject snapshot and explicit project options, save
+`{"plan": ..., "subject": ..., "options": ...}` in a private JSON file, then run:
+
+```sh
+node experiments/goal-evaluation-unix/prepare.mjs input.json new-output-directory
+```
+
+The directory must not exist. `projection.json` preserves the complete existing
+`project()` result, including withheld questions, missing observations and fidelity.
+Omitting `options` uses the existing `project()` defaults; the CLI does not choose a subject or context ref.
+Only an emittable projection also produces `command.txt`, with the exact envelope
+bytes and no added newline. The CLI makes no network or model call and never posts;
+`postingAuthorized` remains false. It does not supply a Plan, live declaration,
+review or grant. Failure leaves any partial output for inspection, without cleanup
+or automatic retry. File modes are requested, not a Windows owner-only ACL guarantee.
+
+### Reading GitHub results
+
+For admitted provided requests, the existing bot posts one human-readable result with its bound JSON evidence folded below it. Literal/no-grant results keep their historical JSON-only format and size admission. `parseResultComment` reads both formats. Callers must still validate the request identity, author, result and exact readback; parsing is not admission. A Jev value or `OBSERVED` status is not a verified finding, approval or repair instruction. The request link supplies the actual questions and scope. Nothing here posts a second summary, recalls a provider, or resumes an automation.
+
+### Finite follow-up measurement
+
+Before a real trial, fix the task outcome, target revisions, lane visibility, quality requirements, response opportunities, deadline and call/cost bounds. Keep the original three lanes and the direct control unexposed to other lane questions, results and expected answers.
+
+Count additional explanation/correction-request response turns per fixed discussion point; a split response is one turn but every comment still counts. Separately record complete finding→response→verification cycles, posts, edits, reading, work time, costs and recovery. Distinguish avoidable repetition from a justified new finding, unresolved warning or recurrence. Do not re-group points after seeing outcomes.
+
+Reduction is baseline turns minus assisted turns; its percentage requires a nonzero baseline. Both must be observed comparable follow-ups. A private control draft supplies no live follow-up count: report the observed arm and leave reduction and causal attribution UNKNOWN. Silence or no later opportunity is not success. An example finite window is the next two genuine response opportunities or 48 hours, whichever comes first, fixed before outputs and never extended to obtain a favourable result.
+
+Track actual requirements met, missed errors, unsupported findings and necessary warnings separately from burden. A correct no-change decision can be useful; an acknowledgement, merge or fewer comments alone proves no benefit. Separate wrapper display/aggregation effects from Jev contribution and retain NO_EFFECT, HARM, missing observations and all failed preparation attempts.

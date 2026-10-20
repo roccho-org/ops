@@ -2,10 +2,11 @@ name: Pi Worker proof (mock inference, OAuth screen)
 
 on:
   push:
-    branches: [poc/pi-worker-oauth-20261017, proposals]
+    branches: [poc/pi-worker-oauth-20261017, codex/pi-jev-worker-20261020, proposals]
     paths:
       - experiments/pi-worker-proof/**
       - .github/workflows/pi-worker-proof.yml
+      - packages/jev/src/**
       - ci.intent.v1.jsonl
 
 permissions:
@@ -64,6 +65,16 @@ jobs:
         run: |
           set -euo pipefail
           pnpm check 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/baseline-build.log"
+      - name: Verify the separately locked owner OAuth composition (no login)
+        working-directory: ops/experiments/pi-worker-proof/operator
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --ignore-scripts
+          node build.mjs "$GITHUB_WORKSPACE/upstream"
+          node --test auth.test.mjs 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/auth-validation.log"
+          cp package.json pnpm-lock.yaml dist/oauth.original.js dist/oauth.verified.js "$RUNNER_TEMP/pi-worker-proof/"
+          git diff --exit-code -- package.json pnpm-lock.yaml
       - name: Apply the bounded runtime integration
         id: overlay
         working-directory: upstream
@@ -71,7 +82,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 ../ops/experiments/pi-worker-proof/apply.py
-          git add -N src/worker-oauth.ts src/worker-screen.ts src/oauth-module.d.ts worker-oauth.alias.ts vitest.proof.config.ts test/worker-proof.setup.ts test/worker-auth.test.ts test/worker-app.test.ts test/worker-screen.test.ts
+          git add -N src/proof-auth.mjs src/worker-oauth.ts src/worker-screen.ts src/worker-jev.ts src/jev-client/ src/oauth-module.d.ts worker-oauth.alias.ts vitest.proof.config.ts test/worker-proof.setup.ts test/worker-auth.test.ts test/worker-app.test.ts test/worker-screen.test.ts
           git diff > "$RUNNER_TEMP/pi-worker-proof/app-overlay.patch"
           git diff --exit-code -- package.json pnpm-lock.yaml
       - name: Type-check, build and dry-run the integrated Worker (not test aliases only)
@@ -81,6 +92,13 @@ jobs:
         run: |
           set -euo pipefail
           { pnpm exec tsc && pnpm exec tsc -p tsconfig.client.json && pnpm build && pnpm exec wrangler deploy --dry-run --outdir .wrangler/dry-run; } 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/app-build.log"
+      - name: Package the separate keyless owner runtime (no deployment)
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ../ops/experiments/pi-worker-proof/package-runtime.py "$RUNNER_TEMP/pi-jev-runtime"
+          pnpm exec wrangler deploy --config "$RUNNER_TEMP/pi-jev-runtime/wrangler.json" --dry-run --outdir "$RUNNER_TEMP/runtime-dry-run"
       - name: Workerd app and regression tests with remote network denied
         id: runtime
         if: ${{ !cancelled() && steps.overlay.outcome == 'success' }}
@@ -89,6 +107,24 @@ jobs:
         run: |
           set -euo pipefail
           pnpm exec vitest run --config vitest.proof.config.ts --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/pi-worker-proof/tests.json" 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/runtime.log"
+          PI_PROOF_TEST_TRANSIENT=true pnpm exec vitest run test/worker-app.test.ts --config vitest.proof.config.ts --testNamePattern=selected-transient --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/pi-worker-proof/transient-tests.json" 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/transient-runtime.log"
+          python3 - <<'PY'
+          import json, os, pathlib
+          result = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "pi-worker-proof/transient-tests.json").read_text())
+          assert result["numPassedTests"] == 1 and result["numFailedTests"] == 0, result
+          PY
+          PI_PROOF_TEST_TRANSIENT=true PI_PROOF_TEST_ERRORS=true pnpm exec vitest run test/worker-app.test.ts --config vitest.proof.config.ts --testNamePattern=selected-transient-errors --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/pi-worker-proof/error-tests.json" 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/error-runtime.log"
+          python3 - <<'PY'
+          import json, os, pathlib
+          result = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "pi-worker-proof/error-tests.json").read_text())
+          assert result["numPassedTests"] == 1 and result["numFailedTests"] == 0, result
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && steps.runtime.outcome == 'success' }}
+        with:
+          name: pi-jev-runtime-${{ github.sha }}
+          path: ${{ runner.temp }}/pi-jev-runtime/
+          include-hidden-files: true
       - name: Package and exercise the actual screen-only Worker over HTTP
         id: screen
         working-directory: upstream

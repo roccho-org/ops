@@ -1,9 +1,14 @@
+import { historicalActionsConfig } from '../../packages/jev-review/tests/historical-actions-config.mjs';
 // Network-free checks for prepare.mjs. Every reader here is a test double; nothing here is an actual acquisition.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, realpathSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { RESULT_PREFIX, REQUEST_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
+import { RESULT_PREFIX, REQUEST_PREFIX, parseResultComment, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { semlint } from '../../packages/jev-review/semlint.mjs';
 import { preparePlan, executeOwnerPlan } from '../../packages/jev-review/semlint-entry.mjs';
 import { validateJevBudget, JEV_MODEL } from '../../packages/jev-review/core.mjs';
@@ -21,7 +26,7 @@ const repoFile = path => readFileSync(new URL('../../' + path, import.meta.url),
 // The reviewed shipped settings, read unchanged, serve only as the admission oracle for this synthetic case.
 // These historical PR536 fixtures keep the settings under which their bytes were recorded.
 const SETTINGS = (() => {
-  const raw = JSON.parse(repoFile('packages/jev-review/issue-actions.json'));
+  const raw = historicalActionsConfig(JSON.parse(repoFile('packages/jev-review/issue-actions.json')));
   const origin = raw.targets.find((t) => t.repository === 'roccho-org/ops' && t.issue === 573);
   origin.issue = 483;
   delete origin.subject;
@@ -71,6 +76,60 @@ const goalPlan = async (questions = [question('q1'), question('q2', { clauseIds:
   plan({ goal, observations: [{ ref: 'target', content: body }] }, { propose: async () => ({ clauses: quoted, questions, missing: [] }), ...options });
 const faithful = out => ({ reviewRef: 'test:r-fidelity-record', envelopeSha256: out.envelopeSha256,
   verdicts: Object.fromEntries(out.checks.map(c => [c.id, 'FAITHFUL'])) });
+
+const cliTemp = () => mkdtempSync(join(realpathSync(tmpdir()), 'semlint-prepare-cli-'));
+const runPrepareCLI = (input, output) => spawnSync(process.execPath,
+  [fileURLToPath(new URL('./prepare.mjs', import.meta.url)), input, output],
+  { shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 4194304, timeout: 15000 });
+
+test('local preparation CLI preserves the full projection and exact optional command without granting posting', async () => {
+  const directory = cliTemp(), value = await goalPlan(), subject = await snapshotOf({ mode: 'live' });
+  const options = { subjectRef: 'target' }, reviewed = { ...options, fidelity: faithful(projectPlan(value, subject, options)) };
+  const needs = await goalPlan([question('q1', { needs: ['destination observation'] })]);
+  for (const [name, candidate, selection, emittable] of [
+    ['defaults', value, undefined, false], ['unreviewed', value, options, false],
+    ['reviewed', value, reviewed, true], ['needs', needs, options, false],
+  ]) {
+    const input = join(directory, name + '.json'), output = join(directory, name);
+    writeFileSync(input, JSON.stringify({ plan: candidate, subject, options: selection }), { flag: 'wx' });
+    const expected = projectPlan(candidate, subject, selection), execution = runPrepareCLI(input, output);
+    assert.equal(execution.status, 0, execution.stderr.toString());
+    assert.equal(execution.stderr.length, 0);
+    const metadata = JSON.parse(execution.stdout);
+    assert.equal(metadata.postingAuthorized, false);
+    assert.equal(metadata.emittable, emittable);
+    const artifact = readFileSync(join(output, 'projection.json'));
+    assert.deepEqual(JSON.parse(artifact), expected, 'needs, withheld fields and fidelity remain available');
+    assert.equal(existsSync(join(output, 'command.txt')), emittable);
+    if (emittable) assert.equal(readFileSync(join(output, 'command.txt'), 'utf8'), expected.envelope, 'no added newline or serialization');
+    const command = emittable ? readFileSync(join(output, 'command.txt')) : null;
+    const duplicate = runPrepareCLI(input, output);
+    assert.equal(duplicate.status, 1);
+    assert.equal(duplicate.stdout.length, 0);
+    assert.equal(JSON.parse(duplicate.stderr).code, 'EEXIST');
+    assert.deepEqual(readFileSync(join(output, 'projection.json')), artifact);
+    if (command) assert.deepEqual(readFileSync(join(output, 'command.txt')), command);
+  }
+});
+
+test('local preparation CLI rejects invalid input without leaking its body or creating output', () => {
+  const directory = cliTemp(), secret = 'PRIVATE_INPUT_SENTINEL';
+  for (const [index, body] of [
+    '{"plan":"' + secret,
+    JSON.stringify({ plan: null, subject: null, options: {}, extra: secret }),
+    JSON.stringify({ plan: null, subject: secret, options: null }),
+    JSON.stringify({ plan: null, subject: secret, options: {} }),
+  ].entries()) {
+    const input = join(directory, index + '.json'), output = join(directory, 'output-' + index);
+    writeFileSync(input, body, { flag: 'wx' });
+    const execution = runPrepareCLI(input, output);
+    assert.equal(execution.status, 1);
+    assert.equal(execution.stdout.length, 0);
+    assert.deepEqual(JSON.parse(execution.stderr), { status: 'ERROR', cause: 'PREPARATION_FAILED', code: 'INVALID_INPUT' });
+    assert.equal(execution.stderr.includes(Buffer.from(secret)), false);
+    assert.equal(existsSync(output), false);
+  }
+});
 
 test('receipts keep time, actual HTTP status and digest; only HTTP 200 with text is OK (N2)', async () => {
   const pages = { ok: { status: 200, text: 'x' }, empty: { status: 200, text: '' }, gone: { status: 404, text: 'Not Found' },
@@ -326,17 +385,18 @@ const RUN_HEAD = 'c'.repeat(40), WORKFLOW_PATH = '.github/workflows/jev-issue-co
 const WORKFLOW = (() => {
   let text = repoFile(WORKFLOW_PATH).replaceAll(/(ref:\s*|runtime_source=)[0-9a-f]{40}/g, `$1${SHA}`);
   const historicalMetadata = [
-    ['# Two singleton Org run slots; no Repository/Environment copy.',
+    ["      ((github.event.comment.body == '/jev-evaluate' &&\n      (github.event.issue.pull_request == null || github.event.issue.number == 511)) ||", "      (github.event.comment.body == '/jev-evaluate' ||"],
+    ['# One PR budget claim across a finite ordinal window; no refill.',
       '# One projected Org slot; no Repository/Environment copy.'],
     ['# Historical grants remain; no rerun spending or automatic ordinal following.',
       '# Initial four-call history plus 200 authorized additions; no rerun spending.'],
-    ['# Closed Org origins; only Ops Issue573 accepts supplied input for the fixed public Apps94 subject.',
+    ['# Closed Org origins; PR609 accepts supplied input for one fresh finite follow-up trial.',
       '# Guard binds Org Ops483/envs52/PR511/PR522; runtime is published target-bound source.'],
-    ["      (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 573 &&",
+    ["      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 609 &&",
       "      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 522 &&"],
     ["((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) ||",
       "((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) ||"],
-    ['      github.event.issue.number == 511))',
+    ['      (github.event.issue.number == 511 || github.event.issue.number == 609)))',
       '      (github.event.issue.number == 511 || github.event.issue.number == 522)))'],
   ];
   for (const [current, historical] of historicalMetadata) {
@@ -1633,7 +1693,7 @@ test('Issue route composition, English: executor literal result -> expectedOrigi
   assert.equal(origin.status, 'BOUND', origin.cause);
   const subject = issueSubjectIdentitySnapshot({ ...(await issueReceipts({ comments: world.posted })), originTarget: ORIGIN, subjectTarget: SUBJECT, expected: origin.expected });
   assert.equal(subject.status, 'VERIFIED', subject.cause);
-  const identity = JSON.parse(world.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+  const identity = parseResultComment(world.posted[0].body).identity;
   assert.deepEqual([subject.snapshot, subject.provenance.originRevision, subjectRevision(subject.snapshot), subject.provenance.origin.requestDigest],
     [subjectIssue(), identity.subjectRevision, identity.subject.revision, origin.origin.planRequestDigest]);
   const value = await kPlan([question('q1'), kq('qK', ['target', 'k1'])], [{ ref: 'target', content: BODY }, K_OBS[1]]);
@@ -1684,4 +1744,18 @@ test('Issue route composition, JA: executor 3-key refusal -> issueRefusalOrigin 
   const tampered = JSON.parse(out.envelope.slice(REQUEST_PREFIX.length)); tampered.cases[0].input.subject.englishAuxiliary.sourceSha256 = sha256(ORIGIN_BODY);
   assert.equal((await admitIssueCommand(issueAdmissionInput(REQUEST_PREFIX + JSON.stringify(tampered), JA_SUBJECT, 4301), ISSUE_SETTINGS)).status, 'NOT_ADMITTED');
   assert.equal((await admitIssueCommand(issueAdmissionInput(out.envelope, subjectIssue(JA_BODY, { ...EDITS, userContentEditsTotal: 3 }), 4302), ISSUE_SETTINGS)).status, 'NOT_ADMITTED');
+});
+
+test('importing prepare from eval with its path in argv does not execute the CLI', () => {
+  const directory = cliTemp(), module = fileURLToPath(new URL('./prepare.mjs', import.meta.url));
+  const code = "const { pathToFileURL } = await import('node:url'); await import(pathToFileURL(process.argv[1]));";
+  for (const [name, evaluation] of [['short', ['-e', code]], ['long', ['--eval', code]], ['joined', ['--eval=' + code]]]) {
+    const output = join(directory, name);
+    const execution = spawnSync(process.execPath, ['--input-type=module', ...evaluation, module, join(directory, 'absent.json'), output],
+      { shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 4194304, timeout: 15000 });
+    assert.equal(execution.status, 0, execution.stderr.toString());
+    assert.equal(execution.stdout.length, 0);
+    assert.equal(execution.stderr.length, 0);
+    assert.equal(existsSync(output), false);
+  }
 });
