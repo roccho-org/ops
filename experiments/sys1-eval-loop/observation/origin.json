@@ -1,0 +1,14 @@
+{
+  "schema": "ops.sys1.observation-scope-origin.v1",
+  "sourceNativeCommit": "8b40f8980e3b4321b60fa8aab6236a5a6970d1db",
+  "planBeforeMetadataNativeCommit": "ecc40ebf59230fa36e6a4bbf8170b4724abc9841",
+  "sourcePrefix": "experiments/sys1-eval-loop/observation-root-data/",
+  "renames": {
+    "metadata-inventory-1/": "metadata/"
+  },
+  "base": "ce906a1d7a656cf5abd31d2462523b9f1abc4285",
+  "previousPR": "https://github.com/roccho-org/ops/pull/613",
+  "newIssueBodies": 0,
+  "newCandidates": 0,
+  "newModelPosts": 0
+}

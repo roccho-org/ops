@@ -1,0 +1,56 @@
+{
+  "schema": "ops.sys1.observation-real-case-prospective.v1",
+  "status": "PRE_METADATA_NO_NEW_BODY_CANDIDATE_OR_MODEL_OUTPUTS",
+  "previousRound": "PR613 ce906a1d7a656cf5abd31d2462523b9f1abc4285; both passes zero gain; retired118; no adoption",
+  "permission": "User same3actor counter loop GO; current phase metadata-only read and native retention; not a new effect or merge authorization",
+  "cohort": {
+    "owners": ["roccho-dev", "roccho-org"],
+    "inventory": "one complete native gh REST paginated public repository inventory for each owner; no issue/title/body/comment endpoint in this phase",
+    "eligibility": "repository owner is one of the declared owners; public/private=false and has_issues=true",
+    "include": "all eligible fork and archived repositories without content selection",
+    "identity": "union immutable repository node IDs exact once; conflicting metadata for an ID invalidates inventory, not a silent preferred copy",
+    "excludedAlreadyEvaluatedRepositoryIds": ["R_kgDOTAg2Qw", "R_kgDOUfm64w"],
+    "excludedAlreadyEvaluatedRepositories": ["roccho-org/ops", "roccho-dev/apps"],
+    "replacement": false,
+    "claim": "a separately predefined public owned-repository cohort, not evidence of improvement on the old Ops+Apps frame or all real users",
+    "metadataWindowMs": 3600000,
+    "onFailure": "retain partial raw/attempt; no complete scope or retry selection after ambiguous acquisition"
+  },
+  "laterBodyCaptureNotStarted": {
+    "createdBefore": "2026-10-20T00:00:00Z",
+    "unit": "one open/closed nonPR issue whole observed body version; no titles/comments/link targets added",
+    "scopeBeforeCandidate": true,
+    "knownUsedExclusion": "immutable issue identities from all retained prior source references and all613 assigned118; exact whole prior body equality also excluded across issues; retained metadata is not falsely called observed body",
+    "bodyFilter": "nonempty and all3 actual frozen standard wire JSON bodies below24000 UTF8 bytes; no truncation, keyword/difficulty/Gold/outcome selection",
+    "sampling": "one Fisher-Yates ordering; n=min(300,M); no outcome-based resize/redraw; unused suffix remains sealed",
+    "newDuplicates": "retain one issue one weight; report identical-body/fork/series clustering descriptively",
+    "gold": "root/R independently body-only before predictions, both initial ratings preserved; adjudicate before model, unresolved axes null and whole assigned denominator retained"
+  },
+  "laterODevelopmentNotStarted": {
+    "candidate": "exact original Best instructions/E wire unchanged; one symmetric general O yes/no criteria clarification, no task-meaning narrowing or new external truth/evidence-link requirement",
+    "generator": "W authors one criteria-only candidate; additional experimental standard generate invocations0",
+    "training": "all613118 retired to D including null4; never fresh H again",
+    "historicalAnchor": "mechanical first pass BestE/sharedO receipts; selected after historical pass1 was already read and before any new O candidate measurements, not a blind past-outcome choice",
+    "freshCallsMax": 118,
+    "limitation": "nonconcurrent historical baseline comparison; reused E is not fresh E performance/no-regression proof",
+    "admission": "new source/design/guards and current technical acceptance required before effects"
+  },
+  "laterFreshMeasurementNotStarted": {
+    "roundIndex": 2,
+    "alphaRound": "1/80",
+    "perTailAlpha": "1/800 over5tails*2passes",
+    "physicalTemplates": ["bestO", "scopedO", "sharedE"],
+    "repetitions": 2,
+    "maxCases": 300,
+    "maxPostPerPass": 900,
+    "maxPosts": 1800,
+    "perPassJobMinutes": 250,
+    "deadlineReason": "900*15seconds=225minutes plus25minute technical retention margin, not an expected waiting-time forecast",
+    "sizeReason": "reuse prior300 ceiling as a declared information/Gold/effect resource upper bound; no minimum-effect/width assumption establishes adequate power or minimal necessary n",
+    "sampleSizeNotGuarantee": "two raters up to300 bodies each; small or unknown/weak effects can yield NOT_ESTABLISHED; no precision or future expected gain guarantee",
+    "primary": "unchanged all-assigned conservative B/C/R HG envelope and known-axis regression guard, each pass separately positive AND; no average rescue/after-result endpoint switch",
+    "noBudgetFabrication": "User did not impose a call budget; phase finite bounds are not an invented lifetime1000 stop gate",
+    "runtime": "existing standard Jev client/strict qualification/one existing secret effect step/keyless-before-credential/raw retention; no new authentication/executor or blind retries"
+  },
+  "currentEffectCounts": {"newIssueBodies": 0, "newCandidates": 0, "newModelPosts": 0}
+}
