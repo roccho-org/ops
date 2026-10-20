@@ -2162,6 +2162,14 @@ await check('provided-human-view-legacy-reconciliation-and-safe-text', async () 
   const envelope = parseResultComment(body);
   assert.equal(envelope.result.cases[0].result.records[0].rule, payload.cases[0].input.checks[0].id);
   for (const modified of [body + 'extra', 'Unbound findings\n' + body, body.replace('No automatic approval', 'Automatic approval'), body.replace('Execution evidence', 'Other evidence')]) assert.equal(parseResultComment(modified), null);
+  const explanation = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. See the linked request for the questions and conditions.\n\n";
+  const historicalReadable = body.replace(explanation, '');
+  assert.notEqual(historicalReadable, body); assert.deepEqual(parseResultComment(historicalReadable), envelope);
+  for (const changed of [body.replace(explanation, explanation + explanation), body.replace('Jev supplies', 'Other tool supplies')]) assert.equal(parseResultComment(changed), null);
+  w.posted[0].body = historicalReadable;
+  const beforeHistorical = effects(w);
+  await fullRun(w, command, { cfg, run: first.run });
+  assert.deepEqual(effects(w), beforeHistorical);
   // A historical saved provided body must not cause a second provider/post on re-delivery.
   w.posted[0].body = RESULT_PREFIX + JSON.stringify(envelope) + '\n';
   assert.deepEqual(parseResultComment(w.posted[0].body), envelope);
