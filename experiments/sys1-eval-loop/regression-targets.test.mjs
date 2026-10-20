@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import {developmentPlan,evaluateTargets,developmentProjection,verifyEffects} from './regression/targets.mjs';
 const data={best:'Best',rows:Array.from({length:32},(_,i)=>({id:'c'+i,body:'body '+i}))};
 const result=s=>({status:'valid',candidate:{instructions:s}}),results={feedback:result('F'),'no-feedback':result('N')};
@@ -36,4 +36,12 @@ test('effect counts are tied to explicit attempts and posts rather than unverifi
  const failed=await evaluateTargets(i,()=>{observeFailed({kind:'post',id});if(++n===1)throw Error('unknown');return ask();},observeFailed);failed.actualPosts=128;
  assert.equal(verifyEffects(i,failed,failedEvents).unknown,1);
  const swapped=structuredClone(failedEvents);swapped.find(e=>e.kind==='qualification-unknown').id='unassigned/E';assert.throws(()=>verifyEffects(i,failed,swapped));
+});
+test('actual first development retains both regressions despite higher complete-case totals',()=>{
+ const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url))),base='./results/regression-validation-20261020/';
+ const i=read(base+'input.json'),r=read(base+'predictions.json'),events=fs.readFileSync(new URL(base+'events.jsonl',import.meta.url),'utf8').trim().split('\n').map(x=>JSON.parse(x));
+ const g=read('./counterfactual/confirmation-gold.json').cases,b=read('./results/counterfactual-confirmation-20261020/projection.json').physicalRows.filter(r=>r.configuration==='best');
+ const p={...developmentProjection(i,r,g,b),effectCounts:verifyEffects(i,r,events)};assert.deepEqual(p,read(base+'projection.json'));
+ assert.equal(p.effectCounts.actualPosts,128);assert.equal(p.effectCounts.unknown,0);assert.equal(p.modelStable,true);
+ for(const c of Object.values(p.comparisons)){assert.equal(c.correct,30);assert.equal(c.eligible,false);assert.equal(c.disposition,'OBSERVED_REGRESSION');assert.deepEqual(c.pair.axisRegressed,[{id:'confirmation-01',axis:'E'}]);}
 });

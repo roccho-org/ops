@@ -1,0 +1,99 @@
+{
+  "round": 1,
+  "decision": "BOTH_CANDIDATES_REJECTED_DEVELOPMENT_GUARD",
+  "reason": "Both retain confirmation-01 E regression; total correct gain does not override an axis regression",
+  "comparisons": {
+    "feedback": {
+      "arm": "feedback",
+      "stage": "development",
+      "disposition": "OBSERVED_REGRESSION",
+      "eligible": false,
+      "correct": 30,
+      "qualified": 32,
+      "assigned": 32,
+      "pair": {
+        "control": "best",
+        "assigned": 32,
+        "complete": true,
+        "delta": 1,
+        "resolved": [
+          "confirmation-17",
+          "confirmation-21"
+        ],
+        "regressed": [
+          "confirmation-01"
+        ],
+        "axisRegressed": [
+          {
+            "id": "confirmation-01",
+            "axis": "E"
+          }
+        ],
+        "axisResolved": [
+          {
+            "id": "confirmation-17",
+            "axis": "E"
+          },
+          {
+            "id": "confirmation-21",
+            "axis": "E"
+          }
+        ],
+        "outcome": "OBSERVED_REGRESSION"
+      }
+    },
+    "no-feedback": {
+      "arm": "no-feedback",
+      "stage": "development",
+      "disposition": "OBSERVED_REGRESSION",
+      "eligible": false,
+      "correct": 30,
+      "qualified": 32,
+      "assigned": 32,
+      "pair": {
+        "control": "best",
+        "assigned": 32,
+        "complete": true,
+        "delta": 1,
+        "resolved": [
+          "confirmation-17",
+          "confirmation-21"
+        ],
+        "regressed": [
+          "confirmation-01"
+        ],
+        "axisRegressed": [
+          {
+            "id": "confirmation-01",
+            "axis": "E"
+          }
+        ],
+        "axisResolved": [
+          {
+            "id": "confirmation-17",
+            "axis": "E"
+          },
+          {
+            "id": "confirmation-21",
+            "axis": "E"
+          }
+        ],
+        "outcome": "OBSERVED_REGRESSION"
+      }
+    }
+  },
+  "effectCounts": {
+    "assignedPosts": 128,
+    "attempted": 128,
+    "actualPosts": 128,
+    "qualified": 128,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "screen": "UNOPENED",
+  "audit": "UNOPENED",
+  "baseline": "unchanged",
+  "nextTreatment": "separate request-configuration experiment; prior outputs and evidence immutable",
+  "standardGenerateInvocations": 2,
+  "providerInternalGenerateAttempts": null
+}

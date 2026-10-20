@@ -429,7 +429,7 @@ export function assertCounterfactualWorkflow(w,b) {
 }
 
 export function assertRegressionWorkflow(w,b) {
-  need(b.maxCalls===672,'regression finite round differs');
+  need(b.maxCalls===496,'regression finite series differs');
   need(same(w.on?.push?.branches??[],['codex/jev-regression-repair-20261020'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/regression/request.json']),'regression entry differs');
   need(w.concurrency?.group==='sys1-regression-repair'&&w.jobs?.evaluate?.['timeout-minutes']===90,'regression runtime differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;
