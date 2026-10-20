@@ -21,11 +21,12 @@ test('development guard needs no invented unseen gain, while screen and audit re
 test('identical Best is no-treatment even if a separate response happens to improve',()=>{
   const r=compareCandidate(gold,repaired,'feedback',{...instructions,feedback:'Best'},'fixed','audit');assert.equal(r.disposition,'IDENTICAL_CONFIGURATION_NO_TREATMENT');assert.equal(r.eligible,false);
 });
-test('missing, oversized or non-prefix configuration cannot advance even with complete apparently good answers',()=>{
-  for(const candidate of [null,undefined,'not the Best prefix','Best'+'x'.repeat(6000)]){
+test('missing or oversized configuration cannot advance even with complete apparently good answers',()=>{
+  for(const candidate of [null,undefined,'','Best'+'x'.repeat(6000)]){
     const r=compareCandidate(gold,repaired,'feedback',{...instructions,feedback:candidate},'fixed','development');
     assert.equal(r.disposition,'INVALID_CANDIDATE_UNKNOWN');assert.equal(r.eligible,false);
   }
+  assert.equal(compareCandidate(gold,repaired,'feedback',{...instructions,feedback:'Concise rewritten rules'},'fixed','development').eligible,true);
 });
 test('screen ranking is fixed and cannot admit a candidate that failed its development guard',()=>{
   const score=(correct,eligible=true)=>({correct,eligible});

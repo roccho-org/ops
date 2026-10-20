@@ -6,7 +6,7 @@ export function compareCandidate(gold,rows,arm,instructions,expectedModel,stage)
   const mapped=rows.filter(r=>r.arm==='best'||r.arm===arm).map(r=>({...r,arm:r.arm==='best'?'best':'feedback'}));
   const scored=pairedComparison(gold,mapped,expectedModel),pair=scored.A;
   let disposition=!pair.complete?'UNKNOWN':pair.axisRegressed.length?'OBSERVED_REGRESSION':stage==='development'?'DEVELOPMENT_GUARD_PASS':pair.delta>0?'FINITE_GAIN':'NO_GAIN_OBSERVED';
-  if(typeof instructions[arm]!=='string'||!instructions[arm].trim()||!instructions[arm].startsWith(instructions.best)||Buffer.byteLength(instructions[arm],'utf8')>6000)disposition='INVALID_CANDIDATE_UNKNOWN';
+  if(typeof instructions[arm]!=='string'||!instructions[arm].trim()||Buffer.byteLength(instructions[arm],'utf8')>6000)disposition='INVALID_CANDIDATE_UNKNOWN';
   else if(instructions[arm]===instructions.best)disposition='IDENTICAL_CONFIGURATION_NO_TREATMENT';
   return {arm,stage,disposition,eligible:stage==='development'?disposition==='DEVELOPMENT_GUARD_PASS':disposition==='FINITE_GAIN',
     correct:scored.arms.feedback.correct,qualified:scored.arms.feedback.qualified,assigned:gold.length,pair};

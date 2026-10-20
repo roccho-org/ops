@@ -8,7 +8,7 @@ PR606の閉じた記録（base `43b4b4fbbeaad6c74aec3292894f42ea73056b64`）を�
 
 `development.mjs` は606の保持済みinput/report/projectionを同じcanonical採点で再生して一致を確認する。棄却Fの実回答を対象に、保存body-only judge分類との差を機械的に診断する。01Eは`requirement_scope`、06の資格拒否は`unknown`のまま。これは実行済み呼出しの再利用で、新D probeや自由文rationaleではない。
 
-両修正armのcommonは同一のBest全文、棄却F出発点、旧H32の全bodyと棄却F実回答、同じprompt/診断定義。Fだけtyped助言を添付し、Nは助言なし。Gold/basis/正誤ラベルはどちらへも渡さない。両者ともBest全文prefixを保持し、棄却Fの追加規則は修正・削除可、最大6000UTF8bytes/JSON sole instructions/救済・再抽選なし。修正器は同じ既存native標準stateless経路を使う予定で、履歴やsub著者をarm間で変えない。
+両修正armのcommonは同一のBest全文参照、棄却F出発点、既存E/O正本から直接参照したtaskContract、旧H32の全bodyと棄却F実回答、同じprompt/診断定義。Fだけtyped助言を添付し、Nは助言なし。Gold/basis/正誤ラベルはどちらへも渡さない。今回は全instructionsの簡潔な書換をN/F双方へ許し、606だけのBest prefix条件を自動継承しない。固定targetRequest質問・criteriaとbaselineBestは変更しない。新parserは最大6000UTF8bytes/非空/JSON sole instructions/救済・再抽選なしを検査する。意味の狭義化・case lookupは3者意味レビューで拒否し、D/S/Aの独立Goldでも検証する。修正器は同じ既存native標準stateless経路を使う予定で、履歴やsub著者をarm間で変えない。
 
 ## 3者counterと知識境界
 
@@ -28,7 +28,7 @@ flowchart TB
   D --> F
 ```
 
-同UIDのOS秘匿や独立第三者著作を主張せず、役割間の知識分離に限る。旧HのGoldは開発担当へ既知だが、片armへのGold助言やWの後付け自由文を加えない。
+同UIDのOS秘匿や独立第三者著作を主張せず、役割間の知識分離に限る。旧HのGoldは開発担当へ既知だが、片armへのGold助言やWの後付け自由文を加えない。Gold閲覧者の候補意味レビューは公開済みtask契約への適合だけを判定し、新screen/auditの内容に照らした最適化ヒントや添削を返さない。不適合候補はそのままinvalidとして保存し、文面救済や再抽選をしない。
 
 ## 次段の有限実行契約（source/CI/3者受容前は未起動）
 

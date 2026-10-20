@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
-import {loadDevelopment,migrateRetiredConfirmation,repairPayloads} from './regression/development.mjs';
+import {loadDevelopment,migrateRetiredConfirmation,repairPayloads,receiveRepairCandidate} from './regression/development.mjs';
+import {targetRequest} from './feedback-improvement.mjs';
 const read=p=>JSON.parse(fs.readFileSync(new URL('./'+p,import.meta.url)));
 test('retired H32 is development with cached evidence, not a fresh evaluation or model retry',()=>{
   const d=loadDevelopment();assert.equal(d.rows.length,32);assert.equal(d.provenance.newModelCalls,0);assert.equal(d.provenance.cachedJudgeQualified,31);
@@ -24,4 +25,10 @@ test('missing cached targets or a non-stable source cannot become a valid migrat
   const base='results/counterfactual-confirmation-20261020/',i=read(base+'input.json'),r=read(base+'predictions.json'),p=read(base+'projection.json'),provider=read(base+'provider.json');
   const missing=structuredClone(r);missing.rows[0].configurations.find(c=>c.id==='feedback').target.pop();assert.throws(()=>migrateRetiredConfirmation(i,missing,p,provider,{}));
   assert.throws(()=>migrateRetiredConfirmation(i,r,{...p,modelStable:false},provider,{}));
+});
+test('new-series parser allows concise full rewriting without weakening JSON or rescuing prose',()=>{
+  const d=loadDevelopment(),result=receiveRepairCandidate({data:{text:'{"instructions":"Concise general rules"}'}});
+  assert.equal(result.status,'valid');assert.ok(!result.candidate.instructions.startsWith(d.best));
+  for(const raw of ['{"instructions":""}','{"instructions":"x","extra":1}','prefix {"instructions":"x"}','```json\n{"instructions":"x"}\n```',JSON.stringify({instructions:'x'.repeat(6001)})])assert.equal(receiveRepairCandidate({data:{text:raw}}).status,'invalid');
+  for(const axis of ['E','O']){assert.deepEqual(d.feedback.common.taskContract[axis],targetRequest('fixture',d.best,axis).criteria);assert.equal(d.feedback.common.taskContract.axisInstructions[axis],targetRequest('','',axis).instructions);}
 });
