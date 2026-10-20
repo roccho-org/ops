@@ -204,3 +204,9 @@ flowchart TB
   G --> R["🗃️ Retire H; no further selection on its results"]
   K --> R
 ```
+
+## Root confirmation handoff
+
+After the selection freeze commit, root released its previously frozen native Git snapshot `14ec16de110ee7cc46e7dd8b22a252998f5f5b55`, branch `codex/jev-loop-confirmation-20261020`, path `experiments/sys1-eval-loop/root-confirmation-48.json`. `confirmation.json` is that exact byte snapshot, including its original pre-handoff origin statement. The repair author first read it only after committing selection; its contents are now consumed for any future selection purpose. Candidate-2 remains unchanged. The 48 unique IDs cover12 mechanism families, with each E/O combination12 times, all Gold established before live outputs. Exact body overlap with all D48 is0. These are root-authored fictional bodies under trusted actor knowledge separation, not an OS-secret or representative production test set. Independent authorship does not establish provider non-exposure.
+
+Pre-output review found no Gold ambiguity requiring a change. One paired confirmation assignment is192 target calls, baseline and frozen candidate-2 over the same48 bodies with alternating arm order, no evaluator. Gold/basis are withheld from model requests. The same strict response qualification and full assigned denominators apply. Source/normal CI and root review precede activation; no output-driven correction of these Gold values or candidate selection is allowed.

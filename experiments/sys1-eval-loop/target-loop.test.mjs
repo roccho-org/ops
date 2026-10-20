@@ -131,3 +131,14 @@ test('actual whole-D candidate2 result freezes selection before any root confirm
   assert.equal(c.delta,8);assert.deepEqual(c.regressed,[]);assert.deepEqual(c.axisRegressed,[]);assert.equal(c.strata.synthetic.candidateCorrect,40);assert.equal(c.strata.publicIssue.candidateCorrect,7);
   const s=read('selection.json');assert.equal(s.candidate,'candidate-2');assert.equal(s.qualityAdoptionAuthorized,false);assert.equal(s.evaluatorDrivenRepair,'NOT_PROVEN');
 });
+
+test('root confirmation has frozen independent authorship, complete balanced Gold and no exact development bodies',()=>{
+  const h=read('confirmation.json'),d=casesFor('development',read);
+  assert.equal(h.schema,'ops.sys1.root-confirmation.v1');assert.equal(h.cases.length,48);
+  assert.equal(new Set(h.cases.map(c=>c.id)).size,48);assert.equal(new Set(h.cases.map(c=>c.family)).size,12);
+  const pairs={};for(const c of h.cases){assert.ok(c.gold.basis.trim());pairs[c.gold.E+'/'+c.gold.O]=(pairs[c.gold.E+'/'+c.gold.O]??0)+1;assert.ok(!d.some(x=>x.body===c.body));}
+  assert.deepEqual(pairs,{'yes/no':12,'no/yes':12,'yes/yes':12,'no/no':12});
+  const i=makeInput({...request,phase:'confirmation',dataset:'confirmation',configuration:'candidate-2'},{},read).input;
+  assert.equal(i.maxPosts,192);assert.equal(i.controls.length,0);assert.equal(i.rows.length,48);
+  assert.ok(i.rows.every(c=>!Object.hasOwn(c,'gold')&&!Object.hasOwn(c,'basis')));
+});
