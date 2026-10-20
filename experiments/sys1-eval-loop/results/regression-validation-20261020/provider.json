@@ -1,0 +1,31 @@
+{
+  "runId": 39387282415,
+  "runAttempt": 1,
+  "head": "766b0b1388d29f36cc00940cb1e56fe0d4844e1b",
+  "event": "push",
+  "branch": "codex/jev-regression-repair-20261020",
+  "actor": "roccho-dev",
+  "status": "completed",
+  "conclusion": "success",
+  "workflowPath": ".github/workflows/sys1-regression-repair.yml",
+  "artifact": {
+    "id": 12248102054,
+    "node_id": "MDg6QXJ0aWZhY3QxMjI0ODEwMjA1NA==",
+    "name": "sys1-regression-39387282415",
+    "size_in_bytes": 40853,
+    "url": "https://api.github.com/repos/roccho-org/ops/actions/artifacts/12248102054",
+    "archive_download_url": "https://api.github.com/repos/roccho-org/ops/actions/artifacts/12248102054/zip",
+    "expired": false,
+    "digest": "sha256:203123ad0a2ed3a50bc2a58ab04e83c925c95b95a4a0a72f0db0e6d9352efba3",
+    "created_at": "2026-10-20T07:39:06Z",
+    "updated_at": "2026-10-20T07:39:06Z",
+    "expires_at": "2026-11-19T07:39:05Z",
+    "workflow_run": {
+      "id": 39387282415,
+      "repository_id": 1275606595,
+      "head_repository_id": 1275606595,
+      "head_branch": "codex/jev-regression-repair-20261020",
+      "head_sha": "766b0b1388d29f36cc00940cb1e56fe0d4844e1b"
+    }
+  }
+}

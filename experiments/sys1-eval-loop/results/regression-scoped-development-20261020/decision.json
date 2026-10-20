@@ -1,0 +1,92 @@
+{
+  "phase": "development-scoped",
+  "effectCounts": {
+    "assignedPosts": 32,
+    "attempted": 32,
+    "actualPosts": 32,
+    "qualified": 32,
+    "unknown": 0,
+    "unattempted": 0,
+    "historicalOAliases": 32
+  },
+  "modelStable": true,
+  "comparison": {
+    "configuration": "original Best instructions + scoped E criteria",
+    "disposition": "DEVELOPMENT_GUARD_PASS",
+    "eligible": true,
+    "correct": 31,
+    "qualified": 32,
+    "assigned": 32,
+    "pair": {
+      "control": "best",
+      "assigned": 32,
+      "complete": true,
+      "delta": 2,
+      "resolved": [
+        "confirmation-17",
+        "confirmation-21"
+      ],
+      "regressed": [],
+      "axisRegressed": [],
+      "axisResolved": [
+        {
+          "id": "confirmation-17",
+          "axis": "E"
+        },
+        {
+          "id": "confirmation-21",
+          "axis": "E"
+        }
+      ],
+      "outcome": "FINITE_GAIN"
+    }
+  },
+  "usage": {
+    "bestE": {
+      "actualPosts": 0,
+      "qualified": 0,
+      "sumCallMs": 0,
+      "knownTokenSums": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      }
+    },
+    "scopedE": {
+      "actualPosts": 32,
+      "qualified": 32,
+      "sumCallMs": 3542.437417000001,
+      "knownTokenSums": {
+        "input_tokens": 43727,
+        "output_tokens": 992,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 32,
+        "output_tokens": 32,
+        "total_tokens": 0
+      }
+    },
+    "sharedO": {
+      "actualPosts": 0,
+      "qualified": 0,
+      "sumCallMs": 0,
+      "knownTokenSums": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0
+      }
+    }
+  },
+  "interpretation": "physical templates counted once; historical aliases and sharedO are not extra calls; evaluation savings do not establish deployed efficiency; unprovided tokens/money unknown"
+}

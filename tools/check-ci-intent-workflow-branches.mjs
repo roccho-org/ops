@@ -12,6 +12,7 @@ const SELF_GRADING_WORKFLOW = ".github/workflows/sys1-self-grading-proof.yml";
 const FEEDBACK_WORKFLOW = ".github/workflows/sys1-feedback-improvement.yml";
 const TARGET_LOOP_WORKFLOW = ".github/workflows/sys1-target-loop.yml";
 const COUNTERFACTUAL_WORKFLOW = ".github/workflows/sys1-counterfactual.yml";
+const REGRESSION_WORKFLOW = ".github/workflows/sys1-regression-repair.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
   'set -euo pipefail',
@@ -164,6 +165,10 @@ export function analyzeEffectWorkflow(workflow, boundary) {
     }
     if (boundary.path === COUNTERFACTUAL_WORKFLOW) {
       assertCounterfactualWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === REGRESSION_WORKFLOW) {
+      assertRegressionWorkflow(workflow,boundary);
       return {issues,contributingJobs:['evaluate']};
     }
     const jobs = workflow.jobs ?? {};
@@ -421,6 +426,21 @@ export function assertCounterfactualWorkflow(w,b) {
   v.concurrency.group='sys1-target-loop';v.jobs.evaluate['timeout-minutes']=60;
   s[5].with={name:'sys1-target-loop-${{ github.run_id }}',path:'${{ runner.temp }}/target-loop','if-no-files-found':'ignore','retention-days':30};
   assertTargetLoopWorkflow(v,{...b,maxCalls:1000});
+}
+
+export function assertRegressionWorkflow(w,b) {
+  need(b.maxCalls===496,'regression finite series differs');
+  need(same(w.on?.push?.branches??[],['codex/jev-regression-repair-20261020'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/regression/request.json']),'regression entry differs');
+  need(w.concurrency?.group==='sys1-regression-repair'&&w.jobs?.evaluate?.['timeout-minutes']===90,'regression runtime differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){
+    need(s[n]?.run===`node experiments/sys1-eval-loop/regression/runtime.mjs ${mode} "$RUNNER_TEMP/regression"`,'regression command differs');
+    s[n].run=`node experiments/sys1-eval-loop/counterfactual/runtime.mjs ${mode} "$RUNNER_TEMP/counterfactual"`;
+  }
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-regression-${{ github.run_id }}',path:'${{ runner.temp }}/regression','if-no-files-found':'ignore','retention-days':30}),'regression receipt differs');
+  v.on.push.branches=['codex/jev-feedback-counterfactual-20261020'];v.on.push.paths=['experiments/sys1-eval-loop/counterfactual/request.json'];v.concurrency.group='sys1-counterfactual';v.jobs.evaluate['timeout-minutes']=70;
+  s[5].with={name:'sys1-counterfactual-${{ github.run_id }}',path:'${{ runner.temp }}/counterfactual','if-no-files-found':'ignore','retention-days':30};
+  assertCounterfactualWorkflow(v,{...b,maxCalls:296});
 }
 
 export function selftest() {

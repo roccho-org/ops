@@ -1,0 +1,140 @@
+{
+  "series": "PR611",
+  "rounds": [
+    {
+      "name": "regression-validation-20261020",
+      "runId": 39387282415,
+      "attempt": 1,
+      "head": "766b0b1388d29f36cc00940cb1e56fe0d4844e1b",
+      "phase": "development",
+      "physicalPosts": 128,
+      "qualifiedAnswers": 128,
+      "usage": {
+        "input_tokens": {
+          "knownSum": 222716,
+          "knownCalls": 128,
+          "unknownCalls": 0
+        },
+        "output_tokens": {
+          "knownSum": 3968,
+          "knownCalls": 128,
+          "unknownCalls": 0
+        },
+        "total_tokens": {
+          "knownSum": 0,
+          "knownCalls": 0,
+          "unknownCalls": 128
+        }
+      }
+    },
+    {
+      "name": "regression-scoped-development-20261020",
+      "runId": 39392227245,
+      "attempt": 1,
+      "head": "575fae27f4a79dd826378d1268f9166bf4a0aed0",
+      "phase": "development-scoped",
+      "physicalPosts": 32,
+      "qualifiedAnswers": 32,
+      "usage": {
+        "input_tokens": {
+          "knownSum": 43727,
+          "knownCalls": 32,
+          "unknownCalls": 0
+        },
+        "output_tokens": {
+          "knownSum": 992,
+          "knownCalls": 32,
+          "unknownCalls": 0
+        },
+        "total_tokens": {
+          "knownSum": 0,
+          "knownCalls": 0,
+          "unknownCalls": 32
+        }
+      }
+    },
+    {
+      "name": "regression-screen-20261020",
+      "runId": 39394190268,
+      "attempt": 1,
+      "head": "f65f82fae7b62d7e28b967e1146f8fc703e9875f",
+      "phase": "screen",
+      "physicalPosts": 144,
+      "qualifiedAnswers": 144,
+      "usage": {
+        "input_tokens": {
+          "knownSum": 162576,
+          "knownCalls": 144,
+          "unknownCalls": 0
+        },
+        "output_tokens": {
+          "knownSum": 4464,
+          "knownCalls": 144,
+          "unknownCalls": 0
+        },
+        "total_tokens": {
+          "knownSum": 0,
+          "knownCalls": 0,
+          "unknownCalls": 144
+        }
+      }
+    },
+    {
+      "name": "regression-audit-20261020",
+      "runId": 39396123715,
+      "attempt": 1,
+      "head": "0c887dbb91deb7374294da31b7458215793f7434",
+      "phase": "audit",
+      "physicalPosts": 192,
+      "qualifiedAnswers": 192,
+      "usage": {
+        "input_tokens": {
+          "knownSum": 217158,
+          "knownCalls": 192,
+          "unknownCalls": 0
+        },
+        "output_tokens": {
+          "knownSum": 5952,
+          "knownCalls": 192,
+          "unknownCalls": 0
+        },
+        "total_tokens": {
+          "knownSum": 0,
+          "knownCalls": 0,
+          "unknownCalls": 192
+        }
+      }
+    }
+  ],
+  "physicalJevPosts": 496,
+  "qualifiedAnswers": 496,
+  "usage": {
+    "input_tokens": {
+      "knownSum": 646177,
+      "knownCalls": 496,
+      "unknownCalls": 0
+    },
+    "output_tokens": {
+      "knownSum": 15376,
+      "knownCalls": 496,
+      "unknownCalls": 0
+    },
+    "total_tokens": {
+      "knownSum": 0,
+      "knownCalls": 0,
+      "unknownCalls": 496
+    }
+  },
+  "standardGenerate": {
+    "publicApiRequests": 2,
+    "internalProviderAttempts": null,
+    "usage": null
+  },
+  "moneyUSD": null,
+  "notes": [
+    "historical O and shared O role projections are not additional physical calls",
+    "all first-round failures retained",
+    "known sums do not substitute missing provider total_tokens or money",
+    "standard generation requests are a distinct measurement unit; internal attempts unknown"
+  ]
+}

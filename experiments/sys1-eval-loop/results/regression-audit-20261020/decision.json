@@ -1,0 +1,125 @@
+{
+  "phase": "audit",
+  "effectCounts": {
+    "assignedPosts": 192,
+    "attempted": 192,
+    "actualPosts": 192,
+    "qualified": 192,
+    "unknown": 0,
+    "unattempted": 0,
+    "contemporarySharedOAssigned": 64
+  },
+  "modelStable": true,
+  "comparison": {
+    "configuration": "original Best + scoped E criteria",
+    "stage": "audit",
+    "disposition": "FINITE_GAIN",
+    "eligible": true,
+    "assigned": 64,
+    "baselineCorrect": 54,
+    "candidateCorrect": 62,
+    "baselineQualified": 64,
+    "candidateQualified": 64,
+    "pair": {
+      "control": "best",
+      "assigned": 64,
+      "complete": true,
+      "delta": 8,
+      "resolved": [
+        "audit-005",
+        "audit-013",
+        "audit-017",
+        "audit-021",
+        "audit-037",
+        "audit-049",
+        "audit-061",
+        "audit-063"
+      ],
+      "regressed": [],
+      "axisRegressed": [],
+      "axisResolved": [
+        {
+          "id": "audit-005",
+          "axis": "E"
+        },
+        {
+          "id": "audit-013",
+          "axis": "E"
+        },
+        {
+          "id": "audit-017",
+          "axis": "E"
+        },
+        {
+          "id": "audit-021",
+          "axis": "E"
+        },
+        {
+          "id": "audit-037",
+          "axis": "E"
+        },
+        {
+          "id": "audit-049",
+          "axis": "E"
+        },
+        {
+          "id": "audit-061",
+          "axis": "E"
+        },
+        {
+          "id": "audit-063",
+          "axis": "E"
+        }
+      ],
+      "outcome": "FINITE_GAIN"
+    }
+  },
+  "usage": {
+    "bestE": {
+      "actualPosts": 64,
+      "qualified": 64,
+      "sumCallMs": 6529.517915000015,
+      "knownTokenSums": {
+        "input_tokens": 64258,
+        "output_tokens": 1984,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 64,
+        "output_tokens": 64,
+        "total_tokens": 0
+      }
+    },
+    "scopedE": {
+      "actualPosts": 64,
+      "qualified": 64,
+      "sumCallMs": 6355.704801999993,
+      "knownTokenSums": {
+        "input_tokens": 87426,
+        "output_tokens": 1984,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 64,
+        "output_tokens": 64,
+        "total_tokens": 0
+      }
+    },
+    "sharedO": {
+      "actualPosts": 64,
+      "qualified": 64,
+      "sumCallMs": 6537.308323999997,
+      "knownTokenSums": {
+        "input_tokens": 65474,
+        "output_tokens": 1984,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 64,
+        "output_tokens": 64,
+        "total_tokens": 0
+      }
+    }
+  },
+  "interpretation": "physical templates counted once; historical aliases and sharedO are not extra calls; evaluation savings do not establish deployed efficiency; unprovided tokens/money unknown"
+}
