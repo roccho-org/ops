@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { REQUEST_PREFIX, RESULT_PREFIX, COMMAND_OBSERVATION, ISSUE_KEYS, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
+import { REQUEST_PREFIX, parseResultComment, COMMAND_OBSERVATION, ISSUE_KEYS, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { exact } from '../../packages/jev-review/semlint-entry.mjs';
 import { validateJevBudget } from '../../packages/jev-review/core.mjs';
@@ -81,8 +81,8 @@ function executorResult(commentsReceipt, expected) {
   if (commentsReceipt?.status !== 'OK' || commentsReceipt.complete !== true) return hold('INPUT_' + (commentsReceipt?.status === 'OK' ? 'INCOMPLETE' : commentsReceipt?.status ?? 'MISSING'));
   const comments = parse(commentsReceipt.content);
   if (!Array.isArray(comments)) return hold('COMMENTS_UNREADABLE');
-  const results = comments.filter(c => c?.user?.login === EXECUTOR_LOGIN && typeof c.body === 'string' && c.body.startsWith(RESULT_PREFIX))
-    .map(c => ({ comment: c, envelope: parse(c.body.slice(RESULT_PREFIX.length)) }))
+  const results = comments.filter(c => c?.user?.login === EXECUTOR_LOGIN && typeof c.body === 'string')
+    .map(c => ({ comment: c, envelope: parseResultComment(c.body) }))
     .filter(({ envelope }) => envelope?.identity?.commentId === expected.commandCommentId);
   if (results.length !== 1) return hold(results.length ? 'EXECUTOR_RESULT_AMBIGUOUS' : 'REVISION_UNOBSERVED');
   return results[0];

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { JEV_MODEL } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
 import { ENTRY_LIMITS, preparePlan, runPlan, executeOwnerPlan, snapshotJson } from '../semlint-entry.mjs';
-import { REQUEST_PREFIX, RESULT_PREFIX, admitIssueComment, nextIssueEffect, composeResultComment, verifyResultReadback,
+import { REQUEST_PREFIX, RESULT_PREFIX, admitIssueComment, nextIssueEffect, composeResultComment, verifyResultReadback, parseResultComment, deriveIssuePrior,
   admitIssueCommand, subjectRevision, validateActionsConfig, selectActionsTarget, selectRunRange } from '../github-comment.mjs';
 
 const copy = (x) => JSON.parse(JSON.stringify(x));
@@ -150,6 +150,10 @@ assert.ok(nativeBody.includes('VALIDATED_RESPONSE'));
 assert.equal(nativeBody.includes('synthetic-only-not-a-key'), false);
 assert.ok(body.startsWith(RESULT_PREFIX)); assert.equal(JSON.parse(body.slice(RESULT_PREFIX.length)).authority, false);
 const observed = { repository: config.repository, issue: config.issue, id: 11, author: 'fixture-poster', body };
+assert.deepEqual(parseResultComment(body), JSON.parse(body.slice(RESULT_PREFIX.length)));
+assert.equal(deriveIssuePrior(request, { claims: ['fixture-poster'], results: [{ author: 'fixture-poster', body, databaseId: 11 }] }, 'fixture-poster').state, 'APPENDED');
+assert.equal(parseResultComment(RESULT_PREFIX + 'not JSON'), null);
+
 assert.equal(verifyResultReadback(request, body, observed, 'fixture-poster', 11), true);
 const otherBody = composeResultComment(newRevision, result);
 assert.equal(verifyResultReadback(request, otherBody, { ...observed, body: otherBody }, 'fixture-poster', 11), false);
