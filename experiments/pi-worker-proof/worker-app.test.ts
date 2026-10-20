@@ -281,9 +281,9 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
     });
   });
 });
-function jevToolStream(calls = 1) {
+function jevToolStream(calls = 1, prefix = "jev") {
   const output = Array.from({ length: calls }, (_, index) => ({
-    id: `jev-item-${index}`, call_id: `jev-call-${index}`, type: "function_call",
+    id: `${prefix}-item-${index}`, call_id: `${prefix}-call-${index}`, type: "function_call",
     name: "ask_jev", arguments: JSON.stringify({ state: "fixture-state", question: "How likely is this fixture?" }),
     status: "completed",
   }));
@@ -405,6 +405,7 @@ describe("bounded Jev proof failure and legacy boundaries", () => {
     const session = "jev-proof";
     await seed(session, fixture());
     let posts = 0, requests = 0;
+    let newCallId = "";
     vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
       if (String(input) === "https://api.typesafe.ai/v1/systemone") {
         posts++;
@@ -412,7 +413,13 @@ describe("bounded Jev proof failure and legacy boundaries", () => {
       }
       expect(String(input)).toBe("https://api.openai.com/v1/responses");
       requests++;
-      if (requests === 1 || String(init?.body).includes("Try a new assessment")) return jevToolStream();
+      if (requests === 1) return jevToolStream(1, "jev-initial");
+      if (String(init?.body).includes("Try a new assessment")) {
+        const prefix = `jev-new-${requests}`;
+        // Exact composite ID emitted by the pinned pi-ai Responses decoder.
+        newCallId = `${prefix}-call-0|${prefix}-item-0`;
+        return jevToolStream(1, prefix);
+      }
       return responseStream("fixture-interruption-recovery");
     });
     const first = await connect(session);
@@ -425,6 +432,18 @@ describe("bounded Jev proof failure and legacy boundaries", () => {
     reopened.submit("jev-interrupt-new-task", "Try a new assessment");
     await vi.waitFor(() => expect(JSON.stringify(reopened.messages)).toContain("JEV_PROOF_ATTEMPT_CONSUMED"), wait);
     await submissionStatus(session, "jev-interrupt-new-task", ["done", "unanswered"], first.conversationId);
+    expect(newCallId).not.toBe("");
+    const deniedNewCall = await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
+      const storage = await openDurableObjectSqliteStorage(state.storage);
+      const page = await storage.scanEntries(
+        { conversationId: first.conversationId as typeof ROOT_CONVERSATION_ID }, 100, undefined, BACKGROUND_CONTEXT,
+      );
+      return page.items.some((entry) => entry.model?.some((message) =>
+        message.role === "toolResult" && message.toolCallId === newCallId &&
+        JSON.stringify(message.content).includes("JEV_PROOF_ATTEMPT_CONSUMED"),
+      ));
+    });
+    expect(deniedNewCall).toBe(true);
     expect(posts).toBe(1);
     expect(requests).toBeGreaterThanOrEqual(2);
     console.info("fixture-interruption-counts", JSON.stringify({ userTurns: 2, modelRequests: requests, jevPosts: posts }));
