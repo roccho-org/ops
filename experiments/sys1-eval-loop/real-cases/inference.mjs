@@ -27,6 +27,7 @@ export function inferFiniteFrame(rows,{frameSize,roundIndex,modelStable=null,sam
 
 export function reconfirmFixedFrame(passes){
  assert.ok(Array.isArray(passes)&&passes.length===2);assert.deepEqual(passes.map(p=>p.repId),[1,2]);const [a,b]=passes;for(const key of ['roundIndex','frameSize','assigned'])assert.equal(a[key],b[key]);assert.equal(a.repetitions,2);assert.equal(b.repetitions,2);assert.deepEqual(a.caseIds,b.caseIds);
- const disposition=passes.some(p=>p.disposition.startsWith('UNKNOWN'))?'UNKNOWN_RECONFIRMATION':passes.every(p=>p.disposition==='POSITIVE_FIXED_FRAME_APPROXIMATION')?'FIXED_FRAME_GAIN_RECONFIRMED':'NOT_RECONFIRMED';
- return {disposition,passes,independentIssueCount:a.assigned,observationsPerIssue:2,claim:'same fixed real-case frame, both prospectively fixed passes positive without observed axis regression; HG intervals cover sampling only, not Gold/model/future expected gain',averageRescue:false};
+ const unknownPasses=passes.filter(p=>p.disposition.startsWith('UNKNOWN')).map(p=>p.repId),knownFailurePasses=passes.filter(p=>!p.disposition.startsWith('UNKNOWN')&&p.disposition!=='POSITIVE_FIXED_FRAME_APPROXIMATION').map(p=>p.repId);
+ const disposition=knownFailurePasses.length?'NOT_RECONFIRMED':unknownPasses.length?'UNKNOWN_RECONFIRMATION':'FIXED_FRAME_GAIN_RECONFIRMED';
+ return {disposition,knownFailurePasses,unknownPasses,passes,independentIssueCount:a.assigned,observationsPerIssue:2,claim:'same fixed real-case frame, both prospectively fixed passes positive without observed axis regression; HG intervals cover sampling only, not Gold/model/future expected gain',averageRescue:false};
 }
