@@ -1,7 +1,7 @@
 name: Jev Issue comment evaluation
 
 # Closed Org origins; PR609 accepts supplied input for one fresh finite follow-up trial.
-# Old grants are not replenished; the supplied lane has one reaction-backed claim.
+# Two fresh singleton PR slots; no shared reaction claim.
 # Historical grants remain; no rerun spending or automatic ordinal following.
 on:
   issue_comment:
