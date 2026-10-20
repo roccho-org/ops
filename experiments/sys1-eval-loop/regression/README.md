@@ -2,7 +2,7 @@
 
 PR606の閉じた記録（base `43b4b4fbbeaad6c74aec3292894f42ea73056b64`）を変更せず、旧H01Eの退行を開発課題へ移す。目標は、新しい未使用集合でBestより完全正答が増え、Bestの既正答E/O軸を壊さない設定を確認すること。普遍的な偽陽性/偽陰性ゼロや人口への統計的保証は主張しない。Bestは未変更、merge/採用/新認証は対象外。
 
-現在は、旧H32の開発Dへの明示降格、固定修正入力、strict候補受入、D退行guard/S選定の純粋機能を実装し、標準generate N→F各一回を完了した。N3300B/F3446Bがどちらもstrict validで、原request/response/receiptと候補の生文字列を`results/regression-repair-20261020/`へ固定した。再抽選0、前後の観測metadata一致。生成内部HTTP/usageはunknownのままで、性能改善はまだ未測定。新screen/audit本文・GoldはW未読。D/S/A実workflowは次sliceで、旧Hを未見評価と呼ばず旧Jev呼出しを再送しない。
+現在は、旧H32の開発Dへの明示降格、固定修正入力、strict候補受入、D退行guard/S選定を実装し、標準generate N→F各一回を完了した。N3300B/F3446Bがどちらもstrict validで、原request/response/receiptと候補の生文字列を`results/regression-repair-20261020/`へ固定した。再抽選0、前後の観測metadata一致。生成内部HTTP/usageはunknownのままで、性能改善はまだ未測定。新screen/audit本文・GoldはW未読。D128 target-only実workflowをsource化し未起動、S/Aは次slice。旧Hを未見評価と呼ばず旧Jev呼出しを再送しない。
 
 標準生成用`native-repair.mjs`は606で実使用した同じ小さいCLI captureを、別private directory `.../jev-regression-repair-20261020/round-1`で一度だけ使う。606 source/原ファイルを変更・上書きせず、同一common/明示model・32body・前後version/catalog/config-stat、N→F各一回、原response/receiptを保存する。配置/構文のread-only確認は生成と別。source/必要check/3者受容までは本体未実行。provider内部試行/usage/hardmaxは非露出のunknown、6000Bは候補受入上限で推論hardmaxでない。stdout/stderrは私的保持し、秘密値やauthfileを読まない。
 
@@ -39,6 +39,8 @@ flowchart TB
 第一周の技術上限は標準generate2要求＋Jev672POST。D32の2候補E/O=最大128、screen48のBest/F/N E/O=最大288、選択後audit64のBest/候補1本E/O=256。screen judgeは候補生成・選択・監査のどれにも不要なため省く。新screen/audit合計112bodyはrootが出力前に固定し、互いと旧D/Hの完全一致を除く。人工機構集合のため、この数へ人口p値やglobal95%保証を付けない。各phaseは有限で、最大288×15秒=72分に検証/保存余裕を加え90分のjob枠を予定する。
 
 開発Dは既知退行を直すguardで、D成績を未見成功と呼ばない。全32target qualified＋Best既正答E/O軸破壊0（01E修復を含む）だけscreenへ進む。両不合格ならscreen/auditを開封せず開発へ戻す。一候補だけならscreenのunique設定をBest＋その1本へ減らす。無効候補やBestと同一設定は新たな改善候補にしない。同一configの重複測定やaliasによる二重原価計上はしない。
+
+D routeは専用branchのrequest-only child一回、attempt1/所有actor/native history一件をcredential前に確認する。新F/Nのtarget E/Oだけ最大128POSTで、Bestは閉じた606 H32の既知回答をcached比較として使い、同時刻の新controlとは呼ばない。case単位の事前循環順でunique設定だけ測る。失敗時も他の独立targetを続け、model driftで後続を止め全guardをUNKNOWNへし、全32分母を保持する。raw attempt/post/answer/unknown/rowとactualPostsをprojectionで照合し、費用は新unique traceだけ数える。現在のhistory一件制約はD一回専用であり、後続S/Aは別source受容まで起動できない。
 
 screenでBest比casegain正・既正答軸破壊0・全qualifiedの候補から、S正答最大→D正答最大→instructions UTF8bytes最小→固定arm順で1本選ぶ。固定arm順はfeedback、no-feedbackとし、最後のtie規則に品質/助言因果/効率の意味を持たせない。screenは開発選択に消費し、選んだ候補1本を固定してからauditを一度だけ開く。Nが勝てば対象改善の成果で、Jev助言の成果へ加算しない。S/Aの事前Gold反証は候補authorでないroot/counterreviewだけが行い、W/修正器へ内容やGold由来助言を渡さない。
 

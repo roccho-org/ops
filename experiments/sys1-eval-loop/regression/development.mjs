@@ -50,6 +50,12 @@ export function collectRepairCandidates(captures){
     return [arm,{...parsed,receipt:capture?.receipt??null}];
   }));
 }
+export function loadRepairResults(){
+  const at='results/regression-repair-20261020/',captures={},payloads=repairPayloads(loadDevelopment());
+  assert.deepEqual(read(at+'before.json'),read(at+'after.json'));
+  for(const arm of ['no-feedback','feedback']){assert.deepEqual(read(at+arm+'.request.json'),payloads[arm]);captures[arm]={receipt:read(at+arm+'.receipt.json'),response:read(at+arm+'.response.json')};}
+  const results=collectRepairCandidates(captures);assert.deepEqual(read(at+'parsed.json').results,results);return results;
+}
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   const [dir]=process.argv.slice(2);assert.ok(dir);assert.ok(!process.env.JEV_API_KEY);fs.mkdirSync(dir,{recursive:true});
   const development=loadDevelopment();for(const [name,data]of [['development.json',development],['repair-payloads.json',repairPayloads(development)]])fs.writeFileSync(path.join(dir,name),JSON.stringify(data,null,2)+'\n',{flag:'wx'});
