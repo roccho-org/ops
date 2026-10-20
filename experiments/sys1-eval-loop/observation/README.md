@@ -2,7 +2,7 @@
 
 PR613の実118件/2passは**E改善差0**で閉じた（[PR613](https://github.com/roccho-org/ops/pull/613)、exactbase ce906a1d7a656cf5abd31d2462523b9f1abc4285）。Eは両118/118、既知114の完全正答は両79、O FP13/FN22、Goldnull4。旧結果/全708呼出し/未採用を保全する。本PRは次の**O request configuration改善**を主目的とし、旧E改善や元Ops+Apps母集団の成功へすり替えない。
 
-現在は**metadata scopeだけ取得済み、新O候補0・新issue本文0・新model呼出し0**。実行route/secret変更はこのsliceにない。同root/W/RのUser GOを継承し、全員が主張・反証・再提案する。policy ADRS exact0dd39ca41718fafe40e58c6927a2ebb0ea297eee、bare/.worktrees、W solewriter。merge/adoptionは別。
+現在は**metadata scopeとO候補の純sourceを作成済み、新issue本文0・新model呼出し0**。実行route/secret変更はこのsliceにない。同root/W/RのUser GOを継承し、全員が主張・反証・再提案する。policy ADRS exact0dd39ca41718fafe40e58c6927a2ebb0ea297eee、bare/.worktrees、W solewriter。merge/adoptionは別。
 
 ## 候補修正前に固定したmetadata scope
 
@@ -14,7 +14,7 @@ rootはprospective-plan.jsonをnative ecc40ebf59230fa36e6a4bbf8170b4724abc9841�
 
 ## 固定する処置と開発経路
 
-元の広義E/Oは[split.mjs](../split.mjs)と既存targetRequestが正本。E/instructionsをoriginal Bestのexact bytesへ固定し、O yes/no criteriaへ**対称な一般scope補足を1候補だけ**Wが作る。まだ候補は書いていない。新しいモデル重み/自由文API/認証/bridge/独自executorは追加しない。実験用standard generate呼出し0。
+元の広義E/Oは[split.mjs](../split.mjs)と既存targetRequestが正本。E/instructionsをoriginal Bestのexact bytesへ固定し、[request.mjs](request.mjs)がO yes/no criteriaへ**対称な一般scope補足を1候補だけ**追加する。新しいモデル重み/自由文API/認証/bridge/独自executorは追加しない。実験用standard generate呼出し0。
 
 Oは報告の存在/種類を判定し、未達/未確認/失敗/権限の現在状態も現状報告なら含む。外部真偽検証や証拠リンクの存在を勝手な必要条件へ足さず、Refsだけ・語彙/作文例を報告へ過包含しない。Goldやtask意味を狭めて成功させない。
 
@@ -52,7 +52,7 @@ flowchart TB
   R <-->|主張・反証・再提案| P
   P --> K["🔒 新H本文は候補固定までWへ非開示"]
   R --> K
-  W --> C["✅ 現scopeだけ固定・候補/本文/model0"]
+  W --> C["✅ scope/候補純source・新本文/model0"]
   K --> C
 ```
 
@@ -60,7 +60,7 @@ flowchart TB
 flowchart TB
   OLD["✅ 613実ゼロ差/708/4null/未採用を固定"] --> META["✅ 候補前plan→public metadata全156/eligible117"]
   META --> REVIEW["⏳ 実PRでscope/処置範囲/有限条件を3者counter"]
-  REVIEW --> C["⏳ original E固定/Ocriteria候補1・新generate0"]
+  REVIEW --> C["✅ original E固定/Ocriteria候補1純source・新generate0"]
   C --> D["⏳ 退役118D・原pass1歴史alias/新O118"]
   D --> DG{"📏 開発guard・source/CI/資格成立か"}
   DG -->|不成立/不明| NEG["❌ 負/unknownを保持・H選択で救済しない"]
@@ -76,4 +76,4 @@ flowchart TB
   END --> NEXT["🔁 失敗なら次事前契約・freshを捏造しない"]
 ```
 
-初sliceはmetadata原6fileと純replay/敵対tests、この設計だけ。O候補/issue本文/model作用/新workflowは未着手。source/実在PRの3者収斂と必要検証後に次sourceへ進む。旧613は同headの通常CI（484/484・consumerを含む9成功/7既存skip）とReadyを3者が読戻して閉じており、未merge・正改善未達を保持する。
+現sliceはmetadata原6fileと純replay/敵対tests、O-only候補とD118歴史alias/guardの純source。12件の鍵なしtestsはテストダブルであり実モデル性能ではない。issue本文API/model作用/新workflowは未着手。次にnative実行入口と資格境界を追加し、source/実在PRの3者収斂と必要検証後だけ実測する。旧613は同headの通常CI（484/484・consumerを含む9成功/7既存skip）とReadyを3者が読戻して閉じており、未merge・正改善未達を保持する。
