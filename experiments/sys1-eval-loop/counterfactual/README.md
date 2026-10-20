@@ -1,104 +1,112 @@
-# 評価役の追加差を分離する有限実証
+# 評価助言あり・なしの有限比較
 
-## 目的と現状
+**助言ありFはBest29→31/32、助言なしN30/32を上回ったが、Bestの正答を1件壊したため採用しない。Bestを保持する。** Bの助言あり・なし差1件は今回の有限観測であり、安定した因果効果ではない。Hは退役し、候補/Goldを変更せず閉じる。
 
-PR605 exact `0b49ebf4ed37dcdec0b93323cf321e565d09683d` の598呼出し系列は閉じた記録として維持する。そこでは対象設定のH45→46/48を観測したが、修正はGold/Sys2由来、評価役の追加価値は未証明、入力tokenは約61.5%増だった。本系列はその未達を隠さず、**固定評価役の助言を追加することで、同じ修正器が作る一般設定の性能が変わるか**を測る。H回答そのものを修正する実験ではない。
-
-現sliceはモデルを呼ばない純粋な入力投影・候補形式検証・A/B採点と反証テストである。新D24/H32、judge v2設定、native実行source、CI、3者review、生成条件が揃うまでは実呼出しを開始しない。設計図の将来nodeを達成済みの証拠にしない。merge・現Bestの更新・配置・認証追加は含まない。
-
-適用版はADRS `0dd39ca41718fafe40e58c6927a2ebb0ea297eee`。User指定local sub、rootと既存sub2名の3者が全員、主張・反証・再提案を担う。既存DSの権限やGOを推定継承せず、Userの本系列開始指示を権限とする。
+PR605の旧598呼出しは不変。本PR606は別系列で、Jev296 POSTと標準OpenCode generate2要求を一度ずつ実行した。H workflowはjudge1件の資格拒否によりFAILのまま保持し、再実行していない。対象192回答は全件qualifiedで、judge失敗から対象比較を失敗/成功と推定しない。
 
 ## 3者の組織と知識境界
 
-```mermaid
-flowchart TB
-  U["👤 User: 目的・制約・実証開始の許可"] --> C["🧭 共通契約: 主張→反証→再提案を反復"]
-  R["🧑‍💼 root: 自案・反証・再提案"] <--> C
-  W["🛠️ sub設計: 自案・反証・再提案"] <--> C
-  X["🔎 sub検証: 自案・反証・再提案"] <--> C
-  C --> K["🔒 入力・比較・資源・採点・停止条件を固定"]
-  K --> H["🗃️ root: D/HとGold固定・候補authorにならない"]
-  K --> S["🛠️ sub設計: source作成・H未読・共通修正器を呼ぶ"]
-  K --> V["🔎 sub検証: sourceと実証を独立反証"]
-  H --> B["🚧 H由来助言禁止・Goldは採点専用・arm間履歴共有なし"]
-  S --> B
-  V --> B
-  B --> E["📏 固定後の実測と全分母・原価を3者で読戻す"]
-  E --> J["🧾 A/B/評価役診断/限界を別判定して記録"]
-```
-
-全員counterは全員共同authorという意味ではない。rootはHを知って候補を修正せず、source担当はHを読まない。F/Nを別subに生成させると専門性・履歴が交絡するため採用しない。
-
-## 比較の固定
-
-- 対象Bestは既存の一般E/O設定。新D24本文とそのBest実出力を両修正armへ共通入力として渡す。Eは機能要求に限定せず、元のsplit.mjsと同じ必要な状態・責務・入出力対応・要件・受入条件の宣言を扱う。D/H item Gold、basis、採点結果はjudge・修正器のmodel入力へ渡さない。rootが候補生成前にDをGold採点しても、その結果はprivate保持し、W/修正器にcase別正誤・根拠・Gold由来の修正助言を渡さない。両候補保存/freeze後だけD採点を公開する。
-- judge v2は旧v1がBestの実誤答9/9を見逃した失敗に対し、proposed回答を見せる構造を変更する。旧開発資料で設定を校正してよいが、新D出力を見る前に固定し、本比較中は変更しない。`judgeRequest`はbodyだけからE/O4組合せを既存Choiceで一回独立分類し、その実receipt後にコードでBest出力との差をtyped診断へ導く。先に読むよう指示するだけで同promptにproposedを混ぜない。自由文rationaleを創作せず、独立分類由来のtyped診断だけを助言とする。診断unknownを`uncertain`回答へ書き換えない。Goldによる誤診断採点は別で、judgeがGoldになるわけではない。
-- F/Nは**同じnative OC/DS model・同じbase設定・履歴のない独立stateless要求・同じ修正prompt/Best/D出力・候補数1**。差分はFにtyped助言を添付し、Nには添付しないことだけ。片armの候補や診断を他armへ渡さない。生成失敗、同一候補、変更なしでも再抽選しない。モデルaliasはimmutable backend版の証明ではない。
-- 修正器へ外部toolを使わせず、一般instructionsだけのJSON1本を受ける。既存Best prefix維持、6000byte以内。個別解答・ID lookup・Hでの追加修正は不可。生成物の適否はH開封前に3者で反証し、失敗を手修正した候補で置換しない。
-- native OC2.0.30の既存NixOS dev UID1001/Console認証と `opencode/deepseek-v4.1-flash` aliasを使う。native catalogでmodel/provider/limitをread-only確認した。rootのcwdを継承したauth list500/standalone spawn拒否はdev cwd `/home/dev` とprivate `--standalone` で解消し、Console storedを確認した。再認証・新key・OCI復活は行わない。修正器にJev Choiceの自由記述能力を捏造しない。
-- 標準 `opencode api --standalone POST /api/experimental/generate --data <payload>` のone-shotを2要求だけ使う。[公式V2 API](https://opencode.ai/v2/docs/api/#generate) と [Generate節](https://opencode.ai/v2/docs/build/plugins/#generate) はsession/history/toolsを使わない経路を示す。version対応の [core generate.ts](https://github.com/anomalyco/opencode/blob/v2.0.30/packages/core/src/generate.ts)、[server handler](https://github.com/anomalyco/opencode/blob/v2.0.30/packages/server/src/handlers/generate.ts)、[protocol](https://github.com/anomalyco/opencode/blob/v2.0.30/packages/protocol/src/groups/generate.ts) でも、明示modelの解決→単一generate→text返却を読んだ。native実行物と当該tagのbyte同一性は未確認で、観測version label以上に主張しない。
-- `repair-route.mjs` はF/Nの同一model/common入力と助言だけの差を固定する。標準APIの公開契約はprompt/model→data.textで、usage、finish_reason、内部provider試行数や推論hardmaxを返さない。その非露出値はunknownとし、6000byteを推論hardmax設定済みと偽装しない。これは候補受入上限でありpromptにも明示する。既存base/default設定を両要求で同じまま使い、同総費用・効率は主張しない。生textに`</think>`/code fence/余分な説明が混ざっても後処理で救済せずinvalid、候補null/比較UNKNOWNを保持する。
-- 予定外向け要求はJev D72＋H192＋H独立judge32=296と標準generate2。標準generate2要求をprovider内部2HTTPと断定しない。内部試行数/usageの非露出分はunknown。独自plugin/proxy/新ログbrokerは作らず、実取得rawと標準metadataを保持する。追加judge費用は差分として記録し、効率優位へ読み替えない。
-
-## 実行sourceの現在範囲
-
-実装済みnative workflowはD72だけで、source/必要CI/3者受容後にrequest-only childを一度起動した。同branch/owner/attempt1/native単一history/親commit/変更pathで照合してから既存org secretを最後のモデルstepだけへ渡した。手転記hash台帳や新credentialは作らない。既存strict client/model/probability検証を維持し、資格拒否はそのroleのunknown、judge失敗を別targetの停止理由にしない。model変更は比較不成立として以降を止める。raw receipts/全24分母を保持し、Goldなしprojectionを再生する。
-
-H phaseは候補固定後の別source受容で追加する。caseごとのBest/F/N順を事前循環ローテーションし、各軸を1回ずつ取得。独立judgeはbodyだけから1回、候補修正には返さない。H本文/Goldはその前に開封しない。
-
-## D72取得と次段の実入力固定
-
-[Native run39374003138](https://github.com/roccho-org/ops/actions/runs/39374003138) はreview済みsourceのrequest-only childを一回実行し、72 POSTでSUCCESS。artifact12241898715 (22491-byte ZIP)を取得しprovider digest/sizeと実bytesを照合、全投影を鍵なし再生して同値を確認した。24件のE/O48回答と独立judge24回答がqualified、modelStable=true、repair入力が成立した。これは資格・輸送の確認であり、正答率や診断性能の成功宣言ではない。DのGold/正誤は候補freeze前のW/修正器へ非開示のまま。
-
-`../results/counterfactual-development-20261020/` にraw5fileとprovider metadataを保持し、`repair-payloads.json` はその実投影からコードで生成したF/N2要求である。修正入力はここで固定し、D正誤を見た選択や手修正を加えない。
-
-`native-repair.mjs` は既存CLIを直接起動して2要求を保存する小さいcaptureである。N→F順を前もって固定し、既存native dev/cwd/Console経路、公開version/catalogと非秘密configfileのstatを前後で照合する。これはその観測metadataが一致した証拠であって、Global config全内容、provider defaultやweightsの不変証明ではない。raw stdout/stderrはnative私的保存、公開には資格確認したdata.textと安全receiptを用いる。標準CLI起動数、API応答成立、provider内部HTTP/usage不明を区別し、timeout/失敗でも盲再送しない。無効armをBestへ代入しない。新しいcredential reader、HTTP proxy、plugin、汎用executorは追加しない。現時点でこのcaptureは未実行、生成はまだ0要求。
-
-## 標準修正2要求と両候補freeze
-
-上のcapture未実行記述はsource24fb時点の準備記録である。そのsourceを3者受容後、標準stateless要求をN→F各一回実行した。両CLI exit0、API data.text成立、観測metadata前後一致。生textへのstrict parserでF2936/N3746 UTF8-byteのinstructionsがvalidとなり、Best全文prefixを維持した。形式救済・再抽選・手修正はしていない。
-
-`../results/counterfactual-repair-20261020/` に両request/response/receipt、前後metadata、機械parser結果とFREEZE.mdを保持する。このGit freezeまではD正誤/GoldもH本文/Goldも未受領。両候補はこれ以降変更しない。完全一致でBest/F/NはK3、Hは224POST計画となる。標準API2要求とprovider内部試行unknownを分離し、金額やusageを0としない。N79093.585ms/F22939.171msはCLI経過時間で速度改善の証拠ではない。
-
-## H開封前の設定identityと測定計画
-
-`confirmation.mjs` のpure planは生instructions完全一致だけで、Best→F→Nの順に有効unique設定とrole aliasを固定する。意味同等やtrimを後付け推定しない。同一設定は各case/軸で1回だけ実測し、aliasは同一native receiptを指す。資格unknownも全aliasへ同じく伝播し、usage/原価はunique traceだけで集計する。N=BestならA/Bは同じ実観測対であり独立2検証ではない。
-
-A/B両比較とも同一instructionsなら`IDENTICAL_CONFIGURATION_NO_TREATMENT`をrawdeltaより優先する。F=Nから別々の推論揺らぎで助言gainを作らず、F=Bestから対象設定改善を作らない。invalid候補はBestへaliasしない。F有効かつBestと異なればNinvalidでもK2/160要求でAを測定しB UNKNOWN、F無効なら両UNKNOWNとしてH未開封省略、F=Best/NinvalidならA no-treatment/B UNKNOWNで省略する。全有効設定が同じK1でもH未開封/未実行とし、HjudgeはNOT_MEASUREDのままDから代入しない。実測する場合の事前上限は32×(2K+judge1)、K2=160/K3=224である。H本文はまだ未読、この純粋計画以外のH実行sourceは次段で受容する。
-
-## 完成状態と閉包
-
-### H224 sourceとD採点の解禁
-
-候補freeze2528後にroot保持commit f88b3612df80f854f640bd7808477ad97e5c5a66のD/H Goldを受領し、`development-gold.json`/`confirmation-gold.json`へnative bytesのまま収録した。3者ともH32全文/Gold根拠を出力前に反証し、変更指摘なし。これはroot著作・8family×4の架空機構集合で、明示scope-markerが多く、実製品代表性/独立第三者Goldを主張しない。修正作者とは知識を分けたが同UIDのOS秘匿ではない。
-
-D独立採点はtarget21/24、body-only judge23/24。実対象誤答3件に対し診断検出2/見逃し1、正答への誤警報0、unknown0。`independent-root-score.json`を原証拠として保持した。旧v1とは集合/課題が違うため、23/24をv1からの性能向上や安定した助言価値と読まない。両候補にはこの正誤を渡さず生成を終えている。
-
-同じnative workflowの次request-only childをconfirmation phaseとして一回受け付ける。native historyは初回Dと今回Hの2件、既存Dのprovider identity/成功を照合する。Goldはprepareでbody/id/familyだけへ投影し、model stepのinputから除く。case index%3でBest/F/N設定順を循環し、各E/O一回とbody-only judge一回、最大224 POST。輸送失敗はそのroleのunknownを全32分母へ保持し再送しない。model driftは以降停止、両比較UNKNOWN、観測済み値はrawOutcomeとして保持する。judge失敗はtarget比較を止めない。
-
-keyless projectionは固定GoldでA/B別比較、judge分類と期待診断の一致、実対象誤答群の検出/見逃し/誤scope/unknown、正答群の誤警報を保存する。H診断は候補修正へ返さず、この一回でHを退役させる。現段階H実行は0で、source/必要CI/3者受容前には起動しない。job timeoutは224×各15秒deadline=56分に検証/保存余裕を加え70分とし、失敗roleを保持して継続する枝でもproject/uploadへ到達できる時間枠を確保する。call上限や資格基準は変えない。
+User指定のroot＋sub2名は、全員が主張・反証・再提案を担った。成果物の担当は分けたが、賛成役/反対役には固定しない。適用policyはADRS `0dd39ca41718fafe40e58c6927a2ebb0ea297eee`。
 
 ```mermaid
 flowchart TB
-  A["🗃️ 新D24/H32とGoldをモデル出力前に固定"] --> B["🔒 judge v2・Best・同一修正器/生成条件を固定"]
-  B --> C["🧪 新DのBest E/O出力とtyped judge診断を実取得"]
-  C --> D["🔒 rootだけGold採点を保持: 修正作者へ正誤・根拠・助言を渡さない"]
-  D --> E["⚖️ 同じD本文＋Best出力からstateless F/Nを各1回生成"]
-  E --> F["🔒 JSON候補とsourceを固定・3者反証後だけH開封"]
-  F --> PUBLISH["📏 両候補保存後にD正誤/診断妥当性を公開"]
-  PUBLISH --> G["🧪 同じ新H32でBest/F/NのE/Oと独立judgeを測定"]
-  G --> I["📏 A: F対Best、B: F対Nを独立採点・全軸/全分母保持"]
-  I --> Q["🧾 A/Bごとに有限gain・観測退行・差非観測・UNKNOWN"]
-  Q --> Z["🗃️ H退役・候補変更なし・native raw/runと原価を保持"]
-  Z --> T["🔎 3者counter: 成果・未達・次周条件を分離して閉じる"]
-  C -->|輸送/形式失敗| P["❓ role別unknownを保持・failed runを成功化しない"]
-  E -->|生成不成立| P
-  G -->|一部欠損| P
-  P --> I
+  U["👤 User: 実証loopを許可・最終採用判断"] --> R["🔎 root: Gold/新D・Hを先に固定・独立再計算・counter"]
+  U --> W["🛠️ W: 実装・実行・raw保持・counter"]
+  U --> C["🔎 counterreview: 別読み・再生・counter"]
+  R <-->|主張・反証・再提案| W
+  W <-->|主張・反証・再提案| C
+  C <-->|主張・反証・再提案| R
+  R --> K["🔒 候補freeze前: W/修正器にD正誤・Gold・Hを渡さない"]
+  W --> F["✅ 同一修正器のstateless N/Fを各一回生成・原文freeze"]
+  K --> F
+  F --> O["✅ freeze後だけD採点とHを開封・3者がGoldを反証"]
 ```
 
-`comparison.mjs` は固定Goldをmodel入力から独立して採点する。AはFの完全正答case数>Best、Bestで正しかったE/O軸の観測破壊0、比較する全assigned targetがqualifiedで有限受入。Bは同じ条件をN比で満たすこと。case/axis修復と破壊を両比較に残す。controlだけ欠損してもAを消さずB UNKNOWNとする。診断失敗だけからtargetの成否を推定しない。
+rootは候補authorにならず、Wは両候補freezeまでD正誤とHを読まなかった。これはtrusted actorsの知識分離で、同UIDのOS秘匿ではない。修正器を別subへ割り当てる履歴/作者交絡を避けた。
 
-有効比較で差≤0は「今回追加gain非観測」。天井や誤答不足による検出力不足、輸送/形式不成立、Gold未確定は区別する。Aだけ成立なら対象改善の有限成果、Bだけ成立ならN比の有限差でありBest改善ではない。両成立でも**この固定比較で対象改善とfeedback追加差を観測**まで。安定したjudge-loop、統計的有意、人口精度、再現性、Apps効果は別の事前設計・反復なしに完了扱いしない。反復を追加してもcase×repeatを独立ケース数へ水増ししない。
+## 比較対象と採点契約
 
-token、呼出し、失敗、既知金額、人手時間を全roleで保持し、欠損を0にしない。費用閾値を後付けして採用を主張しない。Nの改善も独立target成果として保存し、judge寄与へ加算しない。H結果を見て候補/Gold/主評価を変えず、次周には新Hと新事前契約が必要。native run/raw receiptを正本とし、新ledgerや汎用executorを作らない。
+- **対象Jev**: Bestまたは修正instructionsでbodyのE/Oを判定する。Eは適用された必要状態・責務・要件・仕様、Oは現実の発生・確認状態。重み再学習ではない。
+- **評価役Jev v2**: proposedを見ずbodyだけをChoice4で独立分類し、保存後にコードが対象回答との差をtyped診断へ変換する。自由文rationaleを創作しない。Gold oracleではない。
+- **修正器**: 既存native OpenCode2.0.30の明示`opencode/deepseek-v4.1-flash`。同じBest/D本文・対象出力・共通promptからN/Fを各一回生成、Fだけtyped助言が異なる。
+- **独立採点**: 先に固定したGoldと通常コード。評価役との一致は採用gateではない。
+
+AはF対Best、BはF対N。それぞれ完全正答case数が増え、比較先で正しかったE/O軸の破壊0、全assigned target qualifiedなら有限受入。case/axisの修復・破壊を両比較に残す。欠測/モデル変更は比較別UNKNOWN。同じinstructionsならNO_TREATMENTを優先し、意味同等やtrimで同一視しない。invalid候補はBestへ代入しない。今回Best/F/NはK3でaliasなし。
+
+## 実経路・証拠
+
+|段階|実体|結果|
+|---|---|---|
+|D固定|root commit `f88b3612df80f854f640bd7808477ad97e5c5a66`|新D24/H32とGoldを出力前に固定|
+|D実行|[39374003138](https://github.com/roccho-org/ops/actions/runs/39374003138)、source e2ac8ccb/activation91777c06|72POST、SUCCESS/attempt1|
+|修正|source24fb0641の標準native helper、N→F各一回|両API成立・strict JSON valid、F2936/N3746 UTF8bytes|
+|候補freeze|`2528eb9cb20cbfc315281189f5cd6e5556dc7d95`|Gold正誤/H開封前、両原文固定|
+|H source|8625940a、[3者source review](https://github.com/roccho-org/ops/pull/606#pullrequestreview-5581127921)|44関連tests/407全tests/fresh-consumer成功|
+|H実行|[39376630329](https://github.com/roccho-org/ops/actions/runs/39376630329)、activation7dcf84e9|224POST/attempt1、judge資格拒否1でFAILを保持|
+|H原ZIP|artifact12243702088、72912bytes、SHA256 `038640155985adbd2d30936ead61b592466f506d070757636503e1871df15f9b`|provider digest/size一致、原5raw保存・canonical再生一致|
+
+`../results/counterfactual-development-20261020/`、`../results/counterfactual-repair-20261020/`、`../results/counterfactual-confirmation-20261020/` に原文/receipt/投影/独立root再計算を保持する。D/H Goldはf88のnative bytesそのまま。モデル入力はbody/id/familyのGold-free投影のみで、Gold/basisは採点側に残す。
+
+既存標準client/認証/秘密隔離workflowを再利用し、credential reader、plugin、proxy、汎用executor、手転記SHA台帳を追加していない。request-only child、owner/branch/push/attempt1、native historyの元D＋一度のH、prior D identityをcredential前に検査した。H224×15秒deadline=56分の失敗枝でも保存へ到達する余裕としてjob70分を設定し、20分を拒否する境界testを追加した。権限/回数/資格基準は緩めない。
+
+## 実結果と反証
+
+|H32|Best|F:助言あり|N:助言なし|
+|---|---:|---:|---:|
+|完全正答|29|31|30|
+|qualified / unknown|32 / 0|32 / 0|32 / 0|
+|E FP / FN|2 / 0|1 / 0|2 / 0|
+|O FP / FN|0 / 1|0 / 0|0 / 0|
+
+**Aは不受容**。3件を修復（12O/17E/21E）した一方、Bestが正しかった01のEを壊した。Nも同じ01Eを壊しており、後付けでNへ勝者選択しない。総数+2や全体FP減だけで無退行と判定しない。01は「展示パネルの語彙見本」と適用を否定した本文で、Gold E=no/O=noは変更しない。Fの一般的scope補足をH後に修正しない。
+
+**Bは有限差を観測**。Nに対して17Eだけを修復し、case/軸退行0、差+1。A不受容をB成立で上書きせず、FもNもBestへ採用しない。一候補ずつの確率的生成・固定順・同aliasの時間差が残るため、安定した評価役の因果価値とは呼ばない。
+
+|評価役v2|D24|H32|
+|---|---:|---:|
+|Gold分類一致|23|30|
+|qualified / unknown|24 / 0|31 / 1|
+|対象実誤答|3|3|
+|検出 / 見逃し / 誤scope|2 / 1 / 0|2 / 1 / 0|
+|対象正答群の誤警報 / unknown|0 / 0（21件）|0 / 1（29件）|
+
+H06 judgeはHTTP200・model/key一致・finite/range/max成立でも、確率和0.9900000000000001で既存strict条件を拒否した。unknownをuncertainや正答へ変えず、その一件も再送しない。残りtargetを止めず取得し、workflowのFAILを成功へ書換えない。旧v1とは課題/標本が違い、D/Hの数値をv1比の向上率へ読み替えない。
+
+## 呼出し・原価
+
+|役割|実POST/標準要求|取得済みinput tokens|取得済みoutput tokens|
+|---|---:|---:|---:|
+|D対象|48|48632|1488|
+|D評価役|24|22600|1171|
+|H Best|64|64894|1984|
+|H F|64|100606|1984|
+|H N|64|119038|1984|
+|H評価役|32試行/31qualified|29220（31件小計）|1512（31件小計）|
+|標準修正器|2要求|unknown|unknown|
+
+Jev実296=対象240＋評価役56、qualified295＋拒否1。拒否1のusage、API非露出のtotal_tokens、修正器の内部provider試行/usage/hardmax、金額、人手時間はunknownで0ではない。H FはBestより入力35712tokens増（約55.0%）であり、効率改善を主張しない。N/FのCLI時間79.094/22.939秒も速度効果の証拠ではない。observed version/catalog/config-stat一致はその観測の証拠に限り、config全内容/immutable backendの同一性証明ではない。候補内のliteral backslash-nも原文のまま実入力し、実改行へ整形していない。
+
+標準経路は[公式Generate API](https://opencode.ai/v2/docs/api/#generate)、[stateless/toolなしの公式説明](https://opencode.ai/v2/docs/build/plugins/#generate)、[v2.0.30 generate source](https://github.com/anomalyco/opencode/blob/f16ef9ad8878279ea2be3cfab7baeed97aef61aa/packages/core/src/generate.ts)を確認した。native version labelと公式tagのbyte同一性やprovider内部試行まで証明したとはしない。
+
+## 完成状態・閉包フロー
+
+```mermaid
+flowchart TB
+  A["✅ 新D/H・Goldを出力前に固定"] --> B["✅ D72: Best出力＋body-only judgeを取得"]
+  B --> C["✅ Gold非開示の同じcommon入力でN/F各一回"]
+  C --> D["✅ 生JSON2候補freeze → その後だけGold/H開封"]
+  D --> E["✅ 3者Gold反証・source/CI受容 → H224一回"]
+  E --> J["⚠️ judge1件資格拒否: unknown保持・FAIL/no retry"]
+  E --> T["✅ target全192回答・32caseを独立採点"]
+  J --> Q["✅ 評価役は30一致/1誤り/1unknown・正誤別分母"]
+  T --> G{"📏 A/Bを別々に判定"}
+  G --> R["❌ A: Best比+2でも01E退行1 → 不受容"]
+  G --> S["✅ B: N比+1・軸退行0 → 今回の有限差"]
+  R --> K["✅ Best保持・候補変更なし・H退役"]
+  S --> K
+  Q --> K
+  K --> Z["✅ 原raw/失敗/原価unknown/独立再生を記録"]
+  Z --> N["⏳ 安定価値の検証は別契約・新H・事前反復設計が必要"]
+```
+
+実証経路と今回のA/B測定は完了し、採用gateが実際の退行を拒否した。普遍的な偽陽性/偽陰性ゼロ、統計的有意、安定再現、人口精度、Apps改善、収益効果は未証明。syntheticかつ明示scope-markerが多い均衡8family集合で、Gold著者/構成への依存がある。次周は新Hと事前契約が必要で、このHで再選択しない。最新通常CIの終端は[PR checks](https://github.com/roccho-org/ops/pull/606/checks)を正本とし、merge・Best更新は行わない。

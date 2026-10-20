@@ -41,3 +41,13 @@ test('actual H copy is rooted in frozen corpus and inputs use exact frozen candi
   for(const arm of ['feedback','no-feedback'])assert.equal(i.plan.configurations.find(c=>c.id===arm).instructions,saved.results[arm].candidate.instructions);
   assert.equal(new Set(i.rows.map(c=>c.body)).size,32);assert.ok(!Object.hasOwn(i.rows[0],'gold'));
 });
+test('retired actual H replays its failed judge and the two distinct adoption outcomes without model calls',()=>{
+  const read=n=>JSON.parse(fs.readFileSync(new URL('./results/counterfactual-confirmation-20261020/'+n,import.meta.url)));
+  const corpus=JSON.parse(fs.readFileSync(new URL('./counterfactual/confirmation-gold.json',import.meta.url)));
+  const p=confirmationProjection(read('input.json'),read('predictions.json'),corpus.cases);assert.deepEqual(p,read('projection.json'));
+  assert.equal(read('predictions.json').actualPosts,224);assert.equal(p.targetComplete,true);assert.equal(p.judgeComplete,false);assert.equal(p.modelStable,true);
+  assert.deepEqual(Object.values(p.comparison.arms).map(a=>a.correct),[29,31,30]);
+  assert.equal(p.comparison.A.outcome,'OBSERVED_REGRESSION');assert.deepEqual(p.comparison.A.axisRegressed,[{id:'confirmation-01',axis:'E'}]);
+  assert.equal(p.comparison.B.outcome,'FINITE_GAIN');assert.deepEqual(p.comparison.B.axisRegressed,[]);
+  assert.equal(p.judgeMetrics.unknown,1);assert.equal(p.judgeMetrics.correctClassification,30);
+});
