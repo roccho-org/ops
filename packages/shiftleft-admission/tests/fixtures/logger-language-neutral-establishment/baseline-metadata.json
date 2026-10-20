@@ -1,0 +1,21 @@
+{
+  "schema": "ops.logger-language-neutral.baseline-evidence/1",
+  "authority": false,
+  "workflowRunId": "39246951391",
+  "observationHead": "b8c9a0eb1436d1d1218621c41d39a9b5a60fc9d2",
+  "observationTree": "cfeee63db40e42260252872f273acaf5354a1975",
+  "correctedScopeT0": [
+    {
+      "repository": "roccho-org/ops",
+      "revision": "d1ed2594aa6112f931ff3996c89d8fde8aed8690",
+      "tree": "27c40aee9b923129e0feefa8477da711155c8384"
+    },
+    {
+      "repository": "roccho-dev/apps",
+      "revision": "c91bab56ec5e769d9788453a098a289115cdaa92",
+      "tree": "a32423848d2298b4c54cf43cd22119859f25c905"
+    }
+  ],
+  "candidateMeaningSha256": "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c",
+  "repairAllowed": false
+}
