@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -15,12 +16,15 @@ import {
 import { createBrowserDiagnosticPort } from "../adapters/browser.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const contractPath = path.join(packageRoot, "contract.json");
 const corpusPath = path.join(packageRoot, "fixtures", "interchange.json");
 const pythonTest = path.join(packageRoot, "tests", "interoperability.py");
 const python = process.env.PYTHON ?? "python3";
 const corpus = JSON.parse(fs.readFileSync(corpusPath, "utf8"));
 assert.equal(corpus.schema, "diagnostic-interchange-corpus/2");
 assert.equal(diagnosticContract.messageBlankRule, "ecmascript-trim");
+
+const sha256File = (file) => `sha256:${createHash("sha256").update(fs.readFileSync(file)).digest("hex")}`;
 
 function baseValue() {
   return {
@@ -170,7 +174,8 @@ const pythonReportRun = spawnSync(python, [pythonTest, corpusPath], {
 });
 assert.equal(pythonReportRun.error, undefined, pythonReportRun.error?.message);
 assert.equal(pythonReportRun.status, 0, pythonReportRun.stderr);
-assert.deepEqual(JSON.parse(pythonReportRun.stdout), jsReport);
+const pythonReport = JSON.parse(pythonReportRun.stdout);
+assert.deepEqual(pythonReport, jsReport);
 
 const jsProduced = [...literalValid.map(({ canonical }) => canonical), ...generated.filter((row) => row.result === "accepted").map(({ canonical }) => canonical)].join("");
 const pythonConsumerRun = spawnSync(python, [pythonTest, "--canonicalize-stdin"], {
@@ -189,12 +194,49 @@ assert.equal(pythonConsumerRun.error, undefined, pythonConsumerRun.error?.messag
 assert.equal(pythonConsumerRun.status, 0, pythonConsumerRun.stderr);
 assert.equal(pythonConsumerRun.stdout, jsProduced, "JavaScript -> Python interchange drifted");
 
-for (const row of JSON.parse(pythonReportRun.stdout).literalValid.concat(
-  JSON.parse(pythonReportRun.stdout).generated.filter((entry) => entry.result === "accepted"),
+for (const row of pythonReport.literalValid.concat(
+  pythonReport.generated.filter((entry) => entry.result === "accepted"),
 )) {
   assert.equal(encodeDiagnostic(parseDiagnosticLine(row.canonical)), row.canonical, `Python -> JavaScript drifted: ${row.id}`);
 }
 
-process.stdout.write(
-  `structured-diagnostic interoperability: PASS ${literalValid.length + generated.filter((row) => row.result === "accepted").length} accepted, ${literalInvalid.length + generated.filter((row) => row.result === "rejected").length} rejected, JS<->Python, FEFF/NEL and all fixed limits\n`,
-);
+const accepted = literalValid.length + generated.filter((row) => row.result === "accepted").length;
+const rejected = literalInvalid.length + generated.filter((row) => row.result === "rejected").length;
+const report = {
+  schema: "diagnostic-interchange-proof/1",
+  status: "PASS",
+  authority: false,
+  contractSha256: sha256File(contractPath),
+  corpusSha256: sha256File(corpusPath),
+  implementation: {
+    javascript: "packages/structured-diagnostic/lib/diagnostic.mjs",
+    python: "packages/structured-diagnostic/lib/diagnostic.py",
+    pythonDelegatesToNode: false,
+  },
+  counts: {
+    accepted,
+    rejected,
+    literalValid: literalValid.length,
+    literalInvalid: literalInvalid.length,
+    generated: generated.length,
+  },
+  semantics: {
+    feffOnly: "rejected",
+    nelOnly: "accepted",
+    fixedLimits: "limit-1/limit/limit+1",
+    numberThresholds: "ECMAScript JSON number canonicalization",
+  },
+  interchange: {
+    javascriptToPython: "byte-identical",
+    pythonToJavascript: "byte-identical",
+    rows: accepted,
+  },
+  browser: {
+    callbackWrites: browserWrites.length,
+    invalidPartialWrites: 0,
+    transportRejectionPropagated: true,
+  },
+  cases: jsReport,
+};
+
+process.stdout.write(`${JSON.stringify(report)}\n`);
