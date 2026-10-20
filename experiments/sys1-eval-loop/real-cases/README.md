@@ -1,6 +1,6 @@
 # 実案件から独立採取するJev改善効果の近似評価
 
-目的は、PR611で固定したBest対scoped設定を変えず、実GitHub案件の事前定義frameから無作為に採取した未使用集合で正のgainを近似できるか測ること。611の合成audit54→62/64・全負結果・Bestは不変。root/Rが受容したcollectorでframeを一回取得・native Git保持済み。Wへのframe本文開示0・一回sampling保持済み・モデル作用0。成立を先に約束しない。
+目的は、PR611で固定したBest対scoped設定を変えず、実GitHub案件の事前定義frameから無作為に採取した未使用集合で正のgainを近似できるか測ること。611の合成audit54→62/64・全負結果・Bestは不変。root/Rが受容したcollectorでframeを一回取得・native Git保持済み。候補・Gold固定後にWへ全118 corpusを開示・一回sampling保持済み・モデル作用0。成立を先に約束しない。
 
 ## frameと何を一般化するか
 
@@ -18,7 +18,7 @@ capture.mjsはrootの私的data worktreeでだけ使う標準gh API capture。�
 
 priorは611base refをnative Gitで一度commitへ解決し、そのexperiments/**/*.jsonからURLとbody値（旧provider text内のJSON bodyも含む）を機械抽出する。旧605はmetadata100＋本文8という実在差を保持し、100URLを保守的identity除外する。GraphQLはbodyを要求せず、不変repo/issue node IDへ解決。未解決をURL fallbackで通さない。別issueのprior完全同本文も除外する。文字列の意味/nearcloneによる恣意除外なし。新frame内の同本文複数issueは排除せず群数/重複数を記述する。
 
-whole-body原版、repo/issue不変ID、取得window、除外理由とcoverageをpure materializeFrameで検証する。完了直後はOBSERVED_FRAME_AWAITING_NATIVE_RETAINで、rootが原raw/frameをnative Git保持・独立readbackするまでcold Capturedやsampling可とはしない。Wは未抽出frame本文/Goldを読まない。
+whole-body原版、repo/issue不変ID、取得window、除外理由とcoverageをpure materializeFrameで検証する。完了直後はOBSERVED_FRAME_AWAITING_NATIVE_RETAINで、rootが原raw/frameをnative Git保持・独立readbackするまでcold Capturedやsampling可とはしない。Wは候補・Gold固定まで未抽出frame本文/Goldを読まない。
 
 ## 一回の抽出とGold
 
@@ -30,11 +30,11 @@ frame原bytesをnative Git保持した後、一回だけ標準crypto.randomInt�
 
 rootとcounterreviewがモデル出力を見る前に、bodyとopaque IDだけからE/Oを各独立採点する。各原annotationと不一致を保持し、出力前に合議、未解決軸はnull。盲検はarm出力に対するもので、両者が候補方式自体を知らないという主張ではない。旧正本の広義E/Oを使い、コメント先で意味を補わず、出力後Gold編集はしない。
 
-未解決Gold/応答は全抽出nへ残す。Wや修正器へ未抽出frame本文を開示しない。両設定は611の実S/A full-wire proofと同値のまま、採取結果に応じた添削をしない。
+未解決Gold/応答は全抽出nへ残す。候補とGoldの固定前にはWや修正器へframe本文を開示せず、固定後の測定source取込みで初めて開示する。両設定は611の実S/A full-wire proofと同値のまま、採取結果に応じた添削をしない。
 
 ## paired測定と近似判定
 
-1caseにつきBestE/scopedE/sharedOの3physical request、固定循環順、各pass上限3n<=900とし、出力前に2passを固定する。今回のM=n118では各354、計708 POST。初回の意味結果が不成立でも2回目を取消・再抽選しない。model drift等の技術停止guardは維持し、未試行は割当分母のunknownへ残す。両passそれぞれprimary条件を満たすことを要求し、平均による退行救済はしない。repIDをattempt/post/usageへ保持し、共有Oはpass内だけ、pass間は別物理観測。各jobは15秒deadline×354=88.5分と保存余裕を満たす110分を予定する。共有Oは同じreceipt/unknownを両roleへ投影し、独立二証拠・追加callにしない。既存標準Jev client/CI/認証境界を使う予定で、runtime.mjsと限定workflowは実装したが、実corpus/Goldは未取込みで実作用できない。source/必要CI/3者受容とGold固定後だけrequest-onlyで各pass一回起動する。model drift/資格拒否/輸送不明はunknown、盲再送をしない。
+1caseにつきBestE/scopedE/sharedOの3physical request、固定循環順、各pass上限3n<=900とし、出力前に2passを固定する。今回のM=n118では各354、計708 POST。初回の意味結果が不成立でも2回目を取消・再抽選しない。model drift等の技術停止guardは維持し、未試行は割当分母のunknownへ残す。両passそれぞれprimary条件を満たすことを要求し、平均による退行救済はしない。repIDをattempt/post/usageへ保持し、共有Oはpass内だけ、pass間は別物理観測。各jobは15秒deadline×354=88.5分と保存余裕を満たす110分を予定する。共有Oは同じreceipt/unknownを両roleへ投影し、独立二証拠・追加callにしない。既存標準Jev client/CI/認証境界を使う予定で、runtime.mjsと限定workflowは実装したが、実corpus/二者Goldをnative256443b3から原bytesで取込み、モデル作用はまだない。source/必要CI/3者受容とGold固定後だけrequest-onlyで各pass一回起動する。model drift/資格拒否/輸送不明はunknown、盲再送をしない。
 
 完全正答の改善b=Best誤→候補正、改悪c=Best正→候補誤をcase単位に数える。case内E/Oのどちらか一つでも既正答を壊せばcase退行event。両完全誤答間のE修復/O破壊も退行なので、cとcase退行rを混同しない。
 
@@ -62,8 +62,8 @@ flowchart TB
   P <-->|主張・反証・再提案| W
   W <-->|主張・反証・再提案| R
   R <-->|主張・反証・再提案| P
-  P --> K["🔒 frame全文はW/候補設計へ未開示"]
-  P --> G["⏳ root/R各独立Gold・arm出力盲検"]
+  P --> K["🔒 候補/Gold固定までWへframe非開示"]
+  P --> G["✅ root/R独立Gold・出力前合議凍結"]
   W --> B["✅ 611 Best/scopedの設定を変更しない"]
   K --> B
 ```
@@ -74,10 +74,10 @@ flowchart TB
 flowchart TB
   OLD["✅ 611有限合成audit/全失敗を固定保持"] --> DESIGN["⏳ 母集団/抽出/Gold/区間を3者counter"]
   DESIGN --> PR["⏳ 実PRへ事前契約・source/check受容"]
-  PR --> FRAME["🔒 root: 公開API全frame原版・既使用除外を保持"]
-  FRAME --> SAMPLE["🎲 一回SRSWOR・n=min300,M・残reserve封印"]
-  SAMPLE --> GOLD["📝 独立Gold→不一致保持→未解決unknown全n"]
-  GOLD --> RUN["⚙️ 固定3template×2pass・各pass3n上限・資格基準不変"]
+  PR --> FRAME["✅ root: 全frame原版/除外をnative保持"]
+  FRAME --> SAMPLE["✅ 一回抽出/census118・reserve0"]
+  SAMPLE --> GOLD["✅ 独立Gold/合議・4nullを全118へ保持"]
+  GOLD --> RUN["⏳ 固定3template×2pass/708上限・資格基準不変"]
   RUN --> RAW["🗃️ 物理raw/usage/unknownを全件保持"]
   RAW --> EST["📏 paired差区間・case退行上側・alpha支出"]
   EST --> DECIDE{"📏 事前近似条件を満たすか"}
@@ -91,11 +91,18 @@ flowchart TB
   WAIT --> END
 ```
 
-現状はframe保持済み、sampler source/区間方式/2pass受入を3者counter中。sampler受容後の一回抽出をnative9311bb9d31a224e36e32f199eb95f85cd7e88de7へ保持し、root/Rが原body-onlyのopaque Gold viewから各独立Goldを進める。モデル作用は実source/資格境界/必要CI/3者受容後。費用は物理usage/人手と不明額を分離し、共有callの節約を配備後効率へ読み替えない。false positiveを避けるため不成立/unknownの枝も閉包として残し、改善成功そのものを保証しない。
+現状はframe/一回sampling/両独立Gold/出力前合議を保持済み。data取込みsourceの3者受容と必要CIを閉じてから、事前固定2passを各一回測る。モデル作用は実source/資格境界/必要CI/3者受容後。費用は物理usage/人手と不明額を分離し、共有callの節約を配備後効率へ読み替えない。false positiveを避けるため不成立/unknownの枝も閉包として残し、改善成功そのものを保証しない。
 
 
 ## 実行入口の現在境界
 
 real-case runtimeは2つのrepを同じ標準clientで各一回測る。新workflowは専用branchのrequest.json変更だけを入口とし、request fileはまだ置かない。preflightはnative parent・request-only diff・actor/run_attempt1・履歴件数・保持済み前rep原rawを照合する。rep2はrep1の正gainを条件にしないが、model drift等技術無効化では起動を止め未試行をunknownとして残す。Goldはproject時だけ使用、provider requestはbodyと611固定設定だけ。
 
-専用workflowは既存regression profileへ限定差分を変換して既存6step/credential位置/permissions/checkout/artifact境界の全検査を再用。各110分は354×15秒=88.5分に保持余裕を加える。実Gold/corpus未取得・3者実entry受容未了のためモデル0。
+専用workflowは既存regression profileへ限定差分を変換して既存6step/credential位置/permissions/checkout/artifact境界の全検査を再用。各110分は354×15秒=88.5分に保持余裕を加える。実Gold/corpus取込み済み、3者実data/source受容と必要CI未了のためモデル0。
+
+
+## 出力前に固定した実data
+
+root/R各118初稿は互いの値を読む前に保存し、111一致/7不一致を保持した。出力前合議で3件解消、4件はnullのまま全118分母へ残した。root/Rが全body/source/order/原annotation/合議を独立照合後、native256443b3ba67cd85feab848fbad043759f133fbbからcorpus/sampling/両初稿/合議の5fileを原bytesで取込んだ。候補・Best・Goldを結果に応じて変更しない。
+
+「再送なし」はpass内retry/失敗run rerun無しの意味。事前宣言pass2は同wireを再観測する新assignmentなので、pass1の成功済み/unknownと同じpayloadが再び現れる。両回を独立issue236件へ数えず、全2回の差と不成立/unknownを保持する。

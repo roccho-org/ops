@@ -1,0 +1,715 @@
+{
+  "schema": "ops.sys1.real-case-gold-initial.v1",
+  "viewNativeCommit": "9311bb9d31a224e36e32f199eb95f85cd7e88de7",
+  "rater": "counterreview",
+  "annotations": [
+    {
+      "id": "real-001",
+      "E": "yes",
+      "O": "no",
+      "basis": "Purpose/Scope/Doneはprojection受入とdigest変化の完成条件。This issue is complete only whenの条件列で、実施・確認済み結果の報告はない。"
+    },
+    {
+      "id": "real-002",
+      "E": "yes",
+      "O": "yes",
+      "basis": "core/provider分離等の完成条件を宣言し、現在の配置・直接API呼出しと完了readbackの実検証結果を報告する。"
+    },
+    {
+      "id": "real-003",
+      "E": "yes",
+      "O": "no",
+      "basis": "directory単独でURL生成・実browser検証できる要件とAcceptanceを定める。既存fixtureへの参照はあるが実行結果や進捗の報告はない。"
+    },
+    {
+      "id": "real-004",
+      "E": "no",
+      "O": "no",
+      "basis": "temp16という短いラベルだけで、要求・必要状態も現実の作業状況の報告もない。"
+    },
+    {
+      "id": "real-005",
+      "E": "yes",
+      "O": "no",
+      "basis": "receipt schema、整合/不整合判定、authority境界の完成条件を提示。DoneとChecksは受入条件であり実施結果を主張しない。"
+    },
+    {
+      "id": "real-006",
+      "E": "yes",
+      "O": "yes",
+      "basis": "同期機構とlease/receipt等の要求を宣言し、Initial statusでlocal proofが存在しlive daemon等は未証明と報告する。"
+    },
+    {
+      "id": "real-007",
+      "E": "yes",
+      "O": "no",
+      "basis": "package scaffoldの追加・登録・core/effect分離を要求する。Done/Checksは完成時条件で、実装済みという観測の主張はない。"
+    },
+    {
+      "id": "real-008",
+      "E": "yes",
+      "O": "yes",
+      "basis": "typed vocabularyと同一loopでの拡張・能力証明条件を規定し、Current capabilityで現在のAdd/containment基準と現時点の候補を説明する。"
+    },
+    {
+      "id": "real-009",
+      "E": "yes",
+      "O": "yes",
+      "basis": "week1の責務・禁止・手順を規定。冒頭statusがplacement未開始を表し、Reused completed workと現在instrumentationの状態も報告する。"
+    },
+    {
+      "id": "real-010",
+      "E": "yes",
+      "O": "yes",
+      "basis": "observer→snapshot→SSEの責務と完成条件を宣言し、production producer不在・real observer input未実装という現状を報告する。"
+    },
+    {
+      "id": "real-011",
+      "E": "yes",
+      "O": "yes",
+      "basis": "truthful UIと手編集フロー等を要求し、USER_REPORTED・read-only接続・400FAIL/Undo未実行など現在の確認状況を列挙する。"
+    },
+    {
+      "id": "real-012",
+      "E": "yes",
+      "O": "yes",
+      "basis": "pilot開始禁止・必要な経路/予算整備・受入条件を宣言。訂正で未解決事項とadapter不存在、過去の不具合/観測件数を報告する。"
+    },
+    {
+      "id": "real-013",
+      "E": "no",
+      "O": "yes",
+      "basis": "connector操作で誤作成し即閉じたという実際の出来事を報告。requested workなしと明示し、達成すべき状態の要求はない。"
+    },
+    {
+      "id": "real-014",
+      "E": "yes",
+      "O": "no",
+      "basis": "patch runnerの検証義務、許可branchと禁止操作、閉鎖の条件を定める。merge/readbackはafter条件であり完了済み報告ではない。"
+    },
+    {
+      "id": "real-015",
+      "E": "yes",
+      "O": null,
+      "basis": "固定archive/bytes/hash等を満たす受入と禁止事項は明示。payload contains/existingという記述が実物の構成報告か期待payload仕様か本文だけでは確定し難く、Oを保留する。"
+    },
+    {
+      "id": "real-016",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既存preset採用と修正・acceptance要件を宣言し、現UI pathの実装状態、Observed pathの結果と36PASS/未完範囲を報告する。"
+    },
+    {
+      "id": "real-017",
+      "E": "yes",
+      "O": "yes",
+      "basis": "portable lock・実build・provider/consumer責務を要求し、今回appsがRedを検出したという実観測を報告する。"
+    },
+    {
+      "id": "real-018",
+      "E": "yes",
+      "O": "yes",
+      "basis": "secret-free受入入口と検証条件を要求し、現在のprovider未配置/NOT_RUN/ABSENTとapps側実在エビデンスを報告する。"
+    },
+    {
+      "id": "real-019",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤作成し即閉鎖したという出来事のみを報告し、要求作業はないと明示する。"
+    },
+    {
+      "id": "real-020",
+      "E": "yes",
+      "O": "yes",
+      "basis": "immutable operation catalogの構成・検査・Done条件を宣言し、Current ops already consumes/verifies/emitsという現在実装の動作を報告する。"
+    },
+    {
+      "id": "real-021",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Atlasの表示・coverage・SSE等の受入目標を宣言。command/write経路は未確定という現検討状態と既採用契約/UIの範囲を報告する。"
+    },
+    {
+      "id": "real-022",
+      "E": "yes",
+      "O": "yes",
+      "basis": "session正規化/reduce/SSE等の責務と完成条件を規定し、採用済みreducerや現存するWorld/Live入力契約の分離という現状を記す。"
+    },
+    {
+      "id": "real-023",
+      "E": "yes",
+      "O": "yes",
+      "basis": "contract-aware runnerの仕様・禁止・完成条件を宣言し、Statusでv0 proof後の現product intentと既存implementation baselineを報告する。一般的OS定義自体は観測根拠にしない。"
+    },
+    {
+      "id": "real-024",
+      "E": "yes",
+      "O": "no",
+      "basis": "staged/remote canonical境界、promotion条件とreceipt要件を定義。Done/Scope-achievementは将来の完成条件で、現時点の実施結果は報告しない。"
+    },
+    {
+      "id": "real-025",
+      "E": "yes",
+      "O": "no",
+      "basis": "integration branch関係・provider artifact利用・禁止依存とAcceptanceを規定する。base/参照の指定はあるが実装や試験の達成状況を報告しない。"
+    },
+    {
+      "id": "real-026",
+      "E": "yes",
+      "O": "no",
+      "basis": "governance pinとproducer pathの要求、merge禁止条件を宣言。Post-merge stateはAfter attached PRs mergeという条件付き完成像で現状報告ではない。"
+    },
+    {
+      "id": "real-027",
+      "E": "yes",
+      "O": "yes",
+      "basis": "provider移管・意味/secret境界を要求し、完了readbackで正式chain/real typed2回/UI保存reloadとprovider移管完了を報告する。"
+    },
+    {
+      "id": "real-028",
+      "E": "yes",
+      "O": "no",
+      "basis": "reconcile packageのSolved state、実装対象、入力出力、受入条件を提示。Example scenarioは期待対応の例で実測の報告ではない。"
+    },
+    {
+      "id": "real-029",
+      "E": "yes",
+      "O": "yes",
+      "basis": "実画面視覚回帰の受入を要求し、実際の文字はみ出し/9of9hit-test/短縮による限定改善を報告する。"
+    },
+    {
+      "id": "real-030",
+      "E": "yes",
+      "O": "yes",
+      "basis": "artifact認証capability宣言と秘匿/検証の要件を規定し、Current dependency authority is already exactという現依存構成の状態を主張する。"
+    },
+    {
+      "id": "real-031",
+      "E": "no",
+      "O": "no",
+      "basis": "temp15というラベルのみで要求・責務・現実の実施や確認状態を宣言しない。"
+    },
+    {
+      "id": "real-032",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Hot/Cold統合の完成条件・接続責務を規定し、冒頭未着手、既Cold能力完了、apps一周統合未実証等の実状態を報告する。"
+    },
+    {
+      "id": "real-033",
+      "E": "no",
+      "O": "no",
+      "basis": "placeholderのみで、要求や現実の仕事状態の主張がない。"
+    },
+    {
+      "id": "real-034",
+      "E": "yes",
+      "O": "yes",
+      "basis": "mail domainの配置・provider分離等の要求を宣言し、背景でscale/repo責務を固定済み、過去にdomain分離を議論したという経緯を報告する。"
+    },
+    {
+      "id": "real-035",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤作成と即閉鎖の実行経緯を報告し、requested workなしと明示する。"
+    },
+    {
+      "id": "real-036",
+      "E": "yes",
+      "O": "yes",
+      "basis": "新attemptの役割・exactbytes・比較・停止条件を規定し、作成時点のrefABSENTとcandidate未作成/Gate未起動/統合未実行の現状を報告する。"
+    },
+    {
+      "id": "real-037",
+      "E": "no",
+      "O": "yes",
+      "basis": "connectorの誤作成・即閉鎖を報告し、requested workなしと明記する。"
+    },
+    {
+      "id": "real-038",
+      "E": "no",
+      "O": "no",
+      "basis": "tmpという短い仮ラベルのみで要求/観測の意味内容がない。"
+    },
+    {
+      "id": "real-039",
+      "E": "yes",
+      "O": "no",
+      "basis": "receipt writerのfields・出力・evidence境界・Done条件を規定する。Checksも完成時の検査要求で実行済み結果はない。"
+    },
+    {
+      "id": "real-040",
+      "E": "yes",
+      "O": "yes",
+      "basis": "one executable deltaを選ぶ要件とDoDを宣言し、既#54実験でlegal pairが候補から落ちるGenerator/Search distortionを観測したと報告する。"
+    },
+    {
+      "id": "real-041",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤作成して即閉鎖した出来事のみを報告し、要求される仕事はない。"
+    },
+    {
+      "id": "real-042",
+      "E": "yes",
+      "O": "no",
+      "basis": "provider evidence adapterの責務・schema・失敗コード・受入を規定する。API結果や現時点の実施状況はなく、例envelopeと破壊ケースは仕様である。"
+    },
+    {
+      "id": "real-043",
+      "E": "yes",
+      "O": "yes",
+      "basis": "複数入力/決定導出/配信/版別buildの方針と受入を宣言し、現在の上書きループ・ローカル正本・実際の数分停止などを報告する。"
+    },
+    {
+      "id": "real-044",
+      "E": "no",
+      "O": "no",
+      "basis": "noopという語だけで、必要状態や実際の操作結果の報告ではない。"
+    },
+    {
+      "id": "real-045",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Goal版とGapの表示・保存等の要件を規定。冒頭未実装/未採択を明示し、現在のPurpose Closure/Working機能の構造も示す。"
+    },
+    {
+      "id": "real-046",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Purpose portfolio/Shared World/reuse等の完成状態と禁止を宣言し、背景でADRSにおけるscale model固定済みという設計経緯を報告する。"
+    },
+    {
+      "id": "real-047",
+      "E": "yes",
+      "O": "no",
+      "basis": "ops所有境界の文書化・package map・boundarycheckの完成条件。既存package参照だけで実際の完了/確認結果は述べない。"
+    },
+    {
+      "id": "real-048",
+      "E": "yes",
+      "O": "no",
+      "basis": "queue workerの変換・失敗/idempotency/purecore境界を要求する。Done/Checksは期待する状態と試験であり実行済み報告ではない。"
+    },
+    {
+      "id": "real-049",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Proposal取得/consumer接続の要求を規定し、現行の差分を確認済みとして既存実証・TTYcallshape・fixture限定・未保存Buffer取得不能を報告する。"
+    },
+    {
+      "id": "real-050",
+      "E": "yes",
+      "O": "no",
+      "basis": "local root adapters/serve/statusの実装・拒否境界・Doneを要求する。現在実装済みや検査済みという結果の報告はない。"
+    },
+    {
+      "id": "real-051",
+      "E": "yes",
+      "O": "no",
+      "basis": "canonical hq跨repo証明の所有とrequired assertions/CI/Doneを規定する。本文の証明pathは必要条件で実Windows実行結果を報告しない。"
+    },
+    {
+      "id": "real-052",
+      "E": "yes",
+      "O": "yes",
+      "basis": "publication effectの前提・receipt/readback・停止要求を定義し、Statusでeffect未認可/Accepted policyとcandidate admission待ちを現状態として示す。"
+    },
+    {
+      "id": "real-053",
+      "E": "yes",
+      "O": "yes",
+      "basis": "secret-free配布物の完成要件を宣言し、merged部分成果・WASM不一致・正式ZIP検証・negative試験・merge後CI等の実確認結果を報告する。"
+    },
+    {
+      "id": "real-054",
+      "E": "yes",
+      "O": "yes",
+      "basis": "sourcepinをartifactへ置換するScopeと受入条件を宣言し、appsが現在ops sourceをpinしてhayamimiをbuildしている状態を報告する。"
+    },
+    {
+      "id": "real-055",
+      "E": "yes",
+      "O": "no",
+      "basis": "exact asset取得・hash確認・version実行・modelcheckの一回依頼と禁止を宣言するが、実施した結果は記されない。"
+    },
+    {
+      "id": "real-056",
+      "E": "yes",
+      "O": "yes",
+      "basis": "semantic bundle切替/replay/rollbackの要件を規定し、冒頭provider effect未admitの現状態と既#339/340で証明済みの経路を報告する。"
+    },
+    {
+      "id": "real-057",
+      "E": "yes",
+      "O": "no",
+      "basis": "package/assertion/receipt evidence生成とmerge blockerを定める。Post-mergeはAfter PRs mergeという条件であり現在の実測報告ではない。"
+    },
+    {
+      "id": "real-058",
+      "E": "yes",
+      "O": "no",
+      "basis": "exact edits候補を照合してproof実行・artifact保持するworkflow義務を宣言する。commit等は依頼対象identityで実行結果は述べない。"
+    },
+    {
+      "id": "real-059",
+      "E": "yes",
+      "O": "no",
+      "basis": "queue schema/validator/fixtureと拒否境界の完成条件を宣言する。Done/Checksは必要結果で実際の試験報告ではない。"
+    },
+    {
+      "id": "real-060",
+      "E": "yes",
+      "O": "yes",
+      "basis": "SQLite parity検証・現baseline固定・cutover禁止等を要求し、DuckDBが現在defaultでruntimeがJSONL→DuckDB→gate/projectionで動く現状を報告する。"
+    },
+    {
+      "id": "real-061",
+      "E": "no",
+      "O": "yes",
+      "basis": "connector選択時に誤作成した実際の出来事を報告し、requested workはない。"
+    },
+    {
+      "id": "real-062",
+      "E": "yes",
+      "O": "yes",
+      "basis": "fixture供給/5場面UX/正式境界等を要求し、PR82/84のsourceCI完了、既実施batch/User報告とP未観測範囲を報告する。"
+    },
+    {
+      "id": "real-063",
+      "E": "yes",
+      "O": "yes",
+      "basis": "completed evidenceにmerge/CI成功とdocumented状態を報告。Final closure must be determined by governance final strict gateという必要責務も明示する。"
+    },
+    {
+      "id": "real-064",
+      "E": "yes",
+      "O": "yes",
+      "basis": "paired ablationの入力/指標/受入とwinを要求しない規則を宣言し、candidate orderが全caseで既にreversedという現在corpus構成を報告する。"
+    },
+    {
+      "id": "real-065",
+      "E": "yes",
+      "O": "no",
+      "basis": "agentTask→pending runtimeとadmission拒否等の完成条件を規定する。実agent実行は非対象で現在結果の報告もない。"
+    },
+    {
+      "id": "real-066",
+      "E": "no",
+      "O": "no",
+      "basis": "temp14という仮ラベルのみで要求も現実状況報告もない。"
+    },
+    {
+      "id": "real-067",
+      "E": "no",
+      "O": "no",
+      "basis": "temp7のみの仮ラベルで要求/観測の宣言がない。"
+    },
+    {
+      "id": "real-068",
+      "E": "yes",
+      "O": "yes",
+      "basis": "credentials移管とcredential-less境界/削除前提を要求し、opsに現在Cloudflare authorization/binding/credentialsが存在する現状とFUTURE_TODO状態を記す。"
+    },
+    {
+      "id": "real-069",
+      "E": "no",
+      "O": "no",
+      "basis": "temp10というラベルだけで必要状態や実際の作業結果を報告しない。"
+    },
+    {
+      "id": "real-070",
+      "E": "yes",
+      "O": "no",
+      "basis": "CI execution mode、evidence非authority、stale/fail等の完成条件を定める。CIを実行した具体結果の報告はない。"
+    },
+    {
+      "id": "real-071",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Issue→Actions→Jev→結果の常設機能と有限運転/受入要件を宣言し、PR488までの既採択実装・OCI scan adapterや過去証拠を現有資産として記す。"
+    },
+    {
+      "id": "real-072",
+      "E": "yes",
+      "O": "no",
+      "basis": "appsの所有境界とworld/contracts/userinput→typed operation/UIという必要な入出力対応を定義する。実行・確認結果の報告ではない。"
+    },
+    {
+      "id": "real-073",
+      "E": "no",
+      "O": "yes",
+      "basis": "コネクタ確認中に誤って作成したscratch issueであるという実際の作成経緯の報告。製品要件や実施すべき処置はない。"
+    },
+    {
+      "id": "real-074",
+      "E": "yes",
+      "O": "yes",
+      "basis": "logから同じkernelで内部外部surfaceを投影する実装と証明条件を要求する。ops#336でreadback済みという既存証明とIMPLEMENTATION_OPENの現在状態も報告する。"
+    },
+    {
+      "id": "real-075",
+      "E": "yes",
+      "O": "no",
+      "basis": "既存cue append coreへadmissionを接続する責務、append-onlyとreceipt条件を定義する。Doneとchecksはいずれも完成条件であり実施結果の記載ではない。"
+    },
+    {
+      "id": "real-076",
+      "E": "yes",
+      "O": null,
+      "basis": "LWW仕様と実装計画の規則、境界、構成を定義する。スレッドに完全仕様5部が存在しhashを再現するという記述を実際の文書配置の報告と取るか、仕様のメタ記述と取るか本文だけでは曖昧。実行結果は示されない。"
+    },
+    {
+      "id": "real-077",
+      "E": "no",
+      "O": "no",
+      "basis": "temp12という仮置き文字列だけで、要件も実際の状態報告もない。"
+    },
+    {
+      "id": "real-078",
+      "E": "yes",
+      "O": "no",
+      "basis": "HQ admission gateのmodelCommit受理とagentTask拒否、receiptとcore/effect境界を要求する。Doneは条件であり実施や確認結果を報告していない。"
+    },
+    {
+      "id": "real-079",
+      "E": "yes",
+      "O": "yes",
+      "basis": "選定package closureの完了、mergeと各検査successを報告し、closure-passにはblocking_drifts=0が必要という判定規則と責任境界も定義する。"
+    },
+    {
+      "id": "real-080",
+      "E": "no",
+      "O": "yes",
+      "basis": "コネクタ操作中の誤作成と即時closeという実際の経緯のみ。要求作業はないと明記する。"
+    },
+    {
+      "id": "real-081",
+      "E": "no",
+      "O": "yes",
+      "basis": "コネクタ選択中の誤作成という実際の経緯のみで、要求作業はない。"
+    },
+    {
+      "id": "real-082",
+      "E": "no",
+      "O": "no",
+      "basis": "temp13のみで要件や状況報告はない。"
+    },
+    {
+      "id": "real-083",
+      "E": "yes",
+      "O": "yes",
+      "basis": "consumer-ready artifactの出力と検査条件を要求する。現在のhayamimi-web-buildがdist自体でなくCLI wrapperであるという既存実装状態を報告する。"
+    },
+    {
+      "id": "real-084",
+      "E": "yes",
+      "O": "yes",
+      "basis": "capability resolverとsemantic queueの責務、安全条件、証明を要求する。ops#83で既に成立するVimからexplorerとreceiptのproofを具体的な現在の成果として報告する。"
+    },
+    {
+      "id": "real-085",
+      "E": "yes",
+      "O": "no",
+      "basis": "owner-only deploy入口の対象、固定provider境界と成功時に必要なreadbackを定義する。成功したdeploymentや確認済み結果の報告はない。"
+    },
+    {
+      "id": "real-086",
+      "E": "yes",
+      "O": "yes",
+      "basis": "N=3の固定work、exact bytes、readbackと停止条件を要求する。計画作成時にcandidate/result refsが全てABSENTだったことと未実行の現在境界を報告する。"
+    },
+    {
+      "id": "real-087",
+      "E": "yes",
+      "O": "yes",
+      "basis": "SOPS鍵管理とCI隔離、移行と検証条件を要求する。現在のfirst sliceが個別Environment値を用いること、設計のみで実装未許可である現在状態を明記する。"
+    },
+    {
+      "id": "real-088",
+      "E": "yes",
+      "O": "yes",
+      "basis": "appsへ移す責務とUIに残す責務、検証と開始条件を要求する。実merge時刻、採用tree、80/80と26/26、未実施の移行を具体的に報告する。"
+    },
+    {
+      "id": "real-089",
+      "E": "yes",
+      "O": "yes",
+      "basis": "完了したselected ops scopeとmerged child work、成功CIを報告する。opsの権限境界と最終joinの責務も定義している。"
+    },
+    {
+      "id": "real-090",
+      "E": "yes",
+      "O": "yes",
+      "basis": "voice-ui完成WHAT、工程、責務と許可境界を要求する。設計合意済み、PR47未merge、400保留、全体未達という実際の進捗状態を報告する。"
+    },
+    {
+      "id": "real-091",
+      "E": "yes",
+      "O": "no",
+      "basis": "人間確認済みproposalだけqueueへ昇格する条件と責務、検査を定義する。Doneは要件であり実際の昇格や検査結果ではない。"
+    },
+    {
+      "id": "real-092",
+      "E": "no",
+      "O": "no",
+      "basis": "temp17という仮置きだけ。"
+    },
+    {
+      "id": "real-093",
+      "E": "yes",
+      "O": "no",
+      "basis": "home無し実現と回復の目標、各targetに必要な証明手順、失敗条件と受入条件を定義する。実際に適用や観測を行った結果はない。ACTIVEは計画の規範的statusとして示される。"
+    },
+    {
+      "id": "real-094",
+      "E": "no",
+      "O": "no",
+      "basis": "placeholderのみで要件や状況報告はない。"
+    },
+    {
+      "id": "real-095",
+      "E": "yes",
+      "O": null,
+      "basis": "Seq carrierの固定identity、輸送とChrome証明の順序を要求する。archiveやAppのbytes/hashが既に測定した実物の報告か、受入対象identityを指定するだけか本文から確定しにくい。成功した輸送や実行の報告はない。"
+    },
+    {
+      "id": "real-096",
+      "E": "yes",
+      "O": "yes",
+      "basis": "admissionの出所をjournal/Worldへ運び画面で区別する改善を要求する。現経路でadmissionが途中で落ち、画面で未採択を区別できないという実装とreadbackの実状を報告する。"
+    },
+    {
+      "id": "real-097",
+      "E": "yes",
+      "O": "yes",
+      "basis": "7repo healthの責務と意味契約を定義し、実merge、7/7観測と評価完了、後続未起動を具体的に報告する。"
+    },
+    {
+      "id": "real-098",
+      "E": "yes",
+      "O": "yes",
+      "basis": "実public-safe surfaceの公開から観測、append、再投影までを要求する。既存#322の公開されたaccepted meaningとowner acceptance、および内部writable-effect未証明という現在状態を明記する。"
+    },
+    {
+      "id": "real-099",
+      "E": "yes",
+      "O": "no",
+      "basis": "targetRef→queue→workerのproofとdigest一致検査を要求する。Done、checksは受入条件であり実施結果ではない。"
+    },
+    {
+      "id": "real-100",
+      "E": "yes",
+      "O": "no",
+      "basis": "modeling proposalのschemaとvalidation、human promotion境界を要求する。実装や検査を済ませた報告はない。"
+    },
+    {
+      "id": "real-101",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Jev共通化とTypeLLM分離、配布移行の完了条件を定義する。実merge、公開asset再取得、実API疎通、停止後読戻し、残件0を詳細に報告する。"
+    },
+    {
+      "id": "real-102",
+      "E": "yes",
+      "O": "no",
+      "basis": "source evidence laneの責務、schema、実装targetと検査条件を定義する。Solved stateや例示scenarioは目標であり実際の取得や完了報告ではない。"
+    },
+    {
+      "id": "real-103",
+      "E": "yes",
+      "O": "yes",
+      "basis": "exact-head branch protectionの必須挙動を要求する。現在proposalsがunprotectedでmerge enforcement未完了という実状を報告する。"
+    },
+    {
+      "id": "real-104",
+      "E": "yes",
+      "O": "no",
+      "basis": "Artifact Runtimeの運用入口とworkflowのfail-closed、receipt返却、権限境界を定義する。deployやreadback実績の報告はない。"
+    },
+    {
+      "id": "real-105",
+      "E": "no",
+      "O": "no",
+      "basis": "temp11だけで要件も実際の状況報告もない。"
+    },
+    {
+      "id": "real-106",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Purpose Closureのjoin/reducer、意味関係と受入条件を要求する。実merge、112/112、hostのHTTP200、未実施の画面接続と実収集を具体的に報告する。"
+    },
+    {
+      "id": "real-107",
+      "E": "no",
+      "O": "no",
+      "basis": "temp18という仮置きだけ。"
+    },
+    {
+      "id": "real-108",
+      "E": "yes",
+      "O": "no",
+      "basis": "ops出力からUI用projectionを作る責務とfixture/digestの条件を定義する。実際に生成や検証した報告はない。"
+    },
+    {
+      "id": "real-109",
+      "E": "yes",
+      "O": "no",
+      "basis": "HQ local serveの配置、永続化、path catalogと権限境界の決定を要求する。実際のserveや検査結果の報告はない。"
+    },
+    {
+      "id": "real-110",
+      "E": "yes",
+      "O": "yes",
+      "basis": "r4の意図的競合と固定candidate、Gate期待、停止条件を定義する。r3がPIPELINE_ERRORで終了し、refが読戻し時ABSENTでr4未実行という実状を報告する。"
+    },
+    {
+      "id": "real-111",
+      "E": "no",
+      "O": "no",
+      "basis": "temp9だけで要件や状況報告はない。"
+    },
+    {
+      "id": "real-112",
+      "E": "yes",
+      "O": "yes",
+      "basis": "model payloadへのsource混入を再帰的に拒否する改善を要求する。現在のvalidatorはobjectのみ要求しsmuggling可能で、direct sourceは既に拒否されるという実挙動を報告する。"
+    },
+    {
+      "id": "real-113",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既存release workflowをexact artifact公開へ強化する変更と証明条件を要求する。現在appsがpinned ops sourceからbuildしているという実際の消費方式を報告する。"
+    },
+    {
+      "id": "real-114",
+      "E": "yes",
+      "O": "yes",
+      "basis": "コネクタprobe中の誤作成を報告し、closeすべきという明示的な処置を要求する。"
+    },
+    {
+      "id": "real-115",
+      "E": "yes",
+      "O": "no",
+      "basis": "N-way admission workflowの許容schema/ref namespace、exact評価とfail-closedという責務を定義する。具体的な実行やreadback結果の報告はない。"
+    },
+    {
+      "id": "real-116",
+      "E": "yes",
+      "O": "no",
+      "basis": "source-capsule workflowのpackage対象、exact identityとrestore検査、receipt返却を要求する。実際のcarryや検証結果の報告はない。"
+    },
+    {
+      "id": "real-117",
+      "E": "yes",
+      "O": "no",
+      "basis": "exact binaryを組み合わせたimmutable-first公開、認証UI証明、失敗処理とdeliverablesを要求する。receiptのpass値も提案schemaの例であり実観測ではない。"
+    },
+    {
+      "id": "real-118",
+      "E": "no",
+      "O": "yes",
+      "basis": "コネクタ操作中の誤作成と即時closeを報告し、要求作業はないと明記する。"
+    }
+  ]
+}

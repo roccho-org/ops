@@ -1,6 +1,6 @@
 {
   "schema": "ops.sys1.real-case-plan.v1",
-  "status": "sample-native-retained-gold-blind-ratings-in-progress-models-zero",
+  "status": "real-corpus-blind-gold-retained-source-review-before-effects",
   "purpose": "Approximate fixed-frame gain of the unchanged PR611 request configuration; no population-zero or deployment claim",
   "frozenComparison": {
     "source": "PR611 final 641fed724f3a8ec4ca4e17be8a230d01ed40fca1",
@@ -97,7 +97,7 @@
   "execution": {
     "plannedPhysicalCalls": "two prospectively fixed passes, 3*n each; actual M=n118 means 708 POST total; run both regardless of first outcome",
     "route": "existing native standard Jev client and six-step secret boundary reused; new dedicated request-only workflow implemented but no request/corpus exists, current-source reviews/checks and Gold freeze required before activation",
-    "retry": "do not resend successful or effect-uncertain requests",
+    "retry": "no within-pass retry or failed-run rerun; prospectively declared pass2 is a new assignment and can contain identical payloads to successful or unknown pass1 observations",
     "money": "record physical usage and unknown money, not alias rows",
     "mergeOrAdoption": false,
     "repetitions": 2,
