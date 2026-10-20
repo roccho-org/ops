@@ -5,6 +5,7 @@ import { JEV_MODEL } from './core.mjs';
 export const REQUEST_PREFIX = '/jev-evaluate\n';
 export const RESULT_PREFIX = '<!-- ops-jev-result-v1 -->\n';
 const RESULT_BYTE_CAP = 32768;
+const REPORT_EXPLANATION = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. See the linked request for the questions and conditions.\n\n";
 const EVIDENCE_OPEN = '<details>\n<summary>Execution evidence</summary>\n\n```json\n';
 const EVIDENCE_CLOSE = '```\n</details>\n';
 const resultJSON = envelope => RESULT_PREFIX + JSON.stringify(envelope) + '\n';
@@ -12,7 +13,7 @@ const code = value => '<code>' + String(value).replace(/[^A-Za-z0-9 .-]/gu,
   char => '&#' + char.codePointAt(0) + ';') + '</code>';
 
 // Display only the already public, bound result. A model observation is not a verified finding.
-function resultComment(envelope) {
+function resultComment(envelope, explain = true) {
   const identity = envelope.identity;
   if (identity.observation !== PROVIDED_COMMAND_OBSERVATION) return resultJSON(envelope);
   const origin = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(identity.repository)
@@ -23,6 +24,7 @@ function resultComment(envelope) {
   const rows = envelope.result.cases.flatMap(row => row.result.records.map(record =>
     `| ${code(row.id)} / ${code(record.rule)} | ${code(record.question)} | ${code(record.status)} | ${code(record.noul ?? 'not observed')} |`));
   return '### semlint: bounded evaluation\n\n' + origin + '\n\n'
+    + (explain ? REPORT_EXPLANATION : '')
     + `Evaluated revision: ${code(identity.subject?.revision ?? identity.subjectRevision ?? 'not recorded')}\n\n`
     + '| Case / check | Axis | Status | Jev value |\n|---|---|---|---|\n' + rows.join('\n') + '\n\n'
     + 'OBSERVED means a model response was recorded, not that a claim is true or a change is required. '
@@ -40,7 +42,7 @@ export function parseResultComment(body) {
     const marker = body.indexOf(RESULT_PREFIX);
     if (marker < 0 || !body.endsWith(EVIDENCE_CLOSE)) return null;
     const envelope = JSON.parse(body.slice(marker + RESULT_PREFIX.length, -EVIDENCE_CLOSE.length));
-    return resultComment(envelope) === body ? envelope : null;
+    return resultComment(envelope) === body || resultComment(envelope, false) === body ? envelope : null;
   } catch { return null; }
 }
 const sha = (x) => typeof x === 'string' && /^[a-f0-9]{40}$/.test(x);
