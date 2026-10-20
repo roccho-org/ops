@@ -1,0 +1,16 @@
+{
+  "schema": "ops.root.expectation-prefix-native-replay.v1",
+  "sourceCommit": "e6fc98bb496fa0efd1138586f3bad110858fbb11",
+  "metadataNativeCommit": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+  "originalFiles": 11,
+  "originalBytes": 52326302,
+  "nativeCommands": 5,
+  "observedResponses": 3230,
+  "independentPrefixMatched": true,
+  "inWindow": 122,
+  "prefixCount": 122,
+  "newMetadataQueries": 0,
+  "newBodyRequests": 0,
+  "newModelRequests": 0,
+  "limitation": "pooled prefix inside the already observed metadata set and prospectively fixed creation window; not a fresh snapshot, random sample, complete-day population or result-selected target; later eligibility never backfills"
+}

@@ -1,0 +1,1020 @@
+{
+  "schema": "ops.sys1.expectation-observed-prefix.v1",
+  "status": "METADATA_ONLY_AWAITING_NATIVE_RETAIN",
+  "observedEntries": 322718,
+  "uniqueIssues": 322718,
+  "duplicateWindowEntries": 0,
+  "inWindow": 122,
+  "prefix": [
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYap1oQ",
+      "repository": "microsoft/vscode",
+      "number": 342752,
+      "createdAt": "2026-10-20T00:04:20Z",
+      "updatedAt": "2026-10-20T00:04:20Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYaqWaQ",
+      "repository": "microsoft/vscode",
+      "number": 342754,
+      "createdAt": "2026-10-20T00:05:13Z",
+      "updatedAt": "2026-10-20T00:14:00Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYaxtAg",
+      "repository": "microsoft/vscode",
+      "number": 342756,
+      "createdAt": "2026-10-20T00:16:42Z",
+      "updatedAt": "2026-10-20T00:26:26Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYbAFWA",
+      "repository": "microsoft/vscode",
+      "number": 342759,
+      "createdAt": "2026-10-20T00:42:14Z",
+      "updatedAt": "2026-10-20T00:51:41Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYbEHrQ",
+      "repository": "microsoft/vscode",
+      "number": 342761,
+      "createdAt": "2026-10-20T00:49:25Z",
+      "updatedAt": "2026-10-20T01:01:23Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYbJ1yA",
+      "repository": "microsoft/vscode",
+      "number": 342764,
+      "createdAt": "2026-10-20T00:59:55Z",
+      "updatedAt": "2026-10-20T02:26:35Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYbLY0w",
+      "repository": "NixOS/nixpkgs",
+      "number": 576182,
+      "createdAt": "2026-10-20T01:02:45Z",
+      "updatedAt": "2026-10-20T01:03:32Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYbPFoA",
+      "repository": "microsoft/vscode",
+      "number": 342769,
+      "createdAt": "2026-10-20T01:09:23Z",
+      "updatedAt": "2026-10-20T01:10:12Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYbe55g",
+      "repository": "microsoft/vscode",
+      "number": 342774,
+      "createdAt": "2026-10-20T01:37:26Z",
+      "updatedAt": "2026-10-20T01:38:52Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYbe-1Q",
+      "repository": "microsoft/vscode",
+      "number": 342775,
+      "createdAt": "2026-10-20T01:37:34Z",
+      "updatedAt": "2026-10-20T01:37:35Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYbtbSg",
+      "repository": "microsoft/vscode",
+      "number": 342777,
+      "createdAt": "2026-10-20T02:04:21Z",
+      "updatedAt": "2026-10-20T03:05:39Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYcLFmQ",
+      "repository": "microsoft/vscode",
+      "number": 342783,
+      "createdAt": "2026-10-20T02:57:51Z",
+      "updatedAt": "2026-10-20T05:53:32Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYcVaTw",
+      "repository": "NixOS/nixpkgs",
+      "number": 576211,
+      "createdAt": "2026-10-20T03:16:17Z",
+      "updatedAt": "2026-10-20T04:17:58Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYcrTkA",
+      "repository": "NixOS/nixpkgs",
+      "number": 576224,
+      "createdAt": "2026-10-20T03:56:16Z",
+      "updatedAt": "2026-10-20T03:56:16Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYcuC-Q",
+      "repository": "microsoft/vscode",
+      "number": 342785,
+      "createdAt": "2026-10-20T04:01:23Z",
+      "updatedAt": "2026-10-20T05:19:35Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYdCYbg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576232,
+      "createdAt": "2026-10-20T04:39:21Z",
+      "updatedAt": "2026-10-20T04:39:21Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYdEEng",
+      "repository": "microsoft/vscode",
+      "number": 342788,
+      "createdAt": "2026-10-20T04:42:34Z",
+      "updatedAt": "2026-10-20T04:53:56Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYdGWRw",
+      "repository": "NixOS/nixpkgs",
+      "number": 576234,
+      "createdAt": "2026-10-20T04:46:48Z",
+      "updatedAt": "2026-10-20T04:46:48Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYdG3gg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576235,
+      "createdAt": "2026-10-20T04:47:49Z",
+      "updatedAt": "2026-10-20T04:47:49Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYdcCXg",
+      "repository": "microsoft/vscode",
+      "number": 342791,
+      "createdAt": "2026-10-20T05:26:58Z",
+      "updatedAt": "2026-10-20T05:36:35Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYdeuXw",
+      "repository": "microsoft/vscode",
+      "number": 342793,
+      "createdAt": "2026-10-20T05:31:48Z",
+      "updatedAt": "2026-10-20T05:41:39Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYdevoA",
+      "repository": "microsoft/vscode",
+      "number": 342794,
+      "createdAt": "2026-10-20T05:31:51Z",
+      "updatedAt": "2026-10-20T05:40:36Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYdoZng",
+      "repository": "microsoft/vscode",
+      "number": 342796,
+      "createdAt": "2026-10-20T05:49:05Z",
+      "updatedAt": "2026-10-20T15:24:52Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYdonVQ",
+      "repository": "NixOS/nixpkgs",
+      "number": 576252,
+      "createdAt": "2026-10-20T05:49:28Z",
+      "updatedAt": "2026-10-20T05:50:32Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYdwqhQ",
+      "repository": "microsoft/vscode",
+      "number": 342798,
+      "createdAt": "2026-10-20T06:03:20Z",
+      "updatedAt": "2026-10-20T09:31:58Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYd2j-A",
+      "repository": "microsoft/vscode",
+      "number": 342799,
+      "createdAt": "2026-10-20T06:12:24Z",
+      "updatedAt": "2026-10-20T07:25:09Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYd5Xzg",
+      "repository": "microsoft/vscode",
+      "number": 342801,
+      "createdAt": "2026-10-20T06:16:58Z",
+      "updatedAt": "2026-10-20T07:25:06Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYeAtqQ",
+      "repository": "microsoft/vscode",
+      "number": 342802,
+      "createdAt": "2026-10-20T06:28:51Z",
+      "updatedAt": "2026-10-20T06:37:59Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYeDPUg",
+      "repository": "microsoft/vscode",
+      "number": 342803,
+      "createdAt": "2026-10-20T06:32:52Z",
+      "updatedAt": "2026-10-20T09:30:17Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYeEVQA",
+      "repository": "microsoft/vscode",
+      "number": 342804,
+      "createdAt": "2026-10-20T06:34:34Z",
+      "updatedAt": "2026-10-20T06:43:38Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnkyMTI2MTMwNDk=",
+      "issueNodeId": "I_kwDODKw3uc8AAAABYeOYWA",
+      "repository": "cli/cli",
+      "number": 14761,
+      "createdAt": "2026-10-20T06:50:09Z",
+      "updatedAt": "2026-10-20T06:53:22Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYef3Xg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576266,
+      "createdAt": "2026-10-20T07:15:06Z",
+      "updatedAt": "2026-10-20T07:15:45Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYenJZw",
+      "repository": "NixOS/nixpkgs",
+      "number": 576268,
+      "createdAt": "2026-10-20T07:24:43Z",
+      "updatedAt": "2026-10-20T07:24:43Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYeufGA",
+      "repository": "NixOS/nixpkgs",
+      "number": 576271,
+      "createdAt": "2026-10-20T07:34:41Z",
+      "updatedAt": "2026-10-20T10:43:07Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYe6dTQ",
+      "repository": "microsoft/vscode",
+      "number": 342813,
+      "createdAt": "2026-10-20T07:50:32Z",
+      "updatedAt": "2026-10-20T16:09:29Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYe9Q1w",
+      "repository": "microsoft/vscode",
+      "number": 342814,
+      "createdAt": "2026-10-20T07:54:11Z",
+      "updatedAt": "2026-10-20T08:05:46Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfElFw",
+      "repository": "microsoft/vscode",
+      "number": 342817,
+      "createdAt": "2026-10-20T08:03:16Z",
+      "updatedAt": "2026-10-20T08:03:17Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfLjXw",
+      "repository": "microsoft/vscode",
+      "number": 342819,
+      "createdAt": "2026-10-20T08:11:12Z",
+      "updatedAt": "2026-10-20T08:43:02Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfTgOA",
+      "repository": "microsoft/vscode",
+      "number": 342820,
+      "createdAt": "2026-10-20T08:21:12Z",
+      "updatedAt": "2026-10-20T10:19:03Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfThJA",
+      "repository": "microsoft/vscode",
+      "number": 342821,
+      "createdAt": "2026-10-20T08:21:14Z",
+      "updatedAt": "2026-10-20T10:19:00Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfc_qg",
+      "repository": "microsoft/vscode",
+      "number": 342823,
+      "createdAt": "2026-10-20T08:33:14Z",
+      "updatedAt": "2026-10-20T10:18:56Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnkyMTI2MTMwNDk=",
+      "issueNodeId": "I_kwDODKw3uc8AAAABYfdASg",
+      "repository": "cli/cli",
+      "number": 14762,
+      "createdAt": "2026-10-20T08:33:15Z",
+      "updatedAt": "2026-10-20T13:08:16Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfdt0Q",
+      "repository": "microsoft/vscode",
+      "number": 342824,
+      "createdAt": "2026-10-20T08:34:08Z",
+      "updatedAt": "2026-10-20T10:35:00Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfd5bw",
+      "repository": "microsoft/vscode",
+      "number": 342825,
+      "createdAt": "2026-10-20T08:34:22Z",
+      "updatedAt": "2026-10-20T08:46:17Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfeKiQ",
+      "repository": "microsoft/vscode",
+      "number": 342826,
+      "createdAt": "2026-10-20T08:34:42Z",
+      "updatedAt": "2026-10-20T08:36:35Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfoY2A",
+      "repository": "microsoft/vscode",
+      "number": 342829,
+      "createdAt": "2026-10-20T08:47:19Z",
+      "updatedAt": "2026-10-20T10:18:49Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYfxKZA",
+      "repository": "microsoft/vscode",
+      "number": 342830,
+      "createdAt": "2026-10-20T08:57:34Z",
+      "updatedAt": "2026-10-20T17:24:39Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYf8Bfg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576307,
+      "createdAt": "2026-10-20T09:10:38Z",
+      "updatedAt": "2026-10-20T09:24:28Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYgGLyg",
+      "repository": "microsoft/vscode",
+      "number": 342834,
+      "createdAt": "2026-10-20T09:22:49Z",
+      "updatedAt": "2026-10-20T09:47:37Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYgNPwQ",
+      "repository": "microsoft/vscode",
+      "number": 342835,
+      "createdAt": "2026-10-20T09:31:23Z",
+      "updatedAt": "2026-10-20T09:32:54Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYgaAug",
+      "repository": "microsoft/vscode",
+      "number": 342836,
+      "createdAt": "2026-10-20T09:47:20Z",
+      "updatedAt": "2026-10-20T10:51:49Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYg0ztQ",
+      "repository": "microsoft/vscode",
+      "number": 342842,
+      "createdAt": "2026-10-20T10:21:28Z",
+      "updatedAt": "2026-10-20T10:31:08Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYg2yOQ",
+      "repository": "microsoft/vscode",
+      "number": 342843,
+      "createdAt": "2026-10-20T10:24:06Z",
+      "updatedAt": "2026-10-20T12:29:45Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYg5cbg",
+      "repository": "microsoft/vscode",
+      "number": 342845,
+      "createdAt": "2026-10-20T10:27:38Z",
+      "updatedAt": "2026-10-20T10:37:28Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYg-1TQ",
+      "repository": "microsoft/vscode",
+      "number": 342847,
+      "createdAt": "2026-10-20T10:34:44Z",
+      "updatedAt": "2026-10-20T10:44:53Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYhIlMg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576333,
+      "createdAt": "2026-10-20T10:47:38Z",
+      "updatedAt": "2026-10-20T10:47:38Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYhRS1w",
+      "repository": "NixOS/nixpkgs",
+      "number": 576338,
+      "createdAt": "2026-10-20T10:59:20Z",
+      "updatedAt": "2026-10-20T11:40:35Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYhXGyA",
+      "repository": "microsoft/vscode",
+      "number": 342851,
+      "createdAt": "2026-10-20T11:06:57Z",
+      "updatedAt": "2026-10-20T12:29:38Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYhbdrg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576348,
+      "createdAt": "2026-10-20T11:12:32Z",
+      "updatedAt": "2026-10-20T11:12:32Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYhjH5A",
+      "repository": "microsoft/vscode",
+      "number": 342853,
+      "createdAt": "2026-10-20T11:22:27Z",
+      "updatedAt": "2026-10-20T11:33:34Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYhsx2A",
+      "repository": "microsoft/vscode",
+      "number": 342854,
+      "createdAt": "2026-10-20T11:34:56Z",
+      "updatedAt": "2026-10-20T11:44:14Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYh0jxw",
+      "repository": "microsoft/vscode",
+      "number": 342856,
+      "createdAt": "2026-10-20T11:44:51Z",
+      "updatedAt": "2026-10-20T13:22:18Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYh-j_A",
+      "repository": "microsoft/vscode",
+      "number": 342857,
+      "createdAt": "2026-10-20T11:57:34Z",
+      "updatedAt": "2026-10-20T12:07:27Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYiDfTg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576372,
+      "createdAt": "2026-10-20T12:03:40Z",
+      "updatedAt": "2026-10-20T12:04:23Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYiRkuw",
+      "repository": "microsoft/vscode",
+      "number": 342860,
+      "createdAt": "2026-10-20T12:20:45Z",
+      "updatedAt": "2026-10-20T12:30:06Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYiTkug",
+      "repository": "microsoft/vscode",
+      "number": 342861,
+      "createdAt": "2026-10-20T12:23:12Z",
+      "updatedAt": "2026-10-20T12:23:13Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYiTq6w",
+      "repository": "microsoft/vscode",
+      "number": 342862,
+      "createdAt": "2026-10-20T12:23:19Z",
+      "updatedAt": "2026-10-20T15:22:03Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYiWZAg",
+      "repository": "microsoft/vscode",
+      "number": 342864,
+      "createdAt": "2026-10-20T12:26:31Z",
+      "updatedAt": "2026-10-20T19:19:26Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYibJPA",
+      "repository": "microsoft/vscode",
+      "number": 342865,
+      "createdAt": "2026-10-20T12:32:06Z",
+      "updatedAt": "2026-10-20T14:20:59Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYicznw",
+      "repository": "microsoft/vscode",
+      "number": 342866,
+      "createdAt": "2026-10-20T12:34:02Z",
+      "updatedAt": "2026-10-20T12:35:07Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYikWhA",
+      "repository": "microsoft/vscode",
+      "number": 342867,
+      "createdAt": "2026-10-20T12:42:47Z",
+      "updatedAt": "2026-10-20T16:01:19Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYitu9w",
+      "repository": "microsoft/vscode",
+      "number": 342870,
+      "createdAt": "2026-10-20T12:53:09Z",
+      "updatedAt": "2026-10-20T13:02:43Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYit8rw",
+      "repository": "microsoft/vscode",
+      "number": 342871,
+      "createdAt": "2026-10-20T12:53:23Z",
+      "updatedAt": "2026-10-20T13:02:58Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnkyMTI2MTMwNDk=",
+      "issueNodeId": "I_kwDODKw3uc8AAAABYiu57Q",
+      "repository": "cli/cli",
+      "number": 14764,
+      "createdAt": "2026-10-20T12:54:27Z",
+      "updatedAt": "2026-10-20T13:08:17Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYizoaQ",
+      "repository": "microsoft/vscode",
+      "number": 342872,
+      "createdAt": "2026-10-20T12:59:33Z",
+      "updatedAt": "2026-10-20T13:09:10Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYjK1Gg",
+      "repository": "microsoft/vscode",
+      "number": 342875,
+      "createdAt": "2026-10-20T13:23:58Z",
+      "updatedAt": "2026-10-20T15:01:52Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYjWZGQ",
+      "repository": "NixOS/nixpkgs",
+      "number": 576406,
+      "createdAt": "2026-10-20T13:35:56Z",
+      "updatedAt": "2026-10-20T17:41:02Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYjaftQ",
+      "repository": "NixOS/nixpkgs",
+      "number": 576408,
+      "createdAt": "2026-10-20T13:40:10Z",
+      "updatedAt": "2026-10-20T13:40:10Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYjagtw",
+      "repository": "microsoft/vscode",
+      "number": 342876,
+      "createdAt": "2026-10-20T13:40:11Z",
+      "updatedAt": "2026-10-20T15:19:50Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYjdAUg",
+      "repository": "microsoft/vscode",
+      "number": 342877,
+      "createdAt": "2026-10-20T13:42:46Z",
+      "updatedAt": "2026-10-20T13:53:23Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYjfeXg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576412,
+      "createdAt": "2026-10-20T13:45:17Z",
+      "updatedAt": "2026-10-20T13:45:17Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYjm2YQ",
+      "repository": "NixOS/nixpkgs",
+      "number": 576414,
+      "createdAt": "2026-10-20T13:52:56Z",
+      "updatedAt": "2026-10-20T13:52:56Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYj14TQ",
+      "repository": "microsoft/vscode",
+      "number": 342880,
+      "createdAt": "2026-10-20T14:08:21Z",
+      "updatedAt": "2026-10-20T16:42:06Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYj3Xdg",
+      "repository": "microsoft/vscode",
+      "number": 342881,
+      "createdAt": "2026-10-20T14:09:53Z",
+      "updatedAt": "2026-10-20T15:19:45Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYj37sw",
+      "repository": "microsoft/vscode",
+      "number": 342883,
+      "createdAt": "2026-10-20T14:10:27Z",
+      "updatedAt": "2026-10-20T14:20:00Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYj43Ug",
+      "repository": "microsoft/vscode",
+      "number": 342885,
+      "createdAt": "2026-10-20T14:11:24Z",
+      "updatedAt": "2026-10-20T14:21:03Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYkHv5Q",
+      "repository": "microsoft/vscode",
+      "number": 342891,
+      "createdAt": "2026-10-20T14:26:24Z",
+      "updatedAt": "2026-10-20T18:23:23Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYkXjrg",
+      "repository": "microsoft/vscode",
+      "number": 342893,
+      "createdAt": "2026-10-20T14:41:42Z",
+      "updatedAt": "2026-10-20T17:04:57Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYkXqwQ",
+      "repository": "microsoft/vscode",
+      "number": 342894,
+      "createdAt": "2026-10-20T14:41:49Z",
+      "updatedAt": "2026-10-20T14:41:50Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYkdIIw",
+      "repository": "NixOS/nixpkgs",
+      "number": 576435,
+      "createdAt": "2026-10-20T14:47:01Z",
+      "updatedAt": "2026-10-20T14:47:01Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYkqwFQ",
+      "repository": "microsoft/vscode",
+      "number": 342900,
+      "createdAt": "2026-10-20T15:00:41Z",
+      "updatedAt": "2026-10-20T17:07:33Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYkvvxQ",
+      "repository": "microsoft/vscode",
+      "number": 342903,
+      "createdAt": "2026-10-20T15:05:37Z",
+      "updatedAt": "2026-10-20T15:15:02Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYk4idQ",
+      "repository": "NixOS/nixpkgs",
+      "number": 576442,
+      "createdAt": "2026-10-20T15:14:03Z",
+      "updatedAt": "2026-10-20T15:34:05Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYlDuHQ",
+      "repository": "microsoft/vscode",
+      "number": 342905,
+      "createdAt": "2026-10-20T15:24:52Z",
+      "updatedAt": "2026-10-20T15:25:08Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYlULlQ",
+      "repository": "microsoft/vscode",
+      "number": 342911,
+      "createdAt": "2026-10-20T15:40:21Z",
+      "updatedAt": "2026-10-20T15:53:56Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYld-iQ",
+      "repository": "NixOS/nixpkgs",
+      "number": 576457,
+      "createdAt": "2026-10-20T15:49:47Z",
+      "updatedAt": "2026-10-20T15:49:47Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYlfLpw",
+      "repository": "microsoft/vscode",
+      "number": 342912,
+      "createdAt": "2026-10-20T15:50:59Z",
+      "updatedAt": "2026-10-20T16:00:44Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYllAng",
+      "repository": "microsoft/vscode",
+      "number": 342913,
+      "createdAt": "2026-10-20T15:56:43Z",
+      "updatedAt": "2026-10-20T15:56:45Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYlloiA",
+      "repository": "NixOS/nixpkgs",
+      "number": 576460,
+      "createdAt": "2026-10-20T15:57:19Z",
+      "updatedAt": "2026-10-20T17:48:31Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYlmUmw",
+      "repository": "microsoft/vscode",
+      "number": 342914,
+      "createdAt": "2026-10-20T15:57:58Z",
+      "updatedAt": "2026-10-20T15:57:59Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYlwfkw",
+      "repository": "microsoft/vscode",
+      "number": 342917,
+      "createdAt": "2026-10-20T16:08:25Z",
+      "updatedAt": "2026-10-20T16:19:02Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYl2YyQ",
+      "repository": "microsoft/vscode",
+      "number": 342918,
+      "createdAt": "2026-10-20T16:14:32Z",
+      "updatedAt": "2026-10-20T16:26:55Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYl2dbA",
+      "repository": "microsoft/vscode",
+      "number": 342919,
+      "createdAt": "2026-10-20T16:14:36Z",
+      "updatedAt": "2026-10-20T16:24:23Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYl6iAA",
+      "repository": "NixOS/nixpkgs",
+      "number": 576467,
+      "createdAt": "2026-10-20T16:18:51Z",
+      "updatedAt": "2026-10-20T17:29:23Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYl_Ylg",
+      "repository": "microsoft/vscode",
+      "number": 342921,
+      "createdAt": "2026-10-20T16:24:11Z",
+      "updatedAt": "2026-10-20T16:35:19Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmDezA",
+      "repository": "microsoft/vscode",
+      "number": 342922,
+      "createdAt": "2026-10-20T16:28:36Z",
+      "updatedAt": "2026-10-20T16:28:37Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmGczQ",
+      "repository": "microsoft/vscode",
+      "number": 342924,
+      "createdAt": "2026-10-20T16:31:46Z",
+      "updatedAt": "2026-10-20T18:24:57Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmGxKA",
+      "repository": "microsoft/vscode",
+      "number": 342925,
+      "createdAt": "2026-10-20T16:32:06Z",
+      "updatedAt": "2026-10-20T16:32:07Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmNkXw",
+      "repository": "microsoft/vscode",
+      "number": 342927,
+      "createdAt": "2026-10-20T16:39:24Z",
+      "updatedAt": "2026-10-20T16:39:25Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmOX0A",
+      "repository": "microsoft/vscode",
+      "number": 342928,
+      "createdAt": "2026-10-20T16:40:18Z",
+      "updatedAt": "2026-10-20T17:54:31Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmUlWA",
+      "repository": "microsoft/vscode",
+      "number": 342929,
+      "createdAt": "2026-10-20T16:47:11Z",
+      "updatedAt": "2026-10-20T16:59:01Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmcf5g",
+      "repository": "microsoft/vscode",
+      "number": 342930,
+      "createdAt": "2026-10-20T16:55:34Z",
+      "updatedAt": "2026-10-20T16:55:36Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmgYdw",
+      "repository": "microsoft/vscode",
+      "number": 342932,
+      "createdAt": "2026-10-20T16:59:39Z",
+      "updatedAt": "2026-10-20T17:10:27Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYmmQYQ",
+      "repository": "microsoft/vscode",
+      "number": 342934,
+      "createdAt": "2026-10-20T17:06:05Z",
+      "updatedAt": "2026-10-20T17:06:06Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYmsqSw",
+      "repository": "NixOS/nixpkgs",
+      "number": 576475,
+      "createdAt": "2026-10-20T17:13:00Z",
+      "updatedAt": "2026-10-20T18:42:56Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYmznwQ",
+      "repository": "NixOS/nixpkgs",
+      "number": 576478,
+      "createdAt": "2026-10-20T17:20:42Z",
+      "updatedAt": "2026-10-20T17:31:21Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYm1WiQ",
+      "repository": "microsoft/vscode",
+      "number": 342939,
+      "createdAt": "2026-10-20T17:22:41Z",
+      "updatedAt": "2026-10-20T19:17:05Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYnA5Vg",
+      "repository": "NixOS/nixpkgs",
+      "number": 576485,
+      "createdAt": "2026-10-20T17:34:59Z",
+      "updatedAt": "2026-10-20T18:36:11Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYnN8Bw",
+      "repository": "microsoft/vscode",
+      "number": 342946,
+      "createdAt": "2026-10-20T17:49:49Z",
+      "updatedAt": "2026-10-20T18:07:14Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYnT-LQ",
+      "repository": "microsoft/vscode",
+      "number": 342947,
+      "createdAt": "2026-10-20T17:56:41Z",
+      "updatedAt": "2026-10-20T17:56:41Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "issueNodeId": "I_kwDOAn8RLM8AAAABYnWFfQ",
+      "repository": "microsoft/vscode",
+      "number": 342948,
+      "createdAt": "2026-10-20T17:59:00Z",
+      "updatedAt": "2026-10-20T17:59:00Z"
+    },
+    {
+      "repositoryId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "issueNodeId": "I_kwDOAEVQ_M8AAAABYnWdwQ",
+      "repository": "NixOS/nixpkgs",
+      "number": 576492,
+      "createdAt": "2026-10-20T17:59:24Z",
+      "updatedAt": "2026-10-20T18:04:01Z"
+    }
+  ],
+  "notSelectedBeyondPrefix": 0,
+  "newBodyRequests": 0,
+  "newModelRequests": 0,
+  "scope": "pooled prefix inside the already observed metadata set and prospectively fixed creation window; not a fresh snapshot, random sample, complete-day population or result-selected target; later eligibility never backfills",
+  "roundIndex": 5,
+  "repositoryScope": [
+    {
+      "nodeId": "MDEwOlJlcG9zaXRvcnkyMTI2MTMwNDk=",
+      "fullName": "cli/cli"
+    },
+    {
+      "nodeId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "fullName": "NixOS/nixpkgs"
+    },
+    {
+      "nodeId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "fullName": "microsoft/vscode"
+    }
+  ],
+  "createdWindow": {
+    "startInclusive": "2026-10-20T00:00:00Z",
+    "endExclusive": "2026-10-20T18:00:00Z"
+  },
+  "mode": "REPLAY_OF_ACCEPTED_METADATA_OBSERVATION",
+  "origin": {
+    "metadataNativeCommit": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "originalSourceCommit": "9cd51472df0de978b21bfe0dffdf99193fd0fe1a",
+    "originalStartedAt": "2026-10-20T18:36:57.610Z",
+    "originalEndedAt": "2026-10-20T19:24:47.685Z",
+    "originalMetadataAttempt": 2,
+    "originalNativeCommands": 5,
+    "originalObservedGraphQLResponses": 3230
+  },
+  "newMetadataQueries": 0
+}

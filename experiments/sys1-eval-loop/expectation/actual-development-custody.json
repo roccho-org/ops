@@ -1,0 +1,29 @@
+{
+  "schema": "ops.sys1.expectation-development-custody.v1",
+  "development": {
+    "source": "e6fc98bb496fa0efd1138586f3bad110858fbb11",
+    "activation": "59ce7b560eae2d0902c5d1e866a2c35c8f06dc46",
+    "runId": 39497868527,
+    "artifactId": 12298787753,
+    "artifactBytes": 1827411,
+    "artifactSha256": "74c4ef6277a880782d60bc59452b4a8f5db80720a6c023b29b753712b2e2033f",
+    "originalFiles": 5,
+    "originalBytes": 11457514
+  },
+  "metadata": {
+    "native": "77477e187e05e594e101cd821857c25c0c46865f",
+    "parent": "b320e75b1c52ed33d0a54c11b3654b58fa1bf51e",
+    "originalPrefix": "experiments/sys1-eval-loop/census-root-data/expectation-prefix-1/",
+    "publicPrefix": "experiments/sys1-eval-loop/expectation/metadata-prefix-1/",
+    "originalFiles": 2,
+    "originalBytes": 34737,
+    "candidatePrefix": 122,
+    "eligibleM": null
+  },
+  "actualNewPosts": 507,
+  "actualNewInputTokens": 1114056,
+  "actualNewOutputTokens": 15717,
+  "totalTokensMissingPosts": 507,
+  "bodyGoldCalls": 0,
+  "scope": "native/provider/original-byte custody documentation, not a new copied-SHA runtime gate; candidate standard payloads reconstruct saved actual qualified Core requests, not captured network-body bytes; D remains nonconcurrent"
+}

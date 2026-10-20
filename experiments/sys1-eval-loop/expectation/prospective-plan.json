@@ -39,6 +39,26 @@
       "exactBodies": 1916,
       "newUntypedIssueOrPullUrls": 29,
       "basis": "root/R independent union of original407 plus all actual210 body captures, including exclusions;29 is new literal Issue/pull refs inside body strings only, self node.url210 already typed; prior counts only, not next target count"
+    },
+    "observedMetadataPrefix": {
+      "native": "77477e187e05e594e101cd821857c25c0c46865f",
+      "count": 122,
+      "eligibleM": null,
+      "newMetadataQueries": 0,
+      "bodyGoldPredictions": 0
+    },
+    "conservativeReferenceSupplement": {
+      "checkpoint": "https://github.com/roccho-org/ops/pull/620#issuecomment-6301559042",
+      "originalPlanRetained": "source e6 remains immutable in native history; this supplements eligibility before any H body/Gold/prediction",
+      "references": "all old2211 plus29 added body-contained normalized literal Issue/pull URLs, fixed2240; apply uniformly without using D outcome or matching count to choose the rule",
+      "rule": "case-insensitive fixed canonical repository name plus positive integer number to an observed prefix Issue; preserve original issues/pull path type and observed Issue type, including type-different matches as conservative reference exclusion only",
+      "sets": "actual typed740/body1916 unchanged; referenceExcludedCandidateIds is separate, references do not establish earlier body readership or convert PRs into Issues",
+      "noRefill": true,
+      "prefixOrderUnchanged": true,
+      "limits": "no new API; no alias/rename/outside-scope/semantic/pretraining guarantee; unresolved references stay private",
+      "observedMatches": 0,
+      "observedExcludedCandidateIds": 0,
+      "observedActualTypedOverlap": 0
     }
   },
   "freshMeasurement": {
@@ -57,10 +77,10 @@
     "combinedNewMaximum": 2307,
     "accounting": "507 development plus at most1800 fresh H posts. Historical aliases have no new cost. Old PR616/617 calls and all failures remain separately recorded; money/internal compute/total_tokens absence unknown; equal O call count is not same token cost"
   },
-  "currentStage": "fixed D507 native prepare/evaluate/project source implemented for review; request absent, no actual D/new target projection/body/model yet; fresh H entry and data require separate source acceptance",
+  "currentStage": "actual D507 completed and original five retained; guard PASS and actual qualified-Core to standard-client payload reconstruction frozen; current retention/freeze source review and future body/H source acceptance remain; new H body/Gold/model0",
   "newMetadataQueries": 0,
   "newBodyQueries": 0,
-  "newModelPosts": 0,
+  "newModelPosts": 507,
   "adopted": false,
   "seriesClosure": {
     "name": "fixed-e-prospective-census-closure",
@@ -76,5 +96,24 @@
     "failure": "upstream primary or Gold alteration; source/wire/denominator/qualification mismatch; incomplete originals; Dguard failure; either H not accepted, technicalunknown/modeldrift; unresolved required CI/review/records",
     "implementation": "evidence conjunction only; not a new custom runtime gate, executor or ledger"
   },
-  "manualContinuation": "Same User GO: preserve each negative/unknown and actual accounting; W/root/R rebut causes and a distinct meaningful hypothesis, specify finite assignment/timeout and source review before the next D. H not accepted retires that H into D and requires another unused-H contract. No blind resend, averaging/winner selection, Gold changes, same-H rescue, new User budget gate or infinite retry executor."
+  "manualContinuation": "Same User GO: preserve each negative/unknown and actual accounting; W/root/R rebut causes and a distinct meaningful hypothesis, specify finite assignment/timeout and source review before the next D. H not accepted retires that H into D and requires another unused-H contract. No blind resend, averaging/winner selection, Gold changes, same-H rescue, new User budget gate or infinite retry executor.",
+  "actualDevelopment": {
+    "runId": 39497868527,
+    "source": "e6fc98bb496fa0efd1138586f3bad110858fbb11",
+    "activation": "59ce7b560eae2d0902c5d1e866a2c35c8f06dc46",
+    "physicalPosts": 507,
+    "qualified": 507,
+    "expectedModelStable": true,
+    "firstJointBefore": 392,
+    "firstJointAfter": 400,
+    "repairs": 8,
+    "regressions": 0,
+    "protectedEUnionBroken": 0,
+    "unresolvedO": 16,
+    "guardEligible": true,
+    "inputTokens": 1114056,
+    "outputTokens": 15717,
+    "totalTokensMissing": 507,
+    "limit": "nonconcurrent development diagnostic, not fresh-H improvement/adoption or network-body byte capture"
+  }
 }
