@@ -1,3 +1,4 @@
+import { historicalActionsConfig } from '../../packages/jev-review/tests/historical-actions-config.mjs';
 // Network-free checks for prepare.mjs. Every reader here is a test double; nothing here is an actual acquisition.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,7 +26,7 @@ const repoFile = path => readFileSync(new URL('../../' + path, import.meta.url),
 // The reviewed shipped settings, read unchanged, serve only as the admission oracle for this synthetic case.
 // These historical PR536 fixtures keep the settings under which their bytes were recorded.
 const SETTINGS = (() => {
-  const raw = JSON.parse(repoFile('packages/jev-review/issue-actions.json'));
+  const raw = historicalActionsConfig(JSON.parse(repoFile('packages/jev-review/issue-actions.json')));
   const origin = raw.targets.find((t) => t.repository === 'roccho-org/ops' && t.issue === 573);
   origin.issue = 483;
   delete origin.subject;

@@ -1,3 +1,4 @@
+import { historicalActionsConfig } from './historical-actions-config.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -28,7 +29,7 @@ const REPO = 'roccho-dev/ops', OWNER = 'roccho-dev', TRUSTED = 'fixture-member',
 const WF_PATH = '.github/workflows/jev-issue-comment.yml';
 // Historical controls keep their original grants; they do not describe today's shipped target.
 const legacyActionsConfig = () => {
-  const raw = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const raw = historicalActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   const origin = raw.targets.find((t) => t.repository === 'roccho-org/ops' && t.issue === 573);
   origin.issue = 483;
   delete origin.subject;
@@ -38,7 +39,7 @@ const legacyActionsConfig = () => {
 };
 // Historical per-run reservations stay exact; a shared anchor adds one total call across its event window.
 {
-  const raw = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const raw = historicalActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   validateActionsConfig(raw);
   assert.deepEqual(raw.providedRequestTargets, [{ repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 573 }]);
   assert.deepEqual(raw.targets, [
@@ -460,7 +461,7 @@ await check('reservation-bound', async () => {
   assert.equal(selectRunRange(config({ limits: { ...ENTRY_LIMITS, maxCalls: 2 } }), run).callsPerRun, 1);
   assert.equal(selectRunRange(config({ limits: { ...ENTRY_LIMITS, maxCalls: 2 }, runRanges: [range({ reservedCallsPerRun: 3 })] }), run).callsPerRun, 2);
   // Explicit unconfigured settings stay a source hold, independent of later authorized adoption.
-  const shipped = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const shipped = historicalActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   validateActionsConfig(shipped);
   const held = { ...shipped, trustedCallers: [], context: [], runRanges: [], targets: [], providedRequestTargets: [], provider: null };
   const s = world(); const rs = await fullRun(s, s.addComment(), { cfg: held });

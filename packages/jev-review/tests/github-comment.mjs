@@ -1,3 +1,4 @@
+import { historicalActionsConfig } from './historical-actions-config.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -501,7 +502,7 @@ for (const program of [entry, compatibility]) {
 }
 // The shipped grant admits one Issue origin and public subject in two separate first-attempt runs; no provider is called.
 {
-  const shipped = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
+  const shipped = validateActionsConfig(historicalActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'))));
   const repository = 'roccho-org/ops';
   assert.deepEqual(shipped.providedRequestTargets.map((grant) => ({ ...grant })), [{ repository, repositoryId: '1275606595', issue: 573 }]);
   const target = selectActionsTarget(shipped, repository, 573, 'issue');
@@ -531,7 +532,7 @@ for (const program of [entry, compatibility]) {
 // this admission snapshot's identity, exactly {issueNodeId, subjectRevision} and no body text. Every other refusal
 // keeps its prior three-key shape, and legacy or English literals are unchanged. Dormant code only: no command runs.
 {
-  const shipped = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const shipped = historicalActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   const OPS = 'roccho-org/ops', ENVS = 'roccho-org/envs', WFP = '.github/workflows/jev-issue-comment.yml';
   const legacyOrigin = shipped.targets.find((t) => t.repository === OPS && t.issue === 573);
   legacyOrigin.issue = 483;
@@ -760,3 +761,18 @@ for (const program of [entry, compatibility]) {
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
   githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,
   claim: 'SOURCE_FIXTURE_ONLY_NOT_REAL_ISSUE_COMPLETION' }));
+
+// Validate today's operative settings separately from the frozen historical controls below.
+{
+  const active = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
+  assert.deepEqual(active.providedRequestTargets, [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 609 }]);
+  assert.equal(active.targets.some(t => t.pullRequest === 536), false);
+  const run = { repository: 'roccho-org/ops', workflowId: 377399991, path: '.github/workflows/jev-issue-comment.yml', number: 289, attempt: 1, id: 1 };
+  for (const number of [289, 290]) {
+    const selected = selectRunRange(active, { ...run, number }, { kind: 'pull-request', number: 609 });
+    assert.equal(selected.callsPerRun, 1); assert.equal(selected.range.first, number); assert.equal(selected.range.last, number);
+    assert.equal(Object.hasOwn(selected.range, 'budgetClaimCommentId'), false);
+  }
+  for (const number of [288, 291]) assert.deepEqual(selectRunRange(active, { ...run, number }, { kind: 'pull-request', number: 609 }), { cause: 'NO_RANGE' });
+  assert.deepEqual(selectRunRange(active, { ...run, attempt: 2 }, { kind: 'pull-request', number: 609 }), { cause: 'RERUN_NOT_PAID' });
+}

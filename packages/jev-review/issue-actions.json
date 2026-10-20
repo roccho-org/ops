@@ -155,8 +155,7 @@
       "workflowId": 377399991,
       "path": ".github/workflows/jev-issue-comment.yml",
       "first": 290,
-      "last": 353,
-      "budgetClaimCommentId": 6284906525,
+      "last": 290,
       "reservedCallsPerRun": 1,
       "target": {
         "pullRequest": 609
