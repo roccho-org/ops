@@ -103,7 +103,7 @@ H1の意味FAILでも予定を取り消さず、[run39427992227](https://github.
 | 退行率上限 | 15/323 | 15/323 |
 | disposition | OBSERVED_REGRESSION | OBSERVED_REGRESSION |
 
-H2退行はheld-101/155/289のOで、H1とunionした失敗課題は**101/155/196/289の4件**。両passの900provider requestは完全同一だが、choiceがbestOで2件、scopedOで6件変化し、sharedEは同値だった。model alias/応答IDが同じでも決定性・将来の安定gainを証明しない。300件を600独立例と数えず、良いH1だけを選ばず、平均でH2の区間/退行を救済しない。H1の正gain近似条件部分という成果と、無退行改善/二回正gain再確認が未達という結論を分ける。
+H2退行はheld-101/155/289のOで、H1とunionした失敗課題は**101/155/196/289の4件**。両passの900provider requestは完全同一だが、choiceがbestOで2件、scopedOで6件変化し、sharedEは同値だった。model aliasと送信requestが同じでも決定性・将来の安定gainを証明しない。300件を600独立例と数えず、良いH1だけを選ばず、平均でH2の区間/退行を救済しない。H1の正gain近似条件部分という成果と、無退行改善/二回正gain再確認が未達という結論を分ける。
 
 実作用は3native run各attempt1、**D118+H1 900+H2 900=1918POST、全qualified**。既知input4271452/output59458、total_tokensは1918件未提供、金額/人手費/利益効果不明。H2の各template token数と運用相当input増16.97%はH1と同値。全割当/7nullを残してANDは**NOT_RECONFIRMED**、候補不採用・元Best維持。通常最終head CI/Ready/索引の閉包はこのsource作成時点では未完。
 
