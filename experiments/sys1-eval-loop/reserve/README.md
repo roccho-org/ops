@@ -46,6 +46,14 @@ D3も300attempt/POST/qualified、技術unknown0、観測model ID一致。機械H
 
 D3新O物理usageはinput817592/output9300、total_tokens300未知。歴史E587492との論理運用相当input1405084（元1180684比+224400/+19.01%）であり、非同時・金額不明。D1+D2+D3実物理900、既知input2438376/output27900、provider total_tokensは900件未知。H138は予定上限であって実作用へ計上しない。次処置・source・phase契約は公開Dと元rubricに基づく三者反証を先に記録し、現C3の盲再送や23の先行開示にしない。
 
+## C4の事前label別補足（未実測）
+
+C1-C3はyes/no両criteriaへ同じ全判定手順を追記した。これがラベル間の区別を曖昧にした可能性は仮説に留まり、回答理由の保持がないため内部原因とは断定しない。C4は元targetRequestの各label criteriaをそのまま残し、追記部分だけを短いlabel専用補足へ置換する。yesは本文内の現実報告が一つでもあれば該当し、noは現実報告がなく規範・定義・受入条件等だけなら該当する相補的な記述。規範を含むだけでnoにせず、混在する抽象的な未達・未確認もyes。成功・具体性・数値・外部証拠や主subject一致を条件にしない。
+
+root反証により、yes案の「対象について」を削除し、本文の周辺subjectや引用の実報告を狭めない。公開Dと元rubricだけに由来し、23由来の意味助言やcase lookupを用いない。C3の例削除・短文化・label分割を含む設定bundleなので、単独の非対称化の因果効果やモデル揺らぎから分離した効果を証明する比較ではない。元Best/E/instructions/binary/body/Gold/guardは不変で、元criteriaを変更せず各labelへ固定source文字列を付加する。
+
+旧C1既定/C2/C3と全原raw/inputを保存し、版4だけcandidateVersion4・phase development4/history4/request-only child/attempt1へ限定。鍵前に先行三runすべてのnative来歴・全raw投影・資格完了/model安定かつguardFAILを再生する。機械H1 primary/両履歴unionを選び直さず、C3の同候補再送ではない。事前上限は実900＋新D4最大300＋将来H138＝1338、各D90分/300。必要sourceCI・三者受容前のD4作用0、実Dguard独立成立とfullwire凍結前の23非開示を維持する。Hは別source/data受容が必要。
+
 ## 主張と反証を行う三者
 
 ```mermaid
@@ -71,7 +79,7 @@ D300は機械的H1の元Best O/sharedEを歴史aliasとし、新O300だけを測
 
 資格再生と標準clientの記録部分を旧615入口と共有した。旧raw readerだけで新writerを検証したと見なさず、dummy keyとHTTPを外へ出さないfetch stubで標準writer実pathも検査する。全serialized wire・redirect拒否・15秒deadline・実post/flags順序・usage既知/欠損・確率和拒否・model drift・上限超過時追加HTTP0を確認。生産用endpoint/transport/retry/callback設定は追加しない。旧615保存input/rawは改変せず、旧writerのロジックを専用共有関数へ移した。新Dの欠測はunknownProtectedAxesと資格未完了へ、実誤答はknown regressionへ別保持し、混在でも片方を消さない。
 
-D入口は専用branchでrequest-only child/attempt1/native履歴D1=1・D2=2・D3=3へ限定。prepareのみGH_TOKEN、evaluateのみ既存Org JEV_API_KEY、project/uploadはalways原保持の元6step境界へ限定翻訳する。300×15秒=75分にsource検証と保持余裕を足してjob90分。各実作用前に新source必要CIを確認し、最終exacthead通常CIも別途閉じる。
+D入口は専用branchでrequest-only child/attempt1/native履歴D1=1・D2=2・D3=3・D4=4へ限定。prepareのみGH_TOKEN、evaluateのみ既存Org JEV_API_KEY、project/uploadはalways原保持の元6step境界へ限定翻訳する。300×15秒=75分にsource検証と保持余裕を足してjob90分。各実作用前に新source必要CIを確認し、最終exacthead通常CIも別途閉じる。
 
 元frame323の一回SRSWORで封印したreserve23を、元reserveIdsの全順序そのままで使う。再抽選・新API・補充・後付け除外はしない。確認の母数は条件付き補集合23のcensus、originFrame323は別属性。旧300から学習した候補を旧323全体の未使用評価に見せない。本文開示前に一候補fullwireとDguardを固定する。
 
@@ -91,9 +99,13 @@ flowchart TB
   STOP2 --> NEW[✅ 公開D由来C3役割明示対照例・C1C2原版保持・同候補再送禁止]
   NEW --> REVIEW3[✅ 新source/必要CI/三者受容・23未開示]
   REVIEW3 --> D3[✅ 別C3新O300一回・history3・元guard不変]
-  D3 --> G{D3guard成立?}
-  G -->|不成立| HOLD[❌ D3 joint220→230でもunion101O退行・原版保持・23未開示]
-  G -->|成立| FREEZE[⏳ 候補fullwire固定・その後だけ23開示]
+  D3 --> HOLD[❌ D3 joint220→230でもunion101O退行・原版保持・23未開示]
+  HOLD --> C4[✅ 公開D由来C4 label別補足・原criteria/旧全版を保持]
+  C4 --> CHECK4[⏳ C4新source/必要CI/三者受容]
+  CHECK4 --> D4[⏳ 別D4新O300一回・history4]
+  D4 --> G4{D4guard成立?}
+  G4 -->|負・unknown| HOLD4[保持して23未開示・次処置は別の事前契約]
+  G4 -->|成立| FREEZE[⏳ 候補fullwire固定・その後だけ23開示]
   FREEZE --> H[⏳ 別受容後69 POST二回・全raw保持]
   H --> A{両回の全受入成立?}
   A -->|成立| FIN[⏳ 成立時の主張は有限23二回の差のみ・採用は別判断]
@@ -102,4 +114,4 @@ flowchart TB
   NEG --> CLOSE
 ```
 
-最小共有の反証として、旧folder全bytes不変を目的にすると重複executorが増える。公開requestの任意引数と専用資格/writer共有を最小化し、既定fullwireと閉615/D1/D2再生を実検査する。旧保存inputへ新fieldを後付けしない。新汎用executor、任意endpoint/callback、独自ledger、認証追加は作らない。厳格資格は維持し、最終exactheadの通常CIを成功確認するまで完了と呼ばない。
+最小共有の反証として、旧folder全bytes不変を目的にすると重複executorが増える。公開requestの任意引数と専用資格/writer共有を最小化し、既定fullwireと閉615/D1/D2/D3再生を実検査する。旧保存inputへ新fieldを後付けしない。新汎用executor、任意endpoint/callback、独自ledger、認証追加は作らない。厳格資格は維持し、最終exactheadの通常CIを成功確認するまで完了と呼ばない。

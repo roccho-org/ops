@@ -24,7 +24,7 @@ export async function prepareDevelopment(data,execution,version=1){
  for(const r of rows)assert.ok(Buffer.byteLength(JSON.stringify(await wireTemplate(reserveRequest(r.body,best,'scopedO',version))))<24000);
  return {schema:'ops.sys1.reserve-development.v1',...(version>1?{candidateVersion:version}:{}),rows,best,templateProof:await reserveTemplateProof(best,version),expectedModel:'jev-1.13.0',maxPosts:300,execution};
 }
-function planned(input){assert.equal(input.schema,'ops.sys1.reserve-development.v1');assert.ok(input.candidateVersion===undefined||input.candidateVersion===2||input.candidateVersion===3);assert.equal(input.expectedModel,'jev-1.13.0');assert.equal(input.maxPosts,300);assert.equal(input.rows.length,300);assert.equal(new Set(input.rows.map(r=>r.id)).size,300);return input.rows.map(r=>r.id+'/scopedO');}
+function planned(input){assert.equal(input.schema,'ops.sys1.reserve-development.v1');assert.ok(input.candidateVersion===undefined||input.candidateVersion===2||input.candidateVersion===3||input.candidateVersion===4);assert.equal(input.expectedModel,'jev-1.13.0');assert.equal(input.maxPosts,300);assert.equal(input.rows.length,300);assert.equal(new Set(input.rows.map(r=>r.id)).size,300);return input.rows.map(r=>r.id+'/scopedO');}
 export function assertDevelopmentEffectInput(input,data,execution,version=1){
  planned(input);assert.equal(input.candidateVersion??1,version);assert.deepEqual(input.rows,historicalRows(data));assert.deepEqual(input.best,data.history[0].input.best);assert.deepEqual(input.execution,execution);
  // No keyless wire capture or Gold scoring under the credential. The reviewed
