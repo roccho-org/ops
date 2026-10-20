@@ -2049,7 +2049,7 @@ const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase()
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
   for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574, 606, 609, 610]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
-      const allowed = repository === 'roccho-org/ops' && (pullRequest ? number === 511 : number === 573)
+      const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 606].includes(number) : number === 573)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;
       const github = { repository, event_name: 'issue_comment', event: {
         repository: { owner: { type: 'Organization' } }, comment: { body: '/jev-evaluate' },
