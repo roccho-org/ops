@@ -1,0 +1,105 @@
+{
+  "phase": "screen",
+  "effectCounts": {
+    "assignedPosts": 144,
+    "attempted": 144,
+    "actualPosts": 144,
+    "qualified": 144,
+    "unknown": 0,
+    "unattempted": 0,
+    "contemporarySharedOAssigned": 48
+  },
+  "modelStable": true,
+  "comparison": {
+    "configuration": "original Best + scoped E criteria",
+    "stage": "screen",
+    "disposition": "FINITE_GAIN",
+    "eligible": true,
+    "assigned": 48,
+    "baselineCorrect": 41,
+    "candidateCorrect": 45,
+    "baselineQualified": 48,
+    "candidateQualified": 48,
+    "pair": {
+      "control": "best",
+      "assigned": 48,
+      "complete": true,
+      "delta": 4,
+      "resolved": [
+        "screen-001",
+        "screen-005",
+        "screen-013",
+        "screen-041"
+      ],
+      "regressed": [],
+      "axisRegressed": [],
+      "axisResolved": [
+        {
+          "id": "screen-001",
+          "axis": "E"
+        },
+        {
+          "id": "screen-005",
+          "axis": "E"
+        },
+        {
+          "id": "screen-013",
+          "axis": "E"
+        },
+        {
+          "id": "screen-041",
+          "axis": "E"
+        }
+      ],
+      "outcome": "FINITE_GAIN"
+    }
+  },
+  "usage": {
+    "bestE": {
+      "actualPosts": 48,
+      "qualified": 48,
+      "sumCallMs": 4851.172039000004,
+      "knownTokenSums": {
+        "input_tokens": 48096,
+        "output_tokens": 1488,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 48,
+        "output_tokens": 48,
+        "total_tokens": 0
+      }
+    },
+    "scopedE": {
+      "actualPosts": 48,
+      "qualified": 48,
+      "sumCallMs": 4545.308328999994,
+      "knownTokenSums": {
+        "input_tokens": 65472,
+        "output_tokens": 1488,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 48,
+        "output_tokens": 48,
+        "total_tokens": 0
+      }
+    },
+    "sharedO": {
+      "actualPosts": 48,
+      "qualified": 48,
+      "sumCallMs": 4302.972729000001,
+      "knownTokenSums": {
+        "input_tokens": 49008,
+        "output_tokens": 1488,
+        "total_tokens": 0
+      },
+      "knownTokenCallCounts": {
+        "input_tokens": 48,
+        "output_tokens": 48,
+        "total_tokens": 0
+      }
+    }
+  },
+  "interpretation": "physical templates counted once; historical aliases and sharedO are not extra calls; evaluation savings do not establish deployed efficiency; unprovided tokens/money unknown"
+}
