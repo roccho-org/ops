@@ -1,7 +1,11 @@
 // Network-free checks for prepare.mjs. Every reader here is a test double; nothing here is an actual acquisition.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, realpathSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { RESULT_PREFIX, REQUEST_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { semlint } from '../../packages/jev-review/semlint.mjs';
@@ -71,6 +75,63 @@ const goalPlan = async (questions = [question('q1'), question('q2', { clauseIds:
   plan({ goal, observations: [{ ref: 'target', content: body }] }, { propose: async () => ({ clauses: quoted, questions, missing: [] }), ...options });
 const faithful = out => ({ reviewRef: 'test:r-fidelity-record', envelopeSha256: out.envelopeSha256,
   verdicts: Object.fromEntries(out.checks.map(c => [c.id, 'FAITHFUL'])) });
+
+const cliTemp = t => {
+  const parent = realpathSync(tmpdir()), directory = mkdtempSync(join(parent, 'semlint-prepare-cli-'));
+  t.after(() => { assert.equal(dirname(directory), parent); rmSync(directory, { recursive: true, force: true }); });
+  return directory;
+};
+const runPrepareCLI = (input, output) => spawnSync(process.execPath,
+  [fileURLToPath(new URL('./prepare.mjs', import.meta.url)), input, output],
+  { shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 4194304, timeout: 15000 });
+
+test('local preparation CLI preserves the full projection and exact optional command without granting posting', async t => {
+  const directory = cliTemp(t), value = await goalPlan(), subject = await snapshotOf({ mode: 'live' });
+  const options = { subjectRef: 'target' }, reviewed = { ...options, fidelity: faithful(projectPlan(value, subject, options)) };
+  const needs = await goalPlan([question('q1', { needs: ['destination observation'] })]);
+  for (const [name, candidate, selection, emittable] of [
+    ['unreviewed', value, options, false], ['reviewed', value, reviewed, true], ['needs', needs, options, false],
+  ]) {
+    const input = join(directory, name + '.json'), output = join(directory, name);
+    writeFileSync(input, JSON.stringify({ plan: candidate, subject, options: selection }), { flag: 'wx' });
+    const expected = projectPlan(candidate, subject, selection), execution = runPrepareCLI(input, output);
+    assert.equal(execution.status, 0, execution.stderr.toString());
+    assert.equal(execution.stderr.length, 0);
+    const metadata = JSON.parse(execution.stdout);
+    assert.equal(metadata.postingAuthorized, false);
+    assert.equal(metadata.emittable, emittable);
+    const artifact = readFileSync(join(output, 'projection.json'));
+    assert.deepEqual(JSON.parse(artifact), expected, 'needs, withheld fields and fidelity remain available');
+    assert.equal(existsSync(join(output, 'command.txt')), emittable);
+    if (emittable) assert.equal(readFileSync(join(output, 'command.txt'), 'utf8'), expected.envelope, 'no added newline or serialization');
+    const command = emittable ? readFileSync(join(output, 'command.txt')) : null;
+    const duplicate = runPrepareCLI(input, output);
+    assert.equal(duplicate.status, 1);
+    assert.equal(duplicate.stdout.length, 0);
+    assert.equal(JSON.parse(duplicate.stderr).code, 'EEXIST');
+    assert.deepEqual(readFileSync(join(output, 'projection.json')), artifact);
+    if (command) assert.deepEqual(readFileSync(join(output, 'command.txt')), command);
+  }
+});
+
+test('local preparation CLI rejects invalid input without leaking its body or creating output', t => {
+  const directory = cliTemp(t), secret = 'PRIVATE_INPUT_SENTINEL';
+  for (const [index, body] of [
+    '{"plan":"' + secret,
+    JSON.stringify({ plan: null, subject: null, options: {}, extra: secret }),
+    JSON.stringify({ plan: null, subject: secret, options: null }),
+    JSON.stringify({ plan: null, subject: secret, options: {} }),
+  ].entries()) {
+    const input = join(directory, index + '.json'), output = join(directory, 'output-' + index);
+    writeFileSync(input, body, { flag: 'wx' });
+    const execution = runPrepareCLI(input, output);
+    assert.equal(execution.status, 1);
+    assert.equal(execution.stdout.length, 0);
+    assert.deepEqual(JSON.parse(execution.stderr), { status: 'ERROR', cause: 'PREPARATION_FAILED', code: 'INVALID_INPUT' });
+    assert.equal(execution.stderr.includes(Buffer.from(secret)), false);
+    assert.equal(existsSync(output), false);
+  }
+});
 
 test('receipts keep time, actual HTTP status and digest; only HTTP 200 with text is OK (N2)', async () => {
   const pages = { ok: { status: 200, text: 'x' }, empty: { status: 200, text: '' }, gone: { status: 404, text: 'Not Found' },
