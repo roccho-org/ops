@@ -42,15 +42,15 @@ const bearer = { token: credential.access, expires: credential.expires };
 delete credential.access;
 delete credential.refresh;
 const catalogResponse = await fetch("https://api.openai.com/v1/models", {
-  headers: { Authorization: "Bearer " + bearer.token }, redirect: "error", signal: abort.signal,
+  headers: { Authorization: "Bearer " + bearer.token }, redirect: "error", signal: AbortSignal.any([abort.signal, AbortSignal.timeout(15_000)]),
 });
 assert.equal(catalogResponse.ok, true, "Account catalog unavailable; stop without retry");
 const catalog = await catalogResponse.json();
 assert.ok(Array.isArray(catalog.models) && catalog.models.some(model => model.visibility === "list" && model.slug === "gpt-6-luna"), "Configured model unavailable; separate model review required");
-  const url = new URL("/api/sessions/" + values.session, origin);
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function connect() {
   assert.ok(bearer.expires > Date.now() + 30_000, "Access expired; stop without reauthentication/retry");
+  const url = new URL("/api/sessions/" + values.session, origin);
   url.protocol = "wss:";
   const ws = new WebSocket(url, {
     headers: { Cookie: "CF_Authorization=" + accessJwt,

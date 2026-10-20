@@ -57,7 +57,7 @@ Required source: exact JOSE/ws lock and derived SDK bytes; required exp/sub/nonc
 
 Policy roccho-dev/adrs@6e4abcd22dbee397105625b6041ce1a0d4720182; native /work/repos/ops.git/.worktrees/pi-jev-worker-20261020. No ops#523 or quality completion claim.
 
-Current new candidate: 0415575686f932987f63f4dbb12d4923be3e0bff. Shared validator and volatile/runtime composition published; native JWT helper tests and regenerated overlay type check passed. Exact-head CI, derived-login integration, focused runtime tests and operator proof orchestration remain pending; no new SOURCE/MOCK acceptance.
+Current source and verification identity are recorded in PR608 and its exact-head CI receipt. This document describes the stable contract; it does not grant source, runtime or live acceptance.
 
 Primary basis: [SIWC Terms](https://openai.com/policies/sign-in-with-chatgpt-terms/), [ID-token validation](https://developers.openai.com/siwc/token-sharing-open-source/sign-in), [preview wire limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations), [Cloudflare origin JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/). CF owner login/pin preparation is separate from expiring ChatGPT OAuth, which occurs after runtime deployment/readback.
 
