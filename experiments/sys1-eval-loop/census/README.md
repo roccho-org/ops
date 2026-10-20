@@ -40,6 +40,12 @@ C5・原Best・式・二回AND・全分母/資格/未知・最大2400/330分案�
 
 ## 最小系列と完成条件
 
+### 計測部品（現在は人工fixtureのみ、実entryは未実装）
+
+`measurement.mjs` は既存reserveの四物理request/厳格資格/会計を、閉じた二contextだけで共有する。旧reserveは23件/92POST・旧schema/全fieldsetを保ち、新censusだけ受容済corpusからM=1..300・4Mを導く。任意schema/上限/endpoint/constructorを入力から選ばせない。標準recorderの実経路をdummy keyとfetch stubで通し、最大1200POST、欠測、モデル変化、既知軸退行と欠測の併存を検査する。人工fixtureは実HTTPやgain証拠ではない。
+
+新projectionは原input/report/eventsと同じcorpus/Gold/固定selectionから毎回再構成する。二回の集計もrep/ID/分母/資格情報を照合するが、これだけではnative来歴やGold不変を証明しない。後続の固定native entryが原sourceのcorpus全値・body/Gold・実D5 fullwire・通常CI・独立受容に結合し、両回の原rawを再投影する必要がある。意味FAILや通常unknownで予定二回目を取消さず、実model driftは技術停止として保持する。現sourceには新効果entry/workflowも実corpusもなく、モデル呼出しは0。
+
 ### 本文materializer（現在は人工fixtureのみ）
 
 `body.mjs` / `body-contract.json` はmetadataとpriorの実原版受容後のwholebody段階を実装する。metadataの自称statusだけを採用せず、同native revision由来のcompletion/prefix/source/count/time一致・invalid不在を要求する。pure関数はcallerが与えたnative文字列自体を認証できないため、標準hostが実Git原版・無invalid・全query/cursor原traceの独立受容を結合する。新copied-SHA gateや別台帳は作らない。private prior ID union/body集合も固定407＋実型解決の受容済み原版から渡す。
