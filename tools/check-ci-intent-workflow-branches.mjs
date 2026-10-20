@@ -410,7 +410,7 @@ export function assertCounterfactualWorkflow(w,b) {
   need(b.maxCalls===296,'counterfactual Jev plan differs');
   need(same(w.on?.push?.branches??[],['codex/jev-feedback-counterfactual-20261020'])
     &&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/counterfactual/request.json']),'counterfactual entry differs');
-  need(w.concurrency?.group==='sys1-counterfactual'&&w.jobs?.evaluate?.['timeout-minutes']===20,'counterfactual runtime differs');
+  need(w.concurrency?.group==='sys1-counterfactual'&&w.jobs?.evaluate?.['timeout-minutes']===70,'counterfactual runtime differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;
   for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){
     need(s[n]?.run===`node experiments/sys1-eval-loop/counterfactual/runtime.mjs ${mode} "$RUNNER_TEMP/counterfactual"`,'counterfactual command differs');

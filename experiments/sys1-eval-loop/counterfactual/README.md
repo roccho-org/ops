@@ -76,7 +76,7 @@ D独立採点はtarget21/24、body-only judge23/24。実対象誤答3件に対�
 
 同じnative workflowの次request-only childをconfirmation phaseとして一回受け付ける。native historyは初回Dと今回Hの2件、既存Dのprovider identity/成功を照合する。Goldはprepareでbody/id/familyだけへ投影し、model stepのinputから除く。case index%3でBest/F/N設定順を循環し、各E/O一回とbody-only judge一回、最大224 POST。輸送失敗はそのroleのunknownを全32分母へ保持し再送しない。model driftは以降停止、両比較UNKNOWN、観測済み値はrawOutcomeとして保持する。judge失敗はtarget比較を止めない。
 
-keyless projectionは固定GoldでA/B別比較、judge分類と期待診断の一致、実対象誤答群の検出/見逃し/誤scope/unknown、正答群の誤警報を保存する。H診断は候補修正へ返さず、この一回でHを退役させる。現段階H実行は0で、source/必要CI/3者受容前には起動しない。
+keyless projectionは固定GoldでA/B別比較、judge分類と期待診断の一致、実対象誤答群の検出/見逃し/誤scope/unknown、正答群の誤警報を保存する。H診断は候補修正へ返さず、この一回でHを退役させる。現段階H実行は0で、source/必要CI/3者受容前には起動しない。job timeoutは224×各15秒deadline=56分に検証/保存余裕を加え70分とし、失敗roleを保持して継続する枝でもproject/uploadへ到達できる時間枠を確保する。call上限や資格基準は変えない。
 
 ```mermaid
 flowchart TB
