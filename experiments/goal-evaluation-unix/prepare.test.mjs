@@ -86,19 +86,24 @@ test('local preparation CLI preserves the full projection and exact optional com
   const directory = cliTemp(), value = await goalPlan(), subject = await snapshotOf({ mode: 'live' });
   const options = { subjectRef: 'target' }, reviewed = { ...options, fidelity: faithful(projectPlan(value, subject, options)) };
   const needs = await goalPlan([question('q1', { needs: ['destination observation'] })]);
-  for (const [name, candidate, selection, emittable] of [
-    ['defaults', value, undefined, false], ['unreviewed', value, options, false],
-    ['reviewed', value, reviewed, true], ['needs', needs, options, false],
+  for (const [name, candidate, selection, emittable, nextAction, suppliedSubject = subject] of [
+    ['defaults', value, undefined, false, 'REVIEW_INPUT'], ['unreviewed', value, options, false, 'REVIEW_PROJECTION'],
+    ['reviewed', value, reviewed, true, 'REQUIRE_EXPLICIT_GO'], ['needs', needs, options, false, 'REVIEW_INPUT'],
+    ['reviewed-double', value, reviewed, false, 'REVIEW_PROJECTION', { ...subject, readerDeclaredLive: false }],
   ]) {
     const input = join(directory, name + '.json'), output = join(directory, name);
-    writeFileSync(input, JSON.stringify({ plan: candidate, subject, options: selection }), { flag: 'wx' });
-    const expected = projectPlan(candidate, subject, selection), execution = runPrepareCLI(input, output);
+    writeFileSync(input, JSON.stringify({ plan: candidate, subject: suppliedSubject, options: selection }), { flag: 'wx' });
+    const expected = projectPlan(candidate, suppliedSubject, selection), execution = runPrepareCLI(input, output);
     assert.equal(execution.status, 0, execution.stderr.toString());
     assert.equal(execution.stderr.length, 0);
     const metadata = JSON.parse(execution.stdout);
     assert.equal(metadata.postingAuthorized, false);
     assert.equal(metadata.emittable, emittable);
+    assert.equal(metadata.nextAction, nextAction);
+    assert.equal(metadata.cause, expected.cause);
+    assert.ok(execution.stdout.length < 2048, 'readiness metadata stays bounded');
     const artifact = readFileSync(join(output, 'projection.json'));
+    assert.equal(artifact.toString('utf8'), JSON.stringify(expected) + '\n', 'full artifact bytes stay unchanged');
     assert.deepEqual(JSON.parse(artifact), expected, 'needs, withheld fields and fidelity remain available');
     assert.equal(existsSync(join(output, 'command.txt')), emittable);
     if (emittable) assert.equal(readFileSync(join(output, 'command.txt'), 'utf8'), expected.envelope, 'no added newline or serialization');
