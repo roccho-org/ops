@@ -1,0 +1,50 @@
+{
+  "schema": "ops.logger-language-neutral.retained-k/1",
+  "authority": false,
+  "purpose": "Retain the finite logger-design closure evidence and independent technical judgment after workflow artifact URLs expire.",
+  "technicalArtifact": {
+    "path": "technical-closure.zip",
+    "bytes": 98368,
+    "sha256": "sha256:5ac5df9deb5bf6c9a36de31e6d534b23673f0d5016ae7d576b2cd716741000a7",
+    "requiredEntries": {
+      "SHA256SUMS": "sha256:464f61fd6e4e3c31cae10750fee75c08eb1d6d3535b82bc7ca04ae003551eb19",
+      "finding.json": "sha256:1ecdcc85fc40c84c86ae270d59725ce579b0c555f1d33247b19cfab13981f10f",
+      "closure.json": "sha256:ca8d98049d5e4ecca0ad79ecc2fd838bf4dfda3fb585ea38ac23489f6cff96c6",
+      "metadata.json": "sha256:75cb7d697919fe759e483c5e774891387217f6ffb6fec69a4e1f48ec3b73fa78",
+      "browser.json": "sha256:85e4e5e0881d2522bafcbeb50f00bb9c79387ee12bc4f3c9dafc42a202bf5d01",
+      "interoperability.json": "sha256:f44513b701211e39221f7f0bf95608e9a317b14ff9b1c73e101260633ef29cc9"
+    }
+  },
+  "independentJudgment": {
+    "path": "r-v32-capture.json",
+    "sourceCommentId": 6283358664,
+    "sourceUrl": "https://github.com/roccho-org/ops/pull/602#issuecomment-6283358664"
+  },
+  "canonicalMeaning": {
+    "repository": "roccho-dev/adrs",
+    "revision": "6e4abcd22dbee397105625b6041ce1a0d4720182",
+    "tree": "cf28509d770022d2be6e4d172b0ce8b9486cced1",
+    "path": "decisions/logger-language-neutral-contract-admission-261020.jsonl",
+    "gitBlob": "9371fed680451f58976a00fda0a71e4fbb54f68f",
+    "rawId": "raw.adrs.logger_language_neutral_contract_admission.261020.02",
+    "meaningSha256": "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c"
+  },
+  "selectedTechnicalSet": {
+    "observation": {
+      "repository": "roccho-org/ops",
+      "revision": "3372357c67803d0b8c0875eea70bcc642391fa5a",
+      "tree": "19f38cc4ea3eef3cb7a99bfb1823455aa53dce11"
+    },
+    "provider": {
+      "repository": "roccho-org/ops",
+      "revision": "fe968fc6b8919fed48151a57f421667bce0aac87",
+      "tree": "b306bf999aba32a678ac48b5a56e4b4a0a3c0cf8"
+    },
+    "consumer": {
+      "repository": "roccho-dev/apps",
+      "revision": "17c0108a5c2549ffaf7cef791a569f2e1926659f",
+      "tree": "3d603665d54c83dd770873870c66863959904b42"
+    }
+  },
+  "retentionBoundary": "This K retains evidence and judgment. It does not itself admit meaning, establish Required, publish a Release, deploy, or claim operational adoption."
+}
