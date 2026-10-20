@@ -390,13 +390,13 @@ const WORKFLOW = (() => {
       '# One projected Org slot; no Repository/Environment copy.'],
     ['# Historical grants remain; no rerun spending or automatic ordinal following.',
       '# Initial four-call history plus 200 authorized additions; no rerun spending.'],
-    ['# Closed Org origins; PR609 accepts supplied input for one fresh finite follow-up trial.',
+    ['# Closed Org origins; PR606 accepts supplied input for one fresh finite follow-up trial.',
       '# Guard binds Org Ops483/envs52/PR511/PR522; runtime is published target-bound source.'],
-    ["      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 609 &&",
+    ["      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 606 &&",
       "      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 522 &&"],
     ["((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) ||",
       "((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) ||"],
-    ['      (github.event.issue.number == 511 || github.event.issue.number == 609)))',
+    ['      (github.event.issue.number == 511 || github.event.issue.number == 606)))',
       '      (github.event.issue.number == 511 || github.event.issue.number == 522)))'],
   ];
   for (const [current, historical] of historicalMetadata) {
