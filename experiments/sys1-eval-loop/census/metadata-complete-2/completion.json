@@ -1,0 +1,21 @@
+{
+  "status": "METADATA_ONLY_AWAITING_NATIVE_RETAIN",
+  "sourceCommit": "9cd51472df0de978b21bfe0dffdf99193fd0fe1a",
+  "startedAt": "2026-10-20T18:36:57.610Z",
+  "endedAt": "2026-10-20T19:24:47.685Z",
+  "scopeRepositories": 3,
+  "nativeQueries": 3230,
+  "issuePages": 3228,
+  "prefixCount": 210,
+  "inWindow": 210,
+  "metadataAttempt": 2,
+  "nativeProtocol": "GH_NATIVE_PAGINATE_SLURP",
+  "nativeCommands": 5,
+  "observedGraphQLResponses": 3230,
+  "successfulRepliesWithExtensions": 3230,
+  "nativeVersionBefore": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0",
+  "nativeVersionAfter": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0",
+  "internalTransportAttempts": "UNKNOWN",
+  "newBodyRequests": 0,
+  "newModelRequests": 0
+}
