@@ -557,6 +557,32 @@ describe("finite transient proof transport — keyless mocks only", () => {
       expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
     });
     expect(posts).toBe(3);
+    for (const [name, events] of [
+      ["incomplete", [{ type: "response.incomplete", response: { id: "bad", status: "incomplete", output: [] } }]],
+      ["missing-status", [{ type: "response.completed", response: { id: "bad", output: [] } }]],
+      ["in-progress", [{ type: "response.completed", response: { id: "bad", status: "in_progress", output: [] } }]],
+      ["failed", [{ type: "response.failed", response: { id: "bad", status: "failed", error: { message: "fixture-failed" } } }]],
+      ["missing-terminal", []],
+    ] as const) {
+      let attempts = 0;
+      vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+        if (!(input instanceof Request)) return Response.json({ keys: [{ ...jwk, kid: "fixture", alg: "RS256" }] });
+        attempts++;
+        return new Response(events.map(event => "data: " + JSON.stringify(event) + "\n\n").join("") + "data: [DONE]\n\n",
+          { headers: { "content-type": "text/event-stream" } });
+      });
+      await runInDurableObject(env.SESSIONS.getByName("terminal-" + name), async (_instance, state) => {
+        const proof = new TransientWorkerProof(state.storage);
+        await proof.attach(request(), config);
+        const models = proof.models();
+        const result = await models.completeSimple(models.getModel("openai", "gpt-6-luna")!, {
+          messages: [{ role: "user", content: "fixture terminal negative", timestamp: Date.now() }],
+        });
+        expect(result.stopReason).toBe("error");
+        expect(await proof.counts()).toBe(1);
+        expect(attempts).toBe(1);
+      });
+    }
   });
 });
 

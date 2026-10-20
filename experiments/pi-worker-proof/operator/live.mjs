@@ -137,14 +137,16 @@ const receipt = await connect();
 assert.equal(receipt.witness.posts, 3);
 await receipt.close();
 const completions = [...messages, ...recallMessages].filter(message => message.role === "assistant").map(message => ({
-  responseId: message.responseId ?? null, model: message.model ?? null, stopReason: message.stopReason,
-  usage: message.usage ? { input: message.usage.input, output: message.usage.output,
+  responseId: message.responseId ?? null, model: message.model ?? null, stopReason: message.stopReason, rawStopReason: message.rawStopReason,
+  sdkUsage: message.usage ? { input: message.usage.input, output: message.usage.output,
     totalTokens: message.usage.totalTokens } : null,
 }));
 assert.equal(completions.length, 3);
 assert.deepEqual(completions.map(item => item.stopReason), ["toolUse", "stop", "stop"]);
+assert.ok(completions.every(item => typeof item.responseId === "string" && item.responseId.length > 0 && item.rawStopReason === "completed"));
+
 console.log(JSON.stringify({ completions, scope: "ACTUAL_WORKER_FINITE_PROOF", session: values.session,
-  conversationId: created.conversationId, userTurns: 2, responsesPostAttempts: 3,
+  conversationId: created.conversationId, userTurns: 2, responsesPostAttempts: 3, providerBillingUsage: "NOT_INDEPENDENTLY_VERIFIED",
   successfulJevToolResults: 1, recreated: true, priorTokenAbsent: true,
   markerSha256: createHash("sha256").update(marker).digest("hex"), assessment,
   recallMatched: true, noClientHistoryReinjection: true }));

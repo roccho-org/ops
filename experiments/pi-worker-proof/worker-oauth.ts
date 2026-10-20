@@ -164,6 +164,14 @@ export class TransientWorkerProof {
     const base: Provider = openaiProvider();
     const options = <T,>(input: T) => ({
       ...input, maxRetries: 0, transport: "sse" as const, fetch: this.fetch,
+      onProviderStreamEvent: (raw: unknown) => {
+        const event = raw as { type?: string; response?: { status?: string; id?: string } };
+        if (event.type === "response.incomplete" || (event.type === "response.completed" &&
+            (event.response?.status !== "completed" || !event.response.id))) {
+          throw new Error("Proof requires an actual completed provider response");
+        }
+      },
+
       onPayload: (raw: unknown) => {
         const payload = raw as Record<string, unknown>;
         if (payload.store !== false || payload.stream !== true || payload.previous_response_id !== undefined ||
