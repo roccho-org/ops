@@ -45,7 +45,7 @@ AはF対Best、BはF対N。それぞれ完全正答case数が増え、比較先�
 |H実行|[39376630329](https://github.com/roccho-org/ops/actions/runs/39376630329)、activation7dcf84e9|224POST/attempt1、judge資格拒否1でFAILを保持|
 |H原ZIP|artifact12243702088、72912bytes、SHA256 `038640155985adbd2d30936ead61b592466f506d070757636503e1871df15f9b`|provider digest/size一致、原5raw保存・canonical再生一致|
 
-`../results/counterfactual-development-20261020/`、`../results/counterfactual-repair-20261020/`、`../results/counterfactual-confirmation-20261020/` に原文/receipt/投影/独立root再計算を保持する。D/H Goldはf88のnative bytesそのまま。モデル入力はbody/id/familyのGold-free投影のみで、Gold/basisは採点側に残す。
+`../results/counterfactual-development-20261020/`、`../results/counterfactual-repair-20261020/`、`../results/counterfactual-confirmation-20261020/` に原文/receipt/投影/独立root再計算を保持する。D/H Goldはf88のnative bytesそのまま。実行inputではGold/basisを除外し、provider requestへはbodyと固定判定設定だけを渡す。IDs/familyはproviderへ渡さず、実行inputのplan/executionは割当てと由来の確認用である。
 
 既存標準client/認証/秘密隔離workflowを再利用し、credential reader、plugin、proxy、汎用executor、手転記SHA台帳を追加していない。request-only child、owner/branch/push/attempt1、native historyの元D＋一度のH、prior D identityをcredential前に検査した。H224×15秒deadline=56分の失敗枝でも保存へ到達する余裕としてjob70分を設定し、20分を拒否する境界testを追加した。権限/回数/資格基準は緩めない。
 
