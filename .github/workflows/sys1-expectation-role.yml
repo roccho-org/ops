@@ -1,0 +1,42 @@
+name: Jev single E role procedure development
+on:
+  push:
+    branches: [codex/jev-expectation-role-20261021]
+    paths: [experiments/sys1-eval-loop/expectation-role/request.json]
+permissions:
+  actions: read
+  contents: read
+concurrency:
+  group: sys1-expectation-role
+  cancel-in-progress: false
+jobs:
+  evaluate:
+    if: github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify keyless source and closed evidence
+        run: node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs
+      - name: Prepare fixed assignment before credentials
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node experiments/sys1-eval-loop/expectation-role/runtime.mjs prepare "$RUNNER_TEMP/expectation-role"
+      - name: Execute using the existing standard client
+        env:
+          JEV_API_KEY: ${{ secrets.JEV_API_KEY }}
+        run: node experiments/sys1-eval-loop/expectation-role/runtime.mjs evaluate "$RUNNER_TEMP/expectation-role"
+      - name: Project without credentials
+        if: always() && steps.prepare.outcome == 'success'
+        run: node experiments/sys1-eval-loop/expectation-role/runtime.mjs project "$RUNNER_TEMP/expectation-role"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: sys1-expectation-role-${{ github.run_id }}
+          path: ${{ runner.temp }}/expectation-role
+          if-no-files-found: ignore
+          retention-days: 30

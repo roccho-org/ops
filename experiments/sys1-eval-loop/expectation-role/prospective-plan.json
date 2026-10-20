@@ -11,7 +11,8 @@
     "first": "diagnostic only, never choose a baseline after outputs",
     "acceptance": "all1252 qualified/expected model AND positive complete known joint gain AND zero destruction of604 historical E correctness AND zero known fresh E regression; all17 O-null remain assigned",
     "timeoutMinutes": 350,
-    "limitations": "historical O is not contemporary and errors may hide E repairs; D is a diagnostic, not operational proof"
+    "limitations": "historical O is not contemporary and errors may hide E repairs; D is a diagnostic, not operational proof",
+    "native": "Before credentials replay all3249 raw E and original8 native runs via provider API, Git parent and phase-specific REQUEST; current one child/history1. Under credential compare exact8 input fields/full rows/full templates to fixed source. Project original attempt/input/report/events without credential."
   },
   "held": {
     "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
@@ -47,6 +48,7 @@
   },
   "seriesMaximum": 3052,
   "resource": "D2E is simultaneous baseline and one candidate, not composite; H each arm uses1E+same-passO, physical3M once; longer candidate input can add costs; money/total/internal compute unknown",
-  "status": "LOCAL_PURE_ONLY; no native entry or REQUEST; upstream final closure and this exact source/necessaryCI/three-party review precede actual1252; new target count/body/Gold/model0",
-  "continuation": "retain failures, counter a genuinely distinct hypothesis/source before another effect; retire any H after two passes, no same-H rescue"
+  "status": "LOCAL_CODE_ONLY; fixed D native entry/350min six-step profile implemented with REQUEST absent; before actual1252 require upstream622 final technical closure, new exactsource/necessaryCI/three-party acceptance; no H entry/count/body/Gold/model",
+  "continuation": "retain failures, counter a genuinely distinct hypothesis/source before another effect; retire any H after two passes, no same-H rescue",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/622#pullrequestreview-5592969753"
 }
