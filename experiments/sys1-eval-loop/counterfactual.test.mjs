@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {repairInputs,parseCandidate,pairedComparison,judgeRequest,deriveDiagnosis} from './counterfactual/comparison.mjs';
+import {hasExpectation} from './split.mjs';
 const cases=Array.from({length:24},(_,n)=>({id:'d'+n,body:'body '+n,gold:{E:'yes',O:'no',basis:'private'}}));
 const outputs=cases.map(c=>({id:c.id,status:'qualified',E:'yes',O:'no'}));
 const advice=cases.map(c=>({id:c.id,status:'qualified',diagnosis:'no_change',rationale:'not a real typed field'}));
@@ -9,6 +10,11 @@ test('judge independently receives body only; code derives diagnosis after its i
   assert.deepEqual(deriveDiagnosis('neither',{E:'yes',O:'no'}),{status:'qualified',diagnosis:'requirement_scope'});
   assert.deepEqual(deriveDiagnosis('both',{E:'no',O:'no'}),{status:'qualified',diagnosis:'both_scope'});
   assert.deepEqual(deriveDiagnosis(null,{E:'yes',O:'no'}),{status:'unknown',diagnosis:null});
+});
+test('judge keeps the original broad E contract including human responsibilities',()=>{
+  const q=judgeRequest('担当者は異議を独立確認者へ返し、確認者は証拠を照合する責務を持つ。');
+  assert.ok(q.criteria.requirements.includes(hasExpectation.yes));assert.ok(q.criteria.both.includes(hasExpectation.yes));
+  assert.ok(q.instructions.includes('人や役割の必要責務も含む'));assert.deepEqual(JSON.parse(q.text),{body:'担当者は異議を独立確認者へ返し、確認者は証拠を照合する責務を持つ。'});
 });
 test('repair arms have identical common input; only typed advice differs, without Gold or rationale',()=>{
   const p=repairInputs(cases,outputs,advice,'Best');assert.deepEqual(p.feedback.common,p.noFeedback.common);

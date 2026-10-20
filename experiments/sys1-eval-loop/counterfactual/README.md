@@ -31,7 +31,7 @@ flowchart TB
 
 ## 比較の固定
 
-- 対象Bestは既存の一般E/O設定。新D24本文とそのBest実出力を両修正armへ共通入力として渡す。D/H item Gold、basis、採点結果はjudge・修正器のmodel入力へ渡さない。
+- 対象Bestは既存の一般E/O設定。新D24本文とそのBest実出力を両修正armへ共通入力として渡す。Eは機能要求に限定せず、元のsplit.mjsと同じ必要な状態・責務・入出力対応・要件・受入条件の宣言を扱う。D/H item Gold、basis、採点結果はjudge・修正器のmodel入力へ渡さない。rootが候補生成前にDをGold採点しても、その結果はprivate保持し、W/修正器にcase別正誤・根拠・Gold由来の修正助言を渡さない。両候補保存/freeze後だけD採点を公開する。
 - judge v2は旧v1がBestの実誤答9/9を見逃した失敗に対し、proposed回答を見せる構造を変更する。旧開発資料で設定を校正してよいが、新D出力を見る前に固定し、本比較中は変更しない。`judgeRequest`はbodyだけからE/O4組合せを既存Choiceで一回独立分類し、その実receipt後にコードでBest出力との差をtyped診断へ導く。先に読むよう指示するだけで同promptにproposedを混ぜない。自由文rationaleを創作せず、独立分類由来のtyped診断だけを助言とする。診断unknownを`uncertain`回答へ書き換えない。Goldによる誤診断採点は別で、judgeがGoldになるわけではない。
 - F/Nは**同じnative OC/DS model・同じ設定・独立fresh session・同じ修正prompt/Best/D出力・候補数1・生成上限**。差分はFにtyped助言を添付し、Nには添付しないことだけ。片armの候補や診断を他armへ渡さない。生成失敗、同一候補、変更なしでも再抽選しない。モデルaliasはimmutable backend版の証明ではない。
 - 修正器へ外部toolを使わせず、一般instructionsだけのJSON1本を受ける。既存Best prefix維持、6000byte以内。個別解答・ID lookup・Hでの追加修正は不可。生成物の適否はH開封前に3者で反証し、失敗を手修正した候補で置換しない。
@@ -44,10 +44,11 @@ flowchart TB
 flowchart TB
   A["🗃️ 新D24/H32とGoldをモデル出力前に固定"] --> B["🔒 judge v2・Best・同一修正器/生成条件を固定"]
   B --> C["🧪 新DのBest E/O出力とtyped judge診断を実取得"]
-  C --> D["📏 Gold採点: target誤答/正答・judge見逃し/誤警報/unknownを別記"]
+  C --> D["🔒 rootだけGold採点を保持: 修正作者へ正誤・根拠・助言を渡さない"]
   D --> E["⚖️ 同じD本文＋Best出力から独立fresh F/Nを各1回生成"]
   E --> F["🔒 JSON候補とsourceを固定・3者反証後だけH開封"]
-  F --> G["🧪 同じ新H32でBest/F/NのE/Oを測定"]
+  F --> PUBLISH["📏 両候補保存後にD正誤/診断妥当性を公開"]
+  PUBLISH --> G["🧪 同じ新H32でBest/F/NのE/Oと独立judgeを測定"]
   G --> I["📏 A: F対Best、B: F対Nを独立採点・全軸/全分母保持"]
   I --> Q["🧾 A/Bごとに有限gain・観測退行・差非観測・UNKNOWN"]
   Q --> Z["🗃️ H退役・候補変更なし・native raw/runと原価を保持"]
