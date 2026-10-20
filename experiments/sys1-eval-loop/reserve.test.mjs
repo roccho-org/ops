@@ -16,8 +16,12 @@ test('new treatment changes only symmetric O criteria and all retired D wires fi
 test('historical H1 anchor retains 220 known joint correct and seven unresolved cases',()=>{
  const score=developmentGuard(corpus.cases,h1,h2,h1,counts);assert.equal(score.baselineCorrect,220);assert.equal(score.candidateCorrect,220);assert.equal(score.unknownGold,7);assert.equal(score.positiveKnownCompleteGain,false);assert.equal(score.eligible,false);
 });
-test('positive O-only gain on an E-wrong case is not joint improvement',()=>{
+test('synthetic E-wrong history: positive O-only gain is not joint improvement',()=>{
  const cs=Array.from({length:300},(_,i)=>({id:'d'+i,gold:{E:'yes',O:'yes'}})),a=cs.map(c=>({id:c.id,E:'no',O:'no'})),b=structuredClone(a),candidate=structuredClone(a);candidate[0].O='yes';const s=developmentGuard(cs,a,b,candidate,counts);assert.equal(s.positiveKnownCompleteGain,false);assert.equal(s.eligible,false);
+});
+test('missing protected answers stay unknown while a simultaneous known regression remains visible',()=>{
+ const candidate=h1.map((r,i)=>({...r,O:corpus.cases[i].gold.O??r.O})),protectedIndices=corpus.cases.flatMap((c,i)=>c.gold.O!==null&&(h1[i].O===c.gold.O||h2[i].O===c.gold.O)?[i]:[]),[missing,broken]=protectedIndices;
+ candidate[missing].O=null;candidate[broken].O=corpus.cases[broken].gold.O==='yes'?'no':'yes';const s=developmentGuard(corpus.cases,h1,h2,candidate,{qualified:299,modelStable:true});assert.deepEqual(s.unknownProtectedAxes,[{id:corpus.cases[missing].id,axis:'O'}]);assert.deepEqual(s.unionAxisRegressed,[{id:corpus.cases[broken].id,axis:'O'}]);assert.ok(!s.regressed.includes(corpus.cases[missing].id));assert.equal(s.eligible,false);
 });
 test('positive joint gain cannot hide a newly broken axis correct only in historical H2',()=>{
  const candidate=h1.map((r,i)=>({...r,O:corpus.cases[i].gold.O??r.O})),s=developmentGuard(corpus.cases,h1,h2,candidate,counts);assert.equal(s.positiveKnownCompleteGain,true);assert.equal(s.eligible,true);
