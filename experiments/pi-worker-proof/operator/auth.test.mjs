@@ -242,3 +242,30 @@ test("owner turn completion and result collection are bound to the exact convers
     {role:"assistant",responseId:"extra",stopReason:"stop",rawStopReason:"completed"}
   ],["stop"]));
 });
+test("owned socket scope terminates real loopback sockets on failure and owner abort",async()=>{
+  const {withOwnerSockets}=await import("./owner.mjs");
+  const {WebSocket,WebSocketServer}=await import("ws");
+  const {once}=await import("node:events");
+  const server=new WebSocketServer({host:"127.0.0.1",port:0});
+  await once(server,"listening");
+  try {
+    for(const mode of ["failure","abort"]) {
+      const abort=new AbortController();
+      let socket,closed;
+      const attempt=withOwnerSockets(abort.signal,async sockets=>{
+        socket=new WebSocket("ws://127.0.0.1:"+server.address().port);
+        socket.on("error",()=>{});sockets.add(socket);
+        await once(socket,"open");
+        closed=once(socket,"close");
+        if(mode==="failure")throw Error("synthetic timeout after open");
+        abort.abort(); await closed;abort.signal.throwIfAborted();
+      });
+      await assert.rejects(attempt);
+      await closed;
+      assert.equal(socket.readyState,WebSocket.CLOSED);
+    }
+  }finally {
+    for(const socket of server.clients)socket.terminate();
+    await new Promise(resolve=>server.close(resolve));
+  }
+});

@@ -43,6 +43,14 @@ export function turnMessages(frames, conversationId) {
   }
   return [...entries.values()].flatMap(entry => entry.model ?? []);
 }
+export async function withOwnerSockets(signal, operation) {
+  const sockets = new Set();
+  const close = () => { for (const socket of sockets) socket.terminate(); };
+  signal.throwIfAborted();
+  signal.addEventListener("abort", close, { once: true });
+  try { return await operation(sockets); }
+  finally { signal.removeEventListener("abort", close); close(); }
+}
 async function run() {
 const { values } = parseArgs({ options: {
   url: { type: "string" }, session: { type: "string" }, host: { type: "string" },
@@ -57,12 +65,12 @@ const { lstat } = await import("node:fs/promises");
 const home = await lstat(homedir());
 if (home.isSymbolicLink() || home.uid !== 1001 || (home.mode & 0o777) !== 0o700) throw new Error("Unsafe native owner home");
 const path = homedir() + "/.config/pi-worker-owner/registration.json";
-await withRegistration(path, async store => {
+const abort = new AbortController();
+process.once("SIGINT", () => abort.abort());
+await withOwnerSockets(abort.signal, async sockets => withRegistration(path, async store => {
 const stage = values.stage;
 if (!["login", "reauth", "refresh", "seed", "recall"].includes(stage)) throw new Error("Explicit lifecycle stage required");
 const { openaiChatGPTOAuth } = await loadOwnerOAuth();
-const abort = new AbortController();
-process.once("SIGINT", () => abort.abort());
 if (stage === "login" || stage === "reauth") {
   await replaceCredential(store, values.host, stage, () => openaiChatGPTOAuth.login({
     signal: abort.signal,
@@ -128,6 +136,9 @@ async function connect() {
       "Pi-Proof-Access": bearer.token, "Pi-Proof-Expires": String(bearer.expires) },
     followRedirects: false, handshakeTimeout: 15_000,
   });
+  sockets.add(ws);
+  ws.once("close", () => sockets.delete(ws));
+  ws.on("error", () => {}); // All owned socket errors end this attempt; no reconnect.
   const frames = [];
   let witness;
   ws.on("upgrade", response => { witness = {
@@ -139,6 +150,7 @@ async function connect() {
   async function wait(predicate) {
     const end = Date.now() + 60_000;
     while (Date.now() < end) {
+      abort.signal.throwIfAborted();
       const found = frames.find(predicate);
       if (found) return found;
       if (ws.readyState !== WebSocket.OPEN) throw new Error("Connection lost; outcome unknown");
@@ -220,7 +232,7 @@ console.log(JSON.stringify({ scope: "ACTUAL_WORKER_CREDENTIAL_LIFECYCLE_PROOF", 
   assessment: previousProof.assessment, recallMatched: true, noClientHistoryReinjection: true,
   providerBillingUsage: "NOT_INDEPENDENTLY_VERIFIED" }));
 }
-});
+}));
 }
 export function assertDistinctCompletions(completions) {
   assert.equal(new Set(completions.map(item => item.responseId)).size, completions.length, "Duplicate provider completion identity");
