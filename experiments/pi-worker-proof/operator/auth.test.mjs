@@ -183,3 +183,29 @@ test("derived refresh rotates using issued client; optional ID validates retaine
     }
   }finally{globalThis.fetch=realFetch;}
 });
+
+test("owner proof rejects foreign origins/host/session before any credential or transport work",async()=>{
+  const {proofIdentity}=await import("./owner.mjs");
+  const good={url:"https://pi.roccho.workers.dev",session:"owner-jev-proof-20261020",host:"64a8f191-83c2-5eeb-8dc0-612bc80970db",stage:"login"};
+  proofIdentity(good);
+  for(const delta of [{url:"https://foreign.example"},{url:"http://pi.roccho.workers.dev"},{url:"https://pi.roccho.workers.dev/path"},{url:"https://pi.roccho.workers.dev@foreign.example"},
+    {url:"https://pi.roccho.workers.dev/?secret=x"},{host:"00000000-0000-4000-8000-000000000608"},
+    {session:"another-session"},{stage:"not-a-stage"},{stage:"seed"},{stage:"recall"}])assert.throws(()=>proofIdentity({...good,...delta}));
+});
+test("owner native OAuth clears inherited callback override BEFORE module evaluation",async()=>{
+  const {execFile}=await import("node:child_process");
+  const {promisify}=await import("node:util");
+  const result=await promisify(execFile)(process.execPath,["--input-type=module","-e",`
+    process.env.PI_OAUTH_CALLBACK_HOST="192.0.2.1";
+    const {loadOwnerOAuth}=await import(${JSON.stringify(new URL("./owner.mjs",import.meta.url).href)});
+    const {openaiChatGPTOAuth}=await loadOwnerOAuth();
+    const abort=new AbortController();let ready=false;
+    try{await openaiChatGPTOAuth.login({signal:abort.signal,
+      notify(event){if(event.type==="auth_url"){ready=true;abort.abort();}},
+      prompt({signal}){return new Promise((_,reject)=>{if(signal.aborted)reject(Error("cancelled"));else signal.addEventListener("abort",()=>reject(Error("cancelled")),{once:true});});}
+    },{getDeviceId:()=>"00000000-0000-4000-8000-000000000608"});}catch{}
+    if(!ready)process.exit(2);
+    console.log("LOOPBACK_LISTENER_READY_AND_CLOSED");
+  `],{timeout:5000});
+  assert.equal(result.stdout.trim(),"LOOPBACK_LISTENER_READY_AND_CLOSED");
+});

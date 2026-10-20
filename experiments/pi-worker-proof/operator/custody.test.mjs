@@ -57,14 +57,21 @@ await withRegistration(process.env.RECORD,async store=>{
 test("SIGKILL after durable premark or after token return blocks restart", async () => {
   for (const boundary of ["before-send","after-return"]) await fixture(async path => {
     await withRegistration(path, store => store.save({ state:"READY",host,credential:credential() }));
-    const action = boundary === "after-return" ?
-      'await import("node:fs/promises").then(fs=>fs.writeFile(process.env.RECORD.replace(/registration.json$/,"effect"),"SENT"));' : "";
-    const running = child(`
+    const code = boundary === "after-return" ? `
+await withRegistration(process.env.RECORD,async store=>{
+ const gated={get:store.get,async save(next){
+  if(next.state==="READY"){
+   await import("node:fs/promises").then(fs=>fs.writeFile(process.env.RECORD.replace(/registration.json$/,"effect"),"RETURNED"));
+   process.stdout.write("MARK");await new Promise(()=>{setInterval(()=>{},1000);});
+  }
+  await store.save(next);
+ }};
+ await replaceCredential(gated,process.env.HOST,"refresh",async old=>({...old,access:"synthetic-new",refresh:"synthetic-new-refresh"}));
+});` : `
 await withRegistration(process.env.RECORD,store=>replaceCredential(store,process.env.HOST,"refresh",async old=>{
- ${action}
- process.stdout.write("MARK"); await new Promise(()=>{setInterval(()=>{},1000);});
- return old;
-}));`,path);
+ process.stdout.write("MARK");await new Promise(()=>{setInterval(()=>{},1000);});return old;
+}));`;
+    const running=child(code,path);
     await running.marker(); running.process.kill("SIGKILL"); await running.done;
     const restarted = await child(`
 await withRegistration(process.env.RECORD,async store=>{
@@ -72,7 +79,7 @@ await withRegistration(process.env.RECORD,async store=>{
 });`,path).done;
     assert.equal(restarted.code,0,restarted.stderr); assert.equal(restarted.stdout.trim(),"BLOCKED");
     assert.equal(JSON.parse(await readFile(path,"utf8")).state,"IN_DOUBT");
-    if(boundary==="after-return") assert.equal(await readFile(join(dirname(path),"effect"),"utf8"),"SENT");
+    if(boundary==="after-return") assert.equal(await readFile(join(dirname(path),"effect"),"utf8"),"RETURNED");
   });
 });
 test("persistence failure and mismatched replacement leave registration unusable",async()=>fixture(async path=>{

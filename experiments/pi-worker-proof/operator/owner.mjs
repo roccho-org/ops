@@ -5,13 +5,29 @@ import { randomUUID, randomBytes, createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import WebSocket from "ws";
 import { homedir } from "node:os";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { withRegistration, replaceCredential, ready, refreshTiming } from "./custody.mjs";
 
+export function proofIdentity(values) {
+  const url = new URL(values.url);
+  if (url.origin !== "https://pi.roccho.workers.dev" || url.pathname !== "/" ||
+      url.username || url.password || url.search || url.hash ||
+      values.session !== "owner-jev-proof-20261020" ||
+      values.host !== "64a8f191-83c2-5eeb-8dc0-612bc80970db" ||
+      !["login","reauth","refresh","seed","recall"].includes(values.stage) ||
+      (["seed","recall"].includes(values.stage) && values.continue !== true)) throw new Error("Proof identity mismatch");
+}
+export async function loadOwnerOAuth() {
+  delete process.env.PI_OAUTH_CALLBACK_HOST;
+  return import("./dist/oauth.mjs");
+}
 async function run() {
 const { values } = parseArgs({ options: {
   url: { type: "string" }, session: { type: "string" }, host: { type: "string" },
   cloudflared: { type: "string" }, stage: { type: "string" }, continue: { type: "boolean" },
 } });
+proofIdentity(values);
 if (!process.stderr.isTTY || !values.url || !values.session || !values.host || !values.cloudflared) {
   throw new Error("Owner interactive terminal and url/session/host/cloudflared arguments required");
 }
@@ -23,10 +39,9 @@ const path = homedir() + "/.config/pi-worker-owner/registration.json";
 await withRegistration(path, async store => {
 const stage = values.stage;
 if (!["login", "reauth", "refresh", "seed", "recall"].includes(stage)) throw new Error("Explicit lifecycle stage required");
-const { openaiChatGPTOAuth } = await import("./dist/oauth.mjs");
+const { openaiChatGPTOAuth } = await loadOwnerOAuth();
 const abort = new AbortController();
 process.once("SIGINT", () => abort.abort());
-delete process.env.PI_OAUTH_CALLBACK_HOST;
 if (stage === "login" || stage === "reauth") {
   await replaceCredential(store, values.host, stage, () => openaiChatGPTOAuth.login({
     signal: abort.signal,
@@ -68,6 +83,7 @@ if (stage === "recall" && (record.proof?.state !== "SEEDED" || (record.rotations
   throw new Error("Completed seed and actual durable refresh required");
 }
 const previousProof = record.proof;
+if (stage === "recall" && (previousProof.session !== values.session || previousProof.origin !== values.url || previousProof.host !== values.host)) throw new Error("Proof binding mismatch");
 await store.save({ ...record, proof: { ...previousProof, state: "UNKNOWN", attemptedStage: stage } });
 const origin = new URL(values.url);
 assert.equal(origin.protocol, "https:");
@@ -158,7 +174,7 @@ assert.ok(answer.includes(marker) && answer.includes(String(assessment.noul)));
 const completions = completionReceipt(messages, ["toolUse", "stop"]);
 await first.close();
 await store.save({ ...store.get(), proof: { state: "SEEDED", session: values.session,
-  conversationId: created.conversationId, marker, assessment, boot: first.witness.boot,
+  origin: values.url, host: values.host, conversationId: created.conversationId, marker, assessment, boot: first.witness.boot,
   rotations: record.rotations ?? 0, completions, seededAt: Date.now() } });
 console.log(JSON.stringify({ scope: "ACTUAL_WORKER_SEED_ONLY", status: "SEEDED", conversationId: created.conversationId,
   completions, successfulJevToolResults: 1, memoryRecall: "NOT_RUN" }));
@@ -199,4 +215,4 @@ function completionReceipt(messages, expected) {
   assert.ok(completions.every(item => typeof item.responseId === "string" && item.responseId.length > 0 && item.rawStopReason === "completed"));
   return completions;
 }
-run().catch(() => { console.error(JSON.stringify({ scope: "OWNER_LIFECYCLE", status: "STOPPED_NOT_PROVEN", noAutomaticResend: true })); process.exitCode = 1; });
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) run().catch(() => { console.error(JSON.stringify({ scope: "OWNER_LIFECYCLE", status: "STOPPED_NOT_PROVEN", noAutomaticResend: true })); process.exitCode = 1; });
