@@ -1,0 +1,81 @@
+{
+  "schema": "diagnostic-interchange-corpus/2",
+  "valid": [
+    {
+      "id": "code-only",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.code-only\",\"level\":\"info\",\"message\":\"ready\"}",
+      "canonical": "{\"schema\":\"diagnostic/1\",\"code\":\"example.code-only\",\"level\":\"info\",\"message\":\"ready\"}\n"
+    },
+    {
+      "id": "scalars-unicode-order",
+      "line": "{\"message\":\"準備完了\",\"schema\":\"diagnostic/1\",\"fields\":{\"z\":1,\"a\":true,\"n\":null,\"text\":\"日本語\"},\"level\":\"warn\",\"code\":\"example.fields\"}",
+      "canonical": "{\"schema\":\"diagnostic/1\",\"code\":\"example.fields\",\"level\":\"warn\",\"message\":\"準備完了\",\"fields\":{\"a\":true,\"n\":null,\"text\":\"日本語\",\"z\":1}}\n"
+    },
+    {
+      "id": "number-boundaries",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.numbers\",\"level\":\"debug\",\"message\":\"number boundary\",\"fields\":{\"high_exp\":1e21,\"high_fixed\":1e20,\"low_exp\":1e-7,\"low_fixed\":0.000001,\"negative_zero\":-0.0}}",
+      "canonical": "{\"schema\":\"diagnostic/1\",\"code\":\"example.numbers\",\"level\":\"debug\",\"message\":\"number boundary\",\"fields\":{\"high_exp\":1e+21,\"high_fixed\":100000000000000000000,\"low_exp\":1e-7,\"low_fixed\":0.000001,\"negative_zero\":0}}\n"
+    }
+  ],
+  "invalid": [
+    {
+      "id": "duplicate-top",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.duplicate\",\"level\":\"info\",\"level\":\"error\",\"message\":\"x\"}",
+      "error": "DIAGNOSTIC_DUPLICATE_KEY"
+    },
+    {
+      "id": "duplicate-escaped-field",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.duplicate\",\"level\":\"info\",\"message\":\"x\",\"fields\":{\"a\":1,\"\\u0061\":2}}",
+      "error": "DIAGNOSTIC_DUPLICATE_KEY"
+    },
+    {
+      "id": "host-owned",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.host\",\"level\":\"info\",\"message\":\"x\",\"timestamp\":\"2026-10-20T00:00:00Z\"}",
+      "error": "DIAGNOSTIC_HOST_FIELD_FORGED"
+    },
+    {
+      "id": "unknown",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.unknown\",\"level\":\"info\",\"message\":\"x\",\"extra\":true}",
+      "error": "DIAGNOSTIC_UNKNOWN_FIELD"
+    },
+    {
+      "id": "nested",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.nested\",\"level\":\"info\",\"message\":\"x\",\"fields\":{\"nested\":{\"value\":1}}}",
+      "error": "DIAGNOSTIC_FIELD_VALUE_INVALID"
+    },
+    {
+      "id": "bad-level",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.level\",\"level\":\"fatal\",\"message\":\"x\"}",
+      "error": "DIAGNOSTIC_LEVEL_INVALID"
+    },
+    {
+      "id": "bad-unicode",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.unicode\",\"level\":\"info\",\"message\":\"\\ud800\"}",
+      "error": "DIAGNOSTIC_MESSAGE_INVALID_UNICODE"
+    }
+  ],
+  "generated": [
+    {"id":"message-feff-only","kind":"message","value":"\ufeff","accept":false,"error":"DIAGNOSTIC_MESSAGE_INVALID"},
+    {"id":"message-nel-only","kind":"message","value":"\u0085","accept":true},
+    {"id":"code-127","kind":"code-bytes","size":127,"accept":true},
+    {"id":"code-128","kind":"code-bytes","size":128,"accept":true},
+    {"id":"code-129","kind":"code-bytes","size":129,"accept":false,"error":"DIAGNOSTIC_CODE_TOO_LARGE"},
+    {"id":"message-8191","kind":"message-bytes","size":8191,"accept":true},
+    {"id":"message-8192","kind":"message-bytes","size":8192,"accept":true},
+    {"id":"message-8193","kind":"message-bytes","size":8193,"accept":false,"error":"DIAGNOSTIC_MESSAGE_TOO_LARGE"},
+    {"id":"fields-31","kind":"field-count","size":31,"accept":true},
+    {"id":"fields-32","kind":"field-count","size":32,"accept":true},
+    {"id":"fields-33","kind":"field-count","size":33,"accept":false,"error":"DIAGNOSTIC_FIELDS_TOO_MANY"},
+    {"id":"field-name-127","kind":"field-name-bytes","size":127,"accept":true},
+    {"id":"field-name-128","kind":"field-name-bytes","size":128,"accept":true},
+    {"id":"field-name-129","kind":"field-name-bytes","size":129,"accept":false,"error":"DIAGNOSTIC_FIELD_NAME_TOO_LARGE"},
+    {"id":"field-string-8191","kind":"field-string-bytes","size":8191,"accept":true},
+    {"id":"field-string-8192","kind":"field-string-bytes","size":8192,"accept":true},
+    {"id":"field-string-8193","kind":"field-string-bytes","size":8193,"accept":false,"error":"DIAGNOSTIC_FIELD_STRING_TOO_LARGE"},
+    {"id":"encoded-65535","kind":"encoded-bytes","size":65535,"accept":true},
+    {"id":"encoded-65536","kind":"encoded-bytes","size":65536,"accept":true},
+    {"id":"encoded-65537","kind":"encoded-bytes","size":65537,"accept":false,"error":"DIAGNOSTIC_ENCODED_TOO_LARGE"},
+    {"id":"nonfinite-number","kind":"nonfinite-number","accept":false,"error":"DIAGNOSTIC_FIELD_VALUE_INVALID"},
+    {"id":"malformed-message-direct","kind":"malformed-message","accept":false,"error":"DIAGNOSTIC_MESSAGE_INVALID_UNICODE"}
+  ]
+}
