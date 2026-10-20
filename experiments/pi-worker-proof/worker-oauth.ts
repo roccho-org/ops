@@ -167,7 +167,7 @@ export class TransientWorkerProof {
       onProviderStreamEvent: (raw: unknown) => {
         const event = raw as { type?: string; response?: { status?: string; id?: string } };
         if (event.type === "response.incomplete" || (event.type === "response.completed" &&
-            (event.response?.status !== "completed" || !event.response.id))) {
+            (event.response?.status !== "completed" || typeof event.response.id !== "string" || event.response.id.length === 0))) {
           throw new Error("Proof requires an actual completed provider response");
         }
       },

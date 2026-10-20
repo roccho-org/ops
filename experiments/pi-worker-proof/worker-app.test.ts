@@ -560,6 +560,7 @@ describe("finite transient proof transport — keyless mocks only", () => {
     for (const [name, events] of [
       ["incomplete", [{ type: "response.incomplete", response: { id: "bad", status: "incomplete", output: [] } }]],
       ["missing-status", [{ type: "response.completed", response: { id: "bad", output: [] } }]],
+      ["invalid-id", [{ type: "response.completed", response: { id: 42, status: "completed", output: [] } }]],
       ["in-progress", [{ type: "response.completed", response: { id: "bad", status: "in_progress", output: [] } }]],
       ["failed", [{ type: "response.failed", response: { id: "bad", status: "failed", error: { message: "fixture-failed" } } }]],
       ["missing-terminal", []],

@@ -41,10 +41,16 @@ const bearer = { token: credential.access, expires: credential.expires };
 // No credential persistence, refresh, local model request or prompt proxy.
 delete credential.access;
 delete credential.refresh;
+const catalogResponse = await fetch("https://api.openai.com/v1/models", {
+  headers: { Authorization: "Bearer " + bearer.token }, redirect: "error", signal: abort.signal,
+});
+assert.equal(catalogResponse.ok, true, "Account catalog unavailable; stop without retry");
+const catalog = await catalogResponse.json();
+assert.ok(Array.isArray(catalog.models) && catalog.models.some(model => model.visibility === "list" && model.slug === "gpt-6-luna"), "Configured model unavailable; separate model review required");
+  const url = new URL("/api/sessions/" + values.session, origin);
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function connect() {
   assert.ok(bearer.expires > Date.now() + 30_000, "Access expired; stop without reauthentication/retry");
-  const url = new URL("/api/sessions/" + values.session, origin);
   url.protocol = "wss:";
   const ws = new WebSocket(url, {
     headers: { Cookie: "CF_Authorization=" + accessJwt,
@@ -146,7 +152,7 @@ assert.deepEqual(completions.map(item => item.stopReason), ["toolUse", "stop", "
 assert.ok(completions.every(item => typeof item.responseId === "string" && item.responseId.length > 0 && item.rawStopReason === "completed"));
 
 console.log(JSON.stringify({ completions, scope: "ACTUAL_WORKER_FINITE_PROOF", session: values.session,
-  conversationId: created.conversationId, userTurns: 2, responsesPostAttempts: 3, providerBillingUsage: "NOT_INDEPENDENTLY_VERIFIED",
+  conversationId: created.conversationId, selectedModel: "gpt-6-luna", accountCatalogVerified: true, userTurns: 2, responsesPostAttempts: 3, providerBillingUsage: "NOT_INDEPENDENTLY_VERIFIED",
   successfulJevToolResults: 1, recreated: true, priorTokenAbsent: true,
   markerSha256: createHash("sha256").update(marker).digest("hex"), assessment,
   recallMatched: true, noClientHistoryReinjection: true }));

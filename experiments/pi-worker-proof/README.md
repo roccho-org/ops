@@ -26,8 +26,8 @@ flowchart TB
   Pi --> Budget["📏 Persisted actual Responses POST cap 3; retries off; redirect error"]
   Budget --> Jev["🔧 Canonical Jev; atomic conversation POST allowance 1"]
   Jev --> Commit["💾 Typed answer consumed; marker and answer committed"]
-  Commit --> Recreate["🔄 New boot ID observed; prior token absent"]
-  Recreate --> Resupply["🔑 Owner access resupply; same IDs reopened"]
+  Commit --> Recreate["🔄 Close client; one idle window"]
+  Recreate --> Resupply["🔑 Resupply upgrade: changed boot + prior token absent BEFORE attach; same IDs"]
   Resupply --> Recall["🗣️ Neutral recall; no values/history reinjected"]
   Recall --> Proof["🏁 Actual Worker/Jev/recreation receipt"]
 ```
@@ -53,10 +53,16 @@ flowchart TB
 
 Reuse canonical Jev transport/decoder/deadline and existing Pi model transport/SQLite/CI. Add only validated local OAuth composition, volatile selected-proof bearer, supported wire hook, physical-request bound, recreation witness and separate keyless runtime package. Preserve legacy unselected behavior and screen packaging. No new framework, inference proxy, global installation or credential bridge.
 
-Required source: exact JOSE/ws lock and derived SDK bytes; required exp/sub/nonce and strict JWT negatives; supported native-fetch injection, no global monkeypatch; HTTP only; Access JWT signature/issuer/audience/exact owner before bearer attachment; no remote refresh/ID tokens, bootstrap, secret logs or persisted WS headers. New instance/expiry fails closed until resupply. Actual auth, deployment, secret writes and inference are outside SOURCE GO. Standard cloudflared local cache is separate from SIWC token custody. No auth has occurred.
+Required source: exact JOSE/ws lock and derived SDK bytes; required exp/sub/nonce and strict JWT negatives; supported native-fetch injection, no global monkeypatch; HTTP only; Access JWT signature/issuer/audience/exact owner before bearer attachment; no remote refresh/ID tokens, bootstrap, secret logs or persisted WS headers. New instance/expiry fails closed until resupply. Actual auth, deployment, secret writes and inference are outside SOURCE GO. Standard cloudflared local cache is separate from SIWC token custody. Cloudflare owner authentication was separately authorized and independently verified; ChatGPT OAuth and inference have NOT_RUN.
 
 Policy roccho-dev/adrs@6e4abcd22dbee397105625b6041ce1a0d4720182; native /work/repos/ops.git/.worktrees/pi-jev-worker-20261020. No ops#523 or quality completion claim.
 
 Current new candidate: 0415575686f932987f63f4dbb12d4923be3e0bff. Shared validator and volatile/runtime composition published; native JWT helper tests and regenerated overlay type check passed. Exact-head CI, derived-login integration, focused runtime tests and operator proof orchestration remain pending; no new SOURCE/MOCK acceptance.
 
 Primary basis: [SIWC Terms](https://openai.com/policies/sign-in-with-chatgpt-terms/), [ID-token validation](https://developers.openai.com/siwc/token-sharing-open-source/sign-in), [preview wire limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations), [Cloudflare origin JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/). CF owner login/pin preparation is separate from expiring ChatGPT OAuth, which occurs after runtime deployment/readback.
+
+Operator sequence (only after accepted source and separate effect GO): use the existing protected hostname and dedicated session from envs119; establish the standard SSH local forward1455 to the native Pi callback, then run the native operator in an owner terminal with its stable configured host UUID and existing cloudflared path. Fresh validated OAuth precedes one account-specific models catalog GET; missing configured slug stops for separate review. Native code performs authentication/catalog metadata only. Model inference occurs only inside the Worker.
+
+The helper sends two user prompts, checks the correlated typed Jev result and its consumption, closes the first socket, waits one full bounded idle window, then checks changed boot/prior-token state in the access-resupply response. Same boot means NOT_PROVEN with no second prompt. The receipt distinguishes three pre-send admitted Responses attempts, three completed response IDs/statuses, SDK usage defaults and independently unverified billing. It never sends old values/history on recall or automatically resends UNKNOWN outcomes.
+
+[Companion runtime admission](https://github.com/roccho-org/envs/pull/119) uses only existing Jev custody and the dedicated provider token; no ChatGPT secret binding. Deployment/readback precedes expiring ChatGPT login. Initial omitted migration tag follows [provided Wrangler4.93](https://github.com/cloudflare/workers-sdk/blob/wrangler%404.93.0/packages/wrangler/src/durable.ts) semantics with exactly one create-only SQLite class, not a claim of complete history absence; unknown tags or conflicts stop without deleting data or retrying. [Migration semantics](https://developers.cloudflare.com/durable-objects/reference/durable-object-class-migrations-legacy/).
