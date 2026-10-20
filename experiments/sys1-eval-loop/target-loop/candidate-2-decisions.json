@@ -1,0 +1,417 @@
+{
+  "schema": "ops.sys1.target-feedback-decisions.v1",
+  "sourceRunUrl": "https://github.com/roccho-org/ops/actions/runs/39361251975",
+  "repairOrigin": "gold-sys2",
+  "usefulEvaluatorRepairs": 0,
+  "policy": "All actual diagnoses retained. Correct no_change keeps baseline behavior; missed errors and false alarms are rejected using pre-run Gold. Unknown never becomes advice.",
+  "rows": [
+    {
+      "caseId": "quote-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "quote-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "quote-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "quote-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "condition-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "condition-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "condition-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "condition-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "negative-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "negative-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "negative-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "negative-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "table-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "table-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "table-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "table-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "html-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "html-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "html-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "html-4",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "html-4",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed persistent O error; prioritize outer specimen/log context before treating inner HTML comment as real work evidence."
+      }
+    },
+    {
+      "caseId": "code-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "code-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "code-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "code-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "nested-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "nested-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "nested-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "nested-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "inject-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "inject-2",
+      "targetCorrect": true,
+      "actualDiagnosis": null,
+      "expectedDiagnosis": "no_change",
+      "decision": "retain_unknown",
+      "candidateFeedback": {
+        "caseId": "inject-2",
+        "origin": "gold-sys2",
+        "actualDiagnosis": null,
+        "expectedDiagnosis": "no_change",
+        "decision": "Retain failed diagnostic unknown; preserve correct target E/O and never resend failed request."
+      }
+    },
+    {
+      "caseId": "inject-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "inject-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "language-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "language-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "language-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "language-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "role-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "role-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "role-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "role-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-599",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-581",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-573",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-553",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-552",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-529",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-524",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "public-ops-524",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed new O regression; replace blanket status emphasis with applied subject/action versus document-meaning/permission-rule scope."
+      }
+    },
+    {
+      "caseId": "public-ops-514",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "public-ops-514",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed persistent O error; distinguish completed named-human authorization from normative permission boundaries, even within a proposal."
+      }
+    }
+  ]
+}

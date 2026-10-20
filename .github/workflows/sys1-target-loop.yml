@@ -1,0 +1,42 @@
+name: Jev target improvement discovery and confirmation
+on:
+  push:
+    branches: [codex/jev-target-loop-20261020]
+    paths: [experiments/sys1-eval-loop/target-loop/request.json]
+permissions:
+  actions: read
+  contents: read
+concurrency:
+  group: sys1-target-loop
+  cancel-in-progress: false
+jobs:
+  evaluate:
+    if: github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify keyless source and closed evidence
+        run: node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs
+      - name: Prepare one reviewed finite assignment before credentials
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node experiments/sys1-eval-loop/target-loop/loop.mjs prepare "$RUNNER_TEMP/target-loop"
+      - name: Execute target and evaluator using the standard client
+        env:
+          JEV_API_KEY: ${{ secrets.JEV_API_KEY }}
+        run: node experiments/sys1-eval-loop/target-loop/loop.mjs evaluate "$RUNNER_TEMP/target-loop"
+      - name: Score without credentials including partial execution
+        if: always() && steps.prepare.outcome == 'success'
+        run: node experiments/sys1-eval-loop/target-loop/loop.mjs score "$RUNNER_TEMP/target-loop"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: sys1-target-loop-${{ github.run_id }}
+          path: ${{ runner.temp }}/target-loop
+          if-no-files-found: ignore
+          retention-days: 30

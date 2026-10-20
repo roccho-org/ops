@@ -1,0 +1,465 @@
+{
+  "schema": "ops.sys1.target-feedback-decisions.v1",
+  "sourceRunUrl": "https://github.com/roccho-org/ops/actions/runs/39358339344",
+  "repairOrigin": "gold-sys2",
+  "usefulEvaluatorRepairs": 0,
+  "policy": "All actual diagnoses retained. Correct no_change keeps baseline behavior; missed errors and false alarms are rejected using pre-run Gold. Unknown never becomes advice.",
+  "rows": [
+    {
+      "caseId": "quote-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "quote-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "requirement_scope",
+      "expectedDiagnosis": "no_change",
+      "decision": "reject_false_alarm",
+      "candidateFeedback": {
+        "caseId": "quote-2",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "requirement_scope",
+        "expectedDiagnosis": "no_change",
+        "decision": "Reject evaluator false alarm; preserve correctly applied requirements plus actual quoted user report."
+      }
+    },
+    {
+      "caseId": "quote-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "quote-4",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "quote-4",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed O error; supplement outer-context grounding for candidate message strings."
+      }
+    },
+    {
+      "caseId": "condition-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "condition-2",
+      "targetCorrect": true,
+      "actualDiagnosis": null,
+      "expectedDiagnosis": "no_change",
+      "decision": "retain_unknown",
+      "candidateFeedback": {
+        "caseId": "condition-2",
+        "origin": "gold-sys2",
+        "actualDiagnosis": null,
+        "expectedDiagnosis": "no_change",
+        "decision": "Retain failed diagnostic as unknown; do not resend it or invent advice."
+      }
+    },
+    {
+      "caseId": "condition-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "condition-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "negative-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "negative-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "negative-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "negative-4",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "requirement_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "negative-4",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "requirement_scope",
+        "decision": "Reject missed E error; distinguish vocabulary contrasts from applied functional requirements."
+      }
+    },
+    {
+      "caseId": "table-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "table-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "table-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "table-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "html-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "html-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "html-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "html-4",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "html-4",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed O error; specimen HTML comments are material, while real work-log comments remain observations."
+      }
+    },
+    {
+      "caseId": "code-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "code-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "code-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "code-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "nested-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "nested-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "nested-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "nested-4",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "inject-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "inject-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "requirement_scope",
+      "expectedDiagnosis": "no_change",
+      "decision": "reject_false_alarm",
+      "candidateFeedback": {
+        "caseId": "inject-2",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "requirement_scope",
+        "expectedDiagnosis": "no_change",
+        "decision": "Reject evaluator false alarm; preserve outside requirements and actual captured-log evidence."
+      }
+    },
+    {
+      "caseId": "inject-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "inject-4",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "both_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "inject-4",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "both_scope",
+        "decision": "Reject missed E/O errors; catalogue role labels and quoted commands are not current authority or evidence."
+      }
+    },
+    {
+      "caseId": "language-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "language-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "language-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "language-4",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "language-4",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed O error; quoted status vocabulary in any language is not an actual-status assertion."
+      }
+    },
+    {
+      "caseId": "role-1",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "role-2",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "role-3",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "role-4",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "requirement_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "role-4",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "requirement_scope",
+        "decision": "Reject missed E error; vocabulary naming differs from normative functional role mappings."
+      }
+    },
+    {
+      "caseId": "public-ops-599",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-581",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-573",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-553",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-552",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "public-ops-552",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed O error; reported current unimplemented/unadopted status counts even in a proposal."
+      }
+    },
+    {
+      "caseId": "public-ops-529",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "public-ops-529",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed O error; reported current unproven completion status counts even among requirements."
+      }
+    },
+    {
+      "caseId": "public-ops-524",
+      "targetCorrect": true,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "no_change",
+      "decision": "accept_no_change",
+      "candidateFeedback": null
+    },
+    {
+      "caseId": "public-ops-514",
+      "targetCorrect": false,
+      "actualDiagnosis": "no_change",
+      "expectedDiagnosis": "evidence_scope",
+      "decision": "reject_missed_error",
+      "candidateFeedback": {
+        "caseId": "public-ops-514",
+        "origin": "gold-sys2",
+        "actualDiagnosis": "no_change",
+        "expectedDiagnosis": "evidence_scope",
+        "decision": "Reject missed O error; already-granted human authorization is an actual current authority-state report."
+      }
+    }
+  ]
+}

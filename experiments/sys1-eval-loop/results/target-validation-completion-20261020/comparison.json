@@ -1,0 +1,38 @@
+{
+  "scope": "development selection only; not confirmation",
+  "assigned": 48,
+  "delta": 6,
+  "resolved": [
+    "quote-4",
+    "negative-4",
+    "inject-4",
+    "language-4",
+    "role-4",
+    "public-ops-552",
+    "public-ops-529"
+  ],
+  "regressed": [
+    "public-ops-524"
+  ],
+  "axisRegressed": [
+    {
+      "id": "public-ops-524",
+      "axis": "O"
+    }
+  ],
+  "strata": {
+    "publicIssue": {
+      "assigned": 8,
+      "baselineCorrect": 5,
+      "candidateCorrect": 6,
+      "delta": 1
+    },
+    "synthetic": {
+      "assigned": 40,
+      "baselineCorrect": 34,
+      "candidateCorrect": 39,
+      "delta": 5
+    }
+  },
+  "outcome": "REGRESSION_KEEP_BASELINE"
+}
