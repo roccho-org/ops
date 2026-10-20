@@ -6,8 +6,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { JEV_MODEL, validateJevBudget } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
-import { ENTRY_LIMITS, preparePlan, executeOwnerPlan } from '../semlint-entry.mjs';
-import { REQUEST_PREFIX, RESULT_PREFIX, PROVIDED_COMMAND_OBSERVATION, validateActionsConfig, selectRunRange, subjectRevision, admitIssueCommand,
+import { ENTRY_LIMITS, preparePlan, executeOwnerPlan, runPlan } from '../semlint-entry.mjs';
+import { REQUEST_PREFIX, RESULT_PREFIX, parseResultComment, PROVIDED_COMMAND_OBSERVATION, validateActionsConfig, selectRunRange, subjectRevision, admitIssueCommand,
   composeResultComment, deriveIssuePrior, verifyResultReadback } from '../github-comment.mjs';
 import { EXECUTOR_LOGIN, CLAIM, ISSUE_QUERY, PULL_REQUEST_QUERY, COMMENT_QUERY, SUBJECT_QUERY, PRE_PROVIDER_CAUSES, planIssueCommand, postIssueCommand,
   classifyOwnerOutput, decodeFullDatabaseId, claimResponseDiagnostics, githubDeps } from '../issue-executor.mjs';
@@ -417,7 +417,7 @@ await check('normal-first-and-later', async () => {
   const posted = w.posted[0];
   assert.equal(posted.author, EXECUTOR_LOGIN); assert.ok(posted.body.startsWith(RESULT_PREFIX));
   assert.equal(posted.body.includes('synthetic-fixture-key'), false);
-  const { identity } = JSON.parse(posted.body.slice(RESULT_PREFIX.length));
+  const { identity } = parseResultComment(posted.body);
   assert.deepEqual(identity.run, { id: r1.run.id, number: 1, attempt: 1, workflowId: WF });
   assert.equal(identity.commentId, c1.databaseId); assert.equal(identity.executionSource, SHA); assert.equal(identity.author, TRUSTED);
   assert.equal(identity.observation, 'ACTIONS_TRUSTED_LITERAL_COMMAND'); assert.equal('action' in identity, false);
@@ -428,6 +428,19 @@ await check('normal-first-and-later', async () => {
   const r2 = await fullRun(w, c2);
   assert.deepEqual(outcome(r2), ['APPENDED', 'READBACK_EXACT']); assert.equal(r2.run.run_number, 2);
   assert.deepEqual(effects(w), { claim: 2, fetch: 2, post: 2 });
+});
+
+
+await check('legacy-result-redelivery-has-no-provider-or-post', async () => {
+  const w = world(), command = w.addComment();
+  const first = await fullRun(w, command);
+  assert.equal(first.post.cause, 'READBACK_EXACT');
+  const posted = w.posted[0];
+  posted.body = RESULT_PREFIX + JSON.stringify(parseResultComment(posted.body)) + '\n';
+  const before = effects(w);
+  const next = await fullRun(w, command, { run: first.run });
+  assert.equal(next.planBody, undefined);
+  assert.deepEqual(effects(w), before);
 });
 
 // Hard reservation: attempted provider calls <= sum(width x reserved), independent of comment history.
@@ -544,7 +557,7 @@ await check('target-scoped-run-ranges', async () => {
     // The existing receipt and result identity shapes are unchanged (no target key is added to either run record).
     assert.deepEqual(r.plan.run, { id: run.id, number: runNumber, attempt: 1, workflowId: WF });
     assert.deepEqual(Object.keys(r.plan.run), ['id', 'number', 'attempt', 'workflowId']);
-    const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length));
+    const { identity } = parseResultComment(w.posted[0].body);
     assert.deepEqual(identity.run, { id: run.id, number: runNumber, attempt: 1, workflowId: WF });
   }
   // Pure admission re-selects with the snapshot target: a state rewritten to another target never spends a scoped slot.
@@ -839,7 +852,7 @@ await check('real-scale-id', async () => {
   const r = await fullRun(w, c);
   assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.equal(r.post.commentId, BIG); assert.equal(r.post.resultId, 5969700001);
   assert.deepEqual(c.reactions, [{ user: EXECUTOR_LOGIN }]);
-  assert.equal(JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length)).identity.commentId, BIG);
+  assert.equal(parseResultComment(w.posted[0].body).identity.commentId, BIG);
   for (const [wire, extra] of [[BIG], ['0'], ['05969636905'], ['1e10'], [' 1'], ['9007199254740993'], [null], [String(BIG), { databaseId: 1674670121 }]]) {
     const m = world(); m.nextId = BIG; const bad = m.addComment({ wireId: wire, ...(extra ? { extraKeys: extra } : {}) });
     assert.deepEqual(outcome(await fullRun(m, bad)), ['NONE', 'SNAPSHOT_UNKNOWN']); assert.deepEqual(effects(m), zero);
@@ -910,7 +923,7 @@ await check('same-issue-across-repositories', async () => {
   for (let i = 0; i < 2; i++) {
     const r = await fullRun(w, w.addComment(), { cfg });
     assert.deepEqual([r.post.outcome, r.post.cause], ['APPENDED', 'READBACK_EXACT']);
-    const identity = JSON.parse(w.posted[i].body.slice(RESULT_PREFIX.length)).identity;
+    const identity = parseResultComment(w.posted[i].body).identity;
     assert.deepEqual([identity.repository, identity.issue, identity.executionSource], [repo, 52, SHA]);
   }
   assert.deepEqual(effects(w), { claim: 2, fetch: 2, post: 2 });
@@ -971,14 +984,14 @@ await check('provided-v14-native-full-subject-and-six-criteria', async () => {
   const result = await fullRun(fixture, command, { cfg });
   assert.deepEqual(outcome(result), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(fixture), { claim: 1, fetch: 1, post: 1 });
   assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases)); assert.equal(result.planBody.limits.maxCalls, 1); assert.equal(result.planBody.limits.maxCases, 1);
-  const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
+  const envelope = parseResultComment(fixture.posted[0].body);
   assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION); assert.equal(envelope.identity.executionSource, SHA);
   assert.equal(envelope.identity.bodyDigest, hash(JSON.stringify(command.body)));
   assert.equal(envelope.result.cases[0].result.schema, 'ops.semlint.result.v14');
   assert.equal(envelope.result.cases[0].result.counts.evaluated, 6); assert.ok(envelope.result.cases[0].result.projection.stateDigest);
   assert.deepEqual(outcome(await fullRun(fixture, command, { cfg })), ['NONE', 'STARTED']);
   const literal = prWorld(); assert.deepEqual(outcome(await fullRun(literal, literal.addComment(), { cfg })), ['APPENDED', 'READBACK_EXACT']);
-  assert.equal(JSON.parse(literal.posted[0].body.slice(RESULT_PREFIX.length)).identity.observation, 'ACTIONS_TRUSTED_LITERAL_COMMAND');
+  assert.equal(parseResultComment(literal.posted[0].body).identity.observation, 'ACTIONS_TRUSTED_LITERAL_COMMAND');
 });
 
 await check('provided-v14-closed-request-refusals-before-claim', async () => {
@@ -1039,7 +1052,7 @@ await check('provided-v14-granted-subject-auxiliary', async () => {
     assert.deepEqual(outcome(result), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(fixture), { claim: 1, fetch: 1, post: 1 });
     assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases));
     assert.equal(CJK.test(sent), false); assert.ok(sent.includes(EN)); // the original stays the source of record, not the wire
-    const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
+    const envelope = parseResultComment(fixture.posted[0].body);
     assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION); assert.equal(envelope.result.cases[0].result.schema, 'ops.semlint.result.v14');
   }
   for (const [world_, alter, cause] of [
@@ -1115,7 +1128,7 @@ await check('provided-v14-granted-subject-auxiliary', async () => {
     const english = prWorld(), englishRun = await fullRun(english, english.addComment(), { cfg: providedConfig() });
     assert.deepEqual(outcome(englishRun), ['APPENDED', 'READBACK_EXACT']);
     assert.equal(englishRun.plan.outcome, 'PLANNED'); assert.equal(Object.hasOwn(englishRun.plan, 'observed'), false);
-    assert.equal(english.posted.some((c) => c.body.includes('observed')), false);
+    assert.equal(english.posted.some((c) => Object.hasOwn(parseResultComment(c.body), 'observed')), false);
   }
 });
 
@@ -1161,7 +1174,7 @@ await check('pull-request-first-and-next', async () => {
     assert.equal(subject.scope, 'entire body of the approved pull request at the observed revision');
     assert.deepEqual(result.planBody.cases[0].input.checks, CHECKS);
     assert.ok(result.planBody.cases[0].input.context.every(row => row.revision === SHA && row.ref.endsWith(`@${SHA}`)));
-    const envelope = JSON.parse(fixture.posted[index].body.slice(RESULT_PREFIX.length));
+    const envelope = parseResultComment(fixture.posted[index].body);
     assert.equal(envelope.authority, false); assert.equal(envelope.identity.targetKind, 'pull-request');
     assert.equal(envelope.identity.issue, PR_NUMBER); assert.equal(envelope.identity.issueNodeId, `PR_${PR_NUMBER}`);
     assert.equal(envelope.identity.executionSource, SHA); assert.equal(envelope.identity.commentId, command.databaseId);
@@ -1171,7 +1184,7 @@ await check('pull-request-first-and-next', async () => {
   assert.deepEqual(effects(fixture), { claim: 2, fetch: 2, post: 2 });
   const legacy = world();
   assert.deepEqual(outcome(await fullRun(legacy, legacy.addComment(), { cfg })), ['APPENDED', 'READBACK_EXACT']);
-  assert.equal(Object.hasOwn(JSON.parse(legacy.posted[0].body.slice(RESULT_PREFIX.length)).identity, 'targetKind'), false);
+  assert.equal(Object.hasOwn(parseResultComment(legacy.posted[0].body).identity, 'targetKind'), false);
 });
 
 await check('pull-request-closed-targets', async () => {
@@ -1407,7 +1420,7 @@ await check('configured-exact-ops511-ops536-and-legacy-targets', async () => {
     assert.deepEqual(outcome(result), admitted ? ['APPENDED', 'READBACK_EXACT'] : ['NONE', 'TARGET_NOT_AUTHORIZED']);
     assert.deepEqual(effects(fixture), admitted ? { claim: 1, fetch: 1, post: 1 } : zero);
     if (admitted) {
-      const identity = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+      const identity = parseResultComment(fixture.posted[0].body).identity;
       assert.equal(identity.repository, repository); assert.equal(identity.issue, number);
       assert.equal(identity.targetKind, targetKind === 'pull-request' ? targetKind : undefined);
     }
@@ -1477,7 +1490,7 @@ await check('configured-pr536-provided-full-body-and-exclusive-grant', async () 
     assert.deepEqual(effects(fixture), { claim: 1, fetch: 1, post: 1 });
     assert.equal(nativeReads, 9);
     assert.equal(JSON.stringify(result.planBody.cases), JSON.stringify(payload.cases));
-    const envelope = JSON.parse(fixture.posted[0].body.slice(RESULT_PREFIX.length));
+    const envelope = parseResultComment(fixture.posted[0].body);
     assert.equal(envelope.identity.issue, 536); assert.equal(envelope.identity.targetKind, 'pull-request');
     assert.equal(envelope.identity.observation, PROVIDED_COMMAND_OBSERVATION);
     assert.deepEqual(envelope.identity.run, { id: run.id, number: 104, attempt: 1, workflowId: 377399991 });
@@ -1643,7 +1656,7 @@ await check('subject-granted-literal', async () => {
   const r = await fullRun(w, w.addComment(), { cfg });
   assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 1 });
   assert.equal(w.calls.subjectQ, 3); // admission, before the call, before posting
-  const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length)), input = r.planBody.cases[0].input;
+  const { identity } = parseResultComment(w.posted[0].body), input = r.planBody.cases[0].input;
   const originRevision = subjectRevision({ number: 483, nodeId: 'I_483', body: w.issue.body, lastEditedAt: null, includesCreatedEdit: false,
     userContentEditsTotal: 0 });
   // Top-level issue/issueNodeId/subjectRevision stay the origin; identity.subject and the semlint input name the evaluated Issue.
@@ -1744,7 +1757,7 @@ await check('subject-state-sink-and-readback', async () => {
   // Read-back and prior derivation bind identity.subject, and the sink is only ever the origin.
   const request = await admitIssueCommand(p.state.admission, cfg);
   const body = composeResultComment(request, zeroClock(JSON.parse(out.stdout)));
-  const envelope = JSON.parse(body.slice(RESULT_PREFIX.length));
+  const envelope = parseResultComment(body);
   const swapped = RESULT_PREFIX + JSON.stringify({ ...envelope, identity: { ...envelope.identity, subject: { ...envelope.identity.subject, number: 95 } } }) + '\n';
   const at = (repository, issue, text) => ({ repository, issue, id: 9001, author: EXECUTOR_LOGIN, body: text });
   assert.equal(verifyResultReadback(request, body, at(REPO, 483, body), EXECUTOR_LOGIN, 9001), true);
@@ -1832,7 +1845,7 @@ await check('issue-provided-request-first-and-next', async () => {
   assert.deepEqual(outcome(r), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(w), { claim: 1, fetch: 1, post: 1 });
   assert.equal(w.calls.subjectQ, 3); // admission, before the call, before posting
   assert.equal(JSON.stringify(r.planBody.cases), JSON.stringify(payload.cases));
-  const { identity } = JSON.parse(w.posted[0].body.slice(RESULT_PREFIX.length));
+  const { identity } = parseResultComment(w.posted[0].body);
   assert.equal(identity.observation, PROVIDED_COMMAND_OBSERVATION);
   assert.deepEqual([identity.repository, identity.issue, identity.issueNodeId, identity.subjectRevision], [REPO, 483, 'I_483', subjectRevision(originSnapshot(w))]);
   assert.deepEqual(identity.subject, { ...SUBJECT_GRANT, nodeId: 'I_apps_94', revision: subjectRevision(subjectSnapshot(w)) });
@@ -1840,7 +1853,7 @@ await check('issue-provided-request-first-and-next', async () => {
   // The English literal on the same grant stays the admitted passthrough, with identity.subject (the English bootstrap).
   const literal = englishSubjectWorld(), lr = await fullRun(literal, literal.addComment(), { cfg });
   assert.deepEqual(outcome(lr), ['APPENDED', 'READBACK_EXACT']);
-  const literalIdentity = JSON.parse(literal.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+  const literalIdentity = parseResultComment(literal.posted[0].body).identity;
   assert.deepEqual([literalIdentity.observation, literalIdentity.subject.revision], ['ACTIONS_TRUSTED_LITERAL_COMMAND', identity.subject.revision]);
 });
 
@@ -1955,7 +1968,7 @@ await check('issue-grant-bound-to-origin-repository', async () => {
   const envsLiteral = envsWorld(), el = await fullRun(envsLiteral, envsLiteral.addComment(), { cfg: twoOrigins() });
   assert.deepEqual(outcome(el), ['APPENDED', 'READBACK_EXACT']); assert.deepEqual(effects(envsLiteral), { claim: 1, fetch: 1, post: 1 });
   assert.equal(Object.hasOwn(el.plan, 'observed') || Object.hasOwn(el.post, 'observed'), false);
-  const { identity } = JSON.parse(envsLiteral.posted[0].body.slice(RESULT_PREFIX.length));
+  const { identity } = parseResultComment(envsLiteral.posted[0].body);
   assert.deepEqual([identity.repository, identity.issue, identity.subject.revision], [ENVS, 483, subjectRevision(subjectSnapshot(envsLiteral))]);
   // Its provided request keeps the legacy refusal before any claim.
   const envsProvided = envsWorld(SUBJECT_EN), ep = await fullRun(envsProvided, envsProvided.addComment({ body: providedBody(issuePayload(envsProvided)) }), { cfg: twoOrigins() });
@@ -2100,6 +2113,42 @@ assert.deepEqual(keyed[0].match(/"\$JEV_NODE" "\$JEV_SRC\/[^"]+"/g), ['"$JEV_NOD
 for (const banned of ['issue-executor', 'GITHUB_TOKEN', 'github.token', 'curl', ' gh ']) assert.equal(keyed[0].includes(banned), false, banned);
 assert.equal(steps.filter((s) => s.includes('${{ github.token }}')).length, 2);
 }
+
+await check('provided-human-view-legacy-reconciliation-and-safe-text', async () => {
+  const w = prWorld(), cfg = providedConfig(), payload = providedPayload(w);
+  payload.cases[0].input.checks[0].id = '@fixture|<b>`é';
+  const command = w.addComment({ body: providedBody(payload) });
+  const first = await fullRun(w, command, { cfg });
+  assert.deepEqual(outcome(first), ['APPENDED', 'READBACK_EXACT']);
+  const body = w.posted[0].body, view = body.split('<details>')[0];
+  assert.ok(view.startsWith('### semlint: bounded evaluation'));
+  assert.ok(view.includes('not that a claim is true'));
+  assert.equal(view.includes('@fixture'), false); assert.equal(view.includes('<b>'), false);
+  assert.equal(view.includes('`'), false); assert.ok(view.includes('&#124;')); assert.ok(view.includes('&#233;'));
+  const envelope = parseResultComment(body);
+  assert.equal(envelope.result.cases[0].result.records[0].rule, payload.cases[0].input.checks[0].id);
+  for (const modified of [body + 'extra', 'Unbound findings\n' + body, body.replace('No automatic approval', 'Automatic approval'), body.replace('Execution evidence', 'Other evidence')]) assert.equal(parseResultComment(modified), null);
+  // A historical saved provided body must not cause a second provider/post on re-delivery.
+  w.posted[0].body = RESULT_PREFIX + JSON.stringify(envelope) + '\n';
+  assert.deepEqual(parseResultComment(w.posted[0].body), envelope);
+  const before = effects(w);
+  await fullRun(w, command, { cfg, run: first.run });
+  assert.deepEqual(effects(w), before);
+});
+
+await check('provided-human-view-size-refusal-before-provider', async () => {
+  const w = prWorld(), cfg = providedConfig(), payload = providedPayload(w);
+  payload.cases[0].input.checks[0].id = '|'.repeat(4500);
+  const command = w.addComment({ body: providedBody(payload) });
+  const prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: payload.cases });
+  const legacyOutput = await runPlan(prepared, async (_, questions) => ({ model: JEV_MODEL, answers: Object.fromEntries(Object.keys(questions).map(key => [key, { type: 'noul', noul: 0.5 }])) }));
+  const legacySized = { schema: 'ops.jev.issue-result.v1', requestDigest: 'f'.repeat(64), identity: {}, authority: false, result: legacyOutput };
+  assert.ok(Buffer.byteLength(RESULT_PREFIX + JSON.stringify(legacySized), 'utf8') + 4096 < 32768, 'full legacy result plus conservative identity reserve fits');
+  const result = await fullRun(w, command, { cfg });
+  assert.deepEqual(outcome(result), ['NONE', 'RESULT_WOULD_EXCEED_COMMENT_CAP']);
+  assert.deepEqual(effects(w), zero);
+});
+
 const cli = spawnSync(process.execPath, [here, 'plan', 'relative-dir'], { encoding: 'utf8', env: { LANG: 'C.UTF-8' }, timeout: 10000 });
 assert.equal(cli.status, 2); assert.equal(JSON.parse(cli.stdout).cause, 'INVALID_EXECUTOR_ARGS');
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-issue-executor', scenarios,
