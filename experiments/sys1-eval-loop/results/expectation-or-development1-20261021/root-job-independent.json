@@ -1,0 +1,9 @@
+{
+  "job": 118934139513,
+  "source": "b841610859df35c3d5e7060ffc47d6e61e855450",
+  "bytes": 391559,
+  "keylessTests": 659,
+  "allStepsSuccess": true,
+  "semanticGuard": "FAIL, not workflow success",
+  "modelPostsFromRaw": 1252
+}

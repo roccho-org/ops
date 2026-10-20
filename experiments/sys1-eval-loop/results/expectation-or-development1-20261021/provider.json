@@ -1,0 +1,18 @@
+{
+  "repository": "roccho-org/ops",
+  "workflowPath": ".github/workflows/sys1-expectation-or.yml",
+  "runId": 39511728760,
+  "runAttempt": 1,
+  "head": "9fa7d8bf3581a7aa6d0aebb5a13226d0bafd7acf",
+  "source": "b841610859df35c3d5e7060ffc47d6e61e855450",
+  "branch": "codex/jev-expectation-or-20261021",
+  "event": "push",
+  "actor": "roccho-dev",
+  "conclusion": "success",
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39511728760",
+  "artifactId": 12305063828,
+  "artifactName": "sys1-expectation-or-39511728760",
+  "artifactSize": 2550368,
+  "providerDigest": "sha256:c37bac1d3ab144ba460a0575924638ccd340fe550cdd992704d8afc37468c00e",
+  "archiveSha256": "c37bac1d3ab144ba460a0575924638ccd340fe550cdd992704d8afc37468c00e"
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "ops.sys1.expectation-or-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "b841610859df35c3d5e7060ffc47d6e61e855450",
+  "activation": "9fa7d8bf3581a7aa6d0aebb5a13226d0bafd7acf",
+  "rawOriginals": [
+    "input.json",
+    "attempt.json",
+    "predictions.json",
+    "events.jsonl",
+    "projection.json"
+  ],
+  "actualPhysical": 1252,
+  "selectionIssued": false,
+  "heldCountProjected": false,
+  "heldBodyGoldOpened": false,
+  "prospectivePlan": "expectation-or/prospective-plan.json remains the original pre-output contract; this receipt is the actual outcome",
+  "verification": "root/R each independently acquired provider ZIP/native identity and scored full originals; W retained original bytes and replayed the product projection",
+  "requestEvidence": "qualified Core requests are checked against the fixed standard client; network HTTP body bytes were not directly captured",
+  "continuation": "distinct prospective hypothesis and review, never same OR blind retry or failed-H rescue"
+}
