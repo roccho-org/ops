@@ -143,3 +143,21 @@ CLI-reported costs are not invoices; native HTTP-call counts are unknown. Synthe
 - [ADRS #523](https://github.com/roccho-dev/adrs/issues/523): bounded evidence with provenance and explicit unknowns.
 
 The proposed #523 boundary permitting diagnostic generation within a fixed exploration contract remains a proposal. The current user's instruction authorizes this finite synthetic local proof; it does not adopt generated criteria as policy or grant production effects.
+
+## Local projection preparation
+
+With an existing Plan, bound subject snapshot and explicit project options, save
+`{"plan": ..., "subject": ..., "options": ...}` in a private JSON file, then run:
+
+```sh
+node experiments/goal-evaluation-unix/prepare.mjs input.json new-output-directory
+```
+
+The directory must not exist. `projection.json` preserves the complete existing
+`project()` result, including withheld questions, missing observations and fidelity.
+Omitting `options` uses the existing `project()` defaults; the CLI does not choose a subject or context ref.
+Only an emittable projection also produces `command.txt`, with the exact envelope
+bytes and no added newline. The CLI makes no network or model call and never posts;
+`postingAuthorized` remains false. It does not supply a Plan, live declaration,
+review or grant. Failure leaves any partial output for inspection, without cleanup
+or automatic retry. File modes are requested, not a Windows owner-only ACL guarantee.
