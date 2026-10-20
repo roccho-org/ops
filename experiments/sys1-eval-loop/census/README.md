@@ -6,7 +6,7 @@
 
 `feasible.mjs` はこの数学部品と全物理資格/モデル安定を分離する。欠測したmodel出力をGold補完で埋めず、技術unknown時の全体boundはnull。別軸Goldがnullでも既知軸の破壊を保持し、可能な退行だけなら観測退行と偽らずrobust受入を拒否する。数学fixtureは人工入力であり、実モデルの準拠や実gain証拠ではない。固定C5/fullwire/共有Eへの結合は後のnative reader責務で、任意設定をこの純粋関数の成功だけで実行許可しない。
 
-## 現在の実データと未完の測定
+## 現在の実データと初回の負結果
 
 固定C5・Gold補完式・事前の三repo/UTC日窓/prefix300を変えず、全履歴metadata attempt2を正常終端した。5回の標準gh GraphQLコマンド、3228 Issue pages＋前後visibility2=3230観測response、322718 unique Issueから日窓210/prefix210。内部HTTP試行数はunknownで、コマンド数やpage数を実wire試行数と偽らない。原11files/52,326,302bytesはnative `8bc883c3607aba1b3a02c6e38f4e9d6ab3395301`。旧503原版は不変、DESC/provider-prefix代案は採用しなかった。
 
@@ -18,7 +18,17 @@ corpus/合議の最初のnativeは `cbc49e606b5ff96fcc9e23546506c43fb215364a`。
 
 自然構成はvscode150/nixpkgs50/cli7、Gold E=yes156/no51、O=yes188/no10/null9。repo等重みへ変更せず1 Issue一weightであり、O負例が少ない分布を全開発案件へ一般化しない。両回の全1656標準wireを鍵なしで構築し、stateはbodyだけ、最大serialized bytesはbestO20581/c2O22071/c4O21447/sharedE20530で全24000未満だった。Gold採点はprojectだけ、prepareはGold形式/原版結合検証だけを行い、判定/出典/rep情報はprovider stateへ送らない。
 
-根拠: [実metadata原版](https://github.com/roccho-org/ops/pull/617#issuecomment-6299409804)、[実本文/Gold三者counter](https://github.com/roccho-org/ops/pull/617#issuecomment-6299825483)、[root code-only review](https://github.com/roccho-org/ops/pull/617#pullrequestreview-5589917376)、[R code-only review](https://github.com/roccho-org/ops/pull/617#pullrequestreview-5589886305)。次は現source/data独立受容と必要CIを閉じ、固定 **828 POST×2回=1656** を一回ずつ行う。実model0、gain/再確認/採用はまだ未証明。全通常CIの最終exacthead終端・全raw/費用記録・Ready未mergeも残る。
+根拠: [実metadata原版](https://github.com/roccho-org/ops/pull/617#issuecomment-6299409804)、[実本文/Gold三者counter](https://github.com/roccho-org/ops/pull/617#issuecomment-6299825483)、[root code-only review](https://github.com/roccho-org/ops/pull/617#pullrequestreview-5589917376)、[R code-only review](https://github.com/roccho-org/ops/pull/617#pullrequestreview-5589886305)。source20dは三者受容と実618/618・consumer/health成功を閉じ、固定 **828 POST×2回=1656** の初回を一度実行した。初回は差0で未成立、二回目と全体の再確認は未完、未採用を維持する。全通常CIの最終exacthead終端・全raw/費用記録・Ready未mergeも残る。
+
+## 固定初回の実結果（第二回前の保存）
+
+[run39488014201](https://github.com/roccho-org/ops/actions/runs/39488014201) はsource20dのrequest-only child0fa7139c、push/attempt1、job118853422304。鍵前Ubuntu全keyless618/618→旧D5/native全raw prepare→標準client828→鍵なしproject→原artifactの全stepを正常終端した。artifact12295085396は782194bytes、GitHub digestと自己ZIP SHA256一致。
+
+原input/predictions/events/attempt/projectionを `../results/census-and-pass1-20261021/` へ原bytesで保持し、provider実来歴・W再投影・root別算術を添えた。root/Rは各自取得したZIPと独立raw reader/期待request/Gold補完算術で全投影を再現した。**828全資格・modelStable、207論理case/Gold完全解決198・一軸null以上9、完全正答172→172、修復0/破壊0**。BestとANDのE/Oは全207で一致し、δ=[0,0]/207、R=[0,0]/207、NOT_ESTABLISHED。未確定9件を除いて差を作ることも、共通Gold補完式を後付け変更することもない。
+
+物理input1,732,081/output25,668、total_tokensは828全件未提供でunknown。回内sharedEは一物理receipt。論理運用相当inputはBest=sharedE388,153+bestO392,086=780,239、AND=sharedE388,153+c2O498,070+c4O453,772=1,339,995。この二値の和はEを二重計上するため物理費用合計に使わず、金額や内部計算費用は不明。差0を追加資源による改善とは称さない。
+
+次はこの原結果保存のcurrent sourceを独立受容し、影響分の鍵なし検証と既存CI同一性根拠を確認して、同じ全207/Gold/C5/全4wireの固定二回目828へ進む。意味未成立を理由に取消・候補変更・良い回選別しない。実model driftだけ既存技術停止。新通常CIは起動し、最終exactheadの必要全checks終端を維持する。
 
 ## 最初の時間窓契約とNO_CASES
 
@@ -62,11 +72,11 @@ source30edの一回取得は2026-10-20T17:45:22.085Z～18:20:50.705Z、call01860
 
 実成功replyにあった警告は[GraphQL標準extensions](https://spec.graphql.org/September2025/#sec-Extensions)であり、旧readerのroot data-only制約は潜在的不整合だった。新readerはroot optional map extensionsを選択dataと分けて許容し、dataのfield whitelist/型/日時/identity検査は保つ。extensions原文は私的保持し公開prefixへ投影しない。[GitHubのID二形式](https://docs.github.com/en/graphql/guides/migrating-graphql-global-node-ids)を理由にIDをdecode/自動置換したりmigration headerを加えたりしない。原失敗の直接終端原因はHTTP503であり、後から警告だけの失敗へ書き換えない。回復の実host/三者受容前に新APIを開始せず、本文/provider経路も引き続き別途受容する。
 
-### 計測部品と固定native entry（実207件を統合、実モデル測定前）
+### 計測部品と固定native entry（実207件・初回828原版保持）
 
 `measurement.mjs` は既存reserveの四物理request/厳格資格/会計を、閉じた二contextだけで共有する。旧reserveは23件/92POST・旧schema/全fieldsetを保ち、新censusだけ受容済corpusからM=1..300・4Mを導く。任意schema/上限/endpoint/constructorを入力から選ばせない。標準recorderの実経路をdummy keyとfetch stubで通し、最大1200POST、欠測、モデル変化、既知軸退行と欠測の併存を検査する。人工fixtureは実HTTPやgain証拠ではない。
 
-新projectionは原input/report/eventsと同じcorpus/Gold/固定selectionから毎回再構成する。二回の集計もrep/ID/分母/資格情報を照合するが、これだけではnative来歴やGold不変を証明しない。固定native entryは原sourceのcorpus全値・body/Gold・実D5 fullwireへ結合し、両回の原rawを再投影する。実frame/Gold・通常CI・独立受容は別に必要である。意味FAILや通常unknownで予定二回目を取消さず、実model driftは技術停止として保持する。新workflowは固定branch上のrequest-only childだけを受け、census1/2のnative履歴と実Git親/requestを拘束する。原corpusは実frame全eligible行のid/bodyをそのまま使い、sourceへ残り全属性を保持する既存real-case-corpus.v1/round4/frameSizeMである。第二回では初回provider.sourceのGit値とcorpus/body/Gold/selection全値を比較し、同じ点数だけで同一と見なさない。prepare鍵前に旧実D5全raw/native/selectionを再生し、秘密は標準clientのevaluateだけへ渡す。330分は最大1200×15秒=300分＋鍵前/保持余裕30分というcapで完了保証ではない。実corpus/Gold207件を原bytesで配置した。requestは未配置、モデル呼出しは0。
+新projectionは原input/report/eventsと同じcorpus/Gold/固定selectionから毎回再構成する。二回の集計もrep/ID/分母/資格情報を照合するが、これだけではnative来歴やGold不変を証明しない。固定native entryは原sourceのcorpus全値・body/Gold・実D5 fullwireへ結合し、両回の原rawを再投影する。実frame/Gold・通常CI・独立受容は別に必要である。意味FAILや通常unknownで予定二回目を取消さず、実model driftは技術停止として保持する。新workflowは固定branch上のrequest-only childだけを受け、census1/2のnative履歴と実Git親/requestを拘束する。原corpusは実frame全eligible行のid/bodyをそのまま使い、sourceへ残り全属性を保持する既存real-case-corpus.v1/round4/frameSizeMである。第二回では初回provider.sourceのGit値とcorpus/body/Gold/selection全値を比較し、同じ点数だけで同一と見なさない。prepare鍵前に旧実D5全raw/native/selectionを再生し、秘密は標準clientのevaluateだけへ渡す。330分は最大1200×15秒=300分＋鍵前/保持余裕30分というcapで完了保証ではない。実corpus/Gold207件を原bytesで配置した。request-only childで初回828を実行済み。次のrequestは固定二回目だけで、同じ初回の再送は許容しない。
 
 ### 本文materializer（実取得と独立原版照合を完了）
 
@@ -111,8 +121,9 @@ flowchart TB
   BODY --> INITIAL[✅ 独立Gold207×2・相互未読凍結]
   INITIAL --> GOLD[✅ 三者13不一致反証・9null保持]
   GOLD --> DATA[✅ 原bytes統合・全828wire/両回同一設定]
-  DATA --> REVIEW[⏳ 現source/data独立review・必要CI]
-  REVIEW --> H1[⏳ 828物理・全原raw保持/別算術]
-  H1 --> H2[⏳ 同設定828・意味FAIL/通常unknownでも継続]
+  DATA --> REVIEW[✅ source20d三者受容・実CI618成功]
+  REVIEW --> H1[✅ 初回828全資格・差0・原版/独立算術]
+  H1 --> CLOSED[⏳ 原保存current source再受容・鍵前検証]
+  CLOSED --> H2[⏳ 同設定828・意味FAIL/通常unknownでも継続]
   H2 --> END[⏳ 整数包絡/二回AND/全費用/最終CI/Ready未merge]
 ```

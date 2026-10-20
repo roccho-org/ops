@@ -1,0 +1,7600 @@
+{
+  "canonicalReplayEqual": true,
+  "source": "20d76d39fae4dfe62e70a2d1140f390d03c4984a",
+  "activation": "0fa7139c8b23cfc0c0bca1ed9a1de9314475578a",
+  "repId": 1,
+  "effectCounts": {
+    "assigned": 828,
+    "attempts": 828,
+    "actualPosts": 828,
+    "qualified": 828,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "logicalCounts": {
+    "assignedCases": 207,
+    "bestQualified": 207,
+    "candidateQualified": 207
+  },
+  "modelStable": true,
+  "inference": {
+    "schema": "ops.sys1.paired-feasible-census.v1",
+    "roundIndex": 4,
+    "repId": 1,
+    "assigned": 207,
+    "caseIds": [
+      "census-001",
+      "census-002",
+      "census-003",
+      "census-004",
+      "census-005",
+      "census-006",
+      "census-007",
+      "census-008",
+      "census-009",
+      "census-010",
+      "census-011",
+      "census-012",
+      "census-013",
+      "census-014",
+      "census-015",
+      "census-017",
+      "census-018",
+      "census-019",
+      "census-020",
+      "census-021",
+      "census-022",
+      "census-023",
+      "census-024",
+      "census-025",
+      "census-026",
+      "census-027",
+      "census-028",
+      "census-029",
+      "census-030",
+      "census-031",
+      "census-032",
+      "census-033",
+      "census-034",
+      "census-035",
+      "census-036",
+      "census-037",
+      "census-038",
+      "census-039",
+      "census-040",
+      "census-041",
+      "census-042",
+      "census-043",
+      "census-044",
+      "census-045",
+      "census-046",
+      "census-047",
+      "census-048",
+      "census-049",
+      "census-050",
+      "census-051",
+      "census-052",
+      "census-053",
+      "census-054",
+      "census-056",
+      "census-057",
+      "census-058",
+      "census-059",
+      "census-060",
+      "census-061",
+      "census-062",
+      "census-063",
+      "census-064",
+      "census-065",
+      "census-066",
+      "census-067",
+      "census-068",
+      "census-069",
+      "census-070",
+      "census-071",
+      "census-072",
+      "census-073",
+      "census-074",
+      "census-075",
+      "census-076",
+      "census-077",
+      "census-078",
+      "census-079",
+      "census-080",
+      "census-081",
+      "census-082",
+      "census-083",
+      "census-084",
+      "census-085",
+      "census-086",
+      "census-087",
+      "census-088",
+      "census-089",
+      "census-090",
+      "census-091",
+      "census-093",
+      "census-094",
+      "census-095",
+      "census-096",
+      "census-097",
+      "census-098",
+      "census-099",
+      "census-100",
+      "census-101",
+      "census-102",
+      "census-103",
+      "census-104",
+      "census-105",
+      "census-106",
+      "census-107",
+      "census-108",
+      "census-109",
+      "census-110",
+      "census-111",
+      "census-112",
+      "census-113",
+      "census-114",
+      "census-115",
+      "census-116",
+      "census-117",
+      "census-118",
+      "census-119",
+      "census-120",
+      "census-121",
+      "census-122",
+      "census-123",
+      "census-124",
+      "census-125",
+      "census-126",
+      "census-127",
+      "census-128",
+      "census-129",
+      "census-130",
+      "census-131",
+      "census-132",
+      "census-133",
+      "census-134",
+      "census-135",
+      "census-136",
+      "census-137",
+      "census-138",
+      "census-139",
+      "census-140",
+      "census-141",
+      "census-142",
+      "census-143",
+      "census-144",
+      "census-145",
+      "census-146",
+      "census-147",
+      "census-148",
+      "census-149",
+      "census-150",
+      "census-151",
+      "census-152",
+      "census-153",
+      "census-154",
+      "census-155",
+      "census-156",
+      "census-157",
+      "census-158",
+      "census-159",
+      "census-160",
+      "census-161",
+      "census-162",
+      "census-163",
+      "census-164",
+      "census-165",
+      "census-166",
+      "census-167",
+      "census-168",
+      "census-169",
+      "census-170",
+      "census-171",
+      "census-172",
+      "census-173",
+      "census-174",
+      "census-175",
+      "census-176",
+      "census-177",
+      "census-178",
+      "census-179",
+      "census-180",
+      "census-181",
+      "census-182",
+      "census-183",
+      "census-184",
+      "census-185",
+      "census-186",
+      "census-187",
+      "census-188",
+      "census-189",
+      "census-190",
+      "census-191",
+      "census-192",
+      "census-193",
+      "census-194",
+      "census-195",
+      "census-196",
+      "census-197",
+      "census-198",
+      "census-199",
+      "census-200",
+      "census-201",
+      "census-202",
+      "census-203",
+      "census-204",
+      "census-205",
+      "census-206",
+      "census-207",
+      "census-208",
+      "census-209",
+      "census-210"
+    ],
+    "physical": {
+      "assigned": 828,
+      "qualified": 828
+    },
+    "qualificationComplete": true,
+    "modelStable": true,
+    "technicalUnknown": false,
+    "knownRegressionCases": [],
+    "cases": [
+      {
+        "id": "census-001",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-002",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-003",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-004",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-005",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-006",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-007",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-008",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-009",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-010",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-011",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-012",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-013",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-014",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-015",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-017",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-018",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-019",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-020",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-021",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-022",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-023",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-024",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-025",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-026",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-027",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-028",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-029",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-030",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-031",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-032",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-033",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-034",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-035",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-036",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-037",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-038",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-039",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-040",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-041",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-042",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-043",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-044",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-045",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-046",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-047",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-048",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-049",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-050",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-051",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-052",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-053",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-054",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-056",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-057",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-058",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-059",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-060",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-061",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-062",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-063",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-064",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-065",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-066",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-067",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-068",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-069",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-070",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-071",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-072",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-073",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-074",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-075",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-076",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-077",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-078",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-079",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-080",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-081",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-082",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-083",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-084",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-085",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-086",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-087",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-088",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-089",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-090",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-091",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-093",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-094",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-095",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-096",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-097",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-098",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-099",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-100",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-101",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-102",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-103",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-104",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-105",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-106",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-107",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-108",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-109",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-110",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-111",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-112",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-113",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-114",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-115",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "no",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-116",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-117",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-118",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-119",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-120",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-121",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-122",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-123",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-124",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-125",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-126",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-127",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-128",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-129",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-130",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-131",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-132",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-133",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-134",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-135",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-136",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-137",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-138",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-139",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-140",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-141",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-142",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-143",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-144",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-145",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-146",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-147",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-148",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-149",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-150",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-151",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-152",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-153",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-154",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-155",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-156",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-157",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-158",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-159",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-160",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-161",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-162",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-163",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-164",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-165",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-166",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-167",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-168",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-169",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-170",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-171",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-172",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-173",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-174",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-175",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-176",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-177",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-178",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-179",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-180",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-181",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-182",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-183",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-184",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-185",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-186",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-187",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-188",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-189",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-190",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-191",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-192",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-193",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-194",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-195",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-196",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-197",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-198",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-199",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "no"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-200",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-201",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-202",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-203",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-204",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "no",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-205",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-206",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-207",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-208",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-209",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "census-210",
+        "technicalUnknown": false,
+        "knownRegressionAxes": [],
+        "completions": [
+          {
+            "gold": {
+              "E": "yes",
+              "O": "yes"
+            },
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ],
+        "bounds": {
+          "b": [
+            0,
+            0
+          ],
+          "c": [
+            0,
+            0
+          ],
+          "delta": [
+            0,
+            0
+          ],
+          "R": [
+            0,
+            0
+          ]
+        }
+      }
+    ],
+    "bounds": {
+      "differenceLowerNumerator": 0,
+      "differenceUpperNumerator": 0,
+      "regressionLowerNumerator": 0,
+      "regressionUpperNumerator": 0,
+      "denominator": 207
+    },
+    "accepted": false,
+    "disposition": "NOT_ESTABLISHED",
+    "inference": "deterministic census envelope over shared Gold completions within each case and independently allowed completion sets across cases; no sampling CI, p-value, model independence or future-performance guarantee"
+  },
+  "usage": {
+    "input_tokens": 1732081,
+    "output_tokens": 25668,
+    "total_tokens": null
+  },
+  "missing": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 828
+  }
+}
