@@ -71,8 +71,8 @@ const PROVIDER = Object.freeze({
 
 const APPS_REPAIR = Object.freeze({
   repository: "roccho-dev/apps",
-  revision: "25cb8f7f9b770029f467b8a03424a2f6c7f50121",
-  tree: "7380cc2750094efb49874ce312fe1485130d0d2e",
+  revision: "c023c2a28f635cbf722e8872c3c49e7f6ab72ba2",
+  tree: "4bb77338569e729d6f7623adc919f6e1f608e374",
   package: "packages/voice-ui",
 });
 
@@ -205,6 +205,11 @@ assert.equal(browser.status, "PASS");
 assert.equal(browser.authority, false);
 assert.equal(browser.providerRevision, PROVIDER.revision);
 assert.equal(browser.action, "inspect-judgment-provider");
+assert.deepEqual(browser.actualFailureState, {
+  state: "failed",
+  primaryResult: "failed",
+  transport: "accepted",
+});
 assert.deepEqual(browser.controls, [
   "wrong-source",
   "wrong-code",
@@ -224,10 +229,11 @@ const decisions = Object.freeze({
   },
   environment_transport: {
     finding: "the fixed Apps T0 had no actual browser diagnostic path",
-    decision: "keep the common core effect-free and add a browser-owned callback/in-memory port",
+    decision: "keep the common core effect-free and add a browser-owned callback/in-memory port observed through the production MutationObserver path",
     evidence: {
       report: sha256File(browserPath),
       action: browser.action,
+      actualFailureState: browser.actualFailureState,
       requests: browser.requests,
     },
   },
@@ -242,10 +248,11 @@ const decisions = Object.freeze({
   },
   bounded_safe_failure: {
     finding: "strict validation and rejection existed only in JavaScript and browser rejection was unobserved",
-    decision: "make both runtimes reject the same boundary corpus and retain invalid/no-partial-write/transport-failure controls",
+    decision: "make both runtimes reject the same boundary corpus and retain invalid/no-partial-write/transport-failure controls without changing the caller-owned failure",
     evidence: {
       accepted: interchange.counts.accepted,
       rejected: interchange.counts.rejected,
+      actualFailureState: browser.actualFailureState,
       controls: browser.controls,
     },
   },
