@@ -2,7 +2,7 @@
 
 [PR615](https://github.com/roccho-org/ops/pull/615) は実案件300件の二回比較を保持して閉じた。正答は220→233/231だったが、既正答Oの退行が両回にあり採用条件は不成立。H1/H2の退行unionは101/155/196/289。元Bestを維持し、採用・mergeはしない。この300件を今回のDへ退役し、未使用評価とは呼ばない。
 
-現在はD1/D2とも不受容で、別処置C3のsource/必要CI/三者受容待ち。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。各sourceの三者受容と必要CI実成功後に、それぞれ一度だけ実行した。モデル作用は新O600、生成役呼出し0。D3とreserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
+現在はD1/D2/D3とも不受容で、全原版を保持した。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。各sourceの三者受容と必要CI実成功後に、それぞれ一度だけ実行した。モデル作用は新O900、生成役呼出し0。reserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
 
 ## 最初のD結果（不変の失敗記録）
 
@@ -26,7 +26,7 @@ D2新O物理usageはinput746792/output9300、total_tokens300未知。歴史Eと�
 
 予算はD1実300を消さず、新D2上限300＋将来H138を合わせseries技術上限738へ事前更新して実行した。各Dは90分/300上限、当時の入口はD1/D2のみ。Userの呼出予算なしというGOに新たな通算1000停止を足さない。次処置は公開D/元rubricだけから事前反証し、新source・必要CI・三者受容前の追加モデル作用0を維持する。H23は引き続き非開示。
 
-## C3の事前対照例介入（未実測）
+## C3の事前対照例介入とD3結果
 
 公開D101には完了形/現在形を使う受入条件があり、これを現実報告へ昇格した可能性を仮説とする。モデルの回答理由は保存していないので誤答原因の断定ではない。C3はC2手順を保ち、W作成の三つの短い一般対照例だけをO criteriaへ加える。実D本文・ID・正答一覧を例として貼らず、評価する300本文にも役割ラベルやhintを足さない。
 
@@ -39,6 +39,12 @@ D2新O物理usageはinput746792/output9300、total_tokens300未知。歴史Eと�
 旧C1既定/C2版2のfullwire・原input・D1/D2失敗をすべて再生する。C3だけ固定candidateVersion3、phase development3/history3/request-only child/attempt1へ限定し、先行D1/D2両native identity・全raw・技術全資格かつguardFAILを鍵前に再検査する。両実Git headのparentが各原sourceへ結合することを確認し、手転記SHA gateを増やさない。機械H1 primary/両履歴union/Goldnull7/旧Best Eは変更しない。
 
 事前会計をD1/D2実600＋D3上限300＋将来H138＝1038へ更新した。これはUserの予算なしというGO内の各有限phase上限で、人工的な通算1000許可待ちを足さない。各Dは90分/300上限、Hはまだ実装受容外。現sourceの必要CI実成功と三者受容前の新作用0、Dguard独立成立とfullwire凍結前の23非開示を維持する。
+
+source591ff0f590384bda62c240ed0f2201896f6bdd0aの三者受容と必要CI実553/553・fresh consumer・repo-health成功後、request-only activationdc6d65415c56e5f5e1fda5ec8c41a9202e062b26から [D3 run39444326438](https://github.com/roccho-org/ops/actions/runs/39444326438) をattempt1で一度実行した。artifact12274639682/1370935B/provider SHA256 950089446dd71e5a7e3b5653485c3422e27a484d40405b6ac8fcf47df65d7efb と自己取得ZIPを照合し、原5file全値再生一致。保存先は `results/reserve-development3-20261020/`。
+
+D3も300attempt/POST/qualified、技術unknown0、観測model ID一致。機械H1完全正答220→230、修復10/complete退行0、Goldnull7不変。しかしheld-101 Oの補助union軸退行1が残り `DEVELOPMENT_GUARD_FAIL`。C2と総正答数は同じでも修復case集合は異なり、対照例介入の効果や内部原因を単発結果から断定しない。23未開示・C3不採用・元Best維持。同じC3を再送して救済しない。
+
+D3新O物理usageはinput817592/output9300、total_tokens300未知。歴史E587492との論理運用相当input1405084（元1180684比+224400/+19.01%）であり、非同時・金額不明。D1+D2+D3実物理900、既知input2438376/output27900、provider total_tokensは900件未知。H138は予定上限であって実作用へ計上しない。次処置・source・phase契約は公開Dと元rubricに基づく三者反証を先に記録し、現C3の盲再送や23の先行開示にしない。
 
 ## 主張と反証を行う三者
 
@@ -83,10 +89,10 @@ flowchart TB
   NEXT --> D2[✅ C2source/必要CI/三者受容・別D2実O300]
   D2 --> STOP2[❌ D2 joint220→230/c0でもunion1退行・C2不受容・原版保持]
   STOP2 --> NEW[✅ 公開D由来C3役割明示対照例・C1C2原版保持・同候補再送禁止]
-  NEW --> REVIEW3[⏳ 新source/必要CI/三者受容・23未開示]
-  REVIEW3 --> D3[⏳ 別C3新O300一回・history3・元guard不変]
+  NEW --> REVIEW3[✅ 新source/必要CI/三者受容・23未開示]
+  REVIEW3 --> D3[✅ 別C3新O300一回・history3・元guard不変]
   D3 --> G{D3guard成立?}
-  G -->|負・unknown| HOLD[保持して23未開示・次処置は別の事前契約]
+  G -->|不成立| HOLD[❌ D3 joint220→230でもunion101O退行・原版保持・23未開示]
   G -->|成立| FREEZE[⏳ 候補fullwire固定・その後だけ23開示]
   FREEZE --> H[⏳ 別受容後69 POST二回・全raw保持]
   H --> A{両回の全受入成立?}
