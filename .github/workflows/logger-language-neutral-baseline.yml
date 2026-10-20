@@ -12,6 +12,7 @@ on:
       - "packages/shiftleft-admission/fixtures/diagnostic/**"
       - "packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs"
       - "packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs"
+      - "packages/shiftleft-admission/tests/logger-language-neutral-closure.mjs"
   workflow_dispatch:
 
 permissions:
@@ -20,7 +21,7 @@ permissions:
 jobs:
   observe-baseline:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Checkout exact Ops observation head
         uses: actions/checkout@v4
@@ -46,6 +47,15 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Checkout exact repaired Apps consumer
+        uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/apps
+          ref: 25cb8f7f9b770029f467b8a03424a2f6c7f50121
+          path: apps-repair
+          fetch-depth: 1
+          persist-credentials: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22.16.0"
@@ -53,6 +63,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13.5"
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
 
       - name: Observe fixed two-repository baseline
         env:
@@ -76,13 +91,7 @@ jobs:
             .candidate.meaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
             .baseline.correctedScopeT0[0].revision == "d1ed2594aa6112f931ff3996c89d8fde8aed8690" and
             .baseline.correctedScopeT0[1].revision == "c91bab56ec5e769d9788453a098a289115cdaa92" and
-            .coverage.applicable == 13 and
-            .coverage.evaluated == 13 and
-            .coverage.met == 8 and
-            .coverage.unmet == 5 and
-            .coverage.unknown == 0 and
-            .coverage.conflict == 0 and
-            .coverage.stale == 0 and
+            .coverage == {applicable:13,evaluated:13,met:8,unmet:5,unknown:0,conflict:0,stale:0} and
             .finding.unmet == [
               "cross_language_interoperability",
               "environment_transport",
@@ -95,7 +104,7 @@ jobs:
             .supportMatrix.crossRepository.baselineStatus == "unmet"
           ' out/logger-language-neutral-baseline/finding.json >/dev/null
 
-      - name: Execute JavaScript-Python interchange and browser port
+      - name: Execute JavaScript-Python interchange
         run: |
           set -euo pipefail
           node packages/structured-diagnostic/tests/interoperability.mjs \
@@ -105,8 +114,7 @@ jobs:
             .status == "PASS" and
             .authority == false and
             .implementation.pythonDelegatesToNode == false and
-            .counts.accepted == 16 and
-            .counts.rejected == 16 and
+            .counts == {accepted:16,rejected:16,literalValid:3,literalInvalid:7,generated:22} and
             .semantics.feffOnly == "rejected" and
             .semantics.nelOnly == "accepted" and
             .semantics.fixedLimits == "limit-1/limit/limit+1" and
@@ -117,6 +125,48 @@ jobs:
             .browser.transportRejectionPropagated == true
           ' out/logger-language-neutral-baseline/interoperability.json >/dev/null
 
+      - name: Execute exact Apps feature and browser data consumption
+        run: |
+          set -euo pipefail
+          node --test apps-repair/packages/voice-ui/tests/diagnostic.test.mjs \
+            > out/logger-language-neutral-baseline/apps-unit.tap
+          artifact=$(nix build --no-link --print-out-paths ./apps-repair#voice-ui-dist)
+          runtime=$(nix build --no-link --print-out-paths ./apps-repair#voice-ui-acceptance-runtime)
+          "$runtime/bin/voice-ui-acceptance-node" \
+            apps-repair/packages/voice-ui/acceptance/diagnostic-browser.mjs \
+            "$artifact" \
+            > out/logger-language-neutral-baseline/browser.json
+          jq -e '
+            .schema == "voice-ui.browser-diagnostic-proof/1" and
+            .status == "PASS" and
+            .authority == false and
+            .providerRevision == "fe968fc6b8919fed48151a57f421667bce0aac87" and
+            .action == "inspect-judgment-provider" and
+            .controls == ["wrong-source","wrong-code","invalid-diagnostic","transport-preserved-primary"]
+          ' out/logger-language-neutral-baseline/browser.json >/dev/null
+
+      - name: Evaluate the same thirteen obligations after repair
+        run: |
+          set -euo pipefail
+          node packages/shiftleft-admission/tests/logger-language-neutral-closure.mjs \
+            --ops "$GITHUB_WORKSPACE" \
+            --apps "$GITHUB_WORKSPACE/apps-repair" \
+            --baseline "$GITHUB_WORKSPACE/out/logger-language-neutral-baseline/finding.json" \
+            --interchange "$GITHUB_WORKSPACE/out/logger-language-neutral-baseline/interoperability.json" \
+            --browser "$GITHUB_WORKSPACE/out/logger-language-neutral-baseline/browser.json" \
+            > out/logger-language-neutral-baseline/closure.json
+          jq -e '
+            .schema == "ops.logger-language-neutral.closure/1" and
+            .authority == false and
+            .admitted == false and
+            .contract.meaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
+            .old.coverage == {applicable:13,evaluated:13,met:8,unmet:5,unknown:0,conflict:0,stale:0} and
+            .repaired.provider.revision == "fe968fc6b8919fed48151a57f421667bce0aac87" and
+            .repaired.consumer.revision == "25cb8f7f9b770029f467b8a03424a2f6c7f50121" and
+            .coverage == {applicable:13,evaluated:13,met:13,unmet:0,unknown:0,conflict:0,stale:0,residual:0} and
+            .status == "CONFORMANT"
+          ' out/logger-language-neutral-baseline/closure.json >/dev/null
+
       - name: Assemble independently readable evidence
         run: |
           set -euo pipefail
@@ -126,17 +176,30 @@ jobs:
           mkdir -p \
             "$root/source/ops/packages/structured-diagnostic/lib" \
             "$root/source/ops/packages/structured-diagnostic/adapters" \
-            "$root/source/apps/packages/voice-ui/src" \
-            "$root/source/apps/packages/voice-ui/web" \
+            "$root/source/apps-t0/packages/voice-ui/src" \
+            "$root/source/apps-t0/packages/voice-ui/web" \
+            "$root/source/apps-repair/packages/voice-ui/src" \
+            "$root/source/apps-repair/packages/voice-ui/web/providers/structured-diagnostic/adapters" \
+            "$root/source/apps-repair/packages/voice-ui/web/providers/structured-diagnostic/lib" \
+            "$root/source/apps-repair/packages/voice-ui/acceptance" \
             "$root/current"
-          cp packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs "$root/evaluator.mjs"
+          cp packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs "$root/baseline-evaluator.mjs"
+          cp packages/shiftleft-admission/tests/logger-language-neutral-closure.mjs "$root/closure-evaluator.mjs"
           cp ops-baseline/packages/structured-diagnostic/contract.json "$root/source/ops/packages/structured-diagnostic/contract.json"
           cp ops-baseline/packages/structured-diagnostic/README.md "$root/source/ops/packages/structured-diagnostic/README.md"
           cp ops-baseline/packages/structured-diagnostic/lib/diagnostic.mjs "$root/source/ops/packages/structured-diagnostic/lib/diagnostic.mjs"
           cp ops-baseline/packages/structured-diagnostic/adapters/node.mjs "$root/source/ops/packages/structured-diagnostic/adapters/node.mjs"
-          cp apps-baseline/flake.nix "$root/source/apps/flake.nix"
-          cp apps-baseline/packages/voice-ui/src/log.mjs "$root/source/apps/packages/voice-ui/src/log.mjs"
-          cp apps-baseline/packages/voice-ui/web/app.mjs "$root/source/apps/packages/voice-ui/web/app.mjs"
+          cp apps-baseline/flake.nix "$root/source/apps-t0/flake.nix"
+          cp apps-baseline/packages/voice-ui/src/log.mjs "$root/source/apps-t0/packages/voice-ui/src/log.mjs"
+          cp apps-baseline/packages/voice-ui/web/app.mjs "$root/source/apps-t0/packages/voice-ui/web/app.mjs"
+          cp apps-repair/packages/voice-ui/src/diagnostic.mjs "$root/source/apps-repair/packages/voice-ui/src/diagnostic.mjs"
+          cp apps-repair/packages/voice-ui/web/diagnostic-host.mjs "$root/source/apps-repair/packages/voice-ui/web/diagnostic-host.mjs"
+          cp apps-repair/packages/voice-ui/web/diagnostic-proof.{html,mjs} "$root/source/apps-repair/packages/voice-ui/web/"
+          cp apps-repair/packages/voice-ui/web/providers/structured-diagnostic/contract.json "$root/source/apps-repair/packages/voice-ui/web/providers/structured-diagnostic/contract.json"
+          cp apps-repair/packages/voice-ui/web/providers/structured-diagnostic/identity.json "$root/source/apps-repair/packages/voice-ui/web/providers/structured-diagnostic/identity.json"
+          cp apps-repair/packages/voice-ui/web/providers/structured-diagnostic/adapters/browser.mjs "$root/source/apps-repair/packages/voice-ui/web/providers/structured-diagnostic/adapters/browser.mjs"
+          cp apps-repair/packages/voice-ui/web/providers/structured-diagnostic/lib/diagnostic.mjs "$root/source/apps-repair/packages/voice-ui/web/providers/structured-diagnostic/lib/diagnostic.mjs"
+          cp apps-repair/packages/voice-ui/acceptance/diagnostic-browser.mjs "$root/source/apps-repair/packages/voice-ui/acceptance/diagnostic-browser.mjs"
           cp -a packages/structured-diagnostic "$root/current/structured-diagnostic"
           jq -n \
             --arg workflowRunId "$GITHUB_RUN_ID" \
@@ -146,9 +209,13 @@ jobs:
             --arg opsTree "27c40aee9b923129e0feefa8477da711155c8384" \
             --arg appsT0 "c91bab56ec5e769d9788453a098a289115cdaa92" \
             --arg appsTree "a32423848d2298b4c54cf43cd22119859f25c905" \
+            --arg provider "fe968fc6b8919fed48151a57f421667bce0aac87" \
+            --arg providerTree "b306bf999aba32a678ac48b5a56e4b4a0a3c0cf8" \
+            --arg appsRepair "25cb8f7f9b770029f467b8a03424a2f6c7f50121" \
+            --arg appsRepairTree "7380cc2750094efb49874ce312fe1485130d0d2e" \
             --arg meaning "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" \
             '{
-              schema: "ops.logger-language-neutral.baseline-evidence/2",
+              schema: "ops.logger-language-neutral.closure-evidence/1",
               authority: false,
               workflowRunId: $workflowRunId,
               observationHead: $observationHead,
@@ -157,9 +224,15 @@ jobs:
                 {repository: "roccho-org/ops", revision: $opsT0, tree: $opsTree},
                 {repository: "roccho-dev/apps", revision: $appsT0, tree: $appsTree}
               ],
+              repairedTreeSet: [
+                {repository: "roccho-org/ops", role: "provider", revision: $provider, tree: $providerTree},
+                {repository: "roccho-dev/apps", role: "consumer", revision: $appsRepair, tree: $appsRepairTree}
+              ],
               candidateMeaningSha256: $meaning,
               actualInterchangeExecution: true,
-              repairAllowed: false
+              actualBrowserExecution: true,
+              technicalConformance: true,
+              admitted: false
             }' > "$root/metadata.json"
           (
             cd "$root"
@@ -169,7 +242,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: logger-language-neutral-baseline-${{ github.run_id }}
+          name: logger-language-neutral-closure-${{ github.run_id }}
           path: out/logger-language-neutral-baseline/
           if-no-files-found: error
           retention-days: 30
@@ -177,8 +250,23 @@ jobs:
   independent-readback:
     needs: observe-baseline
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
+      - name: Checkout exact Ops observation head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Checkout exact repaired Apps consumer
+        uses: actions/checkout@v4
+        with:
+          repository: roccho-dev/apps
+          ref: 25cb8f7f9b770029f467b8a03424a2f6c7f50121
+          path: apps-repair
+          fetch-depth: 1
+          persist-credentials: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22.16.0"
@@ -187,12 +275,17 @@ jobs:
         with:
           python-version: "3.13.5"
 
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+
       - uses: actions/download-artifact@v4
         with:
-          name: logger-language-neutral-baseline-${{ github.run_id }}
+          name: logger-language-neutral-closure-${{ github.run_id }}
           path: evidence
 
-      - name: Read back and replay exact evidence
+      - name: Read back and replay exact closure evidence
         run: |
           set -euo pipefail
           cd evidence
@@ -202,32 +295,36 @@ jobs:
             (.observationHead | test("^[0-9a-f]{40}$")) and
             (.observationTree | test("^[0-9a-f]{40}$")) and
             .candidateMeaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
-            .correctedScopeT0[0].tree == "27c40aee9b923129e0feefa8477da711155c8384" and
-            .correctedScopeT0[1].tree == "a32423848d2298b4c54cf43cd22119859f25c905" and
+            .repairedTreeSet[0].revision == "fe968fc6b8919fed48151a57f421667bce0aac87" and
+            .repairedTreeSet[1].revision == "25cb8f7f9b770029f467b8a03424a2f6c7f50121" and
             .actualInterchangeExecution == true and
-            .repairAllowed == false
+            .actualBrowserExecution == true and
+            .technicalConformance == true and
+            .admitted == false
           ' metadata.json >/dev/null
-          jq -e '
-            .coverage.applicable == 13 and
-            .coverage.met == 8 and
-            .coverage.unmet == 5 and
-            .coverage.unknown == 0 and
-            .coverage.conflict == 0 and
-            .coverage.stale == 0 and
-            .repairAllowed == false
-          ' finding.json >/dev/null
           (
             cd current/structured-diagnostic
             node tests/interoperability.mjs > ../../interoperability.replay.json
           )
           cmp interoperability.json interoperability.replay.json
+          artifact=$(nix build --no-link --print-out-paths "$GITHUB_WORKSPACE/apps-repair#voice-ui-dist")
+          runtime=$(nix build --no-link --print-out-paths "$GITHUB_WORKSPACE/apps-repair#voice-ui-acceptance-runtime")
+          "$runtime/bin/voice-ui-acceptance-node" \
+            "$GITHUB_WORKSPACE/apps-repair/packages/voice-ui/acceptance/diagnostic-browser.mjs" \
+            "$artifact" \
+            > browser.replay.json
+          cmp browser.json browser.replay.json
+          node "$GITHUB_WORKSPACE/packages/shiftleft-admission/tests/logger-language-neutral-closure.mjs" \
+            --ops "$GITHUB_WORKSPACE" \
+            --apps "$GITHUB_WORKSPACE/apps-repair" \
+            --baseline "$PWD/finding.json" \
+            --interchange "$PWD/interoperability.replay.json" \
+            --browser "$PWD/browser.replay.json" \
+            > closure.replay.json
+          cmp closure.json closure.replay.json
           jq -e '
-            .status == "PASS" and
-            .counts.accepted == 16 and
-            .counts.rejected == 16 and
-            .interchange.javascriptToPython == "byte-identical" and
-            .interchange.pythonToJavascript == "byte-identical" and
-            .browser.callbackWrites == 1 and
-            .browser.invalidPartialWrites == 0 and
-            .browser.transportRejectionPropagated == true
-          ' interoperability.replay.json >/dev/null
+            .status == "CONFORMANT" and
+            .coverage == {applicable:13,evaluated:13,met:13,unmet:0,unknown:0,conflict:0,stale:0,residual:0} and
+            .authority == false and
+            .admitted == false
+          ' closure.replay.json >/dev/null
