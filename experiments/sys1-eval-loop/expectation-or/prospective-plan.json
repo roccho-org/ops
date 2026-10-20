@@ -1,0 +1,37 @@
+{
+  "schema": "ops.sys1.expectation-or-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/620#issuecomment-6303139999",
+  "upstream": "PR620 retains both positive differences and one second-pass regression, NOT_RECONFIRMED; technical final closure is separately required before publication or new effects",
+  "candidate": "Only qualified OR of unchanged originalBestE and unchanged currentE; no simultaneous prompt modification or winner selection",
+  "development": {
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "primary": "fresh BestE + fixed historical O versus qualified OR(fresh BestE,fresh currentE) + same fixed O",
+    "mechanicalFirst": "diagnostic only, not an alternative selectable primary",
+    "protectedE": 601,
+    "originalPhysicalEReceipts": 1997,
+    "acceptance": "all physical qualification and expected model, positive complete known joint gain, zero destruction of historical601 E correctness AND zero known E regression from contemporary fresh BestE even outside601 or with unresolved/wrong historical O; unresolved O remains assigned; E-only gain is diagnostic",
+    "timeoutMinutes": 350,
+    "limitations": "historical O is nonconcurrent; this diagnostic is not the full live operational strategy"
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {"createdAtInclusive": "2026-10-18T00:00:00Z", "createdAtExclusive": "2026-10-19T00:00:00Z"},
+    "scope": ["cli/cli", "NixOS/nixpkgs", "microsoft/vscode"],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutable Issue ID tie; metadata prefix frozen before body eligibility; no refill",
+    "prior": {"actualTypedIssueIds": 862, "exactBodies": 2033, "literalReferenceURLs": 2371, "basis": "original407 + all210 original bodies + all122 later bodies including excluded3; metadata-only322718 never becomes task-body usage"},
+    "referenceRule": "same conservative canonical fixed-scope case-insensitive repository name and positive issue number over all2371 retained URLs; preserve issues/pull kind and unresolved aliases/outside scope limits; private full inventory not public",
+    "physicalKeys": ["bestE", "scopedE", "sharedO"],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 250,
+    "acceptance": "each same-fixed-case pass all qualified and expected model; common-Gold deterministic census difference lower>0 and regression upper=0; both-passAND, no averaging, case denominator doubling or outcome cancellation",
+    "bodyGoldAdmission": "actual successful development guard, original raw retention and reconstructed full-request freeze independently accepted before new H body/Gold; mutually unread native rater initials before adjudication; unresolved Gold remains"
+  },
+  "seriesPhysicalMaximum": 3052,
+  "resourceClaim": "candidate operational2E+O versus baseline1E+O; shared BestE reused physically once, no same-cost/model-weight claim; absent total_tokens, money and internal compute remain unknown",
+  "unknown": "either component missing is UNKNOWN even if the other says yes; no short circuit; global model drift remains technical stop; derived OR has no provider confidence/probability/model/usage",
+  "status": "LOCAL_CODE_ONLY; no new target count, body, Gold, API or model; native execution entry and current CI/reviews remain required",
+  "continuation": "retain failures and costs, three-party counter a genuinely distinct hypothesis; retire failed H to D and use a different prospective unused H, never retry the same candidate/H to rescue it"
+}
