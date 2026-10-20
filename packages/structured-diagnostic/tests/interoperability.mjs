@@ -19,14 +19,91 @@ const corpusPath = path.join(packageRoot, "fixtures", "interchange.json");
 const pythonTest = path.join(packageRoot, "tests", "interoperability.py");
 const python = process.env.PYTHON ?? "python3";
 const corpus = JSON.parse(fs.readFileSync(corpusPath, "utf8"));
-assert.equal(corpus.schema, "diagnostic-interchange-corpus/1");
+assert.equal(corpus.schema, "diagnostic-interchange-corpus/2");
+assert.equal(diagnosticContract.messageBlankRule, "ecmascript-trim");
 
-const valid = corpus.valid.map((test) => {
+function baseValue() {
+  return {
+    schema: "diagnostic/1",
+    code: "boundary.case",
+    level: "info",
+    message: "x",
+  };
+}
+
+function rawJsonLine(value) {
+  return `${JSON.stringify(value)}\n`;
+}
+
+function encodedBoundaryValue(target) {
+  const value = { ...baseValue(), fields: {} };
+  let index = 0;
+  while (true) {
+    const current = Buffer.byteLength(rawJsonLine(value), "utf8");
+    if (current === target) return value;
+    assert.ok(current < target && index < 32, `cannot construct encoded boundary ${target}: ${current}`);
+    const key = `f${String(index).padStart(2, "0")}`;
+    value.fields[key] = "";
+    const empty = Buffer.byteLength(rawJsonLine(value), "utf8");
+    const room = target - empty;
+    assert.ok(room >= 0, `encoded boundary overrun ${target}: ${empty}`);
+    value.fields[key] = "x".repeat(Math.min(8192, room));
+    index += 1;
+  }
+}
+
+function generatedValue(test) {
+  let value = baseValue();
+  switch (test.kind) {
+    case "message":
+      value.message = test.value;
+      break;
+    case "code-bytes":
+      value.code = "a".repeat(test.size);
+      assert.equal(Buffer.byteLength(value.code, "utf8"), test.size);
+      break;
+    case "message-bytes":
+      value.message = "x".repeat(test.size);
+      assert.equal(Buffer.byteLength(value.message, "utf8"), test.size);
+      break;
+    case "field-count":
+      value.fields = Object.fromEntries(Array.from({ length: test.size }, (_, index) => [`f${String(index).padStart(2, "0")}`, index]));
+      assert.equal(Object.keys(value.fields).length, test.size);
+      break;
+    case "field-name-bytes": {
+      const key = "a".repeat(test.size);
+      assert.equal(Buffer.byteLength(key, "utf8"), test.size);
+      value.fields = { [key]: "x" };
+      break;
+    }
+    case "field-string-bytes": {
+      const field = "x".repeat(test.size);
+      assert.equal(Buffer.byteLength(field, "utf8"), test.size);
+      value.fields = { value: field };
+      break;
+    }
+    case "encoded-bytes":
+      value = encodedBoundaryValue(test.size);
+      assert.equal(Buffer.byteLength(rawJsonLine(value), "utf8"), test.size);
+      break;
+    case "nonfinite-number":
+      value.fields = { value: Number.POSITIVE_INFINITY };
+      break;
+    case "malformed-message":
+      value.message = String.fromCharCode(0xd800);
+      break;
+    default:
+      assert.fail(`unknown generated case kind: ${test.kind}`);
+  }
+  return value;
+}
+
+const literalValid = corpus.valid.map((test) => {
   const canonical = encodeDiagnostic(parseDiagnosticLine(test.line));
   assert.equal(canonical, test.canonical, test.id);
   return { id: test.id, canonical };
 });
-const invalid = corpus.invalid.map((test) => {
+const literalInvalid = corpus.invalid.map((test) => {
   assert.throws(
     () => parseDiagnosticLine(test.line),
     (error) => {
@@ -36,6 +113,18 @@ const invalid = corpus.invalid.map((test) => {
     },
   );
   return { id: test.id, error: test.error };
+});
+const generated = corpus.generated.map((test) => {
+  try {
+    const canonical = encodeDiagnostic(generatedValue(test));
+    assert.equal(test.accept, true, test.id);
+    return { id: test.id, result: "accepted", canonical };
+  } catch (error) {
+    assert.ok(error instanceof DiagnosticContractError, test.id);
+    assert.equal(test.accept, false, test.id);
+    assert.equal(error.code, test.error, test.id);
+    return { id: test.id, result: "rejected", error: error.code };
+  }
 });
 
 const browserWrites = [];
@@ -62,15 +151,17 @@ const rejectingPort = createBrowserDiagnosticPort({
 assert.throws(() => rejectingPort.emit(parseDiagnosticLine(corpus.valid[0].line)), transportError);
 
 const jsReport = {
-  schema: "diagnostic-interchange-report/1",
-  valid,
-  invalid,
+  schema: "diagnostic-interchange-report/2",
+  literalValid,
+  literalInvalid,
+  generated,
 };
 
 const pythonReportRun = spawnSync(python, [pythonTest, corpusPath], {
   cwd: packageRoot,
   encoding: "utf8",
   timeout: 30_000,
+  maxBuffer: 16 * 1024 * 1024,
   env: {
     PATH: process.env.PATH ?? "",
     LANG: process.env.LANG ?? "C.UTF-8",
@@ -81,12 +172,13 @@ assert.equal(pythonReportRun.error, undefined, pythonReportRun.error?.message);
 assert.equal(pythonReportRun.status, 0, pythonReportRun.stderr);
 assert.deepEqual(JSON.parse(pythonReportRun.stdout), jsReport);
 
-const jsProduced = valid.map(({ canonical }) => canonical).join("");
+const jsProduced = [...literalValid.map(({ canonical }) => canonical), ...generated.filter((row) => row.result === "accepted").map(({ canonical }) => canonical)].join("");
 const pythonConsumerRun = spawnSync(python, [pythonTest, "--canonicalize-stdin"], {
   cwd: packageRoot,
   input: jsProduced,
   encoding: "utf8",
   timeout: 30_000,
+  maxBuffer: 16 * 1024 * 1024,
   env: {
     PATH: process.env.PATH ?? "",
     LANG: process.env.LANG ?? "C.UTF-8",
@@ -97,10 +189,12 @@ assert.equal(pythonConsumerRun.error, undefined, pythonConsumerRun.error?.messag
 assert.equal(pythonConsumerRun.status, 0, pythonConsumerRun.stderr);
 assert.equal(pythonConsumerRun.stdout, jsProduced, "JavaScript -> Python interchange drifted");
 
-for (const { id, canonical } of JSON.parse(pythonReportRun.stdout).valid) {
-  assert.equal(encodeDiagnostic(parseDiagnosticLine(canonical)), canonical, `Python -> JavaScript drifted: ${id}`);
+for (const row of JSON.parse(pythonReportRun.stdout).literalValid.concat(
+  JSON.parse(pythonReportRun.stdout).generated.filter((entry) => entry.result === "accepted"),
+)) {
+  assert.equal(encodeDiagnostic(parseDiagnosticLine(row.canonical)), row.canonical, `Python -> JavaScript drifted: ${row.id}`);
 }
 
 process.stdout.write(
-  `structured-diagnostic interoperability: PASS ${valid.length} valid, ${invalid.length} invalid, JS<->Python\n`,
+  `structured-diagnostic interoperability: PASS ${literalValid.length + generated.filter((row) => row.result === "accepted").length} accepted, ${literalInvalid.length + generated.filter((row) => row.result === "rejected").length} rejected, JS<->Python, FEFF/NEL and all fixed limits\n`,
 );

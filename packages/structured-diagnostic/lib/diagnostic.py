@@ -12,6 +12,15 @@ import re
 from typing import Any, Mapping
 
 
+# Exact ECMAScript String.prototype.trim whitespace and line terminators.
+# U+0085 NEL is intentionally absent; U+FEFF BOM is intentionally present.
+_ECMASCRIPT_TRIM_CHARS = (
+    "\u0009\u000b\u000c\u0020\u00a0\u1680"
+    "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a"
+    "\u2028\u2029\u202f\u205f\u3000\ufeff\u000a\u000d"
+)
+
+
 class DiagnosticContractError(ValueError):
     def __init__(self, code: str, path: str, message: str, *, line: int | None = None):
         super().__init__(message)
@@ -35,6 +44,10 @@ def _well_formed_unicode(value: str) -> bool:
     return not any(0xD800 <= ord(char) <= 0xDFFF for char in value)
 
 
+def _ecmascript_blank(value: str) -> bool:
+    return value.strip(_ECMASCRIPT_TRIM_CHARS) == ""
+
+
 def _plain_object(value: Any) -> bool:
     return isinstance(value, dict)
 
@@ -56,6 +69,12 @@ def _positive_integer(value: Any, path: str) -> int:
 def _read_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
     if not _plain_object(contract) or contract.get("schema") != "diagnostic-contract/1":
         _fail("DIAGNOSTIC_CONTRACT_INVALID", "contract", "contract schema must be diagnostic-contract/1")
+    if contract.get("messageBlankRule") != "ecmascript-trim":
+        _fail(
+            "DIAGNOSTIC_CONTRACT_INVALID",
+            "contract.messageBlankRule",
+            "messageBlankRule must be ecmascript-trim",
+        )
 
     allowed = _string_array(contract.get("allowedTopLevel"), "contract.allowedTopLevel")
     required = _string_array(contract.get("requiredTopLevel"), "contract.requiredTopLevel")
@@ -224,7 +243,7 @@ def validate_diagnostic(value: Any, contract: Mapping[str, Any]) -> dict[str, An
     if not isinstance(level, str) or level not in compiled["levels"]:
         _fail("DIAGNOSTIC_LEVEL_INVALID", "level", "level must be debug, info, warn, or error")
     message = value.get("message")
-    if not isinstance(message, str) or not message.strip():
+    if not isinstance(message, str) or _ecmascript_blank(message):
         _fail("DIAGNOSTIC_MESSAGE_INVALID", "message", "message must be a non-blank string")
     if not _well_formed_unicode(message):
         _fail("DIAGNOSTIC_MESSAGE_INVALID_UNICODE", "message", "message must contain well-formed Unicode")
@@ -259,7 +278,7 @@ def _pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 
 def parse_diagnostic_line(line: str, contract: Mapping[str, Any]) -> dict[str, Any]:
-    if not isinstance(line, str) or not line.strip():
+    if not isinstance(line, str) or _ecmascript_blank(line):
         _fail("DIAGNOSTIC_JSONL_EMPTY_LINE", "$", "diagnostic JSONL line must not be blank")
     try:
         value = json.loads(line, object_pairs_hook=_pairs, parse_int=float, parse_float=float)
