@@ -33,7 +33,7 @@ export default {
     "rules": [{"type": "ESModule", "globs": ["**/*.js"], "fallthrough": True}],
     "durable_objects": {"bindings": [{"name": "SESSIONS", "class_name": "Session"}]},
     "migrations": [{"tag": "pi-jev-proof-v1", "new_sqlite_classes": ["Session"]}],
-    "workers_dev": False, "preview_urls": False,
+    "workers_dev": True, "preview_urls": False,
     "observability": {"enabled": False},
 }, indent=2) + "\n")
 (out / "source.json").write_text(json.dumps({

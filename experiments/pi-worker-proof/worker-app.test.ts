@@ -172,7 +172,7 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
     console.info("fixture-stage", "first-response-and-rotation-saved");
     await closeSocket(first.socket);
     console.info("fixture-stage", "first-socket-closed");
-    await evictDurableObject(env.SESSIONS.getByName(session));
+    await abortAllDurableObjects();
     console.info("fixture-stage", "first-DO-evicted");
 
     const second = await connect(session);
@@ -193,7 +193,7 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
     const publicFrames = JSON.stringify([...first.messages, ...second.messages]);
     for (const token of [fixture().access, fixture().refresh, "fixture-access-rotated", "fixture-refresh-rotated"]) expect(publicFrames).not.toContain(token);
     await closeSocket(second.socket);
-    await evictDurableObject(env.SESSIONS.getByName(session));
+    await abortAllDurableObjects();
     const third = await connect(session);
     expect(JSON.stringify(third.messages)).toContain("fixture-second-answer");
     expect(JSON.stringify(third.messages)).toContain('"stopReason":"stop"');
@@ -227,7 +227,7 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
     expect(remote.inference).toHaveLength(0);
     expect(await saved(session)).toEqual(expired);
     await closeSocket(client.socket);
-    await evictDurableObject(env.SESSIONS.getByName(session));
+    await abortAllDurableObjects();
     expect(await saved(session)).toEqual(expired);
   });
 
@@ -242,7 +242,7 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
       expect(await new WorkerCredentialStore(state.storage).list()).toEqual([{ providerId: "openai", type: "oauth" }]);
     });
     expect(remote.rotations()).toBe(1);
-    await evictDurableObject(env.SESSIONS.getByName(session));
+    await abortAllDurableObjects();
     expect(await saved(session)).toMatchObject({ refresh: "fixture-refresh-rotated" });
   });
 
