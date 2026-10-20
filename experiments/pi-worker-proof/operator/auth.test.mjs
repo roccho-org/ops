@@ -210,14 +210,16 @@ test("owner native OAuth clears inherited callback override BEFORE module evalua
   assert.equal(result.stdout.trim(),"LOOPBACK_LISTENER_READY_AND_CLOSED");
 });
 test("actual owner witness and completion validators refuse incomplete evidence",async()=>{
-  const {proofWitness,completionReceipt}=await import("./owner.mjs");
+  const {proofWitness,completionReceipt,assertDistinctCompletions}=await import("./owner.mjs");
   const good={boot:"00000000-0000-4000-8000-000000000608",posts:2,prior:"false"};
   proofWitness(good,2,"false");
   for(const change of [{boot:undefined},{boot:""},{boot:"not-a-uuid"},{posts:undefined},{posts:NaN},{posts:1.5},{posts:"2"},{prior:"true"},{prior:undefined}]) {
     assert.throws(()=>proofWitness({...good,...change},2,"false"));
   }
+  assert.throws(()=>assertDistinctCompletions([{responseId:"one"},{responseId:"two"},{responseId:"one"}]));
   const complete={role:"assistant",responseId:"synthetic-response",stopReason:"stop",rawStopReason:"completed",model:"gpt-6-luna",usage:{input:1,output:1,totalTokens:2}};
   assert.equal(completionReceipt([complete],["stop"]).length,1);
+  assert.throws(()=>completionReceipt([{...complete,stopReason:"toolUse"},complete],["toolUse","stop"]));
   for(const change of [{responseId:""},{responseId:17},{rawStopReason:"incomplete"},{stopReason:"error"}]) {
     assert.throws(()=>completionReceipt([{...complete,...change}],["stop"]));
   }

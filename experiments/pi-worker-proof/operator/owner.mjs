@@ -207,6 +207,7 @@ const parsed = JSON.parse(assistant(messages));
 assert.equal(parsed.marker, previousProof.marker);
 assert.deepEqual(parsed.assessment, previousProof.assessment);
 const completions = [...previousProof.completions, ...completionReceipt(messages, ["stop"])];
+assertDistinctCompletions(completions);
 await reopened.close();
 const receipt = await connect();
 proofWitness(receipt.witness, 3);
@@ -221,6 +222,9 @@ console.log(JSON.stringify({ scope: "ACTUAL_WORKER_CREDENTIAL_LIFECYCLE_PROOF", 
 }
 });
 }
+export function assertDistinctCompletions(completions) {
+  assert.equal(new Set(completions.map(item => item.responseId)).size, completions.length, "Duplicate provider completion identity");
+}
 export function completionReceipt(messages, expected) {
   const completions = messages.filter(message => message.role === "assistant").map(message => ({
     responseId: message.responseId ?? null, model: message.model ?? null, stopReason: message.stopReason,
@@ -229,6 +233,7 @@ export function completionReceipt(messages, expected) {
   }));
   assert.deepEqual(completions.map(item => item.stopReason), expected);
   assert.ok(completions.every(item => typeof item.responseId === "string" && item.responseId.length > 0 && item.rawStopReason === "completed"));
+  assertDistinctCompletions(completions);
   return completions;
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) run().catch(() => { console.error(JSON.stringify({ scope: "OWNER_LIFECYCLE", status: "STOPPED_NOT_PROVEN", noAutomaticResend: true })); process.exitCode = 1; });
