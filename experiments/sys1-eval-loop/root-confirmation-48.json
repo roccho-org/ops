@@ -8,10 +8,10 @@
     {"id":"hc03","family":"conditional-vs-occurrence","body":"再接続時も予約を残すこと。今朝の試行では予約一覧が空になった。","gold":{"E":"yes","O":"yes","basis":"予約保持という要求と、今朝の試行結果が共存する。"}},
     {"id":"hc04","family":"conditional-vs-occurrence","body":"例えば『接続を失った』から『戻った』へ移る場面を仮定する。","gold":{"E":"no","O":"no","basis":"仮定の場面だけで、機能へ課す要求も実際の発生報告もない。"}},
 
-    {"id":"hc05","family":"quotation-scope","body":"聞き取りの逐語録\n利用者A『注文は消えていた』\n担当B『私の履歴にも無かった』","gold":{"E":"no","O":"yes","basis":"聞き取り結果としての発言引用は観測報告。発言内容に要求はない。"}},
-    {"id":"hc06","family":"quotation-scope","body":"担当からの依頼\n『期限が過ぎた招待リンクは無効として案内してください』","gold":{"E":"yes","O":"no","basis":"依頼の引用内容が機能の要求である。依頼を受領した操作やリンクを試した結果は報告されていない。"}},
-    {"id":"hc07","family":"quotation-scope","body":"『古い招待リンクは無効』という契約で実装する。試しに期限切れリンクを開くと、参加画面まで進めた。","gold":{"E":"yes","O":"yes","basis":"無効化という機能契約と、実際に開いた結果の報告がある。"}},
-    {"id":"hc08","family":"quotation-scope","body":"語彙対照\n『閉じること』／『閉じた』／『閉じているか』","gold":{"E":"no","O":"no","basis":"孤立した語句の引用で、どの機能にも要求や作業状況として適用していない。"}},
+    {"id":"hc05","family":"nested-quotation-scope","body":"受信メモ\n担当A『利用者から「注文が消えた」と聞いた』\n担当B『端末の一覧にも無かった』","gold":{"E":"no","O":"yes","basis":"受信メモの発言は、入れ子引用を含め実際の聞き取りと一覧状態の報告。機能要求はない。"}},
+    {"id":"hc06","family":"nested-quotation-scope","body":"ヘルプ表示に渡す例:『見出しは「完了した」』。内側のかぎ括弧も入力どおり表示すること。","gold":{"E":"yes","O":"no","basis":"入れ子引用を含む入力例の表示要求。引用中の完了表現は現実の作業完了報告ではない。"}},
+    {"id":"hc07","family":"nested-quotation-scope","body":"収集ログに『端末が「押せない」と答えた』という行が残った。引用の深さに関係なく、入力をそのまま確認画面へ渡すこと。","gold":{"E":"yes","O":"yes","basis":"実際の収集ログの報告と入力保持の要求が共存する。"}},
+    {"id":"hc08","family":"nested-quotation-scope","body":"台本の一節\n客『係員に「終わった？」と尋ねる』\n係員『「戻ってきた」と言う人もいる』","gold":{"E":"no","O":"no","basis":"台本中の入れ子の台詞で、当該機能の要求や現実の観測ではない。"}},
 
     {"id":"hc09","family":"table-semantics","body":"|入力|返す値|\n|---|---|\n|未登録ID|404|\n|登録ID|詳細|\n上記の入出力に揃える。","gold":{"E":"yes","O":"no","basis":"実現する入出力の対応表であり、現物の測定表ではない。"}},
     {"id":"hc10","family":"table-semantics","body":"計測端末n3\n|実行|応答|\n|---|---|\n|1回目|404|\n|2回目|詳細画面|","gold":{"E":"no","O":"yes","basis":"計測した二回の応答を報告する表で、必要な応答の定義はない。"}},
@@ -53,10 +53,10 @@
     {"id":"hc39","family":"hypothesis-within-actual-report","body":"仮定を記入する欄に、担当者が『切断が起きたら』と記入した。保存後はその一行が欠けていた。","gold":{"E":"no","O":"yes","basis":"仮定の語句を入力して保存した実際の出来事を報告する。必要な保存動作の要求は明示しない。"}},
     {"id":"hc40","family":"hypothesis-within-actual-report","body":"例に出す場面は『もし切断が起きたら』。登場人物の台詞は『まだ戻っていないのかな』。","gold":{"E":"no","O":"no","basis":"例の場面と架空人物の台詞で、機能の達成条件や現実の観測報告ではない。"}},
 
-    {"id":"hc41","family":"negative-status-scope","body":"複数の利用者が同時に更新しても、片方の入力を黙って捨てないこと。競合を表示すること。","gold":{"E":"yes","O":"no","basis":"禁止を含む競合時の要求。実際の競合発生や保存状況は報告しない。"}},
-    {"id":"hc42","family":"negative-status-scope","body":"『競合は起きていない』とは確認できなかった。二つの入力のうち一つしか履歴に残らなかった。","gold":{"E":"no","O":"yes","basis":"確認不能という状況と実際の履歴結果を報告する。明示的な機能要求はない。"}},
-    {"id":"hc43","family":"negative-status-scope","body":"競合を検出したら両方の入力を保持すること。検出したとの表示は出たが、後から入力した値だけが保存されていた。","gold":{"E":"yes","O":"yes","basis":"入力保持の要求と、表示・保存結果の観測がある。"}},
-    {"id":"hc44","family":"negative-status-scope","body":"文型の比較\n『捨てないこと』\n『捨てていない』\n『捨てたとは限らない』","gold":{"E":"no","O":"no","basis":"引用文型の比較だけで、機能へ要求や観測として適用されていない。"}},
+    {"id":"hc41","family":"cross-language-modality","body":"The retry button must remain usable until acknowledgement. 未受領の段階で履歴を消してはならない。","gold":{"E":"yes","O":"no","basis":"英日の義務と禁止からなる仕様。未受領が現在発生しているとの報告はない。"}},
+    {"id":"hc42","family":"cross-language-modality","body":"The receipt was missing after the second refresh. 再読込前には一行残っていた。","gold":{"E":"no","O":"yes","basis":"英日で再読込前後の実際の状態を報告し、要求は宣言しない。"}},
+    {"id":"hc43","family":"cross-language-modality","body":"Read-only users must not resend a receipt. ところが監査端末では再送ボタンが有効だった。","gold":{"E":"yes","O":"yes","basis":"英語の認可要求と日本語の現物状態の報告がある。"}},
+    {"id":"hc44","family":"cross-language-modality","body":"見出し用の語句案: 'Done', 'Still pending', 'Must be kept', '消えた'.","gold":{"E":"no","O":"no","basis":"語句案の引用にすぎず、英語のmustも当該機能への要求として適用されていない。"}},
 
     {"id":"hc45","family":"distributed-evidence","body":"配送画面の完成条件\n宛先の選択を戻って修正できること。複数件を選んだ場合は送信前に対象数を示すこと。入力を一時保存した場合は再表示時に復元すること。取り消した操作は次の送信へ含めないこと。閲覧者には配送操作を許可しないこと。空の宛先では送信を開始しないこと。途中で接続が切れた場合にも、再送が必要な宛先を一覧から確認できること。","gold":{"E":"yes","O":"no","basis":"複数箇所に分散した完成条件で、いずれも要求。実施状況を報告していない。"}},
     {"id":"hc46","family":"distributed-evidence","body":"受入条件\n端末Aで宛先を三件選んだ。対象数は二件と表示された。戻るを押すと入力が消えた。端末Bから再表示したが空欄だった。閲覧者の利用者でも送信画面へ進めた。空の宛先のまま送信を押すと待機表示になった。操作ログは最後の行で止まっていた。","gold":{"E":"no","O":"yes","basis":"受入条件という見出しに具体的要求はなく、全て操作・表示・ログの実際の結果である。"}},
