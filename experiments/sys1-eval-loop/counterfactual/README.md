@@ -46,6 +46,20 @@ flowchart TB
 
 H phaseは候補固定後の別source受容で追加する。caseごとのBest/F/N順を事前循環ローテーションし、各軸を1回ずつ取得。独立judgeはbodyだけから1回、候補修正には返さない。H本文/Goldはその前に開封しない。
 
+## D72取得と次段の実入力固定
+
+[Native run39374003138](https://github.com/roccho-org/ops/actions/runs/39374003138) はreview済みsourceのrequest-only childを一回実行し、72 POSTでSUCCESS。artifact12241898715 (22491-byte ZIP)を取得しprovider digest/sizeと実bytesを照合、全投影を鍵なし再生して同値を確認した。24件のE/O48回答と独立judge24回答がqualified、modelStable=true、repair入力が成立した。これは資格・輸送の確認であり、正答率や診断性能の成功宣言ではない。DのGold/正誤は候補freeze前のW/修正器へ非開示のまま。
+
+`../results/counterfactual-development-20261020/` にraw5fileとprovider metadataを保持し、`repair-payloads.json` はその実投影からコードで生成したF/N2要求である。修正入力はここで固定し、D正誤を見た選択や手修正を加えない。
+
+`native-repair.mjs` は既存CLIを直接起動して2要求を保存する小さいcaptureである。N→F順を前もって固定し、既存native dev/cwd/Console経路、公開version/catalogと非秘密configfileのstatを前後で照合する。これはその観測metadataが一致した証拠であって、Global config全内容、provider defaultやweightsの不変証明ではない。raw stdout/stderrはnative私的保存、公開には資格確認したdata.textと安全receiptを用いる。標準CLI起動数、API応答成立、provider内部HTTP/usage不明を区別し、timeout/失敗でも盲再送しない。無効armをBestへ代入しない。新しいcredential reader、HTTP proxy、plugin、汎用executorは追加しない。現時点でこのcaptureは未実行、生成はまだ0要求。
+
+## H開封前の設定identityと測定計画
+
+`confirmation.mjs` のpure planは生instructions完全一致だけで、Best→F→Nの順に有効unique設定とrole aliasを固定する。意味同等やtrimを後付け推定しない。同一設定は各case/軸で1回だけ実測し、aliasは同一native receiptを指す。資格unknownも全aliasへ同じく伝播し、usage/原価はunique traceだけで集計する。N=BestならA/Bは同じ実観測対であり独立2検証ではない。
+
+A/B両比較とも同一instructionsなら`IDENTICAL_CONFIGURATION_NO_TREATMENT`をrawdeltaより優先する。F=Nから別々の推論揺らぎで助言gainを作らず、F=Bestから対象設定改善を作らない。invalid候補はBestへaliasしない。F有効かつBestと異なればNinvalidでもK2/160要求でAを測定しB UNKNOWN、F無効なら両UNKNOWNとしてH未開封省略、F=Best/NinvalidならA no-treatment/B UNKNOWNで省略する。全有効設定が同じK1でもH未開封/未実行とし、HjudgeはNOT_MEASUREDのままDから代入しない。実測する場合の事前上限は32×(2K+judge1)、K2=160/K3=224である。H本文はまだ未読、この純粋計画以外のH実行sourceは次段で受容する。
+
 ## 完成状態と閉包
 
 ```mermaid

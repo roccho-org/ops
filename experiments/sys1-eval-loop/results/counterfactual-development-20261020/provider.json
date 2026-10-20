@@ -1,0 +1,29 @@
+{
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39374003138",
+  "runId": 39374003138,
+  "runAttempt": 1,
+  "event": "push",
+  "actor": "roccho-dev",
+  "head": "91777c06a2742b073a620de6afb4fe6f79b1d28e",
+  "conclusion": "success",
+  "artifact": {
+    "id": 12241898715,
+    "node_id": "MDg6QXJ0aWZhY3QxMjI0MTg5ODcxNQ==",
+    "name": "sys1-counterfactual-39374003138",
+    "size_in_bytes": 22491,
+    "url": "https://api.github.com/repos/roccho-org/ops/actions/artifacts/12241898715",
+    "archive_download_url": "https://api.github.com/repos/roccho-org/ops/actions/artifacts/12241898715/zip",
+    "expired": false,
+    "digest": "sha256:eeb59ae133157365e34437e4e3cff51afb0b98e2a4a2ed13ec0c06afb08a6df8",
+    "created_at": "2026-10-20T05:16:41Z",
+    "updated_at": "2026-10-20T05:16:41Z",
+    "expires_at": "2026-11-19T05:16:41Z",
+    "workflow_run": {
+      "id": 39374003138,
+      "repository_id": 1275606595,
+      "head_repository_id": 1275606595,
+      "head_branch": "codex/jev-feedback-counterfactual-20261020",
+      "head_sha": "91777c06a2742b073a620de6afb4fe6f79b1d28e"
+    }
+  }
+}

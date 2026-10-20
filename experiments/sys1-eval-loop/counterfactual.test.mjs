@@ -2,6 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {repairInputs,parseCandidate,pairedComparison,judgeRequest,deriveDiagnosis,REPAIR_PROMPT} from './counterfactual/comparison.mjs';
 import {hasExpectation} from './split.mjs';
 import {generatePayloads,receiveCandidate} from './counterfactual/repair-route.mjs';
+import fs from 'node:fs';
 const cases=Array.from({length:24},(_,n)=>({id:'d'+n,body:'body '+n,gold:{E:'yes',O:'no',basis:'private'}}));
 const outputs=cases.map(c=>({id:c.id,status:'qualified',E:'yes',O:'no'}));
 const advice=cases.map(c=>({id:c.id,status:'qualified',diagnosis:'no_change',rationale:'not a real typed field'}));
@@ -47,6 +48,11 @@ test('standard stateless generation requests differ only in advice and never rep
   assert.deepEqual(p.feedback.model,p['no-feedback'].model);const f=JSON.parse(p.feedback.prompt),n=JSON.parse(p['no-feedback'].prompt);assert.deepEqual(f.common,n.common);
   assert.equal(receiveCandidate({data:{text:'{"instructions":"Best supplement"}'}},'Best').status,'valid');
   const text='</think>\n```json\n{"instructions":"Best"}\n```';const invalid=receiveCandidate({data:{text}},'Best');assert.equal(invalid.status,'invalid');assert.equal(invalid.rawText,text);assert.equal(invalid.candidate,null);
+});
+test('retained real D projection fixes both actual repair payloads without Gold-derived selection',()=>{
+  const at=p=>JSON.parse(fs.readFileSync(new URL('./results/counterfactual-development-20261020/'+p,import.meta.url),'utf8'));
+  const projection=at('projection.json');assert.equal(projection.targetComplete,true);assert.equal(projection.modelStable,true);
+  assert.deepEqual(generatePayloads(projection),at('repair-payloads.json'));assert.equal(at('predictions.json').actualPosts,72);
 });
 const gold=[{id:'a',gold:{E:'yes',O:'no'}},{id:'b',gold:{E:'no',O:'no'}}];
 const row=(id,arm,E,O)=>({id,arm,E,O,status:'qualified',model:'fixed'});

@@ -36,3 +36,8 @@ test('projection rejects modified requests or invented diagnostic and retains in
   changed.rows[0].target[0].request.text='other';assert.throws(()=>developmentProjection(i,changed));
   r.rows[0].diagnosis={status:'qualified',diagnosis:'both_scope'};assert.throws(()=>developmentProjection(i,r));
 });
+test('real retained D72 report replays exactly without a new model call or correctness disclosure',()=>{
+  const at=p=>JSON.parse(fs.readFileSync(new URL('./results/counterfactual-development-20261020/'+p,import.meta.url),'utf8'));
+  assert.deepEqual(developmentProjection(at('input.json'),at('predictions.json')),at('projection.json'));
+  const p=at('projection.json');assert.equal(p.targetComplete,true);assert.equal(p.judgeComplete,true);assert.equal(p.modelStable,true);
+});
