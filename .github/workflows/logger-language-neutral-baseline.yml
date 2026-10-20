@@ -28,6 +28,15 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
+      - name: Checkout exact Ops corrected-scope T0
+        uses: actions/checkout@v4
+        with:
+          repository: roccho-org/ops
+          ref: d1ed2594aa6112f931ff3996c89d8fde8aed8690
+          path: ops-baseline
+          fetch-depth: 1
+          persist-credentials: false
+
       - name: Checkout exact Apps corrected-scope T0
         uses: actions/checkout@v4
         with:
@@ -46,9 +55,16 @@ jobs:
           APPS_BASELINE: ${{ github.workspace }}/apps-baseline
         run: |
           set -euo pipefail
-          mkdir -p out/logger-language-neutral-baseline
-          node packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs \
-            > out/logger-language-neutral-baseline/finding.json
+          mkdir -p \
+            ops-baseline/packages/shiftleft-admission/tests \
+            out/logger-language-neutral-baseline
+          cp packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs \
+            ops-baseline/packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs
+          (
+            cd ops-baseline
+            node packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs \
+              > ../out/logger-language-neutral-baseline/finding.json
+          )
           jq -e '
             .kind == "ops.logger-language-neutral.baseline-finding" and
             .authority == false and
@@ -88,10 +104,10 @@ jobs:
             "$root/source/apps/packages/voice-ui/src" \
             "$root/source/apps/packages/voice-ui/web"
           cp packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs "$root/evaluator.mjs"
-          cp packages/structured-diagnostic/contract.json "$root/source/ops/packages/structured-diagnostic/contract.json"
-          cp packages/structured-diagnostic/README.md "$root/source/ops/packages/structured-diagnostic/README.md"
-          cp packages/structured-diagnostic/lib/diagnostic.mjs "$root/source/ops/packages/structured-diagnostic/lib/diagnostic.mjs"
-          cp packages/structured-diagnostic/adapters/node.mjs "$root/source/ops/packages/structured-diagnostic/adapters/node.mjs"
+          cp ops-baseline/packages/structured-diagnostic/contract.json "$root/source/ops/packages/structured-diagnostic/contract.json"
+          cp ops-baseline/packages/structured-diagnostic/README.md "$root/source/ops/packages/structured-diagnostic/README.md"
+          cp ops-baseline/packages/structured-diagnostic/lib/diagnostic.mjs "$root/source/ops/packages/structured-diagnostic/lib/diagnostic.mjs"
+          cp ops-baseline/packages/structured-diagnostic/adapters/node.mjs "$root/source/ops/packages/structured-diagnostic/adapters/node.mjs"
           cp apps-baseline/flake.nix "$root/source/apps/flake.nix"
           cp apps-baseline/packages/voice-ui/src/log.mjs "$root/source/apps/packages/voice-ui/src/log.mjs"
           cp apps-baseline/packages/voice-ui/web/app.mjs "$root/source/apps/packages/voice-ui/web/app.mjs"
