@@ -14,6 +14,7 @@ const TARGET_LOOP_WORKFLOW = ".github/workflows/sys1-target-loop.yml";
 const COUNTERFACTUAL_WORKFLOW = ".github/workflows/sys1-counterfactual.yml";
 const REAL_CASE_WORKFLOW = ".github/workflows/sys1-real-case-evaluation.yml";
 const OBSERVATION_WORKFLOW = ".github/workflows/sys1-observation-improvement.yml";
+const RESERVE_WORKFLOW = ".github/workflows/sys1-observation-reserve.yml";
 const REGRESSION_WORKFLOW = ".github/workflows/sys1-regression-repair.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
@@ -167,6 +168,10 @@ export function analyzeEffectWorkflow(workflow, boundary) {
     }
     if (boundary.path === COUNTERFACTUAL_WORKFLOW) {
       assertCounterfactualWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === RESERVE_WORKFLOW) {
+      assertReserveWorkflow(workflow,boundary);
       return {issues,contributingJobs:['evaluate']};
     }
     if (boundary.path === OBSERVATION_WORKFLOW) {
@@ -481,6 +486,17 @@ export function assertObservationWorkflow(w,b) {
   v.on.push.branches=['codex/jev-real-case-evaluation-20261020'];v.on.push.paths=['experiments/sys1-eval-loop/real-cases/request.json'];v.concurrency.group='sys1-real-case-evaluation';v.jobs.evaluate['timeout-minutes']=110;
   s[5].with={name:'sys1-real-cases-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/real-cases','if-no-files-found':'ignore','retention-days':30};
   assertRealCaseWorkflow(v,{...b,maxCalls:708});
+}
+
+export function assertReserveWorkflow(w,b){
+  need(b.maxCalls===438,'reserve series bound differs');
+  need(same(w.on?.push?.branches??[],['codex/jev-observation-reserve-20261020'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/reserve/request.json']),'reserve entry differs');
+  need(w.concurrency?.group==='sys1-observation-reserve'&&w.jobs?.evaluate?.['timeout-minutes']===90,'reserve deadline/retention differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/reserve/runtime.mjs '+mode+' "$RUNNER_TEMP/reserve"','reserve command differs');s[n].run='node experiments/sys1-eval-loop/observation/runtime.mjs '+mode+' "$RUNNER_TEMP/observation"';}
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-reserve-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/reserve','if-no-files-found':'ignore','retention-days':30}),'reserve receipt differs');
+  v.on.push.branches=['codex/jev-observation-improvement-20261020'];v.on.push.paths=['experiments/sys1-eval-loop/observation/request.json'];v.concurrency.group='sys1-observation-improvement';v.jobs.evaluate['timeout-minutes']=250;
+  s[5].with={name:'sys1-observation-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/observation','if-no-files-found':'ignore','retention-days':30};assertObservationWorkflow(v,{...b,maxCalls:1918});
 }
 
 export function selftest() {

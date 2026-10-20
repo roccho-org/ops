@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';import {digest} from '../run.mjs';
 import {observationPhysicalRequest,observationTemplates} from './request.mjs';import {wireTemplate} from '../regression/scoped-request.mjs';
+import {verifyQualificationEvents} from './qualification.mjs';
 export const OBSERVATION_KEYS=Object.freeze(['bestO','scopedO','sharedE']);
 const order=i=>[...OBSERVATION_KEYS.slice(i%3),...OBSERVATION_KEYS.slice(0,i%3)];
 export async function prepareObservationMeasurement(cases,selection,repId,execution){
@@ -10,14 +11,6 @@ export async function prepareObservationMeasurement(cases,selection,repId,execut
  return {schema:'ops.sys1.observation-measurement.v1',repId,rows,best,templateProof,expectedModel:'jev-1.13.0',maxPosts:3*rows.length,execution};
 }
 function planned(input){assert.equal(input.schema,'ops.sys1.observation-measurement.v1');assert.ok(input.repId===1||input.repId===2);assert.ok(input.rows.length>0&&input.rows.length<=300);assert.equal(input.maxPosts,3*input.rows.length);assert.equal(new Set(input.rows.map(r=>r.id)).size,input.rows.length);return input.rows.flatMap((r,i)=>order(i).map(k=>`rep${input.repId}/${r.id}/${k}`));}
-function verifyQualificationEvents(report,events,attempts,posts,answers,failures){
- const flags=events.filter(e=>e.kind==='response-flags'),errors=events.filter(e=>e.kind==='failure');assert.equal(new Set(flags.map(e=>e.id)).size,flags.length);assert.ok(flags.every(e=>posts.includes(e.id)));assert.equal(new Set(errors.map(e=>e.id)).size,errors.length);assert.deepEqual(errors.map(e=>e.id).sort(),[...failures].sort());
- const index=(kind,id)=>events.findIndex(e=>e.kind===kind&&e.id===id);
- for(const e of flags){assert.equal(typeof e.modelMatches,'boolean');assert.ok(index('post',e.id)<index('response-flags',e.id));}
- for(const id of answers){const f=flags.find(e=>e.id===id);assert.ok(f);for(const key of ['modelMatches','answerKeyMatches','probabilitiesFinite','probabilitiesInRange','sumMatches','selectedIsMax'])assert.equal(f[key],true);assert.equal(f.probabilityCount,2);assert.ok(Number.isFinite(f.probabilitySum)&&Math.abs(f.probabilitySum-1)<1e-5);assert.ok(Number.isFinite(f.selectedProbability)&&f.selectedProbability>=0&&f.selectedProbability<=1);assert.ok(Number.isFinite(f.maxProbability)&&f.maxProbability>=f.probabilitySum/2&&f.maxProbability<=Math.min(1,f.probabilitySum));assert.ok(f.selectedProbability<=f.maxProbability&&f.selectedProbability>=f.maxProbability-1e-6);assert.ok(index('response-flags',id)<index('answer',id));}
- for(const id of failures){const e=errors.find(e=>e.id===id);assert.ok(attempts.includes(id));assert.ok(['local','provider','response-model','response-answers','response-probabilities','typed-contract'].includes(e.stage));assert.ok(index('failure',id)<index('qualification-unknown',id));}
- const drift=flags.filter(e=>!e.modelMatches);assert.equal(report.modelDrift,drift.length>0);assert.ok(drift.length<=1);if(drift.length){assert.equal(attempts.at(-1),drift[0].id);assert.ok(failures.includes(drift[0].id));assert.equal(errors.find(e=>e.id===drift[0].id).stage,'response-model');}
-}
 export async function evaluateObservationMeasurement(input,ask,observe=()=>{}){
  planned(input);const rows=[];let stopped=false;
  for(const [index,c]of input.rows.entries()){
