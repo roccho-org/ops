@@ -1,0 +1,934 @@
+{
+  "schema": "ops.sys1.reserve-and-reconfirmation-record.v1",
+  "passes": [
+    {
+      "repId": 1,
+      "provider": {
+        "repository": "roccho-org/ops",
+        "workflowPath": ".github/workflows/sys1-observation-reserve.yml",
+        "runId": 39458683962,
+        "runAttempt": 1,
+        "head": "e5160d526eeb087e8cc0ba9c8496366dbbb74566",
+        "source": "12e1cbdee8d752f3e2a6071710f56335504752f8",
+        "branch": "codex/jev-observation-reserve-20261020",
+        "event": "push",
+        "actor": "roccho-dev",
+        "conclusion": "success",
+        "runUrl": "https://github.com/roccho-org/ops/actions/runs/39458683962",
+        "artifactId": 12281593350,
+        "artifactName": "sys1-reserve-39458683962",
+        "artifactSize": 177255,
+        "providerDigest": "sha256:1d2250f153bbe78573584c57395574f0a75f09b562195798b0540d8f5dc69c9b",
+        "archiveSha256": "1d2250f153bbe78573584c57395574f0a75f09b562195798b0540d8f5dc69c9b"
+      },
+      "inference": {
+        "roundIndex": 3,
+        "repId": 1,
+        "repetitions": 2,
+        "roundAlpha": {
+          "numerator": "1",
+          "denominator": "160"
+        },
+        "perTailAlpha": {
+          "numerator": "1",
+          "denominator": "1600"
+        },
+        "frameSize": 23,
+        "assigned": 23,
+        "caseIds": [
+          "reserve-001",
+          "reserve-002",
+          "reserve-003",
+          "reserve-004",
+          "reserve-005",
+          "reserve-006",
+          "reserve-007",
+          "reserve-008",
+          "reserve-009",
+          "reserve-010",
+          "reserve-011",
+          "reserve-012",
+          "reserve-013",
+          "reserve-014",
+          "reserve-015",
+          "reserve-016",
+          "reserve-017",
+          "reserve-018",
+          "reserve-019",
+          "reserve-020",
+          "reserve-021",
+          "reserve-022",
+          "reserve-023"
+        ],
+        "scope": "conditional census of the original sealed complement23 after development on its other300; not a new SRS or an estimate for origin323",
+        "observed": {
+          "assigned": 23,
+          "resolved": 22,
+          "unknown": 1,
+          "b": 1,
+          "c": 0,
+          "bothCorrect": 15,
+          "bothIncorrect": 6,
+          "regressionCases": 0,
+          "partialKnownRegressionCases": 0,
+          "baselineCorrect": 15,
+          "candidateCorrect": 16,
+          "axes": {
+            "E": {
+              "resolved": 23,
+              "unknown": 0,
+              "regressions": 0,
+              "b": 0,
+              "c": 0,
+              "baselineCorrect": 23,
+              "candidateCorrect": 23,
+              "goldYes": 23,
+              "goldNo": 0,
+              "goldUnknown": 0,
+              "confusion": {
+                "best": {
+                  "TP": 23,
+                  "TN": 0,
+                  "FP": 0,
+                  "FN": 0,
+                  "unknown": 0
+                },
+                "scoped": {
+                  "TP": 23,
+                  "TN": 0,
+                  "FP": 0,
+                  "FN": 0,
+                  "unknown": 0
+                }
+              }
+            },
+            "O": {
+              "resolved": 22,
+              "unknown": 1,
+              "regressions": 0,
+              "b": 1,
+              "c": 0,
+              "baselineCorrect": 15,
+              "candidateCorrect": 16,
+              "goldYes": 14,
+              "goldNo": 8,
+              "goldUnknown": 1,
+              "confusion": {
+                "best": {
+                  "TP": 7,
+                  "TN": 8,
+                  "FP": 0,
+                  "FN": 7,
+                  "unknown": 1
+                },
+                "scoped": {
+                  "TP": 8,
+                  "TN": 8,
+                  "FP": 0,
+                  "FN": 6,
+                  "unknown": 1
+                }
+              }
+            }
+          },
+          "modelStable": true,
+          "observedRegressionCases": 0,
+          "sampleWorstCase": {
+            "differenceLower": 0,
+            "differenceUpper": 0.08695652173913043,
+            "regressionUpper": 0.043478260869565216
+          },
+          "hypergeometricSuccessRanges": {
+            "B": [
+              1,
+              2
+            ],
+            "C": [
+              0,
+              1
+            ],
+            "R": [
+              0,
+              1
+            ]
+          },
+          "approximation": "NOT_COMPUTED",
+          "claim": "assigned-case arithmetic only; no confidence, population claim or effect acceptance from this function"
+        },
+        "bounds": {
+          "B_L": 1,
+          "B_U": 2,
+          "C_L": 0,
+          "C_U": 1,
+          "R_U": 1,
+          "differenceLowerNumerator": 0,
+          "differenceUpperNumerator": 2,
+          "denominator": 23,
+          "differenceLower": 0,
+          "differenceUpper": 0.08695652173913043,
+          "regressionUpper": 0.043478260869565216
+        },
+        "disposition": "NOT_ESTABLISHED",
+        "method": "five per-pass inclusive exact integer HG tails, round alpha split across two prospectively fixed passes with Bonferroni; unresolved cases enter adversarial success-count ranges; one issue one weight",
+        "regressionClaim": "observed known axis regression count only; report R_U, no population-zero/1% claim",
+        "originFrameSize": 323,
+        "qualificationComplete": true,
+        "knownFailureObserved": false,
+        "technicalUnknown": false,
+        "rawInferenceDisposition": "NOT_ESTABLISHED"
+      },
+      "effectCounts": {
+        "assigned": 92,
+        "attempts": 92,
+        "actualPosts": 92,
+        "qualified": 92,
+        "unknown": 0,
+        "unattempted": 0
+      },
+      "logicalCounts": {
+        "assignedCases": 23,
+        "bestQualified": 23,
+        "candidateQualified": 23
+      },
+      "usage": {
+        "physical": 92,
+        "qualified": 92,
+        "inputKnown": 92,
+        "inputTokens": 223365,
+        "outputKnown": 92,
+        "outputTokens": 2852,
+        "totalKnown": 0,
+        "totalTokens": 0
+      },
+      "byTemplate": {
+        "bestO": {
+          "physical": 23,
+          "qualified": 23,
+          "inputKnown": 23,
+          "inputTokens": 51293,
+          "outputKnown": 23,
+          "outputTokens": 713,
+          "totalKnown": 0,
+          "totalTokens": 0
+        },
+        "c2O": {
+          "physical": 23,
+          "qualified": 23,
+          "inputKnown": 23,
+          "inputTokens": 63069,
+          "outputKnown": 23,
+          "outputTokens": 713,
+          "totalKnown": 0,
+          "totalTokens": 0
+        },
+        "c4O": {
+          "physical": 23,
+          "qualified": 23,
+          "inputKnown": 23,
+          "inputTokens": 58147,
+          "outputKnown": 23,
+          "outputTokens": 713,
+          "totalKnown": 0,
+          "totalTokens": 0
+        },
+        "sharedE": {
+          "physical": 23,
+          "qualified": 23,
+          "inputKnown": 23,
+          "inputTokens": 50856,
+          "outputKnown": 23,
+          "outputTokens": 713,
+          "totalKnown": 0,
+          "totalTokens": 0
+        }
+      },
+      "logicalInputReference": {
+        "best": 102149,
+        "candidate": 172072,
+        "notPhysicalSum": true
+      }
+    },
+    {
+      "repId": 2,
+      "provider": {
+        "repository": "roccho-org/ops",
+        "workflowPath": ".github/workflows/sys1-observation-reserve.yml",
+        "runId": 39459748987,
+        "runAttempt": 1,
+        "head": "d2a8a675719ec2395e0a4e6688202b705c23b4cd",
+        "source": "2e5a5aa7226cc9b6ee92803eecfb151e3cff5b0c",
+        "branch": "codex/jev-observation-reserve-20261020",
+        "event": "push",
+        "actor": "roccho-dev",
+        "conclusion": "success",
+        "runUrl": "https://github.com/roccho-org/ops/actions/runs/39459748987",
+        "artifactId": 12283115262,
+        "artifactName": "sys1-reserve-39459748987",
+        "artifactSize": 177769,
+        "providerDigest": "sha256:dab2397320600041c829f4f82af5fa50e05a6ff3e59a96de4b545cb7ca4706d0",
+        "archiveSha256": "dab2397320600041c829f4f82af5fa50e05a6ff3e59a96de4b545cb7ca4706d0"
+      },
+      "inference": {
+        "roundIndex": 3,
+        "repId": 2,
+        "repetitions": 2,
+        "roundAlpha": {
+          "numerator": "1",
+          "denominator": "160"
+        },
+        "perTailAlpha": {
+          "numerator": "1",
+          "denominator": "1600"
+        },
+        "frameSize": 23,
+        "assigned": 23,
+        "caseIds": [
+          "reserve-001",
+          "reserve-002",
+          "reserve-003",
+          "reserve-004",
+          "reserve-005",
+          "reserve-006",
+          "reserve-007",
+          "reserve-008",
+          "reserve-009",
+          "reserve-010",
+          "reserve-011",
+          "reserve-012",
+          "reserve-013",
+          "reserve-014",
+          "reserve-015",
+          "reserve-016",
+          "reserve-017",
+          "reserve-018",
+          "reserve-019",
+          "reserve-020",
+          "reserve-021",
+          "reserve-022",
+          "reserve-023"
+        ],
+        "scope": "conditional census of the original sealed complement23 after development on its other300; not a new SRS or an estimate for origin323",
+        "observed": {
+          "assigned": 23,
+          "resolved": 22,
+          "unknown": 1,
+          "b": 1,
+          "c": 0,
+          "bothCorrect": 15,
+          "bothIncorrect": 6,
+          "regressionCases": 0,
+          "partialKnownRegressionCases": 0,
+          "baselineCorrect": 15,
+          "candidateCorrect": 16,
+          "axes": {
+            "E": {
+              "resolved": 23,
+              "unknown": 0,
+              "regressions": 0,
+              "b": 0,
+              "c": 0,
+              "baselineCorrect": 23,
+              "candidateCorrect": 23,
+              "goldYes": 23,
+              "goldNo": 0,
+              "goldUnknown": 0,
+              "confusion": {
+                "best": {
+                  "TP": 23,
+                  "TN": 0,
+                  "FP": 0,
+                  "FN": 0,
+                  "unknown": 0
+                },
+                "scoped": {
+                  "TP": 23,
+                  "TN": 0,
+                  "FP": 0,
+                  "FN": 0,
+                  "unknown": 0
+                }
+              }
+            },
+            "O": {
+              "resolved": 22,
+              "unknown": 1,
+              "regressions": 0,
+              "b": 1,
+              "c": 0,
+              "baselineCorrect": 15,
+              "candidateCorrect": 16,
+              "goldYes": 14,
+              "goldNo": 8,
+              "goldUnknown": 1,
+              "confusion": {
+                "best": {
+                  "TP": 7,
+                  "TN": 8,
+                  "FP": 0,
+                  "FN": 7,
+                  "unknown": 1
+                },
+                "scoped": {
+                  "TP": 8,
+                  "TN": 8,
+                  "FP": 0,
+                  "FN": 6,
+                  "unknown": 1
+                }
+              }
+            }
+          },
+          "modelStable": true,
+          "observedRegressionCases": 0,
+          "sampleWorstCase": {
+            "differenceLower": 0,
+            "differenceUpper": 0.08695652173913043,
+            "regressionUpper": 0.043478260869565216
+          },
+          "hypergeometricSuccessRanges": {
+            "B": [
+              1,
+              2
+            ],
+            "C": [
+              0,
+              1
+            ],
+            "R": [
+              0,
+              1
+            ]
+          },
+          "approximation": "NOT_COMPUTED",
+          "claim": "assigned-case arithmetic only; no confidence, population claim or effect acceptance from this function"
+        },
+        "bounds": {
+          "B_L": 1,
+          "B_U": 2,
+          "C_L": 0,
+          "C_U": 1,
+          "R_U": 1,
+          "differenceLowerNumerator": 0,
+          "differenceUpperNumerator": 2,
+          "denominator": 23,
+          "differenceLower": 0,
+          "differenceUpper": 0.08695652173913043,
+          "regressionUpper": 0.043478260869565216
+        },
+        "disposition": "NOT_ESTABLISHED",
+        "method": "five per-pass inclusive exact integer HG tails, round alpha split across two prospectively fixed passes with Bonferroni; unresolved cases enter adversarial success-count ranges; one issue one weight",
+        "regressionClaim": "observed known axis regression count only; report R_U, no population-zero/1% claim",
+        "originFrameSize": 323,
+        "qualificationComplete": true,
+        "knownFailureObserved": false,
+        "technicalUnknown": false,
+        "rawInferenceDisposition": "NOT_ESTABLISHED"
+      },
+      "effectCounts": {
+        "assigned": 92,
+        "attempts": 92,
+        "actualPosts": 92,
+        "qualified": 92,
+        "unknown": 0,
+        "unattempted": 0
+      },
+      "logicalCounts": {
+        "assignedCases": 23,
+        "bestQualified": 23,
+        "candidateQualified": 23
+      },
+      "usage": {
+        "physical": 92,
+        "qualified": 92,
+        "inputKnown": 92,
+        "inputTokens": 223365,
+        "outputKnown": 92,
+        "outputTokens": 2852,
+        "totalKnown": 0,
+        "totalTokens": 0
+      },
+      "byTemplate": {
+        "bestO": {
+          "physical": 23,
+          "qualified": 23,
+          "inputKnown": 23,
+          "inputTokens": 51293,
+          "outputKnown": 23,
+          "outputTokens": 713,
+          "totalKnown": 0,
+          "totalTokens": 0
+        },
+        "c2O": {
+          "physical": 23,
+          "qualified": 23,
+          "inputKnown": 23,
+          "inputTokens": 63069,
+          "outputKnown": 23,
+          "outputTokens": 713,
+          "totalKnown": 0,
+          "totalTokens": 0
+        },
+        "c4O": {
+          "physical": 23,
+          "qualified": 23,
+          "inputKnown": 23,
+          "inputTokens": 58147,
+          "outputKnown": 23,
+          "outputTokens": 713,
+          "totalKnown": 0,
+          "totalTokens": 0
+        },
+        "sharedE": {
+          "physical": 23,
+          "qualified": 23,
+          "inputKnown": 23,
+          "inputTokens": 50856,
+          "outputKnown": 23,
+          "outputTokens": 713,
+          "totalKnown": 0,
+          "totalTokens": 0
+        }
+      },
+      "logicalInputReference": {
+        "best": 102149,
+        "candidate": 172072,
+        "notPhysicalSum": true
+      }
+    }
+  ],
+  "reconfirmation": {
+    "disposition": "NOT_RECONFIRMED",
+    "knownFailurePasses": [
+      1,
+      2
+    ],
+    "unknownPasses": [],
+    "passes": [
+      {
+        "roundIndex": 3,
+        "repId": 1,
+        "repetitions": 2,
+        "roundAlpha": {
+          "numerator": "1",
+          "denominator": "160"
+        },
+        "perTailAlpha": {
+          "numerator": "1",
+          "denominator": "1600"
+        },
+        "frameSize": 23,
+        "assigned": 23,
+        "caseIds": [
+          "reserve-001",
+          "reserve-002",
+          "reserve-003",
+          "reserve-004",
+          "reserve-005",
+          "reserve-006",
+          "reserve-007",
+          "reserve-008",
+          "reserve-009",
+          "reserve-010",
+          "reserve-011",
+          "reserve-012",
+          "reserve-013",
+          "reserve-014",
+          "reserve-015",
+          "reserve-016",
+          "reserve-017",
+          "reserve-018",
+          "reserve-019",
+          "reserve-020",
+          "reserve-021",
+          "reserve-022",
+          "reserve-023"
+        ],
+        "scope": "conditional census of the original sealed complement23 after development on its other300; not a new SRS or an estimate for origin323",
+        "observed": {
+          "assigned": 23,
+          "resolved": 22,
+          "unknown": 1,
+          "b": 1,
+          "c": 0,
+          "bothCorrect": 15,
+          "bothIncorrect": 6,
+          "regressionCases": 0,
+          "partialKnownRegressionCases": 0,
+          "baselineCorrect": 15,
+          "candidateCorrect": 16,
+          "axes": {
+            "E": {
+              "resolved": 23,
+              "unknown": 0,
+              "regressions": 0,
+              "b": 0,
+              "c": 0,
+              "baselineCorrect": 23,
+              "candidateCorrect": 23,
+              "goldYes": 23,
+              "goldNo": 0,
+              "goldUnknown": 0,
+              "confusion": {
+                "best": {
+                  "TP": 23,
+                  "TN": 0,
+                  "FP": 0,
+                  "FN": 0,
+                  "unknown": 0
+                },
+                "scoped": {
+                  "TP": 23,
+                  "TN": 0,
+                  "FP": 0,
+                  "FN": 0,
+                  "unknown": 0
+                }
+              }
+            },
+            "O": {
+              "resolved": 22,
+              "unknown": 1,
+              "regressions": 0,
+              "b": 1,
+              "c": 0,
+              "baselineCorrect": 15,
+              "candidateCorrect": 16,
+              "goldYes": 14,
+              "goldNo": 8,
+              "goldUnknown": 1,
+              "confusion": {
+                "best": {
+                  "TP": 7,
+                  "TN": 8,
+                  "FP": 0,
+                  "FN": 7,
+                  "unknown": 1
+                },
+                "scoped": {
+                  "TP": 8,
+                  "TN": 8,
+                  "FP": 0,
+                  "FN": 6,
+                  "unknown": 1
+                }
+              }
+            }
+          },
+          "modelStable": true,
+          "observedRegressionCases": 0,
+          "sampleWorstCase": {
+            "differenceLower": 0,
+            "differenceUpper": 0.08695652173913043,
+            "regressionUpper": 0.043478260869565216
+          },
+          "hypergeometricSuccessRanges": {
+            "B": [
+              1,
+              2
+            ],
+            "C": [
+              0,
+              1
+            ],
+            "R": [
+              0,
+              1
+            ]
+          },
+          "approximation": "NOT_COMPUTED",
+          "claim": "assigned-case arithmetic only; no confidence, population claim or effect acceptance from this function"
+        },
+        "bounds": {
+          "B_L": 1,
+          "B_U": 2,
+          "C_L": 0,
+          "C_U": 1,
+          "R_U": 1,
+          "differenceLowerNumerator": 0,
+          "differenceUpperNumerator": 2,
+          "denominator": 23,
+          "differenceLower": 0,
+          "differenceUpper": 0.08695652173913043,
+          "regressionUpper": 0.043478260869565216
+        },
+        "disposition": "NOT_ESTABLISHED",
+        "method": "five per-pass inclusive exact integer HG tails, round alpha split across two prospectively fixed passes with Bonferroni; unresolved cases enter adversarial success-count ranges; one issue one weight",
+        "regressionClaim": "observed known axis regression count only; report R_U, no population-zero/1% claim",
+        "originFrameSize": 323,
+        "qualificationComplete": true,
+        "knownFailureObserved": false,
+        "technicalUnknown": false,
+        "rawInferenceDisposition": "NOT_ESTABLISHED"
+      },
+      {
+        "roundIndex": 3,
+        "repId": 2,
+        "repetitions": 2,
+        "roundAlpha": {
+          "numerator": "1",
+          "denominator": "160"
+        },
+        "perTailAlpha": {
+          "numerator": "1",
+          "denominator": "1600"
+        },
+        "frameSize": 23,
+        "assigned": 23,
+        "caseIds": [
+          "reserve-001",
+          "reserve-002",
+          "reserve-003",
+          "reserve-004",
+          "reserve-005",
+          "reserve-006",
+          "reserve-007",
+          "reserve-008",
+          "reserve-009",
+          "reserve-010",
+          "reserve-011",
+          "reserve-012",
+          "reserve-013",
+          "reserve-014",
+          "reserve-015",
+          "reserve-016",
+          "reserve-017",
+          "reserve-018",
+          "reserve-019",
+          "reserve-020",
+          "reserve-021",
+          "reserve-022",
+          "reserve-023"
+        ],
+        "scope": "conditional census of the original sealed complement23 after development on its other300; not a new SRS or an estimate for origin323",
+        "observed": {
+          "assigned": 23,
+          "resolved": 22,
+          "unknown": 1,
+          "b": 1,
+          "c": 0,
+          "bothCorrect": 15,
+          "bothIncorrect": 6,
+          "regressionCases": 0,
+          "partialKnownRegressionCases": 0,
+          "baselineCorrect": 15,
+          "candidateCorrect": 16,
+          "axes": {
+            "E": {
+              "resolved": 23,
+              "unknown": 0,
+              "regressions": 0,
+              "b": 0,
+              "c": 0,
+              "baselineCorrect": 23,
+              "candidateCorrect": 23,
+              "goldYes": 23,
+              "goldNo": 0,
+              "goldUnknown": 0,
+              "confusion": {
+                "best": {
+                  "TP": 23,
+                  "TN": 0,
+                  "FP": 0,
+                  "FN": 0,
+                  "unknown": 0
+                },
+                "scoped": {
+                  "TP": 23,
+                  "TN": 0,
+                  "FP": 0,
+                  "FN": 0,
+                  "unknown": 0
+                }
+              }
+            },
+            "O": {
+              "resolved": 22,
+              "unknown": 1,
+              "regressions": 0,
+              "b": 1,
+              "c": 0,
+              "baselineCorrect": 15,
+              "candidateCorrect": 16,
+              "goldYes": 14,
+              "goldNo": 8,
+              "goldUnknown": 1,
+              "confusion": {
+                "best": {
+                  "TP": 7,
+                  "TN": 8,
+                  "FP": 0,
+                  "FN": 7,
+                  "unknown": 1
+                },
+                "scoped": {
+                  "TP": 8,
+                  "TN": 8,
+                  "FP": 0,
+                  "FN": 6,
+                  "unknown": 1
+                }
+              }
+            }
+          },
+          "modelStable": true,
+          "observedRegressionCases": 0,
+          "sampleWorstCase": {
+            "differenceLower": 0,
+            "differenceUpper": 0.08695652173913043,
+            "regressionUpper": 0.043478260869565216
+          },
+          "hypergeometricSuccessRanges": {
+            "B": [
+              1,
+              2
+            ],
+            "C": [
+              0,
+              1
+            ],
+            "R": [
+              0,
+              1
+            ]
+          },
+          "approximation": "NOT_COMPUTED",
+          "claim": "assigned-case arithmetic only; no confidence, population claim or effect acceptance from this function"
+        },
+        "bounds": {
+          "B_L": 1,
+          "B_U": 2,
+          "C_L": 0,
+          "C_U": 1,
+          "R_U": 1,
+          "differenceLowerNumerator": 0,
+          "differenceUpperNumerator": 2,
+          "denominator": 23,
+          "differenceLower": 0,
+          "differenceUpper": 0.08695652173913043,
+          "regressionUpper": 0.043478260869565216
+        },
+        "disposition": "NOT_ESTABLISHED",
+        "method": "five per-pass inclusive exact integer HG tails, round alpha split across two prospectively fixed passes with Bonferroni; unresolved cases enter adversarial success-count ranges; one issue one weight",
+        "regressionClaim": "observed known axis regression count only; report R_U, no population-zero/1% claim",
+        "originFrameSize": 323,
+        "qualificationComplete": true,
+        "knownFailureObserved": false,
+        "technicalUnknown": false,
+        "rawInferenceDisposition": "NOT_ESTABLISHED"
+      }
+    ],
+    "independentIssueCount": 23,
+    "observationsPerIssue": 2,
+    "claim": "both fixed passes on the same conditional sealed-complement23; not46 independent cases, origin323/Apps/future expectation or Gold infallibility; sampling component is a census point, Gold/model uncertainty is separate",
+    "averageRescue": false,
+    "originFrameSize": 323
+  },
+  "crossPass": {
+    "exactFullRequestMatches": 92,
+    "comparisonUnits": 23,
+    "physicalTemplates": 4,
+    "nIsNot46": true,
+    "choiceChanges": {
+      "bestO": [],
+      "c2O": [],
+      "c4O": [],
+      "sharedE": []
+    },
+    "comparison": "same issue/key request fields, separate native receipts and eventIDs"
+  },
+  "actual": {
+    "physicalPosts": 1984,
+    "qualified": 1984,
+    "inputKnown": 1984,
+    "inputTokens": 4997082,
+    "outputKnown": 1984,
+    "outputTokens": 61504,
+    "totalKnown": 0,
+    "totalTokens": 0
+  },
+  "phases": [
+    {
+      "phase": "development1",
+      "physicalPosts": 300,
+      "qualified": 300,
+      "inputKnown": 300,
+      "inputTokens": 873992,
+      "outputKnown": 300,
+      "outputTokens": 9300,
+      "totalKnown": 0,
+      "totalTokens": 0
+    },
+    {
+      "phase": "development2",
+      "physicalPosts": 300,
+      "qualified": 300,
+      "inputKnown": 300,
+      "inputTokens": 746792,
+      "outputKnown": 300,
+      "outputTokens": 9300,
+      "totalKnown": 0,
+      "totalTokens": 0
+    },
+    {
+      "phase": "development3",
+      "physicalPosts": 300,
+      "qualified": 300,
+      "inputKnown": 300,
+      "inputTokens": 817592,
+      "outputKnown": 300,
+      "outputTokens": 9300,
+      "totalKnown": 0,
+      "totalTokens": 0
+    },
+    {
+      "phase": "development4",
+      "physicalPosts": 300,
+      "qualified": 300,
+      "inputKnown": 300,
+      "inputTokens": 682592,
+      "outputKnown": 300,
+      "outputTokens": 9300,
+      "totalKnown": 0,
+      "totalTokens": 0
+    },
+    {
+      "phase": "development5",
+      "physicalPosts": 600,
+      "qualified": 600,
+      "inputKnown": 600,
+      "inputTokens": 1429384,
+      "outputKnown": 600,
+      "outputTokens": 18600,
+      "totalKnown": 0,
+      "totalTokens": 0
+    },
+    {
+      "phase": "and-pass1",
+      "physicalPosts": 92,
+      "qualified": 92,
+      "inputKnown": 92,
+      "inputTokens": 223365,
+      "outputKnown": 92,
+      "outputTokens": 2852,
+      "totalKnown": 0,
+      "totalTokens": 0
+    },
+    {
+      "phase": "and-pass2",
+      "physicalPosts": 92,
+      "qualified": 92,
+      "inputKnown": 92,
+      "inputTokens": 223365,
+      "outputKnown": 92,
+      "outputTokens": 2852,
+      "totalKnown": 0,
+      "totalTokens": 0
+    }
+  ],
+  "generatorRequests": 0,
+  "totalTokensUnknown": 1984,
+  "adopted": false,
+  "originalBestMaintained": true,
+  "reserveStatus": "RETIRED_AFTER_TWO_FIXED_PASSES_NO_RETEST",
+  "claim": "conditional complement23 finite observations; primary positive lower bound not established; no future/origin323/Apps/Gold-infallibility or same-cost/causal-judge claim"
+}

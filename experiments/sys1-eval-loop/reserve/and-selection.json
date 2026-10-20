@@ -1,0 +1,237 @@
+{
+  "schema": "ops.sys1.reserve-and-selection.v1",
+  "selectedFrom": "actual concurrent D5 component receipts; historical baseline/E remain nonconcurrent",
+  "development": {
+    "provider": {
+      "repository": "roccho-org/ops",
+      "workflowPath": ".github/workflows/sys1-observation-reserve.yml",
+      "runId": 39452206612,
+      "runAttempt": 1,
+      "head": "3a8e6ebc54121d9433c550f70ad72284083b589d",
+      "source": "df0bdebb66bf513ecccdbaa37a015beb7fa5a939",
+      "branch": "codex/jev-observation-reserve-20261020",
+      "event": "push",
+      "actor": "roccho-dev",
+      "conclusion": "success",
+      "runUrl": "https://github.com/roccho-org/ops/actions/runs/39452206612",
+      "artifactId": 12277619377,
+      "artifactName": "sys1-reserve-39452206612",
+      "artifactSize": 1500165,
+      "providerDigest": "sha256:0d325a7b11503630ec0762e652f476f916338626ae8b3900bf19d50357167774",
+      "archiveSha256": "0d325a7b11503630ec0762e652f476f916338626ae8b3900bf19d50357167774"
+    },
+    "guard": {
+      "baselineCorrect": 220,
+      "candidateCorrect": 229,
+      "unknownGold": 7,
+      "repaired": [
+        "held-001",
+        "held-008",
+        "held-072",
+        "held-101",
+        "held-221",
+        "held-249",
+        "held-253",
+        "held-254",
+        "held-297"
+      ],
+      "regressed": [],
+      "unionAxisRegressed": [],
+      "unknownProtectedAxes": [],
+      "positiveKnownCompleteGain": true,
+      "noUnionAxisRegression": true,
+      "qualificationComplete": true,
+      "modelStable": true,
+      "eligible": true,
+      "scope": "retired D300; primary mechanical H1 joint gain; H2 only auxiliary guard; historical E is not fresh confirmation"
+    },
+    "effectCounts": {
+      "assigned": 600,
+      "attempts": 600,
+      "actualPosts": 600,
+      "qualified": 600,
+      "unknown": 0,
+      "unattempted": 0
+    },
+    "logicalCounts": {
+      "assigned": 300,
+      "qualified": 300,
+      "unknown": 0
+    }
+  },
+  "configuration": {
+    "candidateVersion": 5,
+    "operator": "AND_TWO_QUALIFIED_CHOICES",
+    "componentVersions": {
+      "c2O": 2,
+      "c4O": 4
+    },
+    "best": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。",
+    "components": {
+      "c2O": {
+        "templates": {
+          "bestE": {
+            "model": "jev-latest",
+            "state": "{\"body\":\"fixed body for request identity only\"}",
+            "questions": {
+              "live": {
+                "type": "choice",
+                "criteria": {
+                  "yes": "本文に、実現すべき状態・必要な責務・入力と出力の対応・要件・受入条件のいずれかが宣言されている。",
+                  "no": "本文に実現すべき状態の宣言がない。見出しの名前を除くと実施報告・観測・経緯だけである。"
+                },
+                "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はEだけ：本文が実現すべき状態を一つでも宣言しているか。完成状態の表・責務・式も宣言である。Goal等の見出しだけでYesにしない。本文にそのような期待がなければNo。実施済みと書いてあるだけなら期待ではない。"
+              }
+            }
+          },
+          "scopedE": {
+            "model": "jev-latest",
+            "state": "{\"body\":\"fixed body for request identity only\"}",
+            "questions": {
+              "live": {
+                "type": "choice",
+                "criteria": {
+                  "yes": "本文に、実現すべき状態・必要な責務・入力と出力の対応・要件・受入条件のいずれかが宣言されている。",
+                  "no": "本文に実現すべき状態の宣言がない。見出しの名前を除くと実施報告・観測・経緯だけである。"
+                },
+                "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はEだけ：本文が実現すべき状態を一つでも宣言しているか。完成状態の表・責務・式も宣言である。Goal等の見出しだけでYesにしない。本文にそのような期待がなければNo。実施済みと書いてあるだけなら期待ではない。"
+              }
+            }
+          },
+          "bestO": {
+            "model": "jev-latest",
+            "state": "{\"body\":\"fixed body for request identity only\"}",
+            "questions": {
+              "live": {
+                "type": "choice",
+                "criteria": {
+                  "yes": "本文が、実際に実施したこと・確認したこと・現時点の達成/未達/調査状況を報告している。",
+                  "no": "本文は期待・役割・入出力の設計・条件・仮定・架空の受入例だけで、実際の観測を報告していない。"
+                },
+                "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はOだけ：本文が実際の出来事や達成状況を報告しているか。現在形の定義、完成状態の表、役割、将来条件や架空の入力例は報告ではない。実測の引用、確認済み/未確認の進捗一覧、HTMLコメント内の作業メモは報告に含める。comments配列内だけの観測は数えない。"
+              }
+            }
+          },
+          "scopedO": {
+            "model": "jev-latest",
+            "state": "{\"body\":\"fixed body for request identity only\"}",
+            "questions": {
+              "live": {
+                "type": "choice",
+                "criteria": {
+                  "yes": "本文が、実際に実施したこと・確認したこと・現時点の達成/未達/調査状況を報告している。本文が現実の出来事や現在の状態を報告している箇所の有無でOを決める。規範・責務・権限・構成・採用先の定義や宣言、望ましい完成状態・受入条件を示しているだけならno。その内部の現在形や完了・採用・存在・通過などの語だけを、既に起きた事実の報告へ昇格しない。一方、本文内に実操作・実装・確認結果、現在の進行・未達・未確認・失敗・調査中などの現実報告が一つでもあればyes。成功・完了・数値・外部の証拠は不要で、本文外の真偽は検証しない。設計文書や見出し、引用・表・HTMLコメントという形式だけで報告を除外しない。",
+                  "no": "本文は期待・役割・入出力の設計・条件・仮定・架空の受入例だけで、実際の観測を報告していない。本文が現実の出来事や現在の状態を報告している箇所の有無でOを決める。規範・責務・権限・構成・採用先の定義や宣言、望ましい完成状態・受入条件を示しているだけならno。その内部の現在形や完了・採用・存在・通過などの語だけを、既に起きた事実の報告へ昇格しない。一方、本文内に実操作・実装・確認結果、現在の進行・未達・未確認・失敗・調査中などの現実報告が一つでもあればyes。成功・完了・数値・外部の証拠は不要で、本文外の真偽は検証しない。設計文書や見出し、引用・表・HTMLコメントという形式だけで報告を除外しない。"
+                },
+                "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はOだけ：本文が実際の出来事や達成状況を報告しているか。現在形の定義、完成状態の表、役割、将来条件や架空の入力例は報告ではない。実測の引用、確認済み/未確認の進捗一覧、HTMLコメント内の作業メモは報告に含める。comments配列内だけの観測は数えない。"
+              }
+            }
+          }
+        },
+        "identityRule": "exact serialized standard client requests; only candidate O criteria differ from original Best",
+        "physical": {
+          "development": [
+            "scopedO"
+          ],
+          "measurement": [
+            "bestO",
+            "scopedO",
+            "sharedE"
+          ]
+        },
+        "alias": {
+          "development": "mechanical H1 original Best O/sharedE; H2 original Best only contributes the auxiliary known-correct-axis union guard; historical nonconcurrent receipts",
+          "measurement": "one contemporary sharedE receipt within each repetition; no cross-repetition reuse"
+        }
+      },
+      "c4O": {
+        "templates": {
+          "bestE": {
+            "model": "jev-latest",
+            "state": "{\"body\":\"fixed body for request identity only\"}",
+            "questions": {
+              "live": {
+                "type": "choice",
+                "criteria": {
+                  "yes": "本文に、実現すべき状態・必要な責務・入力と出力の対応・要件・受入条件のいずれかが宣言されている。",
+                  "no": "本文に実現すべき状態の宣言がない。見出しの名前を除くと実施報告・観測・経緯だけである。"
+                },
+                "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はEだけ：本文が実現すべき状態を一つでも宣言しているか。完成状態の表・責務・式も宣言である。Goal等の見出しだけでYesにしない。本文にそのような期待がなければNo。実施済みと書いてあるだけなら期待ではない。"
+              }
+            }
+          },
+          "scopedE": {
+            "model": "jev-latest",
+            "state": "{\"body\":\"fixed body for request identity only\"}",
+            "questions": {
+              "live": {
+                "type": "choice",
+                "criteria": {
+                  "yes": "本文に、実現すべき状態・必要な責務・入力と出力の対応・要件・受入条件のいずれかが宣言されている。",
+                  "no": "本文に実現すべき状態の宣言がない。見出しの名前を除くと実施報告・観測・経緯だけである。"
+                },
+                "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はEだけ：本文が実現すべき状態を一つでも宣言しているか。完成状態の表・責務・式も宣言である。Goal等の見出しだけでYesにしない。本文にそのような期待がなければNo。実施済みと書いてあるだけなら期待ではない。"
+              }
+            }
+          },
+          "bestO": {
+            "model": "jev-latest",
+            "state": "{\"body\":\"fixed body for request identity only\"}",
+            "questions": {
+              "live": {
+                "type": "choice",
+                "criteria": {
+                  "yes": "本文が、実際に実施したこと・確認したこと・現時点の達成/未達/調査状況を報告している。",
+                  "no": "本文は期待・役割・入出力の設計・条件・仮定・架空の受入例だけで、実際の観測を報告していない。"
+                },
+                "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はOだけ：本文が実際の出来事や達成状況を報告しているか。現在形の定義、完成状態の表、役割、将来条件や架空の入力例は報告ではない。実測の引用、確認済み/未確認の進捗一覧、HTMLコメント内の作業メモは報告に含める。comments配列内だけの観測は数えない。"
+              }
+            }
+          },
+          "scopedO": {
+            "model": "jev-latest",
+            "state": "{\"body\":\"fixed body for request identity only\"}",
+            "questions": {
+              "live": {
+                "type": "choice",
+                "criteria": {
+                  "yes": "本文が、実際に実施したこと・確認したこと・現時点の達成/未達/調査状況を報告している。本文に、実際に行ったこと・起きたこと・現在の状態や進行・未達・未確認・失敗・調査中を報告する箇所が一つでもある。規範や設計定義と混在しても含め、成功・完了・数値・外部証拠・具体性を必要条件にしない。報告の本文外の真偽は検証せず、見出し・時制・引用等の形式だけで除外しない。",
+                  "no": "本文は期待・役割・入出力の設計・条件・仮定・架空の受入例だけで、実際の観測を報告していない。本文に現実の出来事や状態・進行・未達・未確認等の報告がなく、命令・将来の期待・規範・責務・権限・構成・採用先の定義、望ましい完成状態・受入条件・仮定・架空例などを示しているだけ。これらの内部の現在形や完了・採用・存在・通過等の語だけを既達報告へ昇格しない。現実報告が混在していればこのno条件には該当しない。"
+                },
+                "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はOだけ：本文が実際の出来事や達成状況を報告しているか。現在形の定義、完成状態の表、役割、将来条件や架空の入力例は報告ではない。実測の引用、確認済み/未確認の進捗一覧、HTMLコメント内の作業メモは報告に含める。comments配列内だけの観測は数えない。"
+              }
+            }
+          }
+        },
+        "identityRule": "exact serialized standard client requests; only candidate O criteria differ from original Best",
+        "physical": {
+          "development": [
+            "scopedO"
+          ],
+          "measurement": [
+            "bestO",
+            "scopedO",
+            "sharedE"
+          ]
+        },
+        "alias": {
+          "development": "mechanical H1 original Best O/sharedE; H2 original Best only contributes the auxiliary known-correct-axis union guard; historical nonconcurrent receipts",
+          "measurement": "one contemporary sharedE receipt within each repetition; no cross-repetition reuse"
+        }
+      }
+    },
+    "expectedModel": "jev-1.13.0"
+  },
+  "actualRequestTemplateChecks": 600,
+  "noFurtherCandidateChanges": true,
+  "adopted": false,
+  "reserve": {
+    "status": "NOT_READ_NOT_RUN_BY_WRITER",
+    "conditionalFrameSize": 23,
+    "originFrameSize": 323,
+    "roundIndex": 3,
+    "perPassMaximum": 92,
+    "repetitions": 2,
+    "totalMaximum": 184,
+    "sourceAcceptance": "actual data/native source/required checks and three-counter review still required"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "canonicalReplayEqual": true,
+  "execution": {
+    "source": "3d126035e814b18eb4fa4e5f23a0ce475962535f",
+    "activation": "9c9841dea220cffca817f73bbb01ef61d28a7d14",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39447516408"
+  },
+  "effectCounts": {
+    "assigned": 300,
+    "attempts": 300,
+    "actualPosts": 300,
+    "qualified": 300,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "guard": {
+    "baselineCorrect": 220,
+    "candidateCorrect": 232,
+    "unknownGold": 7,
+    "repaired": [
+      "held-001",
+      "held-008",
+      "held-043",
+      "held-072",
+      "held-101",
+      "held-221",
+      "held-253",
+      "held-254",
+      "held-269",
+      "held-278",
+      "held-292",
+      "held-293",
+      "held-297",
+      "held-300"
+    ],
+    "regressed": [
+      "held-155",
+      "held-230"
+    ],
+    "unionAxisRegressed": [
+      {
+        "id": "held-155",
+        "axis": "O"
+      },
+      {
+        "id": "held-230",
+        "axis": "O"
+      }
+    ],
+    "unknownProtectedAxes": [],
+    "positiveKnownCompleteGain": true,
+    "noUnionAxisRegression": false,
+    "qualificationComplete": true,
+    "modelStable": true,
+    "eligible": false,
+    "scope": "retired D300; primary mechanical H1 joint gain; H2 only auxiliary guard; historical E is not fresh confirmation"
+  },
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "usage": {
+    "physical": 300,
+    "qualified": 300,
+    "inputKnown": 300,
+    "inputTokens": 682592,
+    "outputKnown": 300,
+    "outputTokens": 9300,
+    "totalKnown": 0,
+    "totalTokens": 0
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "schema": "ops.sys1.observation-reserve-prospective.v1",
+  "createdAt": "2026-10-20T13:27:15.632Z",
+  "state": "PRE_RESERVE_VIEW_NO_NEXT_CANDIDATE_OR_MODEL",
+  "policy": "0dd39ca41718fafe40e58c6927a2ebb0ea297eee",
+  "permission": "Same User GO and same root/W/R counter loop. No merge/adoption, new auth or provider authority.",
+  "actors": {
+    "root": "/root",
+    "writer": "/root/jev_loop_design",
+    "counter": "/root/jev_loop_counterreview"
+  },
+  "previousRound": {
+    "pr": "https://github.com/roccho-org/ops/pull/615",
+    "finalSource": "fcd1fb58ed1706f584290db337c962dc63a0400e",
+    "disposition": "NOT_RECONFIRMED",
+    "regressionUnion": [
+      "held-101",
+      "held-155",
+      "held-196",
+      "held-289"
+    ],
+    "ordinaryCiClosure": "separate actual terminal evidence; not inferred by this plan"
+  },
+  "cohort": {
+    "frameNativeCommit": "034a16b70a71127bbb09175229048875db649980",
+    "framePath": "experiments/sys1-eval-loop/observation-root-data/frame-1/frame-replayed.json",
+    "samplingNativeCommit": "1959840a9b42378f5b9c08418d91610fb05dd45b",
+    "samplingPath": "experiments/sys1-eval-loop/observation-root-data/sampling-1.json",
+    "sourceFrameSize": 323,
+    "developmentSplitSize": 300,
+    "eligible": "all and only original sampling.reserveIds in original order; exact native bodies; no API, redraw, resize, replacement, new exclusion or filtering",
+    "frameSize": 23,
+    "sampleSize": 23,
+    "mode": "census of the prospectively sealed complement, NOT a new SRS of323",
+    "identityProjection": "reserve-001 through reserve-023, sourceId mapping privately retained",
+    "claimCeiling": "conditional finite reserve23 only; candidate learns from old300. Not original323, Apps, future population expected gain, human-oracle accuracy or provider stability."
+  },
+  "informationBoundary": {
+    "writer": "No reserve body, labels, repo/case type, distribution or difficult-case hints until next single candidate full-wire freeze and development guard.",
+    "raters": "Original split.mjs hasExpectation/hasObservation/question only; body-only; each full initial freezes before reading the other; disagreements adjudicated before predictions, unresolved axes null.",
+    "afterReserveRead": "Root/R candidate semantic advice must cite only public retired D300 or original rubric. No reserve-derived semantic, type, distribution or difficulty hint to W. Source counter can examine wire/qualification/accounting/history/information boundaries without tailoring treatment to reserve.",
+    "sameUid": "Role information boundary, not a claim of OS cryptographic isolation or lifetime universal unexposure."
+  },
+  "development": {
+    "datasetNativeCommit": "b00ca2c012b983a8eff9ae9cb072bd9406bbf51e",
+    "datasetPath": "experiments/sys1-eval-loop/observation-root-data/corpus.json",
+    "allAssigned": 300,
+    "goldNullO": 7,
+    "retirement": "all former selected300 and BOTH historical passes are development now, never fresh H again",
+    "primaryHistoricalAnchor": {
+      "repId": 1,
+      "runId": 39426848156,
+      "keys": [
+        "bestO",
+        "sharedE"
+      ],
+      "selection": "mechanical first pass fixed before next candidate; no casewise best run switching"
+    },
+    "unionHistoricalGuard": {
+      "runs": [
+        39426848156,
+        39427992227
+      ],
+      "rule": "preserve every Gold-known axis correct in either original Best historical pass; auxiliary conservative development guard, not primary gain cherry-picking"
+    },
+    "candidate": "W single generic O criteria-only configuration, original Best baseline and E/instructions/task meaning unchanged; no lookup/issue-specific rule; complete standard-wire freeze before reserve release",
+    "generatorCalls": 0,
+    "freshPhysicalCalls": 300,
+    "requiredGuard": [
+      "all300 fresh O qualified and modelStable",
+      "known complete E/O paired gain positive against fixed historical H1 (primary); report O change as secondary",
+      "zero regression against union historical known-correct axis set"
+    ],
+    "failure": "retain failed candidate and all receipts; reserve remains closed. No blind same-candidate resend; later candidate is a separately countered development iteration.",
+    "limitation": "historical nonconcurrent baseline/sharedE aliases are not fresh E performance/no-regression evidence",
+    "primaryMeasure": "Complete E/O paired correctness, not O-only gain; shared historical E errors can prevent an O repair from repairing the complete answer."
+  },
+  "measurement": {
+    "roundIndex": 3,
+    "repetitions": 2,
+    "roundAlpha": "1/160",
+    "perTailAlpha": "1/1600 over5tails*2passes",
+    "physicalTemplates": [
+      "bestO",
+      "newO",
+      "sharedE"
+    ],
+    "maxPostPerPass": 69,
+    "maxPosts": 138,
+    "requestOrder": "cyclic three physical templates; E shared within pass only, never cross pass",
+    "primary": "same all-assigned conservative B/C/R bounds and known-axis regression guard; each pass lower gain>0 and worst-case sample gain>0, full qualification, observed regression0, both AND; no average rescue",
+    "unknown": "all23 denominators; unresolved Gold, missing/failed/unattempted measurements retained",
+    "model": "standard existing alias jev-latest, observed model jev-1.13.0 or technical drift stop; strict probability qualification/deadline/no retry unchanged",
+    "onFailure": "all23 retire to D after one planned two-pass use; no candidate change then same23 re-H; no alpha reset or threshold/Gold relaxation",
+    "limit": "census point bounds describe this fixed Gold/protocol observation, not future/model/Gold confidence. Two passes still23 unique issue units; probabilistic independence of issues is not separately established or assumed by a census."
+  },
+  "execution": {
+    "preparation": "Root/R native plan/view/independent Gold may proceed during615 finalCI; do not claim615 closed/Ready early.",
+    "product": "Next meaningful small PR from615 final exact source after its actual closure; preserve615 raw/fullwire/meaning/default replay, not arbitrary whole-folder byte freeze.",
+    "reuse": "Native standard client/qualification/accounting/pure request and existing inference; smallest parameterization with exact legacy defaults versus thin fixed adapter assessed by actual diff. No generic executor/arbitrary endpoint/new ledger/auth.",
+    "checks": "Legacy closed raw/default wire replay plus new fullwire/qualification/accounting/admission checks and required actual CI; no required check weakening."
+  },
+  "mmd": "flowchart TB\n  A[\"✅ 旧H300退役・両回失敗/既知正答保持\"] --> B[\"🔒 事前契約・原reserve23順を固定\"]\n  B --> G[\"⏳ root/R独立Gold凍結・Wへヒント0\"]\n  B --> C[\"⏳ W generic O候補1・D300/unionguard\"]\n  C --> F[\"🔒 fullwire固定・D成立後だけWへ23解禁\"]\n  G --> F\n  F --> H[\"⏳ 二回各69・全23・j3/AND\"]\n  H --> R[\"📏 有限23・正/負/unknown全部保存\"]"
+}

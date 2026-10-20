@@ -1,0 +1,42 @@
+{
+  "schema": "ops.sys1.observation-reserve-and-prospective.v1",
+  "state": "BEFORE_COMPOSITE_D_AND_WRITER_RESERVE_DISCLOSURE",
+  "amends": "prospective-plan.json remains byte-identical to the original native d678 contract; this separately retained amendment changes physical treatment and accounting only",
+  "reason": "Public retired D300 nonconcurrent C2/C4 AND diagnostic has positive complete gain and no union regression; this is hypothesis selection, not live qualification or reserve admission",
+  "treatment": {
+    "candidateVersion": 5,
+    "components": {"c2O": 2, "c4O": 4},
+    "operator": "AND_TWO_QUALIFIED_CHOICES",
+    "rule": "Always request both fixed components. With both qualified, yes only when both choices are yes; otherwise no. Any invalid, missing or unattempted component gives unknown, even when the other says no. No cascade, retry, invented probability or confidence.",
+    "comparison": "Additional-compute strategy bundle versus original Best; not single-call or same-cost improvement, component independence or isolated causal asymmetry"
+  },
+  "development": {
+    "rows": 300,
+    "physicalPosts": 600,
+    "logicalAssignments": 300,
+    "primary": "Positive known complete E/O gain against mechanical original H1",
+    "guard": "Preserve every known-correct axis in original H1 or H2; all600 component calls qualified, all300 derived choices known and model stable",
+    "historicalE": "Original H1 exact-wire E alias; nonconcurrent, not a fresh E measurement",
+    "order": "Alternate c2O,c4O and c4O,c2O by fixed case index; never output-dependent",
+    "noRescue": "Retain original failed D1-D4. New composite D is a separate contemporary experiment, not a retry or unique-query claim; old component payloads intentionally recur. Offline AND cannot qualify this D."
+  },
+  "reserve": {
+    "cohort": "Same original reserveIds23 in original order; conditional sealed-complement census M23, origin323 separately; no API, redraw, filtering or replacement",
+    "writerBoundary": "No body/Gold/distribution/type hint until independently accepted live composite D and native full-wire freeze",
+    "physicalTemplates": ["bestO", "c2O", "c4O", "sharedE"],
+    "maxPostsPerPass": 92,
+    "repetitions": 2,
+    "maxPosts": 184,
+    "order": "Prospective cyclic four-template order; E shared within each pass only; no cross-pass reuse",
+    "roundIndex": 3,
+    "roundAlpha": "1/160",
+    "perTailAlpha": "1/1600",
+    "acceptance": "Unchanged complete-case positive lower bound and worst-case sample gain, zero observed known-axis regression, all physical qualifications; both fixed passes AND, no semantic-failure cancellation or average rescue",
+    "unknown": "Gold null, qualification failure and unattempted assignments remain in full denominators",
+    "claimCeiling": "Finite conditional23 twice only; not46 independent units, original323, Apps, future performance or Gold infallibility",
+    "admission": "Separate actual reserve data/source/check/three-counter acceptance; this D source cannot execute reserve"
+  },
+  "accounting": {"retainedActualD1ToD4": 1200, "newDMaximum": 600, "prospectiveReserveMaximum": 184, "seriesMaximum": 1984, "DJobMinutes": 170, "deadlineMs": 15000, "newGeneratorCalls": 0},
+  "unchanged": "Original Best, E/instructions, component C2/C4 actual requests, task meaning, bodies, Gold, mechanical primary and union guard, strict standard client, no new credentials/executor/ledger, no merge/adoption",
+  "information": "The amendment uses only public D and physical accounting; root/R private23 semantic hints are forbidden. Original plan and every failed effect remain retained."
+}

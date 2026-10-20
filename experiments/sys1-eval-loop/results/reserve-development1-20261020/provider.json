@@ -1,0 +1,18 @@
+{
+  "repository": "roccho-org/ops",
+  "workflowPath": ".github/workflows/sys1-observation-reserve.yml",
+  "runId": 39436861326,
+  "runAttempt": 1,
+  "head": "0334b78d90cdb30da383e19e008f3af9a8ce8fe5",
+  "source": "4961ae1929cb3361f8ce4eeef6fda121f86e5256",
+  "branch": "codex/jev-observation-reserve-20261020",
+  "event": "push",
+  "actor": "roccho-dev",
+  "conclusion": "success",
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39436861326",
+  "artifactId": 12271616717,
+  "artifactName": "sys1-reserve-39436861326",
+  "artifactSize": 1380509,
+  "providerDigest": "sha256:d9869cdd291273b1f8867aefd7e8ee330c59e2b9862fe5be1d428a8bd9ea68a9",
+  "archiveSha256": "d9869cdd291273b1f8867aefd7e8ee330c59e2b9862fe5be1d428a8bd9ea68a9"
+}
