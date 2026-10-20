@@ -51,6 +51,17 @@ export async function withOwnerSockets(signal, operation) {
   try { return await operation(sockets); }
   finally { signal.removeEventListener("abort", close); close(); }
 }
+export function closeOwnerSocket(socket, signal) {
+  if (socket.readyState === WebSocket.CLOSED) return Promise.resolve();
+  if (signal.aborted) { socket.terminate(); return Promise.resolve(); }
+  return new Promise(resolve => {
+    const finish = () => { signal.removeEventListener("abort", cancel); resolve(); };
+    const cancel = () => { socket.terminate(); finish(); };
+    socket.once("close", finish);
+    signal.addEventListener("abort", cancel, { once: true });
+    socket.close(1000, "finite proof");
+  });
+}
 async function run() {
 const { values } = parseArgs({ options: {
   url: { type: "string" }, session: { type: "string" }, host: { type: "string" },
@@ -128,6 +139,7 @@ const catalog = await catalogResponse.json();
 assert.ok(Array.isArray(catalog.models) && catalog.models.some(model => model.visibility === "list" && model.slug === "gpt-6-luna"), "Configured model unavailable; separate model review required");
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function connect() {
+  abort.signal.throwIfAborted();
   assert.ok(bearer.expires > Date.now() + 30_000, "Access expired; stop without reauthentication/retry");
   const url = new URL("/api/sessions/" + values.session, origin);
   url.protocol = "wss:";
@@ -174,7 +186,7 @@ async function connect() {
       return turnMessages(frames.slice(start), conversationId);
     },
     close() {
-      return new Promise(resolve => { ws.once("close", resolve); ws.close(1000, "finite proof"); });
+      return closeOwnerSocket(ws, abort.signal);
     },
   };
 }

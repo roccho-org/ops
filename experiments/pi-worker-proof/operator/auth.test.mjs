@@ -243,7 +243,7 @@ test("owner turn completion and result collection are bound to the exact convers
   ],["stop"]));
 });
 test("owned socket scope terminates real loopback sockets on failure and owner abort",async()=>{
-  const {withOwnerSockets}=await import("./owner.mjs");
+  const {withOwnerSockets,closeOwnerSocket}=await import("./owner.mjs");
   const {WebSocket,WebSocketServer}=await import("ws");
   const {once}=await import("node:events");
   const server=new WebSocketServer({host:"127.0.0.1",port:0});
@@ -263,6 +263,7 @@ test("owned socket scope terminates real loopback sockets on failure and owner a
       await assert.rejects(attempt);
       await closed;
       assert.equal(socket.readyState,WebSocket.CLOSED);
+      await Promise.race([closeOwnerSocket(socket,abort.signal),new Promise((_,reject)=>setTimeout(()=>reject(Error("closed socket did not settle")),250))]);
     }
   }finally {
     for(const socket of server.clients)socket.terminate();
