@@ -1,0 +1,83 @@
+{
+  "schema": "ops.sys1.real-case-plan.v1",
+  "status": "design-proposal-no-collection-or-effects",
+  "purpose": "Approximate fixed-frame gain of the unchanged PR611 request configuration; no population-zero or deployment claim",
+  "frozenComparison": {
+    "source": "PR611 final 641fed724f3a8ec4ca4e17be8a230d01ed40fca1",
+    "best": "original full E/O request",
+    "candidate": "same Best with the retained scoped E criteria only",
+    "physicalTemplates": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
+    "candidateChanges": false
+  },
+  "frame": {
+    "repositories": [
+      "roccho-org/ops",
+      "roccho-dev/apps"
+    ],
+    "visibility": "public-only",
+    "unit": "one non-PR issue and its whole observed body version",
+    "states": [
+      "open",
+      "closed"
+    ],
+    "createdBefore": "2026-10-20T00:00:00Z",
+    "eligibility": [
+      "nonempty whole body",
+      "all three actual serialized standard-client request bodies fit below 24000 UTF8 bytes",
+      "not a known-used issue identity: all old605 snapshot100 source URLs, every other retained prior source URL and explicit known-used ops482; semantic content/model outcomes never decide exclusions"
+    ],
+    "notAllowed": [
+      "semantic or label-based selection",
+      "truncation/paragraph extraction",
+      "comments/link content as added context",
+      "late replacement of missing or ambiguous sampled cases"
+    ],
+    "snapshot": "created before cutoff; newest body actually obtained per record during a bounded acquisition window, not atomic historical snapshot; record created_at/updated_at/retrievedAt separately",
+    "identity": "resolve immutable repository IDs before acquisition; preserve issue provider ID/number/URL and captured body bytes"
+  },
+  "sampling": {
+    "method": "SRSWOR via one random permutation of the frozen eligible frame",
+    "size": "min(300, eligible frame N)",
+    "reserve": "undrawn permutation suffix stays sealed; no reserve invented when census exhausts frame",
+    "redraw": false,
+    "claim": "fixed eligible frame only, not future issues or all GitHub"
+  },
+  "gold": {
+    "raters": [
+      "root",
+      "counterreview"
+    ],
+    "independentBefore": "any new model outputs",
+    "visible": "body only plus opaque unit identifier",
+    "blindTo": "Best/scoped outputs; not blind to the known treatment design",
+    "disagreement": "retain each original label, discuss before model run; unresolved axis is null and entire case remains in assigned denominator",
+    "noResultConditionedEdits": true
+  },
+  "inference": {
+    "roundFamily": "real-case approximation, consecutive j starts at 1 and never resets for retries/new audit",
+    "alpha": "0.05 / 2**j",
+    "tails": "alpha_j / 5",
+    "method": "finite-population hypergeometric inverted B_L/B_U/C_L/C_U/R_U; conservative Bonferroni composition",
+    "unknown": "fully unresolved cases u remain assigned: B [b,b+u], C [c,c+u], R [r,r+u]; r counts only fully resolved cases, partial known regression is separately observed",
+    "acceptance": [
+      "delta lower bound > 0",
+      "observed known case-axis regression count = 0, including partial known regressions; no population-zero claim",
+      "assigned worst-case difference remains positive",
+      "model drift or invalid sampling/transport provenance yields UNKNOWN"
+    ],
+    "regressionUpper": "always report numerically, no arbitrary 1% acceptance threshold",
+    "assumptions": "design-based exactness presumes fixed finite binary outcomes and SRS; model stochasticity/backend/Gold uncertainty limit the actual protocol claim to an approximation",
+    "implementation": "not yet implemented or accepted"
+  },
+  "execution": {
+    "plannedPhysicalCalls": "3 * sample n, at most 900 per round",
+    "route": "reuse existing native standard Jev client/CI/credential boundary; no new route exists in this slice",
+    "retry": "do not resend successful or effect-uncertain requests",
+    "money": "record physical usage and unknown money, not alias rows",
+    "mergeOrAdoption": false
+  }
+}
