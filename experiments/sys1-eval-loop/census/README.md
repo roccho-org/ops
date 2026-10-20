@@ -1,12 +1,12 @@
-# 固定AND設定の新時間窓census設計
+# 固定AND設定のcensus設計と別cohort契約
 
-[PR616](https://github.com/roccho-org/ops/pull/616) は事前primaryで二回とも未成立、元Best維持・未採用の記録である。このsourceは同23を新式で採択救済せず、固定C5を変えない次のprospective設計と整数包絡を実装する。新metadata/本文API/モデル作用は0。collector/native入口は未実装・未受容で、現sourceだけで取得や実測を開始しない。
+[PR616](https://github.com/roccho-org/ops/pull/616) は事前primaryで二回とも未成立、元Best維持・未採用の記録である。このsourceは同23を新式で採択救済せず、固定C5を変えないprospective設計と整数包絡を実装する。最初の117repo時間窓はsource8fの契約に従いmetadataのみ125呼出しで完了し、354 unique Issueのうちwindow内0/prefix0、NO_CASESとなった。本文取得・モデル呼出しは0。原247fileはnative `a74b93bd0ebf19ba87e46ac1f910e864c6e1aabd` に保持し、`metadata-zero/` のcompletion/prefixはその原bytes、custodyは出典を記す。予定窓に新対象がなかった結果であり、改善の実証ではない。
 
 旧式はGoldnullをcase単位で独立の修復/破壊へ広げた。今回は同じcaseのBest/候補に**同じGold変数**を割り当て、既知E/Oに矛盾しない最大4補完を列挙し、完全正答差δと「以前正答だったいずれかの軸を破壊した」Rの可能範囲を保持する。同じ予測ならGold未知でもδ/Rは0。caseごと許す補完集合の直積に対して、差の最小/最大とR最小/最大のcase和は正確なcensus包絡になる。これは無作為抽出の信頼区間ではない。case間の意味的Gold整合制約を追加すればさらに狭まる可能性があり、sharpは宣言した許容集合に対しての意味である。
 
 `feasible.mjs` はこの数学部品と全物理資格/モデル安定を分離する。欠測したmodel出力をGold補完で埋めず、技術unknown時の全体boundはnull。別軸Goldがnullでも既知軸の破壊を保持し、可能な退行だけなら観測退行と偽らずrobust受入を拒否する。数学fixtureは人工入力であり、実モデルの準拠や実gain証拠ではない。固定C5/fullwire/共有Eへの結合は後のnative reader責務で、任意設定をこの純粋関数の成功だけで実行許可しない。
 
-## 次の有限cohort（本文取得前の契約）
+## 最初の時間窓契約とNO_CASES
 
 候補は616で実D5から固定した `../reserve/and-selection.json` のC2/C4 ANDのまま。新候補生成も追加Dも行わない。既存native metadataの117 repo IDを使い、旧cutoff `2026-10-20T00:00:00Z` より後、新固定cutoff `2026-10-20T16:57:23Z` までにcreatedされた非PR Issueをmetadataだけで列挙する。createdAt＋immutable issue ID順の先頭最大300を**本文前に**固定し、全文eligibleで減っても補充しない。その全eligibleを新有限cohortのcensusとする。window全体への代表性、無作為抽出、意味/作者/案件の統計独立性は主張しない。
 
@@ -21,6 +21,16 @@
 固定二回は各4M/max1200 POST、合計max2400。回内sharedE・回間別receipt、両component必須・no短絡なし・資格不明ならderived unknown、native/derived/論理費用を区別する。全物理資格・expectedmodel・δmin>0・Rmax=0を**両回**必要とし、平均/良い回/意味結果で二回目を取消さない。j4は継続履歴でありalpha resetや95%/将来性能保証をしない。実際の原scope/wholebody/fullwire/native来歴の受容は後段の条件。
 
 旧170/250分jobをそのまま使えない。1200×15秒=300分＋鍵前検証/prepare/project/upload余裕30分でubuntu-24.04/330分を次実装案とする。通常hosted上限[6時間](https://docs.github.com/en/actions/reference/limits)と[timeout規則](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idtimeout-minutes)の範囲内だが、完了保証ではない。一次資料はRの独立調査、root/Wはその根拠と実sourceを反証する。新workflow実装・秘密境界受容前の実作用は0。
+
+## 別cohortの事前契約（外部公開開発案件）
+
+元windowは広げず、別の `external-plan.json` に `cli/cli`・`NixOS/nixpkgs`・`microsoft/vscode` を内容/Gold/予測未見で固定する。CLI・package infrastructure・editorという選択理由は便宜的な対象宣言で、代表性や作者/意味の独立性の根拠ではない。欠落/private/不明でも差替え・追加・削除しない。英語やIssue様式の分布差を記述し、Ops/Appsや言語全体の改善と称さない。
+
+まず `external.mjs` のrepository metadata-only queryとpure replayで、ちょうど3つのpublic/issue-enabled immutable IDを確認して原版をnative固定する。body/title/comments/labelsは要求せず、extra fields/欠落/duplicate/rename等は拒否する。このscope確認のsource受容を、まだ未実装のIssue一覧・本文取得・実測の許可へ読み替えない。外部APIは現時点0。
+
+新windowは前UTC完了日 `2026-10-19T00:00:00Z <= createdAt < 2026-10-20T00:00:00Z` とし、件数を見る前に固定。3repo合同のcreatedAt/ordinal Issue ID prefix300を本文前に保持、既使用/全文/wire除外後に補充しない。高流量repoがprefixを占め得るが、結果を見たrepo別割当へ変更しない。既知407原版の530 Issue ID/1708 bodyに、同原版の2211参照URLから3scope内で型解決したIssue IDを本文前に加える。参照を本文既読と同一視せず、PR型やscope外/private情報を公開Issue manifestへ混ぜない。
+
+C5・原Best・式・二回AND・全分母/資格/未知・最大2400/330分案は不変。NO_CASESならその契約も保持し、日付やrepoを後付け変更して救済しない。新Issue queryの完全paginationを巨大repoでも実行可能にする具体方法は、一次資料とsource/hostの反証で取得前に固定する。現sourceはrepo scope確認だけを実装し、本文materializerの完成は偽らない。
 
 ## 最小系列と完成条件
 
@@ -43,8 +53,11 @@ flowchart TB
 ```mermaid
 flowchart TB
   OLD[✅ 616 primary未成立を保持・候補C5不変] --> MATH[✅ census共有Gold補完・敵対tests]
-  MATH --> REVIEW[⏳ 当PR上の三者反証・採取契約/source受容]
-  REVIEW --> META[⏳ 固定時間窓metadata prefix300・補充0]
+  MATH --> FIRST[✅ 最初の契約8f/125metadata・354Issue]
+  FIRST --> ZERO[✅ window0/prefix0・NO_CASES・本文/model0]
+  ZERO --> REVIEW[⏳ 別3repo便宜cohort契約/source三者反証]
+  REVIEW --> SCOPE[⏳ 公開repo metadata原版/ID固定]
+  SCOPE --> META[⏳ 別日metadata prefix300・補充0]
   META --> FRAME[⏳ 公開wholebody eligible全原版/M固定]
   FRAME -->|M0| EMPTY[NO_CASES・作用0・後付window拡大なし]
   FRAME -->|M正| GOLD[⏳ 独立Gold凍結/合議null・全wire検証]

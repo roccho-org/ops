@@ -1,0 +1,17 @@
+{
+  "schema": "ops.sys1.paired-census-metadata-prefix.v1",
+  "status": "NO_CASES",
+  "observedEntries": 354,
+  "uniqueIssues": 354,
+  "duplicateWindowEntries": 0,
+  "inWindow": 0,
+  "prefix": [],
+  "notSelectedBeyondPrefix": 0,
+  "newBodyRequests": 0,
+  "newModelRequests": 0,
+  "scope": "creation-window metadata prefix, not an atomic snapshot or random/representative sample; post-prefix eligibility never backfills",
+  "sourceCommit": "8f3ee9247c84353e871fb5b9d13b57a1c30dd762",
+  "startedAt": "2026-10-20T17:20:32.272Z",
+  "endedAt": "2026-10-20T17:21:57.911Z",
+  "nativeQueries": 125
+}
