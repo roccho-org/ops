@@ -47,3 +47,10 @@ test('retained development and actual two repair inputs exactly replay from the 
   const d=loadDevelopment();assert.deepEqual(read('results/regression-development-20261020/development.json'),d);
   assert.deepEqual(read('results/regression-development-20261020/repair-payloads.json'),repairPayloads(d));
 });
+test('new native candidate bytes replay from the two unchanged requests and strict responses',()=>{
+  const base='results/regression-repair-20261020/',captures={},payloads=repairPayloads(loadDevelopment());
+  assert.deepEqual(read(base+'before.json'),read(base+'after.json'));
+  for(const arm of ['no-feedback','feedback']){assert.deepEqual(read(base+arm+'.request.json'),payloads[arm]);captures[arm]={receipt:read(base+arm+'.receipt.json'),response:read(base+arm+'.response.json')};}
+  const actual=collectRepairCandidates(captures);assert.deepEqual(read(base+'parsed.json').results,actual);
+  assert.equal(Buffer.byteLength(actual.feedback.candidate.instructions),3446);assert.equal(Buffer.byteLength(actual['no-feedback'].candidate.instructions),3300);
+});

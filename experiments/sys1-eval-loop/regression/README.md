@@ -2,7 +2,7 @@
 
 PR606の閉じた記録（base `43b4b4fbbeaad6c74aec3292894f42ea73056b64`）を変更せず、旧H01Eの退行を開発課題へ移す。目標は、新しい未使用集合でBestより完全正答が増え、Bestの既正答E/O軸を壊さない設定を確認すること。普遍的な偽陽性/偽陰性ゼロや人口への統計的保証は主張しない。Bestは未変更、merge/採用/新認証は対象外。
 
-現在は、旧H32の開発Dへの明示降格、固定修正入力、strict候補受入、D退行guard/S選定の純粋機能、別directoryの標準生成captureを実装した。新モデル作用0、新screen/audit本文・GoldはW未読。D/S/Aの新モデル実行workflowは次sliceであり、旧Hを未見評価と呼ばず、旧Jev呼出しを再送しない。
+現在は、旧H32の開発Dへの明示降格、固定修正入力、strict候補受入、D退行guard/S選定の純粋機能を実装し、標準generate N→F各一回を完了した。N3300B/F3446Bがどちらもstrict validで、原request/response/receiptと候補の生文字列を`results/regression-repair-20261020/`へ固定した。再抽選0、前後の観測metadata一致。生成内部HTTP/usageはunknownのままで、性能改善はまだ未測定。新screen/audit本文・GoldはW未読。D/S/A実workflowは次sliceで、旧Hを未見評価と呼ばず旧Jev呼出しを再送しない。
 
 標準生成用`native-repair.mjs`は606で実使用した同じ小さいCLI captureを、別private directory `.../jev-regression-repair-20261020/round-1`で一度だけ使う。606 source/原ファイルを変更・上書きせず、同一common/明示model・32body・前後version/catalog/config-stat、N→F各一回、原response/receiptを保存する。配置/構文のread-only確認は生成と別。source/必要check/3者受容までは本体未実行。provider内部試行/usage/hardmaxは非露出のunknown、6000Bは候補受入上限で推論hardmaxでない。stdout/stderrは私的保持し、秘密値やauthfileを読まない。
 
@@ -28,7 +28,7 @@ flowchart TB
   C <-->|主張・反証・再提案| R
   R --> K["🔒 新集合は候補freezeまでW/修正器へ非開示"]
   W --> D["✅ 旧H全32を既使用Dへ・旧01Eを含める"]
-  K --> F["⏳ 同じ修正器でN/F各一回・同じcommon"]
+  K --> F["✅ 同じ修正器でN/F各一回・同じcommon・生出力固定"]
   D --> F
 ```
 
@@ -45,7 +45,7 @@ screenでBest比casegain正・既正答軸破壊0・全qualifiedの候補から�
 ```mermaid
 flowchart TB
   A["✅ 旧H退行/旧FAILを保存・旧H32をDへ降格"] --> B["✅ 棄却F回答と保存judgeからtyped診断を再導出"]
-  B --> C["⏳ N/F各一回生成 → D32で開発検証"]
+  B --> C["✅ N/F各一回生成・固定 → ⏳ D32で開発検証"]
   C --> D{"📏 既知D退行/形式不成立を確認"}
   D -->|修正が必要| C2["🔁 開発へ戻す・新候補版/実予算を先に記録"]
   C2 --> C
