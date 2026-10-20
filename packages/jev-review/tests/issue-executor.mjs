@@ -2002,7 +2002,7 @@ for (const required of ['semlint-goal-quality-implementation-20261015-v12', 'ret
   '`RANGE_TARGET_MISMATCH`', '`RANGE_TARGET_UNKNOWN`', 'runs 104..105 for PR536 only', 'from 204 to 206 with no reset',
   'not a live grant', 'This source is dormant', 'rejects PR536', 'It is not pin-only']) assert.ok(flatInvocation.includes(required), required);
 assert.deepEqual(JSON.parse(repoFile('packages/jev-review/issue-actions.json')).providedRequestTargets,
-  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 573 }]);
+  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 609 }]);
 // Historical runtime-305b5321 budget facts stay frozen; the candidate figure is recomputed from the current context.
 assert.ok(currentInvocation.includes("Current context is 2189 bytes. With PR522's exact initial 4585-byte subject"));
 assert.ok(currentInvocation.includes('state 27373 bytes, longest question 720 and all\nquestions 4079'));
@@ -2026,11 +2026,11 @@ const prefixExpression = `fromJSON('${JSON.stringify(REQUEST_PREFIX)}')`;
 assert.ok(guardText.includes(prefixExpression));
 const guard = new Function('github', 'startsWith', `return (${guardText.replace(prefixExpression, JSON.stringify(REQUEST_PREFIX))});`);
 const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase().startsWith(prefix.toLowerCase()));
-// The current caller and reviewed runtime agree on the one supplied Issue origin; retired PR grants stay closed.
+// The current caller and reviewed runtime agree on the sole supplied PR609 origin; historical grants stay closed.
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
-  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574]) {
+  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574, 609, 610]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
-      const allowed = repository === 'roccho-org/ops' && (pullRequest ? number === 511 : number === 573)
+      const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 609].includes(number) : number === 573)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;
       const github = { repository, event_name: 'issue_comment', event: {
         repository: { owner: { type: 'Organization' } }, comment: { body: '/jev-evaluate' },
@@ -2039,7 +2039,7 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
       assert.equal(guardAllows(github), allowed);
       for (const body of [REQUEST_PREFIX + '{}', REQUEST_PREFIX + 'not json', REQUEST_PREFIX]) {
         const providedEvent = { ...github, event: { ...github.event, comment: { body } } };
-        assert.equal(guardAllows(providedEvent), repository === 'roccho-org/ops' && number === 573 && pullRequest === null);
+        assert.equal(guardAllows(providedEvent), repository === 'roccho-org/ops' && number === 609 && pullRequest !== null);
       }
       for (const body of ['/jev-evaluate later', '/jev-evaluate\\\\n{}', '/jev-evaluate\\r\\n{}', 'prefix' + REQUEST_PREFIX]) {
         assert.equal(guardAllows({ ...github, event: { ...github.event, comment: { body } } }), false);
@@ -2052,19 +2052,33 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
     }
   }
 }
-const trustedRuntime = '2d7e43c307e0a341e5c19841253decb2c311212a';
-assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], trustedRuntime);
-assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], trustedRuntime);
+// Structural pin consistency only. Approved runtime identity is independently fixed by P/R's live GO.
+const checkoutPattern = /- uses: actions\/checkout@[0-9a-f]{40}\n        with:\n          repository: roccho-org\/ops\n          ref: ([0-9a-f]{40})\n          persist-credentials: false/g;
+const checkoutPins = [...workflow.matchAll(checkoutPattern)];
+assert.equal(checkoutPins.length, 1);
+assert.equal([...workflow.matchAll(/uses: actions\/checkout@/g)].length, 1);
+const pinnedRuntime = checkoutPins[0][1];
+assert.match(pinnedRuntime, /^[0-9a-f]{40}$/);
+assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], pinnedRuntime);
+assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], pinnedRuntime);
 assert.ok(currentInvocation.includes('305b5321ebc4d41d5c143cc002b82af71f140b8e')); // Historical runtime facts stay historical.
 const permissionBlock = '  actions: read\n  contents: read\n  issues: write\n  pull-requests: write\n';
-const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' && github.event.issue.number == 573 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 511))";
+const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 609 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 609)))";
 const assertWorkflowBoundary = (text) => {
   assert.equal(text.match(/\npermissions:\n([\s\S]*?)\njobs:/)?.[1], permissionBlock);
   assert.equal([...text.matchAll(/^\s*permissions:/gm)].length, 1);
+  assert.equal([...text.matchAll(checkoutPattern)].length, 1);
+  assert.equal([...text.matchAll(checkoutPattern)][0][1], pinnedRuntime);
+  assert.equal(text.match(/runtime_source=([0-9a-f]{40})/)?.[1], pinnedRuntime);
   assert.equal(text.match(/\n    if: >-\n([\s\S]*?)\n    runs-on:/)?.[1].trim().replace(/\s+/g, ' '), expectedGuard);
 };
 assertWorkflowBoundary(workflow);
 for (const forbidden of [
+  workflow.replace('ref: ' + pinnedRuntime, 'ref: proposals'),
+  workflow.replace('runtime_source=' + pinnedRuntime, 'runtime_source=proposals'),
+  workflow.replace('runtime_source=' + pinnedRuntime, 'runtime_source=' + 'f'.repeat(40)),
+  workflow.replaceAll(pinnedRuntime, pinnedRuntime === 'f'.repeat(40) ? 'e'.repeat(40) : 'f'.repeat(40)),
+  workflow.replaceAll('github.event.issue.number == 609', 'github.event.issue.number == 610'),
   workflow.replace('contents: read', 'contents: write'),
   workflow.replace('actions: read', 'actions: write'),
   workflow.replace('pull-requests: write', 'pull-requests: read'),
@@ -2075,14 +2089,14 @@ for (const forbidden of [
   workflow.replace('github.event.issue.number == 511', 'github.event.issue.number >= 511'),
   workflow.replaceAll('github.event.issue.number == 573', 'github.event.issue.number == 574'),
   workflow.replaceAll('github.event.issue.number == 573', 'github.event.issue.number == 573 || github.event.issue.number == 574'),
-  workflow.replace('github.event.issue.number == 573 &&', 'true &&'),
+  workflow.replace('github.event.issue.number == 609 &&', 'true &&'),
   workflow.replace('github.event.issue.pull_request == null &&', 'true &&'),
   workflow.replace(prefixExpression, "'/jev-evaluate'"),
   workflow.replace('startsWith(github.event.comment.body', 'contains(github.event.comment.body'),
   workflow.replace("github.repository == 'roccho-org/ops'", 'true'),
   workflow.replace("github.event.comment.body == '/jev-evaluate'", 'true'),
   workflow.replace('github.event.issue.pull_request != null', 'true'),
-]) assert.throws(() => assertWorkflowBoundary(forbidden));
+]) { assert.notEqual(forbidden, workflow); assert.throws(() => assertWorkflowBoundary(forbidden)); }
 const intent = jsonl('ci.intent.v1.jsonl').filter((x) => x.path === WF_PATH);
 const boundary = jsonl('contracts/secret-effect-boundary.v1.jsonl').filter((x) => x.path === WF_PATH);
 assert.equal(intent.length, 1); assert.deepEqual(intent[0].dispatch, ['issue_comment', 'workflow_call']);
