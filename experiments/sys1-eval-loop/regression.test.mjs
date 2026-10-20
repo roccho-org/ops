@@ -6,6 +6,8 @@ test('retired H32 is development with cached evidence, not a fresh evaluation or
   assert.match(d.role,/never unseen/);assert.equal(d.provenance.originalRunConclusion,'failure');
   assert.deepEqual(d.rows.find(r=>r.id==='confirmation-01').diagnostic,{status:'qualified',diagnosis:'requirement_scope'});
   assert.deepEqual(d.rows.find(r=>r.id==='confirmation-06').diagnostic,{status:'unknown',diagnosis:null});
+  assert.deepEqual(d.rows.find(r=>r.id==='confirmation-12').diagnostic,{status:'qualified',diagnosis:'evidence_scope'});
+  assert.equal(d.rows.find(r=>r.id==='confirmation-12').answer.O,'yes'); // judge false alarm against the now-correct draft, not Gold advice.
 });
 test('feedback is mechanically against rejected F outputs rather than the retained Best output',()=>{
   const d=loadDevelopment();assert.equal(d.rows[0].answer.E,'yes');assert.equal(d.rows[0].answer.O,'no');
