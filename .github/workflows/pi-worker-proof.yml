@@ -113,6 +113,12 @@ jobs:
           result = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "pi-worker-proof/transient-tests.json").read_text())
           assert result["numPassedTests"] == 1 and result["numFailedTests"] == 0, result
           PY
+          PI_PROOF_TEST_TRANSIENT=true PI_PROOF_TEST_ERRORS=true pnpm exec vitest run test/worker-app.test.ts --config vitest.proof.config.ts --testNamePattern=selected-transient-errors --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/pi-worker-proof/error-tests.json" 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/error-runtime.log"
+          python3 - <<'PY'
+          import json, os, pathlib
+          result = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "pi-worker-proof/error-tests.json").read_text())
+          assert result["numPassedTests"] == 1 and result["numFailedTests"] == 0, result
+          PY
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && steps.runtime.outcome == 'success' }}
         with:

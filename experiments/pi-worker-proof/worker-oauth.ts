@@ -163,7 +163,7 @@ export class TransientWorkerProof {
     const models = createModels({ authContext: { env: async () => undefined, fileExists: async () => false } });
     const base: Provider = openaiProvider();
     const options = <T,>(input: T) => ({
-      ...input, maxRetries: 0, transport: "sse" as const, fetch: this.fetch,
+      ...input, maxRetries: 0, timeoutMs: 20_000, transport: "sse" as const, fetch: this.fetch,
       onProviderStreamEvent: (raw: unknown) => {
         const event = raw as { type?: string; response?: { status?: string; id?: string } };
         if (event.type === "response.incomplete" || (event.type === "response.completed" &&

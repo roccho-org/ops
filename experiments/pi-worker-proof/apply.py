@@ -65,3 +65,7 @@ replace_once("src/session.ts", "    const chatOptions = createChatHarnessOptions
 replace_once("src/session.ts", "      createWorkerModels(this.ctx.storage),", "      this.#proof ? this.#proof.models() : createWorkerModels(this.ctx.storage),")
 replace_once("src/session.ts", "    const pair = new WebSocketPair();", "    let witness: HeadersInit | undefined;\n    if (this.#proof) {\n      try { witness = await this.#proof.attach(request, this.env as ProofEnvironment); }\n      catch { return json({ error: \"Owner authorization required\" }, 403); }\n    }\n    const pair = new WebSocketPair();")
 replace_once("src/session.ts", "return new Response(null, { status: 101, webSocket: client });", "return new Response(null, { status: 101, webSocket: client, headers: witness });")
+
+# Terminal provider diagnostics must not become durable credential copies.
+replace_once("src/chat.ts", "  configure,\n", "  configure,\n  hook,\n  GenerationTask,\n")
+replace_once("src/chat.ts", '    name: "chat",\n', '    name: "chat",\n    hooks: jevTool ? [hook(GenerationTask, { afterResponse(message) {\n      if (message.stopReason === "error" || message.stopReason === "aborted") {\n        message.errorMessage = "Proof provider request failed";\n        message.content = [];\n        delete message.responseId;\n        delete message.rawStopReason;\n      }\n    } })] : [],\n')

@@ -27,7 +27,7 @@ export default defineConfig({
           new Response("MOCK_ONLY: native outbound denied", { status: 401 }),
         bindings: {
           PI_JEV_PROOF_API_KEY: "fixture-jev-not-real",
-          PI_JEV_PROOF_SESSION: "jev-proof",
+          PI_JEV_PROOF_SESSION: process.env.PI_PROOF_TEST_ERRORS === "true" ? "jev-proof-errors" : "jev-proof",
           OPENAI_API_KEY: "",
           PI_PROOF_TRANSIENT: process.env.PI_PROOF_TEST_TRANSIENT === "true" ? "true" : "false",
           PI_ACCESS_ISSUER: "https://fixture.cloudflareaccess.com",

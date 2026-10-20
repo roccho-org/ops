@@ -587,20 +587,25 @@ describe("finite transient proof transport — keyless mocks only", () => {
   });
 });
 
+async function transientOwnerFixture() {
+  const keys = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
+  const jwk = await crypto.subtle.exportKey("jwk", keys.publicKey);
+  const encode = (value: string) => btoa(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+  const now = Math.floor(Date.now() / 1000);
+  const unsigned = encode(JSON.stringify({ alg: "RS256", kid: "session-fixture" })) + "." +
+    encode(JSON.stringify({ iss: "https://fixture.cloudflareaccess.com", aud: "fixture-app",
+      sub: "fixture-owner", iat: now, exp: now + 3600 }));
+  const signed = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", keys.privateKey, new TextEncoder().encode(unsigned));
+  const jwt = unsigned + "." + encode(String.fromCharCode(...new Uint8Array(signed)));
+  const headers = { "Cf-Access-Jwt-Assertion": jwt, "Pi-Proof-Access": "fixture-volatile-oauth",
+    "Pi-Proof-Expires": String(Date.now() + 600_000) };
+  return { headers, jwk };
+}
+
 it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT !== "true")(
   "selected-transient Session authenticates, uses Jev and loses access across actual recreation", async () => {
-    const keys = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048,
-      publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
-    const jwk = await crypto.subtle.exportKey("jwk", keys.publicKey);
-    const encode = (value: string) => btoa(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-    const now = Math.floor(Date.now() / 1000);
-    const unsigned = encode(JSON.stringify({ alg: "RS256", kid: "session-fixture" })) + "." +
-      encode(JSON.stringify({ iss: "https://fixture.cloudflareaccess.com", aud: "fixture-app",
-        sub: "fixture-owner", iat: now, exp: now + 3600 }));
-    const signed = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", keys.privateKey, new TextEncoder().encode(unsigned));
-    const jwt = unsigned + "." + encode(String.fromCharCode(...new Uint8Array(signed)));
-    const headers = { "Cf-Access-Jwt-Assertion": jwt, "Pi-Proof-Access": "fixture-volatile-oauth",
-      "Pi-Proof-Expires": String(Date.now() + 600_000) };
+    const { headers, jwk } = await transientOwnerFixture();
     const bodies: unknown[] = [];
     let posts = 0;
     const marker = "fixture-transient-marker-7fb96e1a";
@@ -640,7 +645,7 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
     await closeSocket(first.socket);
     await evictDurableObject(env.SESSIONS.getByName(session));
     const missing = await exports.default.fetch("https://example.com/api/sessions/" + session, {
-      headers: { Upgrade: "websocket", "Cf-Access-Jwt-Assertion": jwt },
+      headers: { Upgrade: "websocket", "Cf-Access-Jwt-Assertion": headers["Cf-Access-Jwt-Assertion"] },
     });
     expect(missing.status).toBe(403);
     expect(bodies).toHaveLength(2);
@@ -660,5 +665,67 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
     expect(posts).toBe(1);
     expect(await saved(session)).toBeUndefined();
     await closeSocket(second.socket);
+  },
+);
+
+it.skipIf((env as unknown as { PI_JEV_PROOF_SESSION?: string }).PI_JEV_PROOF_SESSION !== "jev-proof-errors")(
+  "selected-transient-errors never persist echoed OAuth diagnostics", async () => {
+    const { headers, jwk } = await transientOwnerFixture();
+    const bearer = headers["Pi-Proof-Access"];
+    const sentinel = "provider-private-echo:" + bearer;
+    const session = "jev-proof-errors";
+    let attempts = 0, current = "";
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+      if (String(input) === "https://fixture.cloudflareaccess.com/cdn-cgi/access/certs") {
+        return Response.json({ keys: [{ ...jwk, kid: "session-fixture", alg: "RS256" }] });
+      }
+      expect(input).toBeInstanceOf(Request);
+      expect((input as Request).url).toBe("https://api.openai.com/v1/responses");
+      attempts++;
+      if (current === "http401") return Response.json({ error: { message: sentinel } }, { status: 401 });
+      const item = { id: "partial-item", type: "message", role: "assistant", status: "in_progress", content: [] };
+      const prefix = [
+        { type: "response.created", response: { id: "error-fixture", status: "in_progress", output: [] } },
+        { type: "response.output_item.added", output_index: 0, item },
+        { type: "response.content_part.added", output_index: 0, content_index: 0, part: { type: "output_text", text: "", annotations: [] } },
+        { type: "response.output_text.delta", output_index: 0, content_index: 0, item_id: item.id, delta: "fixture-clean-partial" },
+      ].map(event => "data: " + JSON.stringify(event) + "\n\n").join("");
+      const terminal = current === "named-sse"
+        ? "event: error\ndata: " + JSON.stringify({ error: { message: sentinel } }) + "\n\n"
+        : "data: " + JSON.stringify({ type: "response.failed", response: { id: "error-fixture",
+            status: "failed", error: { message: sentinel } } }) + "\n\n";
+      const encoder = new TextEncoder();
+      return new Response(new ReadableStream({ start(controller) {
+        controller.enqueue(encoder.encode(prefix));
+        // Exercise a real committed clean partial before the SDK mutates its terminal message.
+        setTimeout(() => { controller.enqueue(encoder.encode(terminal)); controller.close(); }, 250);
+      } }), { headers: { "content-type": "text/event-stream" } });
+    });
+    const client = await connect(session, 1, headers);
+    for (const mode of ["http401", "named-sse", "failed-sse"]) {
+      current = mode;
+      await client.create("error-create-" + mode);
+      const before = attempts;
+      client.submit("error-" + mode, "Exercise a single provider failure.");
+      await submissionStatus(session, "error-" + mode, "unanswered", client.conversationId);
+      expect(attempts).toBe(before + 1);
+      const frames = JSON.stringify(client.messages);
+      for (const forbidden of [bearer, sentinel, headers["Cf-Access-Jwt-Assertion"]]) expect(frames).not.toContain(forbidden);
+      if (mode !== "http401") expect(frames).toContain("fixture-clean-partial");
+      const persisted = await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
+        expect(await state.storage.get("pi.proof.responses.posts")).toBe(attempts);
+        expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
+        const tables = state.storage.sql.exec<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table'").toArray();
+        return tables.filter(table => !table.name.startsWith("_cf_") && !table.name.startsWith("sqlite_")).map(table => {
+          const name = '"' + table.name.replaceAll('"', '""') + '"';
+          return JSON.stringify(state.storage.sql.exec("SELECT * FROM " + name).toArray(), (_key, value) =>
+            value instanceof ArrayBuffer ? new TextDecoder().decode(value) : value);
+        }).join("\n");
+      });
+      expect(persisted).toContain("Proof provider request failed");
+      for (const forbidden of [bearer, sentinel, headers["Cf-Access-Jwt-Assertion"]]) expect(persisted).not.toContain(forbidden);
+    }
+    expect(attempts).toBe(3);
+    await closeSocket(client.socket);
   },
 );
