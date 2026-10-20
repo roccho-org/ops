@@ -32,7 +32,7 @@ root/Rは互いの初稿もモデル出力も見ずbody-onlyで各118採点。ro
 
 比較はPR611 final641fedのoriginal Best対**E yes/no criteriaへ同じscope補足だけ**。Best instructions/O/axis/protocol/full-wireは不変。各caseのBestE/scopedE/sharedOを事前の循環順で実測し、共有Oは各pass内で同receipt/unknownを両roleへ投影。pass間は別物理観測。同wireが再び現れるpass2は事前宣言した新assignmentで、pass内retryやfailed-run rerunではない。初回の意味FAILで予定pass2を取消/再抽選しない。model drift等の技術停止は維持し未試行をunknownへ残す。
 
-完全正答の修復b/悪化cとcase内既正答E/Oの破壊rを分ける。fully unresolved cases=u、rは完全既知内、partial既知退行は別観測して受入へ含める。全n worst-case差[(b-c-u)/n,(b-c+u)/n]、R上側(r+u)/n。既知subsetだけで成立を作らない。
+完全正答の修復b/悪化cとcase内既正答E/Oの破壊rを分ける。not fully resolved cases=u（一軸でもGold/どちらかarmがunknownで完全既知にならないcase）、rは完全既知内、partial既知退行は別観測して受入へ含める。全n worst-case差[(b-c-u)/n,(b-c+u)/n]、R上側(r+u)/n。既知subsetだけで成立を作らない。
 
 real-case family j>=1、alpha_j=.05/2^jをPR/失敗でresetしない。2pass×5 finite-population hypergeometric tailsに各alpha_j/10（今回1/400）、tail>=alphaをinclusiveにretainするBigInt exact反転。B/C/Rは未知の最悪向き範囲、差[(B_L-C_U)/M,(B_U-C_L)/M]、退行上側R_U/Mを報告。事前受入は両passの差lower>0・全n worst-case正・観測既知軸退行0。既知不成立とunknownを両配列で残し、平均で救済しない。Rupper<=1%はUser由来でないためgateにしていない。
 
@@ -90,16 +90,15 @@ flowchart TB
 
 ## 次O改善の経路（未実行・別事前契約）
 
-E天井に対してE候補を重ねず、残るO誤答へ対象を切り分ける。旧E補足は未採用のまま保持し自動継承しない。Oは報告の存在/種類で、外部真偽検証・証拠リンク存在を勝手な必要条件へ足さず、未達/未確認の現状報告を含め、Refsだけ/作文例は報告へ過包含しない。元の広義E/Oを狭めない。
+E天井に対してE候補を重ねず、残るO誤答へ対象を切り分ける。旧E補足は未採用のまま保持し自動継承しない。Oは報告の存在/種類で、外部真偽検証・証拠リンク存在を勝手な必要条件へ足さず、未達/未確認の現状報告を含め、Refsだけ/作文例は報告へ過包含しない。元の広義E/Oを狭めない。Dのhistorical aliasは非同時の閉receipt比較で、新しいE性能やfresh E無退行を証明しない。Goldnull4を編集せず残し、fresh比較は別cohortの同時測定だけで行う。
 
 ```mermaid
 flowchart TB
-  NEG["✅ 今回0差/全708/Gold4nullを固定"] --> D["🔁 118をO改善Dへ明示退役"]
+  NEG["✅ 今回0差/全708/Gold4nullを固定"] --> RULE["⏳ 新cohort metadata基準/次j/sample/jobを先契約"]
+  RULE --> D["🔁 118をO改善Dへ明示退役"]
   D --> C["⏳ original E/instructions固定・Ocriteria候補1"]
   C --> DV["⏳ 原pass1 BestO/sharedEを歴史alias・新O118のみ"]
-  DV --> COHORT["⏳ metadataだけで別public cohort基準を先固定"]
-  COHORT --> RULE["⏳ M前にsample上限/job/2pass/次j契約を3者counter"]
-  RULE --> FRAME["🔒 wholebody/既使用除外/抽出・独立Gold"]
+  DV --> FRAME["🔒 固定基準のwholebody取得/抽出・独立Gold"]
   FRAME --> RUN["⏳ 未使用cohort・候補固定・j2の測定"]
   RUN --> END["🗃️ 正/負/unknown全部保持・元OpsApps改善と混同しない"]
 ```
