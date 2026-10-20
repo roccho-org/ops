@@ -2,7 +2,7 @@
 
 [PR615](https://github.com/roccho-org/ops/pull/615) は実案件300件の二回比較を保持して閉じた。正答は220→233/231だったが、既正答Oの退行が両回にあり採用条件は不成立。H1/H2の退行unionは101/155/196/289。元Bestを維持し、採用・mergeはしない。この300件を今回のDへ退役し、未使用評価とは呼ばない。
 
-現在はD1/D2とも不受容で、次の別処置を事前反証中。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。各sourceの三者受容と必要CI実成功後に、それぞれ一度だけ実行した。モデル作用は新O600、生成役呼出し0。reserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
+現在はD1/D2とも不受容で、別処置C3のsource/必要CI/三者受容待ち。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。各sourceの三者受容と必要CI実成功後に、それぞれ一度だけ実行した。モデル作用は新O600、生成役呼出し0。D3とreserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
 
 ## 最初のD結果（不変の失敗記録）
 
@@ -24,7 +24,21 @@ D2も300attempt/POST/qualified、技術unknown0、観測model ID一致。機械H
 
 D2新O物理usageはinput746792/output9300、total_tokens300未知。歴史Eとの論理運用相当input1334284（元1180684比+13.01%）であり、非同時・金額不明。D1+D2実物理600、既知input1620784/output18600、provider total_tokensは600件未知。C2の小さいwireや単回使用量差を因果的効率改善と呼ばない。
 
-予算はD1実300を消さず、新D2上限300＋将来H138を合わせseries技術上限738へ事前更新して実行した。各Dは90分/300上限、現入口はD1/D2のみ。Userの呼出予算なしというGOに新たな通算1000停止を足さない。次処置は公開D/元rubricだけから事前反証し、新source・必要CI・三者受容前の追加モデル作用0を維持する。H23は引き続き非開示。
+予算はD1実300を消さず、新D2上限300＋将来H138を合わせseries技術上限738へ事前更新して実行した。各Dは90分/300上限、当時の入口はD1/D2のみ。Userの呼出予算なしというGOに新たな通算1000停止を足さない。次処置は公開D/元rubricだけから事前反証し、新source・必要CI・三者受容前の追加モデル作用0を維持する。H23は引き続き非開示。
+
+## C3の事前対照例介入（未実測）
+
+公開D101には完了形/現在形を使う受入条件があり、これを現実報告へ昇格した可能性を仮説とする。モデルの回答理由は保存していないので誤答原因の断定ではない。C3はC2手順を保ち、W作成の三つの短い一般対照例だけをO criteriaへ加える。実D本文・ID・正答一覧を例として貼らず、評価する300本文にも役割ラベルやhintを足さない。
+
+- 受入要件（求める状態）：「修正が実装済みで検査が通っている」→no。
+- 作業報告：「修正を実装し検査の通過を確認した」→yes。
+- 進捗報告：「検査は未実施・未確認」→yes。
+
+これらは文の働きの例で、見出しや時制を一律filterにしない。混在する抽象的な未達・未確認もyesの元意味を保つ。最初のno例も既達確認欄と読めるというR反証に従い「求める状態」と明示した。Choice4や非対称criteria rewriteを同時に混ぜず、元のbinary標準client/厳格資格で一つの提示方法変更を測る。鍵なしschema/wire/testsは例のラベルにモデルが従う実証ではない。D3の単回差もモデル揺らぎと分離した因果証明ではない。
+
+旧C1既定/C2版2のfullwire・原input・D1/D2失敗をすべて再生する。C3だけ固定candidateVersion3、phase development3/history3/request-only child/attempt1へ限定し、先行D1/D2両native identity・全raw・技術全資格かつguardFAILを鍵前に再検査する。両実Git headのparentが各原sourceへ結合することを確認し、手転記SHA gateを増やさない。機械H1 primary/両履歴union/Goldnull7/旧Best Eは変更しない。
+
+事前会計をD1/D2実600＋D3上限300＋将来H138＝1038へ更新した。これはUserの予算なしというGO内の各有限phase上限で、人工的な通算1000許可待ちを足さない。各Dは90分/300上限、Hはまだ実装受容外。現sourceの必要CI実成功と三者受容前の新作用0、Dguard独立成立とfullwire凍結前の23非開示を維持する。
 
 ## 主張と反証を行う三者
 
@@ -41,7 +55,7 @@ flowchart TB
   K --> B[📏 候補意味reviewは公開Dと元rubricのみ・封印例由来の添削禁止]
 ```
 
-旧O補足は現在の未達・未確認報告を拾えた一方、権限・branch・完了条件の規範定義を現実報告へ過包含した。今回一候補はO yes/no両criteriaへ同じ一般的区別を追加する。設計や規範という形式だけで実報告を一律に除外しない。実権限状態、実操作、進行、未達・未確認の報告は元のO意味を保つ。外部真偽・成功・証拠リンクを要求しない。元BestのE、instructions、質問、protocolは変更しない。ケースIDや正答一覧をmodel入力へ渡さない。効果は設定変更全体のもので、Jev評価助言の因果価値とは称さない。
+旧O補足は現在の未達・未確認報告を拾えた一方、権限・branch・完了条件の規範定義を現実報告へ過包含した。各phaseでは一候補だけをO yes/no両criteriaへ同じ補足で適用する。設計や規範という形式だけで実報告を一律に除外しない。実権限状態、実操作、進行、未達・未確認の報告は元のO意味を保つ。外部真偽・成功・証拠リンクを要求しない。元BestのE、instructions、質問、protocolは変更しない。ケースIDや正答一覧をmodel入力へ渡さない。効果は設定変更全体のもので、Jev評価助言の因果価値とは称さない。
 
 ## 受入と知識境界
 
@@ -51,7 +65,7 @@ D300は機械的H1の元Best O/sharedEを歴史aliasとし、新O300だけを測
 
 資格再生と標準clientの記録部分を旧615入口と共有した。旧raw readerだけで新writerを検証したと見なさず、dummy keyとHTTPを外へ出さないfetch stubで標準writer実pathも検査する。全serialized wire・redirect拒否・15秒deadline・実post/flags順序・usage既知/欠損・確率和拒否・model drift・上限超過時追加HTTP0を確認。生産用endpoint/transport/retry/callback設定は追加しない。旧615保存input/rawは改変せず、旧writerのロジックを専用共有関数へ移した。新Dの欠測はunknownProtectedAxesと資格未完了へ、実誤答はknown regressionへ別保持し、混在でも片方を消さない。
 
-D入口は専用branchでrequest-only child/attempt1/native履歴D1=1・D2=2へ限定。prepareのみGH_TOKEN、evaluateのみ既存Org JEV_API_KEY、project/uploadはalways原保持の元6step境界へ限定翻訳する。300×15秒=75分にsource検証と保持余裕を足してjob90分。各実作用前に新source必要CIを確認し、最終exacthead通常CIも別途閉じる。
+D入口は専用branchでrequest-only child/attempt1/native履歴D1=1・D2=2・D3=3へ限定。prepareのみGH_TOKEN、evaluateのみ既存Org JEV_API_KEY、project/uploadはalways原保持の元6step境界へ限定翻訳する。300×15秒=75分にsource検証と保持余裕を足してjob90分。各実作用前に新source必要CIを確認し、最終exacthead通常CIも別途閉じる。
 
 元frame323の一回SRSWORで封印したreserve23を、元reserveIdsの全順序そのままで使う。再抽選・新API・補充・後付け除外はしない。確認の母数は条件付き補集合23のcensus、originFrame323は別属性。旧300から学習した候補を旧323全体の未使用評価に見せない。本文開示前に一候補fullwireとDguardを固定する。
 
@@ -68,14 +82,16 @@ flowchart TB
   STOP --> NEXT[✅ 公開DだけでC2短い一貫手順・C1default/旧raw維持]
   NEXT --> D2[✅ C2source/必要CI/三者受容・別D2実O300]
   D2 --> STOP2[❌ D2 joint220→230/c0でもunion1退行・C2不受容・原版保持]
-  STOP2 --> NEW[⏳ 公開D由来の別処置を事前反証・同候補再送禁止・23未開示]
-  NEW --> G{新source/必要CI/三者受容後のDguard成立?}
+  STOP2 --> NEW[✅ 公開D由来C3役割明示対照例・C1C2原版保持・同候補再送禁止]
+  NEW --> REVIEW3[⏳ 新source/必要CI/三者受容・23未開示]
+  REVIEW3 --> D3[⏳ 別C3新O300一回・history3・元guard不変]
+  D3 --> G{D3guard成立?}
   G -->|負・unknown| HOLD[保持して23未開示・次処置は別の事前契約]
   G -->|成立| FREEZE[⏳ 候補fullwire固定・その後だけ23開示]
   FREEZE --> H[⏳ 別受容後69 POST二回・全raw保持]
   H --> A{両回の全受入成立?}
-  A -->|成立| FIN[✅にできるのは有限23二回の差のみ・採用は別判断]
-  A -->|退行・負・unknown| NEG[❌／不明を全件保持・同23で修正再試験禁止]
+  A -->|成立| FIN[⏳ 成立時の主張は有限23二回の差のみ・採用は別判断]
+  A -->|退行・負・unknown| NEG[⏳ 負／不明を全件保持・同23で修正再試験禁止]
   FIN --> CLOSE[⏳ 最終通常CI・独立review・Ready未merge・記録]
   NEG --> CLOSE
 ```

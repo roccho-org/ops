@@ -489,7 +489,7 @@ export function assertObservationWorkflow(w,b) {
 }
 
 export function assertReserveWorkflow(w,b){
-  need(b.maxCalls===738,'reserve series bound differs');
+  need(b.maxCalls===1038,'reserve series bound differs');
   need(same(w.on?.push?.branches??[],['codex/jev-observation-reserve-20261020'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/reserve/request.json']),'reserve entry differs');
   need(w.concurrency?.group==='sys1-observation-reserve'&&w.jobs?.evaluate?.['timeout-minutes']===90,'reserve deadline/retention differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;
