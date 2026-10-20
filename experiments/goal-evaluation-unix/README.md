@@ -155,6 +155,7 @@ node experiments/goal-evaluation-unix/prepare.mjs input.json new-output-director
 
 The directory must not exist. `projection.json` preserves the complete existing
 `project()` result, including withheld questions, missing observations and fidelity.
+Omitting `options` uses the existing `project()` defaults; the CLI does not choose a subject or context ref.
 Only an emittable projection also produces `command.txt`, with the exact envelope
 bytes and no added newline. The CLI makes no network or model call and never posts;
 `postingAuthorized` remains false. It does not supply a Plan, live declaration,

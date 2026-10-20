@@ -1,9 +1,9 @@
 // Network-free checks for prepare.mjs. Every reader here is a test double; nothing here is an actual acquisition.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, realpathSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -76,21 +76,18 @@ const goalPlan = async (questions = [question('q1'), question('q2', { clauseIds:
 const faithful = out => ({ reviewRef: 'test:r-fidelity-record', envelopeSha256: out.envelopeSha256,
   verdicts: Object.fromEntries(out.checks.map(c => [c.id, 'FAITHFUL'])) });
 
-const cliTemp = t => {
-  const parent = realpathSync(tmpdir()), directory = mkdtempSync(join(parent, 'semlint-prepare-cli-'));
-  t.after(() => { assert.equal(dirname(directory), parent); rmSync(directory, { recursive: true, force: true }); });
-  return directory;
-};
+const cliTemp = () => mkdtempSync(join(realpathSync(tmpdir()), 'semlint-prepare-cli-'));
 const runPrepareCLI = (input, output) => spawnSync(process.execPath,
   [fileURLToPath(new URL('./prepare.mjs', import.meta.url)), input, output],
   { shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 4194304, timeout: 15000 });
 
-test('local preparation CLI preserves the full projection and exact optional command without granting posting', async t => {
-  const directory = cliTemp(t), value = await goalPlan(), subject = await snapshotOf({ mode: 'live' });
+test('local preparation CLI preserves the full projection and exact optional command without granting posting', async () => {
+  const directory = cliTemp(), value = await goalPlan(), subject = await snapshotOf({ mode: 'live' });
   const options = { subjectRef: 'target' }, reviewed = { ...options, fidelity: faithful(projectPlan(value, subject, options)) };
   const needs = await goalPlan([question('q1', { needs: ['destination observation'] })]);
   for (const [name, candidate, selection, emittable] of [
-    ['unreviewed', value, options, false], ['reviewed', value, reviewed, true], ['needs', needs, options, false],
+    ['defaults', value, undefined, false], ['unreviewed', value, options, false],
+    ['reviewed', value, reviewed, true], ['needs', needs, options, false],
   ]) {
     const input = join(directory, name + '.json'), output = join(directory, name);
     writeFileSync(input, JSON.stringify({ plan: candidate, subject, options: selection }), { flag: 'wx' });
@@ -114,8 +111,8 @@ test('local preparation CLI preserves the full projection and exact optional com
   }
 });
 
-test('local preparation CLI rejects invalid input without leaking its body or creating output', t => {
-  const directory = cliTemp(t), secret = 'PRIVATE_INPUT_SENTINEL';
+test('local preparation CLI rejects invalid input without leaking its body or creating output', () => {
+  const directory = cliTemp(), secret = 'PRIVATE_INPUT_SENTINEL';
   for (const [index, body] of [
     '{"plan":"' + secret,
     JSON.stringify({ plan: null, subject: null, options: {}, extra: secret }),

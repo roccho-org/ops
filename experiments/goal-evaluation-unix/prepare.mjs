@@ -516,9 +516,10 @@ export function prepareMain(args = process.argv.slice(2)) {
   const [inputFile, outputDirectory, extra] = args;
   if (!inputFile || !outputDirectory || extra !== undefined) throw new Error('INVALID_PREPARE_ARGS');
   const input = JSON.parse(readFileSync(inputFile, 'utf8'));
-  if (!exact(input, ['plan', 'subject', 'options']) || !input.options
-    || ![Object.prototype, null].includes(Object.getPrototypeOf(input.options))) throw new Error('INVALID_PREPARE_INPUT');
-  const projection = project(input.plan, input.subject, input.options);
+  if (!exact(input, ['plan', 'subject']) && !exact(input, ['plan', 'subject', 'options'])) throw new Error('INVALID_PREPARE_INPUT');
+  const options = input.options === undefined ? {} : input.options;
+  if (!options || ![Object.prototype, null].includes(Object.getPrototypeOf(options))) throw new Error('INVALID_PREPARE_INPUT');
+  const projection = project(input.plan, input.subject, options);
   const artifact = JSON.stringify(projection) + '\n';
   mkdirSync(outputDirectory, { mode: 0o700 });
   writeFileSync(join(outputDirectory, 'projection.json'), artifact, { flag: 'wx', mode: 0o600 });
