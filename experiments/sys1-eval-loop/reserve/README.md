@@ -2,7 +2,7 @@
 
 [PR615](https://github.com/roccho-org/ops/pull/615) は実案件300件の二回比較を保持して閉じた。正答は220→233/231だったが、既正答Oの退行が両回にあり採用条件は不成立。H1/H2の退行unionは101/155/196/289。元Bestを維持し、採用・mergeはしない。この300件を今回のDへ退役し、未使用評価とは呼ばない。
 
-現在はD1/D2/D3/D4とも不受容で、全原版を保持した。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。各sourceの三者受容と必要CI実成功後に、それぞれ一度だけ実行した。モデル作用は新O1200、生成役呼出し0。reserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
+D1/D2/D3/D4は不受容の全原版を保持し、現在ANDのD5は開発guard通過・actual wire固定まで成立した。未使用23はまだ未実測。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。各sourceの三者受容と必要CI実成功後に、それぞれ一度だけ実行した。モデル作用は新O1800、生成役呼出し0。reserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
 
 ## 最初のD結果（不変の失敗記録）
 
@@ -60,7 +60,7 @@ D4も300attempt/POST/qualified、技術unknown0、model ID安定、Goldnull7不�
 
 D4物理新O usageはinput682592/output9300、total_tokens300未知。歴史Eとの非同時論理運用相当input1270084（元1180684比+7.57%）、金額や将来効率改善は未証明。実D1..D4計1200POST、既知input3120968/output37200、provider total_tokens1200未知。予定H138はまだ作用0。同C4再送をせず、次処置を公開D/元rubricに基づく別事前契約として三者で反証する。
 
-## 次処置：固定C2＋C4のAND（未実測）
+## 固定C2＋C4のANDとD5実測・wire固定
 
 公開の退役D原D2/C2とD4/C4を非同時にANDすると、完全正答220→230/b10c0/union退行0となる。W/root/Rが別算術で確認したが、これは開発仮説の選択根拠であり、新Dguard成立・H解禁の証拠ではない。ORはunion退行を残す。ANDは一方のyesを捨てるため見逃しを増やし得る。旧Oの混同行列はbaseline TP79/TN144/FP9/FN61、C2 89/144/9/51、C4 92/143/10/48、offline AND88/145/8/52、Goldnull7。元baselineを改善しても各componentのrecallより下がるtradeoffを隠さない。
 
@@ -70,7 +70,15 @@ D4物理新O usageはinput682592/output9300、total_tokens300未知。歴史Eと
 
 新D5は同時取得の新O600、論理300件、case indexでcomponent順を交互に固定。旧componentと同じpayloadが意図的に再登場する新戦略測定で、旧run再実行や全unique queryとは呼ばない。機械H1完全正答gain/両履歴union/Goldnull7/全600資格・300derived既知/model安定を維持する。phase development5/history5は先行4失敗すべてのnative来歴・raw・技術全資格と意味不受容を鍵前再生する。600×15秒=150分＋保持余裕でjob170分、元6step秘密境界は維持。
 
-改訂した予定Hは元Best O/C2 O/C4 O/sharedEの4固定physical×23×2回＝184。元23の順序・census母数・origin323分離・Gold・j3/各tail1/1600・両回AND・全unknown・known退行0は変えない。E共有は回内だけ、componentの2答も独立標本ではない。新D600と原actual1200、将来H184のseries上限1984を事前記録する。新D/Hの必要source/check/三者受容は別で、現在AND実作用0・23非開示。元planのH138は旧単回戦略の履歴として残し、未実行を実費へ数えない。
+改訂した予定Hは元Best O/C2 O/C4 O/sharedEの4固定physical×23×2回＝184。元23の順序・census母数・origin323分離・Gold・j3/各tail1/1600・両回AND・全unknown・known退行0は変えない。E共有は回内だけ、componentの2答も独立標本ではない。新D600と原actual1200、将来H184のseries上限1984を事前記録する。新D/Hの必要source/check/三者受容は別で、D5実600は後述の結果として保持し、H実作用0・23非開示。元planのH138は旧単回戦略の履歴として残し、未実行を実費へ数えない。
+
+source df0bdebb66bf513ecccdbaa37a015beb7fa5a939の三者受容と必要CI実566/566・consumer・health成功後、request-only activation3a8e6ebc54121d9433c550f70ad72284083b589dから [D5 run39452206612](https://github.com/roccho-org/ops/actions/runs/39452206612) をattempt1で一度実行。artifact12277619377/1500165B/provider SHA256 0d325a7b11503630ec0762e652f476f916338626ae8b3900bf19d50357167774 と自己ZIPを照合し、原5file全値再生一致。保存先は `results/reserve-development5-20261020/`。W/root/Rが各自原ZIP・別算術で一致した。
+
+物理600attempt/POST/qualified・論理300derived既知、model安定、技術unknown0。機械H1完全正答220→229、修復9/complete退行0/union軸退行0、Goldnull7不変で `DEVELOPMENT_GUARD_PASS`。offline診断10修復をlive9修復へ流用せず、過去四失敗も残す。これはDの非同時歴史比較の入口通過だけで、未使用23の改善やfuture性能は未測定。
+
+`and-selection.json` にlive D5 inputの元Best/operator/固定C2C4 fullproofとprovider来歴・実guardをそのまま固定した。原600requestすべてを同じ固定bodyへ置換した標準wireが保存proofと一致することを再検査し、候補変更なしを宣言。native freeze確認までW23未読・H未実行、採用/mergeなし。H actual data/schema/entry/必要CI/三者受容は別途必要。
+
+D5物理newO600 usageはinput1429384/output18600、provider total_tokens600未知。原歴史Eとの非同時論理運用相当2016876（元1180684比+70.82%）、追加計算の代価であって料金/効率改善の証拠ではない。PR616実D1..D5計1800POST/input4550352/output55800、total_tokens1800未提供。H184は予定で実作用0、生成役呼出し0。新両componentが同時取得でも、歴史baseline O/Eを同時比較と称さない。
 
 ## 主張と反証を行う三者
 
@@ -123,12 +131,13 @@ flowchart TB
   CHECK4 --> D4[✅ 別D4新O300一回・history4]
   D4 --> HOLD4[❌ joint220→232でも155/230O退行・原版保持・23未開示]
   HOLD4 --> NEXT4[✅ 公開Dだけのoffline補完性・固定C2C4 AND事前改訂・live証拠ではない]
-  NEXT4 --> CHECK5[⏳ 新source/必要CI/三者受容・23未開示]
-  CHECK5 --> D5[⏳ 別設定D5実O600・両component必須・history5]
+  NEXT4 --> CHECK5[✅ 新source/必要CI/三者受容・23未開示]
+  CHECK5 --> D5[✅ 別設定D5実O600・両component必須・history5]
   D5 --> G5{完全gain正・union退行0・全資格?}
   G5 -->|負・unknown| HOLD5[保持して23未開示・次処置は別の事前契約]
-  G5 -->|成立| FREEZE[⏳ actual両request fullwire固定後だけ23開示]
-  FREEZE --> H[⏳ 別受容後92 POST二回・全raw保持]
+  G5 -->|実成立| FREEZE[✅ live600資格・joint220→229/union0・actual両wire固定]
+  FREEZE --> RELEASE[⏳ 原版/freeze独立読戻し後だけ23開示]
+  RELEASE --> H[⏳ 別受容後92 POST二回・全raw保持]
   H --> A{両回の全受入成立?}
   A -->|成立| FIN[⏳ 成立時の主張は有限23二回の差のみ・採用は別判断]
   A -->|退行・負・unknown| NEG[⏳ 負／不明を全件保持・同23で修正再試験禁止]
