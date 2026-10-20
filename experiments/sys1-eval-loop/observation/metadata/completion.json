@@ -1,0 +1,31 @@
+{
+  "status": "SUCCESS",
+  "endedAt": "2026-10-20T11:14:08.235Z",
+  "captures": [
+    {
+      "owner": "roccho-dev",
+      "endpoint": "users/roccho-dev/repos?type=owner&sort=full_name&per_page=100",
+      "rawFile": "roccho-dev.json",
+      "completedAt": "2026-10-20T11:14:07.598Z",
+      "status": "SUCCESS",
+      "error": null,
+      "pages": 2,
+      "pageLengths": [
+        100,
+        53
+      ]
+    },
+    {
+      "owner": "roccho-org",
+      "endpoint": "users/roccho-org/repos?type=owner&sort=full_name&per_page=100",
+      "rawFile": "roccho-org.json",
+      "completedAt": "2026-10-20T11:14:08.193Z",
+      "status": "SUCCESS",
+      "error": null,
+      "pages": 1,
+      "pageLengths": [
+        3
+      ]
+    }
+  ]
+}

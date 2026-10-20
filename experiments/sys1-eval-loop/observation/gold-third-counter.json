@@ -1,0 +1,69 @@
+{
+  "schema": "sub.observation.gold-counter.v1",
+  "source": "root-observation-gold-adjudication-view.json; ten selected bodies only",
+  "rubric": "original split.mjs hasObservation and question(O); candidate O supplement and either original rater label not consulted",
+  "predictionRead": false,
+  "cases": [
+    {
+      "id": "held-026",
+      "O": "yes",
+      "basis": "Status explicitly declares finalStateProved=false and businessOutcomeProved=false, which can be read as current proof/achievement status, rather than only the future architecture tables.",
+      "counter": "The surrounding Status also defines normative authority and architectureTarget. If all status booleans merely delimit claims/permissions rather than assert a current proof result, no is coherent; the decisive ambiguity is whether Proved=false reports non-proof now. Do not infer an actual V0 implementation from its link."
+    },
+    {
+      "id": "held-029",
+      "O": "no",
+      "basis": "Authority references and accepted-gap lineage identify governing inputs; requirements, gates and physical evidence remaining required are obligations. No explicit actual execution, check result or present achievement is reported.",
+      "counter": "latest-writer decision/accepted gap may be read as a current acceptance claim, but the body uses these as authority citations, not an account of having accepted or checked them. Existing resources/runtime words alone do not prove an implementation status."
+    },
+    {
+      "id": "held-118",
+      "O": "no",
+      "basis": "The Normative status booleans delimit implementation/decision/effect authority and conditional blockedUntilAcceptedADRS. The rest is prospective obligations and gates; the text does not state that acceptance was attempted or is currently missing as an observed fact.",
+      "counter": "blockedUntilAcceptedADRS=true and organizationActiveClaim=false can look like current blocked status. Unlike a sentence reporting ADRS remains unaccepted, these can also be normative invariants. If the original rubric cannot distinguish these readings, null is preferable to forcing agreement."
+    },
+    {
+      "id": "held-126",
+      "O": "no",
+      "basis": "Fixed input for the first proof binds a commit/blob/hash/row count; the body specifies projection, ownership and minimum proof without saying this input was acquired, counted, tested or confirmed.",
+      "counter": "rows:2 and an exact blob could be interpreted as a real data inventory, but those literal input constants can equally be part of a declared test contract. External references must not be followed to manufacture the missing observation."
+    },
+    {
+      "id": "held-131",
+      "O": "yes",
+      "basis": "The final sentence calls source-layout PR315/318 Pending, reporting their current unfinished status while prohibiting implicit treatment as merged. Completion is not required for an observation.",
+      "counter": "must not be implicitly considered merged is normative by itself; yes relies on the separate present-status adjective Pending, not on unchecked completion boxes or existing tests."
+    },
+    {
+      "id": "held-142",
+      "O": "yes",
+      "basis": "Expected publication tree from local clean build identifies a concrete locally built output hash; that provenance attributes an actual build result even though its acceptance and future deployment are still requirements.",
+      "counter": "Expected could instead mean a target digest without a completed build. The phrase from local clean build supports the actual-result reading; if it is only a hypothetical expected build, no/null remains defensible. Unchecked future CI conditions themselves are not observations."
+    },
+    {
+      "id": "held-168",
+      "O": "no",
+      "basis": "Exact legacy source is an input package/commit/tree inventory; scope and retirement conditions are planned preservation and future gates. No current build/test/execution or achieved/unachieved implementation status is asserted beyond naming inputs.",
+      "counter": "The specified archive SHA and legacy working tree may be read as an observed source inventory, but a source reference and declared preservation target do not independently assert acquisition or verification. Avoid inferring success from the word reusable."
+    },
+    {
+      "id": "held-184",
+      "O": "yes",
+      "basis": "Exact inputs explicitly name a local integrated source head plus an uploaded bundle and overlay files361, reporting a concrete materialized local integration/input inventory, while the later merge remains conditional.",
+      "counter": "A table of exact intended input revisions alone can be normative. Yes depends on local integrated/uploaded as asserted completed input state, not merely the SHA strings; if these are only names of desired inputs, keep the ambiguity visible."
+    },
+    {
+      "id": "held-242",
+      "O": "yes",
+      "basis": "Exact evidence gives a local proof head/tree, and the following paragraph identifies concrete keyboard/selection/Undo/Redo/pointer behaviors in that local proof as preservation targets. This reports a present proof/implementation source state in addition to the architecture contract.",
+      "counter": "Current-state architecture or source-path tables alone can declare design, so they are not the basis for yes. The local proof and explicitly described behaviors provide the stronger observed-state claim; no external CI success is inferred."
+    },
+    {
+      "id": "held-288",
+      "O": "yes",
+      "basis": "The opening states host-open worker/runner behavior was staged in hq94; later it refers to the direct explorer.exe implementation from that staging as a migration fixture. This reports an existing staged implementation, without claiming the future canonical integration complete.",
+      "counter": "Links and Depends-on lists alone would be no. Yes relies on staged behavior and direct implementation as current-state assertions, not on future Done bullets or the hypothetical first proof."
+    }
+  ],
+  "disagreementPolicy": "These are body-only claims/counters, not forced Gold. Original-rubric ambiguity that the two raters cannot settle remains null; no candidate or primary-endpoint changes."
+}

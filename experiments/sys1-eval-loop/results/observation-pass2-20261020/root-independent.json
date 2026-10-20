@@ -1,0 +1,208 @@
+{
+  "schema": "root.observation.held-independent.v1",
+  "execution": {
+    "source": "ad4b0e618ef36d157716f0a544cbe4a72588c368",
+    "activation": "0cb17efdb809513b589f9ab31f4b7c2afe0a1029",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39427992227"
+  },
+  "inputDigest": "12c94f7a257fa7de733f188a0e5f59821fed0648cd3b6fb78844a9f665173af4",
+  "summary": {
+    "repId": 2,
+    "assigned": 300,
+    "resolved": 293,
+    "unknown": 7,
+    "b": 14,
+    "c": 3,
+    "bothCorrect": 217,
+    "bothIncorrect": 59,
+    "baselineCorrect": 220,
+    "candidateCorrect": 231,
+    "regressionCases": 3,
+    "partialKnownRegressionCases": 0,
+    "axes": {
+      "E": {
+        "resolved": 300,
+        "unknown": 0,
+        "regressions": 0,
+        "b": 0,
+        "c": 0,
+        "baselineCorrect": 297,
+        "candidateCorrect": 297,
+        "goldYes": 295,
+        "goldNo": 5,
+        "goldUnknown": 0,
+        "confusion": {
+          "best": {
+            "TP": 292,
+            "TN": 5,
+            "FP": 0,
+            "FN": 3,
+            "unknown": 0
+          },
+          "scoped": {
+            "TP": 292,
+            "TN": 5,
+            "FP": 0,
+            "FN": 3,
+            "unknown": 0
+          }
+        }
+      },
+      "O": {
+        "resolved": 293,
+        "unknown": 7,
+        "regressions": 3,
+        "b": 14,
+        "c": 3,
+        "baselineCorrect": 223,
+        "candidateCorrect": 234,
+        "goldYes": 140,
+        "goldNo": 153,
+        "goldUnknown": 7,
+        "confusion": {
+          "best": {
+            "TP": 78,
+            "TN": 145,
+            "FP": 8,
+            "FN": 62,
+            "unknown": 7
+          },
+          "scoped": {
+            "TP": 92,
+            "TN": 142,
+            "FP": 11,
+            "FN": 48,
+            "unknown": 7
+          }
+        }
+      }
+    },
+    "repaired": [
+      "held-001",
+      "held-008",
+      "held-043",
+      "held-058",
+      "held-072",
+      "held-221",
+      "held-253",
+      "held-254",
+      "held-269",
+      "held-278",
+      "held-280",
+      "held-293",
+      "held-297",
+      "held-300"
+    ],
+    "regressed": [
+      "held-101",
+      "held-155",
+      "held-289"
+    ],
+    "axisRegressed": [
+      {
+        "id": "held-101",
+        "axis": "O"
+      },
+      {
+        "id": "held-155",
+        "axis": "O"
+      },
+      {
+        "id": "held-289",
+        "axis": "O"
+      }
+    ],
+    "unknownCases": [
+      "held-026",
+      "held-029",
+      "held-126",
+      "held-142",
+      "held-168",
+      "held-184",
+      "held-242"
+    ],
+    "modelStable": true,
+    "observedRegressionCases": 3,
+    "effectCounts": {
+      "assigned": 900,
+      "attempts": 900,
+      "actualPosts": 900,
+      "qualified": 900,
+      "unknown": 0,
+      "unattempted": 0
+    },
+    "bounds": {
+      "B_L": 14,
+      "B_U": 28,
+      "C_L": 3,
+      "C_U": 15,
+      "R_U": 15,
+      "differenceLowerNumerator": -1,
+      "differenceUpperNumerator": 25,
+      "denominator": 323,
+      "differenceLower": -0.0030959752321981426,
+      "differenceUpper": 0.07739938080495357,
+      "regressionUpper": 0.04643962848297214
+    },
+    "qualificationComplete": true,
+    "technicalUnknown": false,
+    "disposition": "OBSERVED_REGRESSION",
+    "usage": {
+      "bestO": {
+        "answers": 300,
+        "input_tokens": {
+          "known": 300,
+          "subtotal": 593192,
+          "unknownPhysicalPosts": 0
+        },
+        "output_tokens": {
+          "known": 300,
+          "subtotal": 9300,
+          "unknownPhysicalPosts": 0
+        },
+        "total_tokens": {
+          "known": 0,
+          "subtotal": 0,
+          "unknownPhysicalPosts": 300
+        }
+      },
+      "scopedO": {
+        "answers": 300,
+        "input_tokens": {
+          "known": 300,
+          "subtotal": 793592,
+          "unknownPhysicalPosts": 0
+        },
+        "output_tokens": {
+          "known": 300,
+          "subtotal": 9300,
+          "unknownPhysicalPosts": 0
+        },
+        "total_tokens": {
+          "known": 0,
+          "subtotal": 0,
+          "unknownPhysicalPosts": 300
+        }
+      },
+      "sharedE": {
+        "answers": 300,
+        "input_tokens": {
+          "known": 300,
+          "subtotal": 587492,
+          "unknownPhysicalPosts": 0
+        },
+        "output_tokens": {
+          "known": 300,
+          "subtotal": 9300,
+          "unknownPhysicalPosts": 0
+        },
+        "total_tokens": {
+          "known": 0,
+          "subtotal": 0,
+          "unknownPhysicalPosts": 300
+        }
+      }
+    }
+  },
+  "limits": "Frozen Gold-relative fixed public eligible frame323 only; two same-sample passes are not600 independent cases; no population-zero regression, future model, Apps performance, money or causal quality guarantee."
+}

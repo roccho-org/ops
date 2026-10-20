@@ -1,0 +1,119 @@
+{
+  "schema": "root.observation.development-independent.v1",
+  "summary": {
+    "assigned": 118,
+    "resolved": 114,
+    "unknown": 4,
+    "b": 1,
+    "c": 0,
+    "bothCorrect": 79,
+    "bothIncorrect": 34,
+    "baselineCorrect": 79,
+    "candidateCorrect": 80,
+    "regressionCases": 0,
+    "partialKnownRegressionCases": 0,
+    "axes": {
+      "E": {
+        "resolved": 118,
+        "unknown": 0,
+        "regressions": 0,
+        "b": 0,
+        "c": 0,
+        "baselineCorrect": 118,
+        "candidateCorrect": 118,
+        "goldYes": 93,
+        "goldNo": 25,
+        "goldUnknown": 0,
+        "confusion": {
+          "best": {
+            "TP": 93,
+            "TN": 25,
+            "FP": 0,
+            "FN": 0,
+            "unknown": 0
+          },
+          "scoped": {
+            "TP": 93,
+            "TN": 25,
+            "FP": 0,
+            "FN": 0,
+            "unknown": 0
+          }
+        }
+      },
+      "O": {
+        "resolved": 114,
+        "unknown": 4,
+        "regressions": 0,
+        "b": 1,
+        "c": 0,
+        "baselineCorrect": 79,
+        "candidateCorrect": 80,
+        "goldYes": 66,
+        "goldNo": 48,
+        "goldUnknown": 4,
+        "confusion": {
+          "best": {
+            "TP": 44,
+            "TN": 35,
+            "FP": 13,
+            "FN": 22,
+            "unknown": 4
+          },
+          "scoped": {
+            "TP": 45,
+            "TN": 35,
+            "FP": 13,
+            "FN": 21,
+            "unknown": 4
+          }
+        }
+      }
+    },
+    "modelStable": true,
+    "observedRegressionCases": 0
+  },
+  "effectCounts": {
+    "assigned": 118,
+    "attempts": 118,
+    "actualPosts": 118,
+    "qualified": 118,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "guard": {
+    "qualified": true,
+    "modelStable": true,
+    "positiveKnownGain": true,
+    "noKnownRegression": true,
+    "eligible": true
+  },
+  "changed": [
+    {
+      "id": "real-056",
+      "old": "no",
+      "current": "yes",
+      "gold": "yes"
+    }
+  ],
+  "regressed": [],
+  "usage": {
+    "answers": 118,
+    "input_tokens": {
+      "known": 118,
+      "subtotal": 322900,
+      "unknownPhysicalPosts": 0
+    },
+    "output_tokens": {
+      "known": 118,
+      "subtotal": 3658,
+      "unknownPhysicalPosts": 0
+    },
+    "total_tokens": {
+      "known": 0,
+      "subtotal": 0,
+      "unknownPhysicalPosts": 118
+    }
+  },
+  "limitation": "Retired118; original historical pass1 qualification/provider provenance were independently accepted in PR613, not newly requalified by this script. Historical anchor nonconcurrent; E aliases are not fresh E validation; 4 null O labels retained. Missing usage subtotal0 is not known cost0. Development only, no held-out effect claim."
+}
