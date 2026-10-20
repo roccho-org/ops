@@ -1,0 +1,84 @@
+{
+  "schema": "ops.sys1.expectation-census-readback.v1",
+  "provider": {
+    "repository": "roccho-org/ops",
+    "workflowPath": ".github/workflows/sys1-expectation-census.yml",
+    "runId": 39505411380,
+    "runAttempt": 1,
+    "head": "031db1a3efb2ea0e69d2b4c51f337418a9cf87da",
+    "source": "f8487a09f8fd360aef1e46c4728aed754f9cab8c",
+    "branch": "codex/jev-expectation-census-20261021",
+    "event": "push",
+    "actor": "roccho-dev",
+    "conclusion": "success",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39505411380",
+    "artifactId": 12302833849,
+    "artifactName": "sys1-expectation-39505411380",
+    "artifactSize": 613922,
+    "providerDigest": "sha256:c4f65e820a87ae9bb2b1fb5a24d032c8dec1e72cdef7cedd9cef88d9597cba0b",
+    "archiveSha256": "c4f65e820a87ae9bb2b1fb5a24d032c8dec1e72cdef7cedd9cef88d9597cba0b"
+  },
+  "repId": 1,
+  "effectCounts": {
+    "assigned": 357,
+    "attempts": 357,
+    "actualPosts": 357,
+    "qualified": 357,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "modelStable": true,
+  "knownOutcome": {
+    "resolved": 118,
+    "unresolved": 1,
+    "qualifiedPairs": 118,
+    "unknownPredictionCases": [],
+    "before": 85,
+    "after": 93,
+    "repairs": [
+      "expectation-013",
+      "expectation-034",
+      "expectation-056",
+      "expectation-057",
+      "expectation-059",
+      "expectation-082",
+      "expectation-093",
+      "expectation-116"
+    ],
+    "regressions": []
+  },
+  "inference": {
+    "bounds": {
+      "differenceLowerNumerator": 8,
+      "differenceUpperNumerator": 8,
+      "regressionLowerNumerator": 0,
+      "regressionUpperNumerator": 0,
+      "denominator": 119
+    },
+    "accepted": true,
+    "disposition": "POSITIVE_FIXED_CENSUS_GAIN",
+    "knownRegressionCases": []
+  },
+  "reconfirmation": null,
+  "usage": {
+    "input_tokens": {
+      "known": 357,
+      "unknown": 0,
+      "knownSum": 860975,
+      "value": 860975
+    },
+    "output_tokens": {
+      "known": 357,
+      "unknown": 0,
+      "knownSum": 11067,
+      "value": 11067
+    },
+    "total_tokens": {
+      "known": 0,
+      "unknown": 357,
+      "knownSum": 0,
+      "value": null
+    }
+  },
+  "scope": "W product replay, not independent oracle; root/R separately acquire and independently score; current physical3M unique only, total_tokens absent not filled, money/internal compute unknown"
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "ops.sys1.expectation-development-readback.v1",
+  "provider": {
+    "repository": "roccho-org/ops",
+    "workflowPath": ".github/workflows/sys1-expectation-census.yml",
+    "runId": 39497868527,
+    "runAttempt": 1,
+    "head": "59ce7b560eae2d0902c5d1e866a2c35c8f06dc46",
+    "source": "e6fc98bb496fa0efd1138586f3bad110858fbb11",
+    "branch": "codex/jev-expectation-census-20261021",
+    "event": "push",
+    "actor": "roccho-dev",
+    "conclusion": "success",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39497868527",
+    "artifactId": 12298787753,
+    "artifactName": "sys1-expectation-39497868527",
+    "artifactSize": 1827411,
+    "providerDigest": "sha256:74c4ef6277a880782d60bc59452b4a8f5db80720a6c023b29b753712b2e2033f",
+    "archiveSha256": "74c4ef6277a880782d60bc59452b4a8f5db80720a6c023b29b753712b2e2033f"
+  },
+  "effectCounts": {
+    "assigned": 507,
+    "attempts": 507,
+    "actualPosts": 507,
+    "qualified": 507,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "guard": {
+    "assigned": 507,
+    "resolvedJoint": 491,
+    "unresolvedGold": [
+      "held-026",
+      "held-029",
+      "held-126",
+      "held-142",
+      "held-168",
+      "held-184",
+      "held-242",
+      "census-002",
+      "census-004",
+      "census-008",
+      "census-010",
+      "census-028",
+      "census-115",
+      "census-118",
+      "census-138",
+      "census-171"
+    ],
+    "baselineCorrect": 392,
+    "candidateCorrect": 400,
+    "repaired": [
+      "held-086",
+      "census-018",
+      "census-019",
+      "census-023",
+      "census-053",
+      "census-089",
+      "census-095",
+      "census-208"
+    ],
+    "regressed": [],
+    "E": {
+      "baselineCorrect": 486,
+      "candidateKnownCorrect": 494,
+      "repaired": [
+        "held-086",
+        "census-018",
+        "census-019",
+        "census-023",
+        "census-053",
+        "census-089",
+        "census-095",
+        "census-208"
+      ],
+      "regressed": []
+    },
+    "unionERegressed": [],
+    "unknownProtectedE": [],
+    "unknownCandidate": [],
+    "positiveKnownJointGain": true,
+    "noKnownUnionERegression": true,
+    "qualificationComplete": true,
+    "modelStable": true,
+    "eligible": true,
+    "scope": "first-snapshot complete E/O gain with fixed historical O; E-only counts are diagnostic, not the acceptance endpoint; protect known-correct E union across both actual snapshots; development only, not a fresh contemporary comparison"
+  },
+  "outcome": "DEVELOPMENT_GUARD_PASS",
+  "usage": {
+    "input_tokens": {
+      "known": 507,
+      "unknown": 0,
+      "knownSum": 1114056,
+      "value": 1114056
+    },
+    "output_tokens": {
+      "known": 507,
+      "unknown": 0,
+      "knownSum": 15717,
+      "value": 15717
+    },
+    "total_tokens": {
+      "known": 0,
+      "unknown": 507,
+      "knownSum": 0,
+      "value": null
+    }
+  },
+  "scope": "W product replay, not independent oracle; root/R separately acquire and independently score; total_tokens absent is not filled, money/internal compute unknown"
+}

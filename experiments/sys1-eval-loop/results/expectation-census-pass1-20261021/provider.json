@@ -1,0 +1,18 @@
+{
+  "repository": "roccho-org/ops",
+  "workflowPath": ".github/workflows/sys1-expectation-census.yml",
+  "runId": 39505411380,
+  "runAttempt": 1,
+  "head": "031db1a3efb2ea0e69d2b4c51f337418a9cf87da",
+  "source": "f8487a09f8fd360aef1e46c4728aed754f9cab8c",
+  "branch": "codex/jev-expectation-census-20261021",
+  "event": "push",
+  "actor": "roccho-dev",
+  "conclusion": "success",
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39505411380",
+  "artifactId": 12302833849,
+  "artifactName": "sys1-expectation-39505411380",
+  "artifactSize": 613922,
+  "providerDigest": "sha256:c4f65e820a87ae9bb2b1fb5a24d032c8dec1e72cdef7cedd9cef88d9597cba0b",
+  "archiveSha256": "c4f65e820a87ae9bb2b1fb5a24d032c8dec1e72cdef7cedd9cef88d9597cba0b"
+}

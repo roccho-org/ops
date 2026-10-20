@@ -1,0 +1,252 @@
+{
+  "schema": "ops.sys1.expectation-census-plan.v1",
+  "roundIndex": 5,
+  "purpose": "One new E-only presentation hypothesis under the original broad E/O rubric; no rescue of PR617's predeclared NOT_RECONFIRMED outcome, no product E2E or same-cost claim",
+  "development": {
+    "cases": "all retired old300 plus all retired census207, existing body/source/Gold unchanged; original IDs preserved",
+    "jointAnchor": "mechanical first snapshot: observation-pass1-20261020 for old300 and census-and-pass1-20261021 for retired207; their original BestE and BestO receipts, never a favorable snapshot",
+    "protection": "known-correct E union from all four actual sharedE histories: observation-pass1/pass2-20261020 and census-and-pass1/pass2-20261021; 1014 physical E receipts. All five reserve-development phases' first-snapshot E aliases must equal their original receipt and add no physical evidence or cost",
+    "knownBeforeCandidate": {
+      "cases": 507,
+      "physicalHistoricalE": 1014,
+      "protectedE": 486,
+      "firstJointCorrect": 392,
+      "jointGoldUnresolved": 16
+    },
+    "acceptance": "all507 new E qualified and expected model, positive complete E/O known joint gain against fixed first-snapshot historical O, and zero known-correct E union destruction; missing candidate E is UNKNOWN, not a known regression; known regression and missing remain separately visible",
+    "newPosts": 507,
+    "proposedJobMinutes": 150,
+    "deadlineBasis": "507*15 seconds=126.75 minutes, plus keyless preparation and retention margin; cap, not completion guarantee",
+    "limit": "Nonconcurrent development diagnostic only. E-only repair is not necessarily complete E/O repair. Does not establish fresh contemporary O/E performance or unseen-case improvement"
+  },
+  "freshTarget": {
+    "metadataNativeCommit": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "metadataPrefix": "experiments/sys1-eval-loop/census-root-data/external-metadata-2/",
+    "membership": "Only Issue metadata actually observed in that accepted full-history capture and its same three immutable public repository IDs; not a fresh snapshot or proof of all issues in an entire day",
+    "createdAtInclusive": "2026-10-20T00:00:00Z",
+    "createdAtExclusive": "2026-10-20T18:00:00Z",
+    "order": "validate all original query/page/cursor/global typed-ID versions, then UTC created window, immutable ID dedup, createdAt plus locale-independent ordinal issue ID sort, prefix at most300 fixed before body",
+    "maximumPrefix": 300,
+    "priorRecipe": "Exactly PR617's fixed407 native input blobs plus native94b7a1ae68aee940c57f6304b5ff8c21f529839d external-body-1 full actual210 body captures and typed identities, including its empty1/oversize2 exclusions; replay exact body/typed-ID/explicit-array semantics. Do not add all322718 metadata-only IDs as used task bodies or include current-round bodies into their own prior",
+    "body": "Only after candidate actual fullwire freeze, development guard and source acceptance: fixed-prefix known IDs excluded before body; standard immutable Issue wholebody once, original order/versions; prior exact body, empty and any of three serialized requests>=24000 bytes excluded; no truncation or refill",
+    "visibility": "Same public ID/name/Issue-enabled checks before/after body, complete source/clock/query/reply originals, one-hour cap, changes or uncertainty invalidate; non-atomic visibility race is not absolutely excluded",
+    "gold": "Existing real-case corpus/body-only view; original split.mjs rubric, mutually unread prediction-blinded root/R initials native-frozen before adjudication; unresolved null and every eligible case remain; candidate-known same-model-rater limitation",
+    "M0": "NO_CASES/model0 retained; no post hoc window/repository/prefix expansion or substitution",
+    "scopeLimit": "Operational nonoverlap with actual retained typed IDs and exact bodies, not semantic/author/template/pretraining independence; 1 Issue 1 weight including duplicate bodies. Existing prior-reference transfer limits remain",
+    "priorReferenceLimit": "Old38d5 resolution evidence covers only the previously accepted35 repository names/2211 references. New literal URLs found in the additional210 bodies are untyped residual private metadata, not resolved by that old evidence and not equivalent to observed task bodies. No new resolver API is authorized here; actual typed IDs and exact bodies are the primary nonoverlap boundary.",
+    "knownPriorAggregate": {
+      "typedIssueIds": 740,
+      "exactBodies": 1916,
+      "newUntypedIssueOrPullUrls": 29,
+      "basis": "root/R independent union of original407 plus all actual210 body captures, including exclusions;29 is new literal Issue/pull refs inside body strings only, self node.url210 already typed; prior counts only, not next target count"
+    },
+    "observedMetadataPrefix": {
+      "native": "77477e187e05e594e101cd821857c25c0c46865f",
+      "count": 122,
+      "eligibleM": null,
+      "newMetadataQueries": 0,
+      "bodyGoldPredictions": 0,
+      "stateAtNativeProjection": "before body acquisition; metadata count is not eligible M"
+    },
+    "conservativeReferenceSupplement": {
+      "checkpoint": "https://github.com/roccho-org/ops/pull/620#issuecomment-6301559042",
+      "originalPlanRetained": "source e6 remains immutable in native history; this supplements eligibility before any H body/Gold/prediction",
+      "references": "all old2211 plus29 added body-contained normalized literal Issue/pull URLs, fixed2240; apply uniformly without using D outcome or matching count to choose the rule",
+      "rule": "case-insensitive fixed canonical repository name plus positive integer number to an observed prefix Issue; preserve original issues/pull path type and observed Issue type, including type-different matches as conservative reference exclusion only",
+      "sets": "actual typed740/body1916 unchanged; referenceExcludedCandidateIds is separate, references do not establish earlier body readership or convert PRs into Issues",
+      "noRefill": true,
+      "prefixOrderUnchanged": true,
+      "limits": "no new API; no alias/rename/outside-scope/semantic/pretraining guarantee; unresolved references stay private",
+      "observedMatches": 0,
+      "observedExcludedCandidateIds": 0,
+      "observedActualTypedOverlap": 0
+    },
+    "bodyProtocol": {
+      "querySource": "EXPECTATION_BODY_QUERY in expectation/body.mjs reuses the fixed whole-Issue query; no title/comments/labels",
+      "input": "fixed metadata/prefix native77477 receipt; original private reference native84559; native407+actual210 prior740/1916; retained successful actualD provider/raw/guard/selection fully reconstructed",
+      "capture": "each native capture keeps query and variables exactly {id}, original stdout/stderr/status and native protocol; shared strict per-Issue/source validation preserves old210/207 output",
+      "frameSchema": "ops.sys1.expectation-body-frame.v1",
+      "roundIndex": 5,
+      "physicalKeys": [
+        "bestE",
+        "scopedE",
+        "sharedO"
+      ],
+      "maximumWireBytesExclusive": 24000,
+      "acquisitionWindowMs": 3600000,
+      "apiBeforeSourceHostAcceptance": false,
+      "modelPosts": 0,
+      "priorReferenceNative": "84559b85a8440b156e1d62f8b59f2712e1c7c1d7",
+      "authenticity": "host/root/R native originals and full independent replay, not caller-supplied accepted booleans or new copied blob gates"
+    },
+    "actualBody": {
+      "native": "322399f7ca322402270f575928538a0d959e21bb",
+      "prefixCases": 122,
+      "nativeCLICommands": 124,
+      "bodyRequests": 122,
+      "knownIssue": 0,
+      "priorReference": 0,
+      "priorExactBody": 1,
+      "emptyBody": 0,
+      "oversize": 2,
+      "eligible": 119,
+      "newModelRequests": 0,
+      "internalHTTPAttempts": "UNKNOWN",
+      "noRefill": true
+    },
+    "actualGold": {
+      "viewNative": "322399f7ca322402270f575928538a0d959e21bb",
+      "initialsNative": "fdc9a7a6d313cff397985095c8ffc0bad1099716",
+      "finalNative": "1d9c28eee8ff279232cae1b1b4cd36a61a9c1e50",
+      "cases": 119,
+      "initialAgreement": 117,
+      "initialDisagreement": 2,
+      "unresolved": 1,
+      "modelPostsBeforeFreeze": 0,
+      "limit": "candidate-known same-model independent initials, mutually unread and prediction-blinded before native freeze; all original labels/bodies retained"
+    }
+  },
+  "freshMeasurement": {
+    "physicalKeys": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
+    "perPassMaximum": 900,
+    "passes": 2,
+    "maximumPosts": 1800,
+    "rule": "Both E arms measured contemporaneously with one sharedO per case within each pass; no historical O or cross-pass reuse. Each pass all3M qualified, expected model, positive minimum complete E/O gain and zero maximum axis regression over common Gold completions",
+    "continuation": "Semantic FAIL or ordinary qualification unknown does not cancel planned pass2; actual model drift remains technical stop; no average/winner selection or doubling case denominator",
+    "proposedJobMinutes": 250,
+    "deadlineBasis": "900*15 seconds=225 minutes plus preparation/projection/retention margin; cap, not completion guarantee",
+    "combinedNewMaximum": 2307,
+    "accounting": "507 development plus at most1800 fresh H posts. Historical aliases have no new cost. Old PR616/617 calls and all failures remain separately recorded; money/internal compute/total_tokens absence unknown; equal O call count is not same token cost",
+    "implementation": "fixed3M/round5 native entry and original actual119 data integrated; exact current source/requiredCI/three-party acceptance still precede fresh model effect",
+    "actualAssignment": {
+      "cases": 119,
+      "perPassPosts": 357,
+      "passes": 2,
+      "totalFreshPosts": 714,
+      "combinedDevelopmentAndPlannedFresh": 1221,
+      "currentFreshPosts": 714
+    }
+  },
+  "currentStage": "both fixed passes completed and retained; positive delta8 then7 but H2 observed E regression1; predeclared AND NOT_RECONFIRMED, candidate unadopted and119 retired; final exactsource CI/reviews/records pending",
+  "newMetadataQueries": 0,
+  "newBodyQueries": 122,
+  "newModelPosts": 1221,
+  "adopted": false,
+  "seriesClosure": {
+    "name": "fixed-e-prospective-census-closure",
+    "inputs": [
+      "unchanged upstream617 originals, predeclared outcome and actual all-CI/Ready/public records",
+      "current native source/tree and fixed single candidate actual fullwire",
+      "four physical E histories1014 and all507 body/Gold/mechanical first/union expectations",
+      "newD507 original provider/raw/strictqualification/guard",
+      "accepted original metadata projection/prefix and new fullbody/exclusion/independentGold originals",
+      "both fresh H raw/provider/commonGold bounds/full accounting",
+      "final exacthead necessary CI, independent review, Ready/open/unmerged records"
+    ],
+    "failure": "upstream primary or Gold alteration; source/wire/denominator/qualification mismatch; incomplete originals; Dguard failure; either H not accepted, technicalunknown/modeldrift; unresolved required CI/review/records",
+    "implementation": "evidence conjunction only; not a new custom runtime gate, executor or ledger"
+  },
+  "manualContinuation": "Same User GO: preserve each negative/unknown and actual accounting; W/root/R rebut causes and a distinct meaningful hypothesis, specify finite assignment/timeout and source review before the next D. H not accepted retires that H into D and requires another unused-H contract. No blind resend, averaging/winner selection, Gold changes, same-H rescue, new User budget gate or infinite retry executor.",
+  "actualDevelopment": {
+    "runId": 39497868527,
+    "source": "e6fc98bb496fa0efd1138586f3bad110858fbb11",
+    "activation": "59ce7b560eae2d0902c5d1e866a2c35c8f06dc46",
+    "physicalPosts": 507,
+    "qualified": 507,
+    "expectedModelStable": true,
+    "firstJointBefore": 392,
+    "firstJointAfter": 400,
+    "repairs": 8,
+    "regressions": 0,
+    "protectedEUnionBroken": 0,
+    "unresolvedO": 16,
+    "guardEligible": true,
+    "inputTokens": 1114056,
+    "outputTokens": 15717,
+    "totalTokensMissing": 507,
+    "limit": "nonconcurrent development diagnostic, not fresh-H improvement/adoption or network-body byte capture"
+  },
+  "actualFreshPasses": [
+    {
+      "repId": 1,
+      "runId": 39505411380,
+      "activation": "031db1a3efb2ea0e69d2b4c51f337418a9cf87da",
+      "source": "f8487a09f8fd360aef1e46c4728aed754f9cab8c",
+      "physicalPosts": 357,
+      "qualified": 357,
+      "modelStable": true,
+      "knownBefore": 85,
+      "knownAfter": 93,
+      "knownResolved": 118,
+      "unresolved": 1,
+      "difference": [
+        8,
+        8
+      ],
+      "regression": [
+        0,
+        0
+      ],
+      "denominator": 119,
+      "accepted": true,
+      "inputTokens": 860975,
+      "outputTokens": 11067,
+      "totalTokensMissing": 357
+    },
+    {
+      "repId": 2,
+      "runId": 39506465446,
+      "activation": "4f87004785159e4d161aa48bc566397e748e2207",
+      "source": "49745ee1a2896716cdd3a2ce6fe5f23477b701cd",
+      "physicalPosts": 357,
+      "qualified": 357,
+      "modelStable": true,
+      "knownBefore": 85,
+      "knownAfter": 92,
+      "knownResolved": 118,
+      "unresolved": 1,
+      "difference": [
+        7,
+        7
+      ],
+      "regression": [
+        1,
+        1
+      ],
+      "knownRegressionCases": [
+        "expectation-052"
+      ],
+      "denominator": 119,
+      "accepted": false,
+      "inputTokens": 860975,
+      "outputTokens": 11067,
+      "totalTokensMissing": 357
+    }
+  ],
+  "reconfirmation": {
+    "accepted": false,
+    "disposition": "NOT_RECONFIRMED",
+    "caseDenominator": 119,
+    "repetitions": 2,
+    "retired": true
+  },
+  "actualSeries": {
+    "physicalCalls": 1221,
+    "inputTokens": 2836006,
+    "outputTokens": 37851,
+    "totalTokensMissing": 1221,
+    "oldSeriesAccounting": "retained separately, never erased or double-counted as current physical aliases"
+  },
+  "nextDiscussion": {
+    "currentPrimaryUnchanged": true,
+    "retireAll119": true,
+    "developmentCases": 626,
+    "alternatives": "one genuine help-request presentation refinement versus fixed OR(originalBestE,currentE) extra-compute configuration; choose prospectively, not both and winner-select",
+    "newTargetProposal": "observed8bc metadata only, same3repos, Oct18 UTC day/prefix300/no-refill fixed before count; no new count/body/Gold/API/model yet",
+    "prior": "fixed old407+old210 plus all new122 actual bodies including exclusions; never all metadata-only IDs, all retained references get the same conservative matching rule"
+  }
+}

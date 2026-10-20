@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "3972ceffeb7c6b71c79ce2e15deb8ef147af9b94",
+  "metadataPrefixNative": "77477e187e05e594e101cd821857c25c0c46865f",
+  "referenceNative": "84559b85a8440b156e1d62f8b59f2712e1c7c1d7",
+  "developmentRunId": 39497868527,
+  "startedAt": "2026-10-20T21:32:03.947Z",
+  "endedAt": "2026-10-20T21:33:35.187Z",
+  "nativeCommands": 124,
+  "parsedReplies": 124,
+  "internalHTTPAttempts": "UNKNOWN",
+  "coverage": {
+    "prefixCases": 122,
+    "knownIssue": 0,
+    "priorReference": 0,
+    "bodyRequests": 122,
+    "priorExactBody": 1,
+    "emptyBody": 0,
+    "oversize": 2,
+    "eligible": 119
+  },
+  "status": "OBSERVED_FRAME_AWAITING_NATIVE_RETAIN",
+  "newModelRequests": 0
+}

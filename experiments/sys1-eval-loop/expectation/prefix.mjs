@@ -1,0 +1,13 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+import {fixedExternalRepositoryScope,replayExternalIssueMetadata} from '../census/external-issues.mjs';import {replayIssuePages} from '../census/issue-pages.mjs';
+const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url),'utf8'));
+// Only the accepted old observation is reused. This function does not acquire
+// a new snapshot, query GitHub, inspect a body, or authenticate a native ref.
+// The host/root/R bind all original command stdout/cursors to this input.
+export function replayExpectationPrefix(captures){
+ const original=read('census/metadata-complete-2/prefix.json'),completion=read('census/metadata-complete-2/completion.json'),scope=fixedExternalRepositoryScope(),old=replayExternalIssueMetadata(captures,read('census/external-plan.json'));
+ for(const key of Object.keys(old))assert.deepEqual(old[key],original[key]);assert.equal(completion.metadataAttempt,2);assert.equal(completion.nativeProtocol,'GH_NATIVE_PAGINATE_SLURP');assert.equal(completion.nativeCommands,5);const pages=captures.reduce((n,c)=>n+c.pages.length,0);assert.equal(completion.issuePages,pages);assert.equal(completion.observedGraphQLResponses,pages+2);assert.equal(completion.scopeRepositories,scope.length);assert.equal(completion.newBodyRequests,0);assert.equal(completion.newModelRequests,0);
+ const plan=read('expectation/prospective-plan.json').freshTarget;assert.equal(plan.createdAtInclusive,'2026-10-20T00:00:00Z');assert.equal(plan.createdAtExclusive,'2026-10-20T18:00:00Z');assert.equal(plan.maximumPrefix,300);assert.ok(Date.parse(plan.createdAtExclusive)<Date.parse(completion.startedAt));
+ const replay=replayIssuePages(captures,scope,{start:Date.parse(plan.createdAtInclusive),end:Date.parse(plan.createdAtExclusive),lowerInclusive:true,upperInclusive:false});
+ return {...replay,schema:'ops.sys1.expectation-observed-prefix.v1',roundIndex:5,repositoryScope:scope,createdWindow:{startInclusive:plan.createdAtInclusive,endExclusive:plan.createdAtExclusive},mode:'REPLAY_OF_ACCEPTED_METADATA_OBSERVATION',origin:{metadataNativeCommit:read('census/actual-data-custody.json').metadataNativeCommit,originalSourceCommit:completion.sourceCommit,originalStartedAt:completion.startedAt,originalEndedAt:completion.endedAt,originalMetadataAttempt:2,originalNativeCommands:5,originalObservedGraphQLResponses:completion.observedGraphQLResponses},newMetadataQueries:0,newBodyRequests:0,newModelRequests:0,scope:'pooled prefix inside the already observed metadata set and prospectively fixed creation window; not a fresh snapshot, random sample, complete-day population or result-selected target; later eligibility never backfills'};
+}

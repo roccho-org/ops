@@ -1,0 +1,216 @@
+{
+  "schema": "ops.sys1.expectation-census-combined.v1",
+  "caseDenominator": 119,
+  "repetitions": 2,
+  "reconfirmation": {
+    "schema": "ops.sys1.expectation-census-reconfirmation.v1",
+    "caseDenominator": 119,
+    "repetitions": 2,
+    "accepted": false,
+    "disposition": "NOT_RECONFIRMED",
+    "rule": "both fixed same-case passes independently satisfy all qualification/model/feasible-delta/regression conditions; no averaging, winner selection or doubled case denominator"
+  },
+  "fullCorePairs": 357,
+  "choiceDifferences": {
+    "bestE": [
+      "expectation-096"
+    ],
+    "scopedE": [
+      "expectation-052"
+    ],
+    "sharedO": []
+  },
+  "passes": [
+    {
+      "provider": {
+        "repository": "roccho-org/ops",
+        "workflowPath": ".github/workflows/sys1-expectation-census.yml",
+        "runId": 39505411380,
+        "runAttempt": 1,
+        "head": "031db1a3efb2ea0e69d2b4c51f337418a9cf87da",
+        "source": "f8487a09f8fd360aef1e46c4728aed754f9cab8c",
+        "branch": "codex/jev-expectation-census-20261021",
+        "event": "push",
+        "actor": "roccho-dev",
+        "conclusion": "success",
+        "runUrl": "https://github.com/roccho-org/ops/actions/runs/39505411380",
+        "artifactId": 12302833849,
+        "artifactName": "sys1-expectation-39505411380",
+        "artifactSize": 613922,
+        "providerDigest": "sha256:c4f65e820a87ae9bb2b1fb5a24d032c8dec1e72cdef7cedd9cef88d9597cba0b",
+        "archiveSha256": "c4f65e820a87ae9bb2b1fb5a24d032c8dec1e72cdef7cedd9cef88d9597cba0b"
+      },
+      "repId": 1,
+      "effectCounts": {
+        "assigned": 357,
+        "attempts": 357,
+        "actualPosts": 357,
+        "qualified": 357,
+        "unknown": 0,
+        "unattempted": 0
+      },
+      "inference": {
+        "bounds": {
+          "differenceLowerNumerator": 8,
+          "differenceUpperNumerator": 8,
+          "regressionLowerNumerator": 0,
+          "regressionUpperNumerator": 0,
+          "denominator": 119
+        },
+        "accepted": true,
+        "disposition": "POSITIVE_FIXED_CENSUS_GAIN",
+        "knownRegressionCases": []
+      },
+      "knownOutcome": {
+        "resolved": 118,
+        "unresolved": 1,
+        "qualifiedPairs": 118,
+        "unknownPredictionCases": [],
+        "before": 85,
+        "after": 93,
+        "repairs": [
+          "expectation-013",
+          "expectation-034",
+          "expectation-056",
+          "expectation-057",
+          "expectation-059",
+          "expectation-082",
+          "expectation-093",
+          "expectation-116"
+        ],
+        "regressions": []
+      },
+      "usage": {
+        "input_tokens": {
+          "known": 357,
+          "unknown": 0,
+          "knownSum": 860975,
+          "value": 860975
+        },
+        "output_tokens": {
+          "known": 357,
+          "unknown": 0,
+          "knownSum": 11067,
+          "value": 11067
+        },
+        "total_tokens": {
+          "known": 0,
+          "unknown": 357,
+          "knownSum": 0,
+          "value": null
+        }
+      }
+    },
+    {
+      "provider": {
+        "repository": "roccho-org/ops",
+        "workflowPath": ".github/workflows/sys1-expectation-census.yml",
+        "runId": 39506465446,
+        "runAttempt": 1,
+        "head": "4f87004785159e4d161aa48bc566397e748e2207",
+        "source": "49745ee1a2896716cdd3a2ce6fe5f23477b701cd",
+        "branch": "codex/jev-expectation-census-20261021",
+        "event": "push",
+        "actor": "roccho-dev",
+        "conclusion": "success",
+        "runUrl": "https://github.com/roccho-org/ops/actions/runs/39506465446",
+        "artifactId": 12302259823,
+        "artifactName": "sys1-expectation-39506465446",
+        "artifactSize": 614251,
+        "providerDigest": "sha256:5b3535ff8639b79c6510141c467e9660fabee597a12a388678684599ba25d774",
+        "archiveSha256": "5b3535ff8639b79c6510141c467e9660fabee597a12a388678684599ba25d774"
+      },
+      "repId": 2,
+      "effectCounts": {
+        "assigned": 357,
+        "attempts": 357,
+        "actualPosts": 357,
+        "qualified": 357,
+        "unknown": 0,
+        "unattempted": 0
+      },
+      "inference": {
+        "bounds": {
+          "differenceLowerNumerator": 7,
+          "differenceUpperNumerator": 7,
+          "regressionLowerNumerator": 1,
+          "regressionUpperNumerator": 1,
+          "denominator": 119
+        },
+        "accepted": false,
+        "disposition": "OBSERVED_REGRESSION",
+        "knownRegressionCases": [
+          "expectation-052"
+        ]
+      },
+      "knownOutcome": {
+        "resolved": 118,
+        "unresolved": 1,
+        "qualifiedPairs": 118,
+        "unknownPredictionCases": [],
+        "before": 85,
+        "after": 92,
+        "repairs": [
+          "expectation-013",
+          "expectation-034",
+          "expectation-056",
+          "expectation-057",
+          "expectation-059",
+          "expectation-082",
+          "expectation-093",
+          "expectation-116"
+        ],
+        "regressions": [
+          "expectation-052"
+        ]
+      },
+      "usage": {
+        "input_tokens": {
+          "known": 357,
+          "unknown": 0,
+          "knownSum": 860975,
+          "value": 860975
+        },
+        "output_tokens": {
+          "known": 357,
+          "unknown": 0,
+          "knownSum": 11067,
+          "value": 11067
+        },
+        "total_tokens": {
+          "known": 0,
+          "unknown": 357,
+          "knownSum": 0,
+          "value": null
+        }
+      }
+    }
+  ],
+  "currentSeries": {
+    "developmentPhysical": 507,
+    "heldAssigned": 714,
+    "heldPosts": 714,
+    "heldQualified": 714,
+    "usage": {
+      "input_tokens": {
+        "known": 1221,
+        "unknown": 0,
+        "knownSum": 2836006,
+        "value": 2836006
+      },
+      "output_tokens": {
+        "known": 1221,
+        "unknown": 0,
+        "knownSum": 37851,
+        "value": 37851
+      },
+      "total_tokens": {
+        "known": 0,
+        "unknown": 1221,
+        "knownSum": 0,
+        "value": null
+      }
+    }
+  },
+  "scope": "same fixed case units across two passes, not independent2M samples; current D507 and both unique physical3M usage only, no double-counted shared O, no total_tokens filling or same-cost/future/OpsApps/E2E guarantee; W product replay, independent root/R proof separate"
+}

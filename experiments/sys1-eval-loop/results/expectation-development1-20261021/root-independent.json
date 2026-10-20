@@ -1,0 +1,94 @@
+{
+  "schema": "root.expectation-development-raw-independent.v1",
+  "inputDigest": "1fa84370131f3df9c3c880a57981d28f10fb4469d4756bce332b1a4d7f3ae3a1",
+  "execution": {
+    "source": "e6fc98bb496fa0efd1138586f3bad110858fbb11",
+    "activation": "59ce7b560eae2d0902c5d1e866a2c35c8f06dc46",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39497868527"
+  },
+  "effectCounts": {
+    "assigned": 507,
+    "attempts": 507,
+    "actualPosts": 507,
+    "qualified": 507,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "guard": {
+    "assigned": 507,
+    "resolvedJoint": 491,
+    "unresolvedGold": [
+      "held-026",
+      "held-029",
+      "held-126",
+      "held-142",
+      "held-168",
+      "held-184",
+      "held-242",
+      "census-002",
+      "census-004",
+      "census-008",
+      "census-010",
+      "census-028",
+      "census-115",
+      "census-118",
+      "census-138",
+      "census-171"
+    ],
+    "baselineCorrect": 392,
+    "candidateCorrect": 400,
+    "repaired": [
+      "held-086",
+      "census-018",
+      "census-019",
+      "census-023",
+      "census-053",
+      "census-089",
+      "census-095",
+      "census-208"
+    ],
+    "regressed": [],
+    "E": {
+      "baselineCorrect": 486,
+      "candidateKnownCorrect": 494,
+      "repaired": [
+        "held-086",
+        "census-018",
+        "census-019",
+        "census-023",
+        "census-053",
+        "census-089",
+        "census-095",
+        "census-208"
+      ],
+      "regressed": []
+    },
+    "unionERegressed": [],
+    "unknownProtectedE": [],
+    "unknownCandidate": [],
+    "positiveKnownJointGain": true,
+    "noKnownUnionERegression": true,
+    "qualificationComplete": true,
+    "modelStable": true,
+    "eligible": true
+  },
+  "outcome": "DEVELOPMENT_GUARD_PASS",
+  "usage": {
+    "input_tokens": {
+      "known": 507,
+      "subtotal": 1114056,
+      "unknownPhysicalPosts": 0
+    },
+    "output_tokens": {
+      "known": 507,
+      "subtotal": 15717,
+      "unknownPhysicalPosts": 0
+    },
+    "total_tokens": {
+      "known": 0,
+      "subtotal": 0,
+      "unknownPhysicalPosts": 507
+    }
+  },
+  "limitation": "D only. Historical O is a fixed diagnostic anchor; no contemporary held-out improvement, population claim or money/internal-compute claim."
+}
