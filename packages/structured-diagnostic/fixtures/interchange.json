@@ -1,0 +1,57 @@
+{
+  "schema": "diagnostic-interchange-corpus/1",
+  "valid": [
+    {
+      "id": "code-only",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.code-only\",\"level\":\"info\",\"message\":\"ready\"}",
+      "canonical": "{\"schema\":\"diagnostic/1\",\"code\":\"example.code-only\",\"level\":\"info\",\"message\":\"ready\"}\n"
+    },
+    {
+      "id": "scalars-unicode-order",
+      "line": "{\"message\":\"準備完了\",\"schema\":\"diagnostic/1\",\"fields\":{\"z\":1,\"a\":true,\"n\":null,\"text\":\"日本語\"},\"level\":\"warn\",\"code\":\"example.fields\"}",
+      "canonical": "{\"schema\":\"diagnostic/1\",\"code\":\"example.fields\",\"level\":\"warn\",\"message\":\"準備完了\",\"fields\":{\"a\":true,\"n\":null,\"text\":\"日本語\",\"z\":1}}\n"
+    },
+    {
+      "id": "number-boundaries",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.numbers\",\"level\":\"debug\",\"message\":\"number boundary\",\"fields\":{\"big\":1e21,\"negative_zero\":-0.0,\"small\":0.000001}}",
+      "canonical": "{\"schema\":\"diagnostic/1\",\"code\":\"example.numbers\",\"level\":\"debug\",\"message\":\"number boundary\",\"fields\":{\"big\":1e+21,\"negative_zero\":0,\"small\":0.000001}}\n"
+    }
+  ],
+  "invalid": [
+    {
+      "id": "duplicate-top",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.duplicate\",\"level\":\"info\",\"level\":\"error\",\"message\":\"x\"}",
+      "error": "DIAGNOSTIC_DUPLICATE_KEY"
+    },
+    {
+      "id": "duplicate-escaped-field",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.duplicate\",\"level\":\"info\",\"message\":\"x\",\"fields\":{\"a\":1,\"\\u0061\":2}}",
+      "error": "DIAGNOSTIC_DUPLICATE_KEY"
+    },
+    {
+      "id": "host-owned",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.host\",\"level\":\"info\",\"message\":\"x\",\"timestamp\":\"2026-10-20T00:00:00Z\"}",
+      "error": "DIAGNOSTIC_HOST_FIELD_FORGED"
+    },
+    {
+      "id": "unknown",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.unknown\",\"level\":\"info\",\"message\":\"x\",\"extra\":true}",
+      "error": "DIAGNOSTIC_UNKNOWN_FIELD"
+    },
+    {
+      "id": "nested",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.nested\",\"level\":\"info\",\"message\":\"x\",\"fields\":{\"nested\":{\"value\":1}}}",
+      "error": "DIAGNOSTIC_FIELD_VALUE_INVALID"
+    },
+    {
+      "id": "bad-level",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.level\",\"level\":\"fatal\",\"message\":\"x\"}",
+      "error": "DIAGNOSTIC_LEVEL_INVALID"
+    },
+    {
+      "id": "bad-unicode",
+      "line": "{\"schema\":\"diagnostic/1\",\"code\":\"example.unicode\",\"level\":\"info\",\"message\":\"\\ud800\"}",
+      "error": "DIAGNOSTIC_MESSAGE_INVALID_UNICODE"
+    }
+  ]
+}
