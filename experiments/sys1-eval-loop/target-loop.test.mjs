@@ -142,3 +142,13 @@ test('root confirmation has frozen independent authorship, complete balanced Gol
   assert.equal(i.maxPosts,192);assert.equal(i.controls.length,0);assert.equal(i.rows.length,48);
   assert.ok(i.rows.every(c=>!Object.hasOwn(c,'gold')&&!Object.hasOwn(c,'basis')));
 });
+
+test('frozen confirmation replays its finite gain without hiding residual errors or authorizing adoption',()=>{
+  const i=read('../results/target-confirmation-20261020/input.json'),r=read('../results/target-confirmation-20261020/predictions.json'),m=read('../results/target-confirmation-20261020/measurement.json');
+  assert.deepEqual(score(i,r,read),m);assert.equal(m.actualPosts,192);assert.equal(m.status,'OBSERVATION_COMPLETE');
+  assert.equal(m.arms.baseline.correct,45);assert.equal(m.arms['candidate-2'].correct,46);assert.equal(m.delta,1);
+  assert.deepEqual(m.resolved,['hc16']);assert.deepEqual(m.regressed,[]);assert.deepEqual(m.axisRegressed,[]);
+  assert.equal(m.outcome,'FINITE_IMPROVEMENT_CANDIDATE');assert.equal(m.qualityAdoptionAuthorized,false);
+  assert.equal(m.arms['candidate-2'].wrong,2);assert.equal(m.usageRows,192);assert.equal(m.providerCost,null);
+  assert.equal(m.injectedControls.assigned,0);assert.equal(m.diagnostic.actualErrors.assigned,0);
+});

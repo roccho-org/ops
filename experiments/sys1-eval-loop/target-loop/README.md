@@ -210,3 +210,32 @@ flowchart TB
 After the selection freeze commit, root released its previously frozen native Git snapshot `14ec16de110ee7cc46e7dd8b22a252998f5f5b55`, branch `codex/jev-loop-confirmation-20261020`, path `experiments/sys1-eval-loop/root-confirmation-48.json`. `confirmation.json` is that exact byte snapshot, including its original pre-handoff origin statement. The repair author first read it only after committing selection; its contents are now consumed for any future selection purpose. Candidate-2 remains unchanged. The 48 unique IDs cover12 mechanism families, with each E/O combination12 times, all Gold established before live outputs. Exact body overlap with all D48 is0. These are root-authored fictional bodies under trusted actor knowledge separation, not an OS-secret or representative production test set. Independent authorship does not establish provider non-exposure.
 
 Pre-output review found no Gold ambiguity requiring a change. One paired confirmation assignment is192 target calls, baseline and frozen candidate-2 over the same48 bodies with alternating arm order, no evaluator. Gold/basis are withheld from model requests. The same strict response qualification and full assigned denominators apply. Source/normal CI and root review precede activation; no output-driven correction of these Gold values or candidate selection is allowed.
+
+## Frozen confirmation result: finite target gain, evaluator-driven loop unproven
+
+[Confirmation39365741790](https://github.com/roccho-org/ops/actions/runs/39365741790), first attempt, completed all192 target POSTs with no evaluator. Provider artifact12239675097 (66161-byte ZIP, provider SHA256 verified) is retained in `../results/target-confirmation-20261020/`; exact raw receipts replay to the saved measurement. All responses used the expected `jev-1.13.0` alias and passed unchanged qualification. A stable alias is not a proof of immutable provider weights.
+
+| Fixed root-authored H48 | Existing Best | Frozen candidate-2 |
+|---|---:|---:|
+| Complete correct E/O labels |45/48|46/48|
+| E false positives / false negatives |1 /0|1 /0|
+| O false positives / false negatives |2 /0|1 /0|
+| Unknown target labels |0|0|
+
+Candidate-2 repaired `hc16` (HTML comment used as hypothetical input, O false positive) and broke no formerly-correct case or axis. Both arms still misclassify `hc12` (vocabulary table, E false positive) and `hc48` (isolated teaching quotations, O false positive). Repair1/3 and break0/45 are finite observed fractions, not population guarantees. The gate returns `FINITE_IMPROVEMENT_CANDIDATE`; the raw paired gain is only1/48. This single observation, with one discordant pair, does not establish a statistically reliable general improvement. H covers fictional mechanism cases, not Apps end-to-end outcomes or representative production frequency.
+
+This completes an actual discovery → repair → development rejection/revision → frozen confirmation path. The **repair was Gold/Sys2-led**, because unchanged evaluator v1 missed all actual errors it judged. The evaluator-driven improvement loop remains **NOT_PROVEN**, as does causal value versus an equal-budget no-feedback repair. Full evaluator coverage was explicitly abandoned; no target gain can be credited to evaluator accuracy or feedback. No new Best, merge or production adoption is authorized. H is retired for selection, candidate-2 and Gold stay unchanged, and no extra model calls are planned in this series.
+
+The series used **598 actual POSTs** across every role and retained failure; conservative native reservations are920/1000. Three failed runs (initial discovery, candidate-1 validation and candidate-2 validation) retain their original failure/INCOMPLETE receipts; each later phase completed only unissued work, without resending failed queries. H recorded255980 input tokens,5952 output tokens over192 usage rows and18427.67ms summed request elapsed time (not overall wall time). Provider monetary cost and human effort cost are unavailable/null; success cost or profitability cannot be claimed.
+
+```mermaid
+flowchart TB
+  A["🔍 Best on fullD:39/48; evaluator misses actual errors"] --> B["🛠️ Gold/Sys2 repair candidate1:45/48 but axis regression"]
+  B --> C["↩️ Reject candidate1; preserve Best and all receipts"]
+  C --> D["🛠️ General scope revision candidate2:47/48, no D axis regression"]
+  D --> E["🔒 Native selection freeze, then receive pre-frozen root H48"]
+  E --> F["🧪 One192-call paired confirmation:45/48 →46/48"]
+  F --> G["📏 Repair1, regression0, residual errors2; limited finite evidence"]
+  G --> H["🗃️ Retire H; candidate/Gold unchanged; series ends598 POSTs"]
+  H --> I["🧾 Target configuration gain observed; evaluator-driven loop NOT_PROVEN"]
+```
