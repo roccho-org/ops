@@ -48,6 +48,8 @@ C5検証は既存reserveのfrozen configurationをexport aliasで再用し、旧
 
 未使用の証拠範囲は、実保持した530 typed Issue ID/1708 exact bodyと今回の公開scope内追加型解決との非重複である。35repo名のID解決だけでは、scope外の旧Issue URLが移管/redirectで新scopeへ入った可能性まで排除しない。参照URLは本文観測と同じではなく、未解決/scope外の2211参照残余は私的metadataとして保持する。「全参照Issueを世界全体で未使用」「全actorの生涯未読」「意味/学習未見」と称さない。この限界を隠す全2211追加問い合わせや、本文/成績を見た除外変更は行わない。
 
+参照型解決の実stageはsource4bで正常終端した。固定407原版を再構成して全530 ID/1708 body/2211 refs一致を確認後、全35repo名を標準ghでmetadata解決し、現在3scope内参照0/typed問い合わせ0、本文/model0。root/Rは全query/variables/reply/型・privacy projectionを独立再生し、native `38d5ef5bb3233fa4976a7f74dd83102bdafc2e4f` に40原fileを保持した。`prior/completion.json` は原bytes、`public-manifest.json` はprivate resolution内publicManifestのJSON値投影であり、private全体blobのbytecopyと偽らない。global530 IDs/原1708 bodiesとscope外/private応答は公開せず、本文除外のprivate入力として保持する。全history metadataは別source30edでまだ稼働中、全終端/native prefix受容前の本文APIは0である。
+
 同repo/Issue523、同policy0dd39、同三者・W sole writer。baseは616最終source5c6d9c44d786d9af054768a62272c84fa9802871。この一PRを、実数学→metadata/body取得契約/collector→native原frameと独立Gold→固定二回→全raw/独立算術/費用/最終CI/Ready未mergeの順に進める。後続PR番号や成功を先に作らない。cross-PR gateは `fixed-c5-prospective-census-closure` とし、入力は616不変原版/actualC5 proofと当PR最終tree・新cohort native/両回raw、失敗条件は旧判定改変/設定drift/不完全原版/資格不明/片回未達/未閉CIである。既存native原版・通常CI・独立reviewの結合条件を説明する名称で、独自管理・台帳・別基盤を追加しない。実entryは未実装。
 
 C5は元BestよりO呼出しを一つ多く使う追加資源bundle。新二回で得るのも固定集合の観測精度差と未確定Goldに対するrobust整数包絡であり、同原価改善・モデル重み向上・backend固定・未来期待性能・実製品E2E・費用改善は未証明のままにする。
@@ -69,11 +71,16 @@ flowchart TB
   OLD[✅ 616 primary未成立を保持・候補C5不変] --> MATH[✅ census共有Gold補完・敵対tests]
   MATH --> FIRST[✅ 最初の契約8f/125metadata・354Issue]
   FIRST --> ZERO[✅ window0/prefix0・NO_CASES・本文/model0]
-  ZERO --> REVIEW[⏳ 別3repo便宜cohort契約/source三者反証]
+  ZERO --> REVIEW[✅ 別3repo便宜cohort契約/source三者反証]
   REVIEW --> SCOPE[✅ 公開repo metadata3・ID原版固定]
-  SCOPE --> ADMIT[⏳ 全history/1hと参照型解決source・host受容]
-  ADMIT --> META[⏳ 別日metadata prefix300・補充0]
+  SCOPE --> ADMIT[✅ 全history/1h source・host受容]
+  ADMIT --> META[⏳ 全history稼働・prefix原版/独立再生待ち]
+  SCOPE --> PRIOR[✅ 35repo参照metadata・typed0・private原版保持]
+  SCOPE --> BODY[✅ wholebody pure実装/人工検査]
+  BODY --> BODYREVIEW[⏳ 現source/実host三者受容]
   META --> FRAME[⏳ 公開wholebody eligible全原版/M固定]
+  PRIOR --> FRAME
+  BODYREVIEW --> FRAME
   FRAME -->|M0| EMPTY[NO_CASES・作用0・後付window拡大なし]
   FRAME -->|M正| GOLD[⏳ 独立Gold凍結/合議null・全wire検証]
   GOLD --> EFFECT[⏳ 必要CI/三者受容後4Mを二回・全負unknown保持]

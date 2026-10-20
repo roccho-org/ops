@@ -1,0 +1,18 @@
+{
+  "status": "PRIOR_METADATA_COMPLETE_AWAITING_NATIVE_RETAIN",
+  "sourceCommit": "4b07c0e03f235ad9d65c187bbb70a41b5284f7d7",
+  "startedAt": "2026-10-20T17:58:32.439Z",
+  "endedAt": "2026-10-20T17:58:53.164Z",
+  "nativeQueries": 35,
+  "repositoryNames": 35,
+  "knownAliasEvidence": 0,
+  "typedReferenceRequests": 0,
+  "knownIssueIds": 530,
+  "publicCoverage": {
+    "priorGlobalIssueIds": 530,
+    "referenceRepositoryNames": 35,
+    "resolvedInScopeReferences": 0
+  },
+  "newBodyRequests": 0,
+  "newModelRequests": 0
+}
