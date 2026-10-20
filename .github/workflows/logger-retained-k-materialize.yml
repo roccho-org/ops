@@ -62,7 +62,9 @@ jobs:
               assert required <= names
               sums={}
               for line in z.read('SHA256SUMS').decode().splitlines():
-                  digest,path=line.split('  ',1); sums[path]='sha256:'+digest
+                  digest,path=line.split('  ',1)
+                  path=path.removeprefix('./')
+                  sums[path]='sha256:'+digest
               for path,digest in sums.items(): assert sha_bytes(z.read(path))==digest
               closure=json.loads(z.read('closure.json'))
               finding=json.loads(z.read('finding.json'))
