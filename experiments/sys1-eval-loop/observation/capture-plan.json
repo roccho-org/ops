@@ -1,0 +1,35 @@
+{
+  "schema": "ops.sys1.observation-capture-contract.v1",
+  "scope": "Replay the retained prospective-plan and six native metadata records; fixed public repository node IDs exactly once, never choose by issue content or outcomes.",
+  "candidate": "Exact configuration from results/observation-development-20261020/selection.json; compare actual standard-wire proof before capture; no further candidate edits.",
+  "owner": "root owns standard gh API calls, private raw custody and native Git retention; W owns pure source, R independently replays actual raw before sampling",
+  "windowMs": 3600000,
+  "publicMetadata": {
+    "before": "All fixed repository IDs -> current {id,nameWithOwner,isPrivate}; require public before any body request; current name and original scope name are distinct.",
+    "after": "Repeat all fixed IDs after all body requests; require identical ID/name/public observations. Change or uncertainty invalidates the entire frame, no replacement/exclusion.",
+    "limitation": "Non-atomic authenticated API: public at observed pre/post checks does not prove no transient private transition between them. On change/unknown, retain raw privately and do not publish or sample it. No new auth or proxy."
+  },
+  "prior": {
+    "productCommit": "ce906a1d7a656cf5abd31d2462523b9f1abc4285",
+    "productPaths": "all retained experiments/**/*.json, including old605 metadata100 and actual bodies, plus all613 captured118",
+    "additionalNativeCommit": "256443b3ba67cd85feab848fbad043759f133fbb",
+    "additionalNativePath": "experiments/sys1-eval-loop/real-case-root-data/frame-1/known-used-identities.json",
+    "globalIds": "Extract explicitly typed issue identities from both sources before scope resolution. Old native57 Issue references are56 unique; union with613118 is174 known IDs, independent of current repository or edited body. Metadata/reference identity does not imply body observation.",
+    "resolver": "All reference repository names -> metadata-only identity; original responses stay private. Only resolved public IDs in the fixed scope may receive issueOrPullRequest identity queries. Outside/private/null metadata never enters public manifest; outside unresolved references alone do not invalidate the frame. A known in-scope unresolved identity or saved/current identity conflict is fail-closed pending version resolution, never silently choose a preferred ID.",
+    "bodyExclusion": "Exact prior body bytes, including different issue with same prior body; no semantic near-clone filtering. New-frame duplicates remain one issue one weight."
+  },
+  "body": {
+    "endpoint": "repos/<current public name>/issues?state=all&sort=created&direction=asc&per_page=100 via standard gh --paginate --slurp; normal exit and all original pages retained",
+    "createdBefore": "2026-10-20T00:00:00Z",
+    "unit": "one captured complete issue body; no title/comment/link supplement; latest observed version during capture, not atomic as-of snapshot",
+    "eligibility": "non-PR, before cutoff, not globally known issue, not exact prior body, nonempty, all actual bestO/scopedO/sharedE serialized requests <24000 bytes; keep all exclusions and coverage",
+    "failure": "partial/missing/repeated target traversal, unresolved target identity, API failure, timeout, visibility/name change or >1h -> FRAME_INVALID; no sampling or model calls"
+  },
+  "sampling": "After native frame retention, reuse existing real-cases/sample.mjs once with crypto Fisher-Yates, n=min(300,M), suffix reserve sealed; empty frame is not success",
+  "gold": "root/R independent body-only initial labels using original split.mjs hasExpectation/hasObservation/question, not new candidate scope text; predictions blinded, candidate design known. Freeze originals before sharing, adjudicate before model outputs, null remains assigned.",
+  "disclosure": "All frame bodies and reserve stay in root private native custody. R replay prints only aggregate/IDs/sizes; raters view selected body-only Gold views. Product/W receive selected corpus and sampling only after candidate freeze, never the reserve.",
+  "inference": "Keep prospective round2 primary unchanged: n cap300, two passes, each tail1/800, all-unknown conservative ranges and both-pass AND. Sharp Gold-completion bounds are a mathematically valid alternative discussed before fresh outputs, but not a primary acceptance rescue in this round.",
+  "newIssueBodyCaptureAtContractCreation": 0,
+  "newFreshModelPostsAtContractCreation": 0,
+  "mergeOrAdoption": false
+}

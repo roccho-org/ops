@@ -1,4 +1,5 @@
-import test from 'node:test';import assert from 'node:assert/strict';
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {verifyDevelopment} from './observation/development.mjs';
 import {BRANCH,REQUEST,admitDevelopment,preparedDevelopment} from './observation/runtime.mjs';
 import {assertObservationWorkflow} from '../../tools/check-ci-intent-workflow-branches.mjs';
 const sha='1'.repeat(40),parent='2'.repeat(40),env={GITHUB_REPOSITORY:'roccho-org/ops',GITHUB_EVENT_NAME:'push',GITHUB_ACTOR:'roccho-dev',GITHUB_REF:'refs/heads/'+BRANCH,GITHUB_RUN_ATTEMPT:'1',GITHUB_SHA:sha,GITHUB_RUN_ID:'42'},request={phase:'development',sourceSha:parent},source={head:sha,parent,changed:[REQUEST]},history={total_count:1,workflow_runs:[{id:42,head_sha:sha,actor:{login:'roccho-dev'},event:'push',head_branch:BRANCH,run_attempt:1}]};
@@ -15,4 +16,8 @@ const boundary={secretScope:'organization',secretName:'JEV_API_KEY',allowedEvent
 test('D workflow reuses the existing six-step secret boundary without broadening triggers or credentials',()=>{
  assertObservationWorkflow(workflow(),boundary);
  for(const mutate of [w=>w.jobs.evaluate['timeout-minutes']=20,w=>w.jobs.evaluate.steps[3].env.EXTRA=d+'{{ secrets.EXTRA }}',w=>w.jobs.evaluate.steps[0].with['persist-credentials']=true,w=>w.on.push.paths=['**'],w=>w.jobs.evaluate.steps[4].if='always()',w=>w.jobs.evaluate['continue-on-error']=true,w=>w.jobs.evaluate.steps[2].run='echo bypass']){const w=workflow();mutate(w);assert.throws(()=>assertObservationWorkflow(w,boundary));}assert.throws(()=>assertObservationWorkflow(workflow(),{...boundary,maxCalls:119}));
+});
+test('closed actual development raw replays and freezes the actual configuration without changing null Gold',async()=>{
+ const root=new URL('./results/observation-development-20261020/',import.meta.url),read=name=>JSON.parse(fs.readFileSync(new URL(name+'.json',root),'utf8')),input=read('input'),report=read('predictions'),projection=read('projection'),selection=read('selection'),provider=read('provider'),events=fs.readFileSync(new URL('events.jsonl',root),'utf8').trim().split('\n').map(x=>JSON.parse(x));
+ assert.deepEqual(input,await preparedDevelopment(input.execution));assert.deepEqual(await verifyDevelopment(input,report,events,(await import('./observation/runtime.mjs')).retainedDevelopment().corpus),projection);assert.deepEqual(selection.configuration,{best:input.best,templateProof:input.templateProof});assert.equal(selection.noFurtherCandidateChanges,true);assert.equal(selection.adopted,false);assert.equal(provider.source,input.execution.source);assert.equal(provider.head,input.execution.activation);assert.equal(provider.runUrl,input.execution.runUrl);assert.equal(provider.runAttempt,1);assert.equal(projection.summary.baselineCorrect,79);assert.equal(projection.summary.candidateCorrect,80);assert.equal(projection.summary.unknown,4);assert.equal(projection.summary.observedRegressionCases,0);assert.equal(projection.effectCounts.actualPosts,118);assert.equal(projection.guard.eligible,true);
 });

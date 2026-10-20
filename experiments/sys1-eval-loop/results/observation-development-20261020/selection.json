@@ -1,0 +1,194 @@
+{
+  "schema": "ops.sys1.observation-selection.v1",
+  "decision": "FREEZE_SINGLE_O_CONFIGURATION_FOR_FRESH_EVALUATION",
+  "developmentOnly": true,
+  "configuration": {
+    "best": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。",
+    "templateProof": {
+      "templates": {
+        "bestE": {
+          "model": "jev-latest",
+          "state": "{\"body\":\"fixed body for request identity only\"}",
+          "questions": {
+            "live": {
+              "type": "choice",
+              "criteria": {
+                "yes": "本文に、実現すべき状態・必要な責務・入力と出力の対応・要件・受入条件のいずれかが宣言されている。",
+                "no": "本文に実現すべき状態の宣言がない。見出しの名前を除くと実施報告・観測・経緯だけである。"
+              },
+              "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はEだけ：本文が実現すべき状態を一つでも宣言しているか。完成状態の表・責務・式も宣言である。Goal等の見出しだけでYesにしない。本文にそのような期待がなければNo。実施済みと書いてあるだけなら期待ではない。"
+            }
+          }
+        },
+        "scopedE": {
+          "model": "jev-latest",
+          "state": "{\"body\":\"fixed body for request identity only\"}",
+          "questions": {
+            "live": {
+              "type": "choice",
+              "criteria": {
+                "yes": "本文に、実現すべき状態・必要な責務・入力と出力の対応・要件・受入条件のいずれかが宣言されている。",
+                "no": "本文に実現すべき状態の宣言がない。見出しの名前を除くと実施報告・観測・経緯だけである。"
+              },
+              "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はEだけ：本文が実現すべき状態を一つでも宣言しているか。完成状態の表・責務・式も宣言である。Goal等の見出しだけでYesにしない。本文にそのような期待がなければNo。実施済みと書いてあるだけなら期待ではない。"
+            }
+          }
+        },
+        "bestO": {
+          "model": "jev-latest",
+          "state": "{\"body\":\"fixed body for request identity only\"}",
+          "questions": {
+            "live": {
+              "type": "choice",
+              "criteria": {
+                "yes": "本文が、実際に実施したこと・確認したこと・現時点の達成/未達/調査状況を報告している。",
+                "no": "本文は期待・役割・入出力の設計・条件・仮定・架空の受入例だけで、実際の観測を報告していない。"
+              },
+              "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はOだけ：本文が実際の出来事や達成状況を報告しているか。現在形の定義、完成状態の表、役割、将来条件や架空の入力例は報告ではない。実測の引用、確認済み/未確認の進捗一覧、HTMLコメント内の作業メモは報告に含める。comments配列内だけの観測は数えない。"
+            }
+          }
+        },
+        "scopedO": {
+          "model": "jev-latest",
+          "state": "{\"body\":\"fixed body for request identity only\"}",
+          "questions": {
+            "live": {
+              "type": "choice",
+              "criteria": {
+                "yes": "本文が、実際に実施したこと・確認したこと・現時点の達成/未達/調査状況を報告している。Oは本文中の現実報告の存在を判定する。対象について実際に行ったこと、起きたこと、現在の実装・確認・達成・未達・未確認・失敗・権限・調査中の状態を一つでも報告していればyes。成功、数値、完了、外部の証拠リンクは必要条件ではなく、本文の報告の外部真偽を検証する問題ではない。設計・役割・要求の文書でも、そのような現実報告が混在すればyes。引用・表・HTMLコメントでも、本文が現実の報告として提示していれば含む。一方、命令や将来の期待・設計定義・望ましい完成状態・条件や仮定・架空の作文例を提示しているだけならno。出典・参照リンク・名称や語句が存在するだけでは現実報告にならない。引用や条件文という形式だけで一律に除外せず、対象の現実報告として提示されているかで区別する。",
+                "no": "本文は期待・役割・入出力の設計・条件・仮定・架空の受入例だけで、実際の観測を報告していない。Oは本文中の現実報告の存在を判定する。対象について実際に行ったこと、起きたこと、現在の実装・確認・達成・未達・未確認・失敗・権限・調査中の状態を一つでも報告していればyes。成功、数値、完了、外部の証拠リンクは必要条件ではなく、本文の報告の外部真偽を検証する問題ではない。設計・役割・要求の文書でも、そのような現実報告が混在すればyes。引用・表・HTMLコメントでも、本文が現実の報告として提示していれば含む。一方、命令や将来の期待・設計定義・望ましい完成状態・条件や仮定・架空の作文例を提示しているだけならno。出典・参照リンク・名称や語句が存在するだけでは現実報告にならない。引用や条件文という形式だけで一律に除外せず、対象の現実報告として提示されているかで区別する。"
+              },
+              "instructions": "body内の各文を、望ましい状態の宣言と、実際に起きたことの報告に分けて読んでください。EとOは同時にyesでも構いません。Eは文書の主題や多数決ではなく存在判定です。具体的な要求文・完成条件・目標文が一文でもあれば、残りが全部作業報告でもE=yesです。例えば「利用者に完了を通知すること」は期待ですが、「利用者に通知した」は実施報告であり期待ではありません。Goal・Acceptanceという見出しそのものは期待文ではなく、その下に過去の実施報告しかなければE=noです。表・数式・役割が完成状態の対応を定義する場合も期待です。Oでは実測の引用・確認状況一覧・本文内HTMLコメントの作業メモも数えますが、架空の試験入力・条件付きの例は数えません。許容を表す「〜でもよい」や仮定・可能性だけを述べる文は、現状の報告ではありません。例えば「点検は後日でもよい」は許容条件ですが、「点検はまだしていない」は現在の状態の報告です。O=yesにするには、本文が現実にそうだと主張している箇所が必要です。与えられたbody全体だけを対象に判断し、そこにない現状を推測しないでください。\n本問はOだけ：本文が実際の出来事や達成状況を報告しているか。現在形の定義、完成状態の表、役割、将来条件や架空の入力例は報告ではない。実測の引用、確認済み/未確認の進捗一覧、HTMLコメント内の作業メモは報告に含める。comments配列内だけの観測は数えない。"
+            }
+          }
+        }
+      },
+      "identityRule": "complete serialized standard client request; only candidate O yes/no criteria append the same scope clarification; original E/instructions/axis/model/protocol unchanged",
+      "physical": {
+        "development": [
+          "scopedO"
+        ],
+        "measurement": [
+          "bestO",
+          "scopedO",
+          "sharedE"
+        ]
+      },
+      "alias": {
+        "developmentE": "closed PR613 pass1 Best E historical receipt; nonconcurrent",
+        "measurementE": "one contemporary sharedE receipt per case within each repetition only"
+      }
+    }
+  },
+  "development": {
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39418385532",
+    "source": "3c7d479d32185d4d58c03ae9c7b5c73ba58c460f",
+    "activation": "dad69beb85c29fb45de632b87b616afb852e3ac0",
+    "guard": {
+      "eligible": true,
+      "qualified": true,
+      "modelStable": true,
+      "positiveKnownGain": true,
+      "noKnownRegression": true,
+      "scope": "known-Gold development guard only; all 118 retained including four Gold-null cases; not fresh effect approximation"
+    },
+    "summary": {
+      "assigned": 118,
+      "resolved": 114,
+      "unknown": 4,
+      "b": 1,
+      "c": 0,
+      "bothCorrect": 79,
+      "bothIncorrect": 34,
+      "regressionCases": 0,
+      "partialKnownRegressionCases": 0,
+      "baselineCorrect": 79,
+      "candidateCorrect": 80,
+      "axes": {
+        "E": {
+          "resolved": 118,
+          "unknown": 0,
+          "regressions": 0,
+          "b": 0,
+          "c": 0,
+          "baselineCorrect": 118,
+          "candidateCorrect": 118,
+          "goldYes": 93,
+          "goldNo": 25,
+          "goldUnknown": 0,
+          "confusion": {
+            "best": {
+              "TP": 93,
+              "TN": 25,
+              "FP": 0,
+              "FN": 0,
+              "unknown": 0
+            },
+            "scoped": {
+              "TP": 93,
+              "TN": 25,
+              "FP": 0,
+              "FN": 0,
+              "unknown": 0
+            }
+          }
+        },
+        "O": {
+          "resolved": 114,
+          "unknown": 4,
+          "regressions": 0,
+          "b": 1,
+          "c": 0,
+          "baselineCorrect": 79,
+          "candidateCorrect": 80,
+          "goldYes": 66,
+          "goldNo": 48,
+          "goldUnknown": 4,
+          "confusion": {
+            "best": {
+              "TP": 44,
+              "TN": 35,
+              "FP": 13,
+              "FN": 22,
+              "unknown": 4
+            },
+            "scoped": {
+              "TP": 45,
+              "TN": 35,
+              "FP": 13,
+              "FN": 21,
+              "unknown": 4
+            }
+          }
+        }
+      },
+      "modelStable": true,
+      "observedRegressionCases": 0,
+      "sampleWorstCase": {
+        "differenceLower": -0.025423728813559324,
+        "differenceUpper": 0.0423728813559322,
+        "regressionUpper": 0.03389830508474576
+      },
+      "hypergeometricSuccessRanges": {
+        "B": [
+          1,
+          5
+        ],
+        "C": [
+          0,
+          4
+        ],
+        "R": [
+          0,
+          4
+        ]
+      },
+      "approximation": "NOT_COMPUTED",
+      "claim": "assigned-case arithmetic only; no confidence, population claim or effect acceptance from this function"
+    }
+  },
+  "noFurtherCandidateChanges": true,
+  "adopted": false,
+  "freshFrameStatus": "NOT_CAPTURED",
+  "claim": "known-Gold historical development guard only; future cohort effects unknown"
+}
