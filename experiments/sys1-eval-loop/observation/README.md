@@ -2,7 +2,7 @@
 
 PR613の実118件/2passは**E改善差0**で閉じた（[PR613](https://github.com/roccho-org/ops/pull/613)、exactbase ce906a1d7a656cf5abd31d2462523b9f1abc4285）。Eは両118/118、既知114の完全正答は両79、O FP13/FN22、Goldnull4。旧結果/全708呼出し/未採用を保全する。本PRは次の**O request configuration改善**を主目的とし、旧E改善や元Ops+Apps母集団の成功へすり替えない。
 
-現在は**metadata scopeとO候補の純sourceを作成済み、新issue本文0・新model呼出し0**。実行route/secret変更はこのsliceにない。同root/W/RのUser GOを継承し、全員が主張・反証・再提案する。policy ADRS exact0dd39ca41718fafe40e58c6927a2ebb0ea297eee、bare/.worktrees、W solewriter。merge/adoptionは別。
+現在は**metadata scope・O候補・D実行sourceを作成済み、新issue本文0・新model呼出し0**。標準client/既存organization JEV_API_KEYを、既存6step境界の限定profileで再利用する。同root/W/RのUser GOを継承し、全員が主張・反証・再提案する。policy ADRS exact0dd39ca41718fafe40e58c6927a2ebb0ea297eee、bare/.worktrees、W solewriter。merge/adoptionは別。
 
 ## 候補修正前に固定したmetadata scope
 
@@ -21,6 +21,8 @@ Oは報告の存在/種類を判定し、未達/未確認/失敗/権限の現在
 旧118はO改善Dへ明示退役。比較アンカーは**機械的に第1pass**のBestE/sharedO原receiptを使い、第2passや良い方を選ばない。新候補O118だけを実測し、元BestO/sharedEとはfull standard-wire一致を検証した歴史alias。非同時比較でfresh E性能/無退行の証明ではない。Goldnull4も編集せず保持する。
 
 D進行guard案は全新O118 qualified/modelStable、既知Oの正答を壊さず既知paired gain>0。null4は全118のunknownとして記録し、既知subsetの開発guardを新Hの効果証明と呼ばない。この案とsource/資格境界を3者counterしてからだけ実測する。D不成立なら候補を不採用/全失敗保持、新Hを都合よく開いて選ばない。
+
+`runtime.mjs`は原pass1 rawからinput/alias/fullwireを鍵なしprepare/projectで再構築する。credential下のevaluateはkeyless wire captureを呼ばず、body/Best/歴史aliasと実行identityを原保持物と直接比較し、固定sourceだけで実requestを作る。source受容後のrequest.jsonだけを追加するchild commitが入口で、同branch/actor/run attempt1/同workflow履歴1件だけを受容する。現sourceにはrequest.jsonを置かず、通常pushでモデルを誤起動しない。各attempt/post/answer/qualification-unknownは完全分割を検証し、model driftでは残りを未試行unknownにする。成功済み/不明requestは再送しない。15秒×118=29.5分＋検証/保持余裕の40分job、prepareにGH_TOKEN、evaluateだけにJEV_API_KEY、project/uploadは失敗後も保持する。意味FAILを技術失敗やunknownへ塗り替えず、gainが正でも既知軸を1件壊せば不採用。
 
 ## 新cohortの全文取得・独立Gold
 
@@ -76,4 +78,4 @@ flowchart TB
   END --> NEXT["🔁 失敗なら次事前契約・freshを捏造しない"]
 ```
 
-現sliceはmetadata原6fileと純replay/敵対tests、O-only候補とD118歴史alias/guardの純source。12件の鍵なしtestsはテストダブルであり実モデル性能ではない。issue本文API/model作用/新workflowは未着手。次にnative実行入口と資格境界を追加し、source/実在PRの3者収斂と必要検証後だけ実測する。旧613は同headの通常CI（484/484・consumerを含む9成功/7既存skip）とReadyを3者が読戻して閉じており、未merge・正改善未達を保持する。
+現sliceはmetadata原6fileと純replay/敵対tests、O-only候補、D118歴史alias/guardとnative実行source。鍵なしtestsはテストダブルであり実モデル性能ではない。新issue本文API/model作用は未着手。source/実在PRの3者収斂と必要検証後だけDを実測する。旧613は同headの通常CI（484/484・consumerを含む9成功/7既存skip）とReadyを3者が読戻して閉じており、未merge・正改善未達を保持する。

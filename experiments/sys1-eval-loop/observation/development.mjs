@@ -6,6 +6,16 @@ import {targetRequest} from '../feedback-improvement.mjs';
 import {wireTemplate} from '../regression/scoped-request.mjs';
 import {observationRequest,observationTemplates} from './request.mjs';
 
+export function historicalDevelopmentRows(historical){
+ const {input,report}=historical;assert.equal(input.repId,1);assert.equal(input.execution.runUrl,'https://github.com/roccho-org/ops/actions/runs/39410714744');assert.equal(report.inputDigest,digest(input));assert.equal(input.rows.length,118);assert.equal(report.rows.length,118);
+ return input.rows.map((c,i)=>{assert.equal(c.id,report.rows[i].id);const aliases={};for(const [axis,key]of [['E','bestE'],['O','sharedO']]){const item=report.rows[i].observations.find(x=>x.key===key);assert.ok(item);assert.equal(item.answer.model,'jev-1.13.0');assert.ok(['yes','no'].includes(item.answer.choice));assert.deepEqual(item.request,targetRequest(c.body,input.best,axis));aliases[axis]={choice:item.answer.choice,sourceRun:input.execution.runUrl,sourceActivation:input.execution.activation,source:input.execution.source,repId:1,caseId:c.id,key};}return {id:c.id,body:c.body,aliases};});
+}
+export function assertDevelopmentEffectInput(input,historical,execution){
+ planned(input);assert.equal(input.expectedModel,'jev-1.13.0');assert.deepEqual(input.best,historical.input.best);assert.deepEqual(input.rows,historicalDevelopmentRows(historical));assert.deepEqual(input.execution,execution);
+ // Only body/Best/fixed source create actual requests. Full serialized proof is
+ // checked without credentials in prepare/project, not invoked under a key.
+}
+
 export async function prepareDevelopment(corpus,historical,execution){
  const {input,report,events}=historical;
  assert.equal(input.repId,1);assert.equal(input.execution.runUrl,'https://github.com/roccho-org/ops/actions/runs/39410714744');
