@@ -46,6 +46,8 @@ metadata scopeを基にopen/closed非PR issueの作成cutoff2026-10-20T00:00:00Z
 
 rootは原APIを私的に取得・保持、Wの[frame.mjs](frame.mjs)は固定scope全件/公開前後確認/全page/除外/actual3wireを純再生する。本文前後に全固定repo nodeIDのcurrent name/isPrivateを確認し、取得中の変更/不明ならframe全体INVALIDで補充しない。metadata固定後から取得開始前までのrename/移管は、同じ固定nodeIDで同定できれば許し、metadata時のnameをscopeRepository、取得時current nameをrepositoryへ分ける。認証APIは非原子的なので途中のprivate化を絶対取得しない保証にはせず、不整合原応答は私的保持し公開/抽出へ渡さない。追加auth/proxyは置かない。
 
+全117repoの原取得後、created昇順を要求した標準APIに3件の37～39秒逆転があり、最初のpure materializeはINVALIDとなった。原API/元invalidを保持し再取得せず、日付finite・cutoff・全ID一意・全ページ/公開確認を維持して同じ原版を再生する。provider列順はFisher–Yates前の任意順であり全件性の証明ではないため、逆転はorderingAnomaliesへ記録し、並替/除外/補充せず受け入れる。実モデルやGoldを見てデータを選別した変更ではない。
+
 whole-body frameの原bytesをnative保持後、一回の標準crypto Fisher–Yates。n=min(300,M)、残ればreserve封印、小Mならcensus。空frameはNO_ELIGIBLE_FRAMEで成功ではない。300は最小必要精度の保証でなく、情報/Gold600判定/効果資源の**事前上限**。M/結果を見て標本数を下げて選別しない。
 
 root/R各独立Goldは元split.mjsのhasExpectation/hasObservation/questionが意味正本で、新候補の補足をGoldoracleにしない。body-only/arm出力盲検だが候補設計は既知であり、完全盲検とは言わない。原初稿を互いに見る前に凍結、不一致を出力前合議、未解決nullを全assignedへ残す。Wは新H本文/Goldを候補選定へ使わず、候補固定後にselectedだけ初開示。全frame原文とreserveはroot私的native保持、Rの機械再生は集計/ID/サイズだけ表示し、ratersはselected Goldviewだけ読む。same UID秘匿/Gold無謬/全actor生涯未見は主張しない。

@@ -23,7 +23,8 @@
     "createdBefore": "2026-10-20T00:00:00Z",
     "unit": "one captured complete issue body; no title/comment/link supplement; latest observed version during capture, not atomic as-of snapshot",
     "eligibility": "non-PR, before cutoff, not globally known issue, not exact prior body, nonempty, all actual bestO/scopedO/sharedE serialized requests <24000 bytes; keep all exclusions and coverage",
-    "failure": "partial/missing/repeated target traversal, unresolved target identity, API failure, timeout, visibility/name change or >1h -> FRAME_INVALID; no sampling or model calls"
+    "failure": "partial/missing/repeated target traversal, unresolved target identity, API failure, timeout, visibility/name change or >1h -> FRAME_INVALID; no sampling or model calls",
+    "ordering": "Native created-ascending request order is retained exactly; observed finite created_at inversions are metadata anomalies, not exclusion or failure. Cutoff and unique-ID/page completeness checks remain. Sampling later permutes sorted immutable IDs independently of provider order."
   },
   "sampling": "After native frame retention, reuse existing real-cases/sample.mjs once with crypto Fisher-Yates, n=min(300,M), suffix reserve sealed; empty frame is not success",
   "gold": "root/R independent body-only initial labels using original split.mjs hasExpectation/hasObservation/question, not new candidate scope text; predictions blinded, candidate design known. Freeze originals before sharing, adjudicate before model outputs, null remains assigned.",
