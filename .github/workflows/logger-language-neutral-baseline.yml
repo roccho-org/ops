@@ -50,6 +50,10 @@ jobs:
         with:
           node-version: "22.16.0"
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.5"
+
       - name: Observe fixed two-repository baseline
         env:
           APPS_BASELINE: ${{ github.workspace }}/apps-baseline
@@ -90,7 +94,28 @@ jobs:
             (.supportMatrix.runtimeProfiles | keys | length) == 5 and
             .supportMatrix.crossRepository.baselineStatus == "unmet"
           ' out/logger-language-neutral-baseline/finding.json >/dev/null
-          cat out/logger-language-neutral-baseline/finding.json
+
+      - name: Execute JavaScript-Python interchange and browser port
+        run: |
+          set -euo pipefail
+          node packages/structured-diagnostic/tests/interoperability.mjs \
+            > out/logger-language-neutral-baseline/interoperability.json
+          jq -e '
+            .schema == "diagnostic-interchange-proof/1" and
+            .status == "PASS" and
+            .authority == false and
+            .implementation.pythonDelegatesToNode == false and
+            .counts.accepted == 16 and
+            .counts.rejected == 16 and
+            .semantics.feffOnly == "rejected" and
+            .semantics.nelOnly == "accepted" and
+            .semantics.fixedLimits == "limit-1/limit/limit+1" and
+            .interchange.javascriptToPython == "byte-identical" and
+            .interchange.pythonToJavascript == "byte-identical" and
+            .browser.callbackWrites == 1 and
+            .browser.invalidPartialWrites == 0 and
+            .browser.transportRejectionPropagated == true
+          ' out/logger-language-neutral-baseline/interoperability.json >/dev/null
 
       - name: Assemble independently readable evidence
         run: |
@@ -102,7 +127,8 @@ jobs:
             "$root/source/ops/packages/structured-diagnostic/lib" \
             "$root/source/ops/packages/structured-diagnostic/adapters" \
             "$root/source/apps/packages/voice-ui/src" \
-            "$root/source/apps/packages/voice-ui/web"
+            "$root/source/apps/packages/voice-ui/web" \
+            "$root/current"
           cp packages/shiftleft-admission/tests/logger-language-neutral-baseline.mjs "$root/evaluator.mjs"
           cp ops-baseline/packages/structured-diagnostic/contract.json "$root/source/ops/packages/structured-diagnostic/contract.json"
           cp ops-baseline/packages/structured-diagnostic/README.md "$root/source/ops/packages/structured-diagnostic/README.md"
@@ -111,6 +137,7 @@ jobs:
           cp apps-baseline/flake.nix "$root/source/apps/flake.nix"
           cp apps-baseline/packages/voice-ui/src/log.mjs "$root/source/apps/packages/voice-ui/src/log.mjs"
           cp apps-baseline/packages/voice-ui/web/app.mjs "$root/source/apps/packages/voice-ui/web/app.mjs"
+          cp -a packages/structured-diagnostic "$root/current/structured-diagnostic"
           jq -n \
             --arg workflowRunId "$GITHUB_RUN_ID" \
             --arg observationHead "$observation_head" \
@@ -121,7 +148,7 @@ jobs:
             --arg appsTree "a32423848d2298b4c54cf43cd22119859f25c905" \
             --arg meaning "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" \
             '{
-              schema: "ops.logger-language-neutral.baseline-evidence/1",
+              schema: "ops.logger-language-neutral.baseline-evidence/2",
               authority: false,
               workflowRunId: $workflowRunId,
               observationHead: $observationHead,
@@ -131,6 +158,7 @@ jobs:
                 {repository: "roccho-dev/apps", revision: $appsT0, tree: $appsTree}
               ],
               candidateMeaningSha256: $meaning,
+              actualInterchangeExecution: true,
               repairAllowed: false
             }' > "$root/metadata.json"
           (
@@ -149,14 +177,22 @@ jobs:
   independent-readback:
     needs: observe-baseline
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.16.0"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.5"
+
       - uses: actions/download-artifact@v4
         with:
           name: logger-language-neutral-baseline-${{ github.run_id }}
           path: evidence
 
-      - name: Read back exact baseline evidence
+      - name: Read back and replay exact evidence
         run: |
           set -euo pipefail
           cd evidence
@@ -168,6 +204,7 @@ jobs:
             .candidateMeaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
             .correctedScopeT0[0].tree == "27c40aee9b923129e0feefa8477da711155c8384" and
             .correctedScopeT0[1].tree == "a32423848d2298b4c54cf43cd22119859f25c905" and
+            .actualInterchangeExecution == true and
             .repairAllowed == false
           ' metadata.json >/dev/null
           jq -e '
@@ -179,3 +216,18 @@ jobs:
             .coverage.stale == 0 and
             .repairAllowed == false
           ' finding.json >/dev/null
+          (
+            cd current/structured-diagnostic
+            node tests/interoperability.mjs > ../../interoperability.replay.json
+          )
+          cmp interoperability.json interoperability.replay.json
+          jq -e '
+            .status == "PASS" and
+            .counts.accepted == 16 and
+            .counts.rejected == 16 and
+            .interchange.javascriptToPython == "byte-identical" and
+            .interchange.pythonToJavascript == "byte-identical" and
+            .browser.callbackWrites == 1 and
+            .browser.invalidPartialWrites == 0 and
+            .browser.transportRejectionPropagated == true
+          ' interoperability.replay.json >/dev/null
