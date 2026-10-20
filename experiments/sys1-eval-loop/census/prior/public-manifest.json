@@ -1,0 +1,11 @@
+{
+  "schema": "ops.sys1.census-public-prior-manifest.v1",
+  "knownInScopeIssueNodeIds": [],
+  "resolvedReferences": [],
+  "coverage": {
+    "priorGlobalIssueIds": 530,
+    "referenceRepositoryNames": 35,
+    "resolvedInScopeReferences": 0
+  },
+  "rule": "public in-scope typed references and aggregate coverage only; references do not imply body observation; PRs do not become Issue IDs; global known IDs and outside/private/unknown traces remain private"
+}

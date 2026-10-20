@@ -1,0 +1,1251 @@
+{
+  "schema": "ops.sys1.real-case-rater.v1",
+  "viewNativeCommit": "94b7a1ae68aee940c57f6304b5ff8c21f529839d",
+  "rater": "root",
+  "state": "INDEPENDENT_INITIAL_BEFORE_MODEL_OUTPUTS_AND_OTHER_INITIALS",
+  "completedAt": "2026-10-20T19:40:40.357Z",
+  "annotations": [
+    {
+      "id": "census-001",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Niriが更新前同様に起動する期待が明記され、更新後の停止・複数の起動試行・実ログを報告している。"
+    },
+    {
+      "id": "census-002",
+      "E": "yes",
+      "O": null,
+      "basis": "管理設定による出力開始停止の検証条件は明示される。本文本体は実行前提の手順で、冒頭の担当OSチェックが実施済進捗か選択済み担当の指定かは本文だけでは解決しない。"
+    },
+    {
+      "id": "census-003",
+      "E": "yes",
+      "O": "no",
+      "basis": "公開セキュリティ報告を避けることや報告に含める情報・コマンド実行の要求がある。未記入テンプレートの例示だけで、具体的な実施・障害観測は報告していない。"
+    },
+    {
+      "id": "census-004",
+      "E": "yes",
+      "O": null,
+      "basis": "管理ポリシーと動的ヘッダの期待・手順・判定条件を定める。実行結果欄はなく、冒頭の担当チェックの完了報告性だけが不明なのでOを未確定とする。"
+    },
+    {
+      "id": "census-005",
+      "E": "yes",
+      "O": "yes",
+      "basis": "画像生成・編集・無効化時の検証条件を指定し、generate_imageを追加したことと現在の対応モデル・設定既定値も報告している。"
+    },
+    {
+      "id": "census-006",
+      "E": "yes",
+      "O": "yes",
+      "basis": "削除済workspace外のrepositoryを残さない期待と修正案を明示し、隔離環境での実測時刻・再現率・60秒後の残留を報告する。"
+    },
+    {
+      "id": "census-007",
+      "E": "yes",
+      "O": "yes",
+      "basis": "package更新対象と目標となる上流versionの対応及びmaintainerの必要対応を指定し、現在のNixpkgs版・未実装状態と確認済み事項を申告している。"
+    },
+    {
+      "id": "census-008",
+      "E": "yes",
+      "O": null,
+      "basis": "CAのinstall/rotate/removeについて期待結果と操作条件を規定する。一般的な動作説明は観測ではなく、冒頭のOS担当チェックが実施済みを意味するかは本文だけでは判定できない。"
+    },
+    {
+      "id": "census-009",
+      "E": "yes",
+      "O": "yes",
+      "basis": "CLIからの引継ぎで必要な状態と試験条件を指定する。Known limitationsとして現在の非対応・既往コピーのままである制限を明示しており、単なる仮定例以外の現状申告もある。"
+    },
+    {
+      "id": "census-010",
+      "E": "yes",
+      "O": null,
+      "basis": "Windows sandbox通知と設定リンクの期待・試験手順を規定する。具体的実行結果はなく、冒頭の担当チェックの進捗報告性が本文だけでは確定しない。"
+    },
+    {
+      "id": "census-011",
+      "E": "yes",
+      "O": "yes",
+      "basis": "allowBypassの条件ごとの完成状態と退行禁止を規定し、強制ポリシー動作を既存の挙動として明示する現状申告も含む。"
+    },
+    {
+      "id": "census-012",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知問題かの回答と回避方法の提供を求め、Agent開始失敗・実エラー・実体と署名・依存欠落の診断結果を報告する。"
+    },
+    {
+      "id": "census-013",
+      "E": "yes",
+      "O": "yes",
+      "basis": "旧会話の表示や移行、勝手にarchiveしないことを明示し、三件の再現・保存データ・実ログ時刻を報告する。"
+    },
+    {
+      "id": "census-014",
+      "E": "yes",
+      "O": "yes",
+      "basis": "生成objectの全section symbolが定義済みである期待を明示する。壊れたobjectの実解析、CI成否、再現に失敗した試行まで現実の結果として報告する。"
+    },
+    {
+      "id": "census-015",
+      "E": "yes",
+      "O": "yes",
+      "basis": "担当ごとの締切・試験・配布責務と受入状態が定義され、完了済チェックや自動作成済PRの実リンク・現在の未完了項目も示す進捗記録である。"
+    },
+    {
+      "id": "census-017",
+      "E": "yes",
+      "O": "yes",
+      "basis": "新chatの推論effort/contextを指定でき、model指定でeffortが消えない期待を明示する。実session.startの二通りの記録と現在のtool入力不足を報告する。"
+    },
+    {
+      "id": "census-018",
+      "E": "yes",
+      "O": "yes",
+      "basis": "必要なmodule設定とmaintainerの対応を指示し、実buildで生成物はあるが再構築が衝突で失敗したことを実ログ付きで報告する。"
+    },
+    {
+      "id": "census-019",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerへのPR記載要求を含む。現実の変更によるdoc出力欠落・Hydra再構築中・依存build失敗をログ付きで報告する。"
+    },
+    {
+      "id": "census-020",
+      "E": "yes",
+      "O": "yes",
+      "basis": "automation作成・継続の期待結果とsurface間同期条件を定め、今ではnative sessionとして開けることや現在のprivate限定という達成・制限も申告する。"
+    },
+    {
+      "id": "census-021",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Allowでgrant保存とwrite継続が成立する期待を明示し、実際の拒否・read対照・runtimeログと現在の原因を報告する。"
+    },
+    {
+      "id": "census-022",
+      "E": "yes",
+      "O": "yes",
+      "basis": "更新すべき上流版と現在版の対応及びmaintainerへの対応要求を示し、現版・未反映状態と確認済み事項を申告している。"
+    },
+    {
+      "id": "census-023",
+      "E": "yes",
+      "O": "yes",
+      "basis": "表示上のcmd+nが新規file作成に対応するという入出力期待があり、実行すると新sessionになる再現と実keybindingログを報告する。"
+    },
+    {
+      "id": "census-024",
+      "E": "no",
+      "O": "yes",
+      "basis": "現在の転送先と役立たない点の評価を報告するが、望ましい転送先や必要動作を明示する宣言はない。"
+    },
+    {
+      "id": "census-025",
+      "E": "no",
+      "O": "yes",
+      "basis": "iptablesの実配置場所と通常ユーザーPATHにない現状を報告するだけで、変更すべき状態・責務は宣言していない。"
+    },
+    {
+      "id": "census-026",
+      "E": "no",
+      "O": "yes",
+      "basis": "入力中に編集不能になった実状態と試した回避操作を報告するが、必要な改善動作や望ましい状態を明示する文はない。"
+    },
+    {
+      "id": "census-027",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Replace/Create a copy/Cancelのdialogという望ましい状態を提案し、同じworkspaceで二回目に実際に生じるerrorを再現として報告する。"
+    },
+    {
+      "id": "census-028",
+      "E": "yes",
+      "O": null,
+      "basis": "Migrate code actionで該当pageへ移る期待は明示される。本文の他部分はTesting参照と説明のない画像だけなので、実際の観測報告があるか本文文字列だけでは確定しない。"
+    },
+    {
+      "id": "census-029",
+      "E": "yes",
+      "O": "yes",
+      "basis": "移行後の画面遷移と再起動を跨ぐlog非保持を求め、以前の移行log表示と長く残った問題を過去の現実の状態として回想する。"
+    },
+    {
+      "id": "census-030",
+      "E": "yes",
+      "O": "yes",
+      "basis": "実際に405だったerrorを報告し、そのstatusとして表示する改善状態を提案する。"
+    },
+    {
+      "id": "census-031",
+      "E": "yes",
+      "O": "yes",
+      "basis": "diffをreview/confirmできる機能を戻す要求が明示され、消失した現状と三時間以上の試行・見たpopup・inlineとの差を報告する。"
+    },
+    {
+      "id": "census-032",
+      "E": "yes",
+      "O": "yes",
+      "basis": "入力構成全体のbudget管理・compaction・診断の必要責務を具体化し、設定・fresh対long会話の実挙動・400応答・以前との差を報告する。"
+    },
+    {
+      "id": "census-033",
+      "E": "yes",
+      "O": "yes",
+      "basis": "security triage/fixを始める手順と必要なbackportへの指示を含む。実在する脆弱性・評価値・現在のaffected package版を現状として報告している。"
+    },
+    {
+      "id": "census-034",
+      "E": "yes",
+      "O": "yes",
+      "basis": "triage/fixと必要なbackportの次の対応を示し、Assimpの既知脆弱性・評価値・各branchのaffected versionを報告する。"
+    },
+    {
+      "id": "census-035",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Needs a backportと修正手順を明示する。kin-openapiの既知nil-pointer問題・修正済版・各branch版という現在の状態を報告する。"
+    },
+    {
+      "id": "census-036",
+      "E": "yes",
+      "O": "yes",
+      "basis": "security修正・backportへ進む必要対応を含む。YouTrackで既知とするcross-project command問題と現在のpackage版を報告する。"
+    },
+    {
+      "id": "census-037",
+      "E": "yes",
+      "O": "yes",
+      "basis": "triage/fix/backportの次の対応を示し、OpenJPHの既知heap破壊問題とaffected package版・評価値を報告する。"
+    },
+    {
+      "id": "census-038",
+      "E": "yes",
+      "O": "yes",
+      "basis": "修正と必要なbackportの手順を提示する。ytnefの二つの既知out-of-bounds問題・影響・現在のbranch別package版を報告する。"
+    },
+    {
+      "id": "census-039",
+      "E": "yes",
+      "O": "yes",
+      "basis": "複数箇所でbackport及びstable向け対応が必要と明示する。kin-openapiの既知欠陥群・修正version・現在のbranch別versionを報告する。"
+    },
+    {
+      "id": "census-040",
+      "E": "yes",
+      "O": "yes",
+      "basis": "triage/fix/backportへの必要対応を示し、unarrの既知ZIP64長さ検査問題と影響package版を現在の情報として報告する。"
+    },
+    {
+      "id": "census-041",
+      "E": "yes",
+      "O": "yes",
+      "basis": "security修正とbackportへの対応を指示し、libewfの既知脆弱性及び現行とlegacyのbranch別affected versionを報告する。"
+    },
+    {
+      "id": "census-042",
+      "E": "yes",
+      "O": "yes",
+      "basis": "stable向け対応が必要と明示し、ZoneMinderの既知token処理欠陥・修正済状態とbranch別versionを報告する。"
+    },
+    {
+      "id": "census-043",
+      "E": "yes",
+      "O": "yes",
+      "basis": "triage/fixとbackportの必要対応を提示し、libgme AY loaderの既知不具合・patch参照・現在のpackage版を報告する。"
+    },
+    {
+      "id": "census-044",
+      "E": "yes",
+      "O": "yes",
+      "basis": "security修正とbackportへの対応を指示し、SoXの既知WAV復号脆弱性と現在のaffected package版を報告する。"
+    },
+    {
+      "id": "census-045",
+      "E": "yes",
+      "O": "yes",
+      "basis": "修正・backportへの次の対応を示し、libsidplayfpの既知読み過ぎ問題・影響・現在のbranch別versionを報告する。"
+    },
+    {
+      "id": "census-046",
+      "E": "yes",
+      "O": "yes",
+      "basis": "triage/fix/backportの手順を提示し、libnsbmpの既知ICO読み過ぎ欠陥とaffected versionを現在の情報として報告する。"
+    },
+    {
+      "id": "census-047",
+      "E": "yes",
+      "O": "yes",
+      "basis": "security修正とbackportの必要対応を含み、Dragonflyの既知COUNT処理によるmemory枯渇問題とbranch別package版を報告する。"
+    },
+    {
+      "id": "census-048",
+      "E": "yes",
+      "O": "yes",
+      "basis": "修正と必要なbackportの対応を示し、FluidSynthの既知SF2書き越し問題・評価値・現行package版を報告する。"
+    },
+    {
+      "id": "census-049",
+      "E": "yes",
+      "O": "yes",
+      "basis": "stable向けの対応が必要と明示し、tinytagの既知無限loop、修正済みversionと残るbranch別版を報告する。"
+    },
+    {
+      "id": "census-050",
+      "E": "yes",
+      "O": "yes",
+      "basis": "libicalの既知脆弱性・現行影響版と修正版を報告し、triage・修正・backportの必要対応を示す。"
+    },
+    {
+      "id": "census-051",
+      "E": "yes",
+      "O": "yes",
+      "basis": "LibreDWGの既知脆弱性と現行影響版を報告し、修正とbackportの対応を示す。"
+    },
+    {
+      "id": "census-052",
+      "E": "yes",
+      "O": "yes",
+      "basis": "LibRawの既知脆弱性とbranch別の現行版を報告し、修正とbackportの対応を示す。"
+    },
+    {
+      "id": "census-053",
+      "E": "yes",
+      "O": "no",
+      "basis": "未記入の報告templateで、報告先・必要version・log提出の実際の要件を示すが、placeholder以外の観測はない。"
+    },
+    {
+      "id": "census-054",
+      "E": "yes",
+      "O": "yes",
+      "basis": "現在のMCP設定commandが旧pathを開くと報告し、候補選択・表示・作成・customization導線の期待動作を指定する。"
+    },
+    {
+      "id": "census-056",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Nautilusの既知symlink脆弱性と現行影響版を報告し、triage・修正・backportの対応を示す。"
+    },
+    {
+      "id": "census-057",
+      "E": "yes",
+      "O": "yes",
+      "basis": "ssldumpの既知heap overflowと現行影響版を報告し、修正とbackportの対応を示す。"
+    },
+    {
+      "id": "census-058",
+      "E": "yes",
+      "O": "yes",
+      "basis": "TextCSVXSの既知memory exhaustionと影響版・現行branch版を報告し、修正とbackportの対応を示す。"
+    },
+    {
+      "id": "census-059",
+      "E": "no",
+      "O": "yes",
+      "basis": "testing参照と実行環境versionを報告するが、実現すべき状態は本文にない。"
+    },
+    {
+      "id": "census-060",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-061",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-062",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-063",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-064",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-065",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-066",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-067",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-068",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-069",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-070",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-071",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既知の具体的脆弱性・影響packageと現行版を報告し、triage・修正と必要backportの対応を示す。"
+    },
+    {
+      "id": "census-072",
+      "E": "no",
+      "O": "yes",
+      "basis": "HarnessでCodexをuninstallできない現状と実行環境を報告するが、期待状態の明示はない。"
+    },
+    {
+      "id": "census-073",
+      "E": "no",
+      "O": "yes",
+      "basis": "workspaceの複数projectのうち最初しかアクセスできない実際の状態と環境を報告する。期待動作は明示されない。"
+    },
+    {
+      "id": "census-074",
+      "E": "yes",
+      "O": "no",
+      "basis": "未記入templateで重複確認・Insiders試験・extension切分け・報告先の必要手順を指定するが、実際の結果はない。"
+    },
+    {
+      "id": "census-075",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Kontactが正常起動する期待を指定し、QtWebEngineProcess欠落の実logと環境を報告する。"
+    },
+    {
+      "id": "census-076",
+      "E": "yes",
+      "O": "yes",
+      "basis": "tab閉鎖後のCLI終了を指定し、-g有無とbrowser/desktopの実際の差を報告する。"
+    },
+    {
+      "id": "census-077",
+      "E": "no",
+      "O": "yes",
+      "basis": "key登録・model設定を実施したと報告する。期待する入出力の明示はない。"
+    },
+    {
+      "id": "census-078",
+      "E": "yes",
+      "O": "yes",
+      "basis": "search入力非表示の期待状態と、クリックごとにscrollが動く観測を示す。"
+    },
+    {
+      "id": "census-079",
+      "E": "yes",
+      "O": "yes",
+      "basis": "同時展開できず比較しにくい現状を報告し、markdown filesとしての出力を希望する。"
+    },
+    {
+      "id": "census-080",
+      "E": "no",
+      "O": "yes",
+      "basis": "請求画面の金額と使用率表示および本人の見積りを報告するが、要求状態は明示しない。"
+    },
+    {
+      "id": "census-081",
+      "E": "yes",
+      "O": "no",
+      "basis": "未記入templateで必要な切分け・試験・報告手順を指定するが実際の結果はない。"
+    },
+    {
+      "id": "census-082",
+      "E": "no",
+      "O": "yes",
+      "basis": "各session/requestの表示とUIで有効無効にできる現在の状態を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-083",
+      "E": "no",
+      "O": "yes",
+      "basis": "実行環境と現在も担当者割当てできない状態を報告する。期待状態は明示しない。"
+    },
+    {
+      "id": "census-084",
+      "E": "no",
+      "O": "yes",
+      "basis": "voice sessionの切替時に動作しないことがある実観測を報告する。期待状態は明示しない。"
+    },
+    {
+      "id": "census-085",
+      "E": "no",
+      "O": "yes",
+      "basis": "本人extensionの等価TimelineProvider codeが期待通り動くと実施報告するが、その期待内容は指定しない。"
+    },
+    {
+      "id": "census-086",
+      "E": "yes",
+      "O": "yes",
+      "basis": "CCRが自動起動しない観測とruleset調査を示し、base branchに依存せず起動する期待を指定する。"
+    },
+    {
+      "id": "census-087",
+      "E": "no",
+      "O": "yes",
+      "basis": "全質問回答・turn終了後もinputUIが残った実観測を報告する。明示の期待状態はない。"
+    },
+    {
+      "id": "census-088",
+      "E": "yes",
+      "O": "yes",
+      "basis": "expected outcome提出要求と作業を邪魔しない要望を含み、reject全削除や入力位置移動の実際の不具合を報告する。"
+    },
+    {
+      "id": "census-089",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerへのPR参照要件を含み、実test失敗log・再現可否・他buildでの調査状況を報告する。"
+    },
+    {
+      "id": "census-090",
+      "E": "yes",
+      "O": "yes",
+      "basis": "20件中10件成功の実結果と未再試行を報告し、失敗空欄を除く表示やcarouselを希望する。"
+    },
+    {
+      "id": "census-091",
+      "E": "no",
+      "O": "yes",
+      "basis": "画像20件中10件失敗と失敗画像click時のmessage・既存画像非表示を報告する。期待状態の明示はない。"
+    },
+    {
+      "id": "census-093",
+      "E": "no",
+      "O": "yes",
+      "basis": "voice無効化後の表示不整合と再有効化できずEscが必要な観測を報告する。期待状態は明示しない。"
+    },
+    {
+      "id": "census-094",
+      "E": "yes",
+      "O": "yes",
+      "basis": "実worklist0・model0なのに課金guardrail消費したlogを報告し、空work時agent起動なし・head単位動作保持を要求する。"
+    },
+    {
+      "id": "census-095",
+      "E": "yes",
+      "O": "yes",
+      "basis": "templateの必要切分け手順と修正の要望を含み、paste実error・browser版を報告する。"
+    },
+    {
+      "id": "census-096",
+      "E": "yes",
+      "O": "yes",
+      "basis": "頻繁なrelease停止とrelease前試験を要求し、毎起動時の遅さや更新不具合を報告する。"
+    },
+    {
+      "id": "census-097",
+      "E": "yes",
+      "O": "yes",
+      "basis": "webview全面追従の期待を指定し、Safariの測定値・比較・workaround実試験・未試験を報告する。"
+    },
+    {
+      "id": "census-098",
+      "E": "yes",
+      "O": "yes",
+      "basis": "azure-cli評価成功の期待を指定し、固定revisionでの再現・exit1・log・dependency調査を報告する。"
+    },
+    {
+      "id": "census-099",
+      "E": "yes",
+      "O": "yes",
+      "basis": "chat開始直後からCA導線が機能する期待を指定し、送信前後の実際の表示とcommand差を報告する。"
+    },
+    {
+      "id": "census-100",
+      "E": "no",
+      "O": "yes",
+      "basis": "alertの単語内折返しとsource上の原因調査を報告する。本文に明示した要求状態はない。"
+    },
+    {
+      "id": "census-101",
+      "E": "yes",
+      "O": "yes",
+      "basis": "各PowerShell sessionで適切なpath指定が必要と述べ、常にNoProfileで設定が効かない実状を報告する。"
+    },
+    {
+      "id": "census-102",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Windowsproxy資格情報とcert信頼の利用・fallbackを要求し、更新後のerrorとkinit後の変化を報告する。"
+    },
+    {
+      "id": "census-103",
+      "E": "yes",
+      "O": "yes",
+      "basis": "model対応thinking levelだけ提示する期待を指定し、非対応None選択肢が出る具体的観測を報告する。"
+    },
+    {
+      "id": "census-104",
+      "E": "no",
+      "O": "yes",
+      "basis": "4marketplace移行click後にloading表示がなく動作不明だった実観測を報告する。期待状態の明示はない。"
+    },
+    {
+      "id": "census-105",
+      "E": "yes",
+      "O": "no",
+      "basis": "hoverのtarget・gesture・pointer移動・通常click維持を受入条件として指定する。実施結果はない。"
+    },
+    {
+      "id": "census-106",
+      "E": "yes",
+      "O": "no",
+      "basis": "handler選択・cancel・targetと配置維持などの期待状態と検討案を指定する。実施結果はない。"
+    },
+    {
+      "id": "census-107",
+      "E": "yes",
+      "O": "yes",
+      "basis": "supportmatrixと検証・成果物を要求し、既存support完成状況とcommitリンク未独立再現の調査段階を報告する。"
+    },
+    {
+      "id": "census-108",
+      "E": "no",
+      "O": "yes",
+      "basis": "MCP起動失敗でprewarming試験を進められない現状を報告する。要求状態は明示しない。"
+    },
+    {
+      "id": "census-109",
+      "E": "yes",
+      "O": "yes",
+      "basis": "sharedbrowserをlive toolで読める期待を指定し、reload後もtool未発見という実結果と原因未確定を報告する。"
+    },
+    {
+      "id": "census-110",
+      "E": "yes",
+      "O": "yes",
+      "basis": "browser buttonのtab単一化とURLfocusを期待し、command・shortcutごとの実動作差を報告する。"
+    },
+    {
+      "id": "census-111",
+      "E": "yes",
+      "O": "yes",
+      "basis": "CopyLink共通導線・対象同一性などを要求し、既存chat実装完成と別bugとの現況を報告する。"
+    },
+    {
+      "id": "census-112",
+      "E": "yes",
+      "O": "yes",
+      "basis": "対象chatのlink保持・非editorでの利用を要求し、報告あり未独立再現という現段階と既存完成実装を報告する。"
+    },
+    {
+      "id": "census-113",
+      "E": "no",
+      "O": "yes",
+      "basis": "server移行完了・両server起動・tool要求を実施したと報告する。実現すべき状態は明示しない。"
+    },
+    {
+      "id": "census-114",
+      "E": "yes",
+      "O": "yes",
+      "basis": "dragで配列順更新の期待を指定し、drag開始しない現在の再現結果を報告する。"
+    },
+    {
+      "id": "census-115",
+      "E": "no",
+      "O": null,
+      "basis": "testing参照と一般alt画像のみで本文の要件はなく、実施結果の意味は本文だけでは確定できない。"
+    },
+    {
+      "id": "census-116",
+      "E": "yes",
+      "O": "yes",
+      "basis": "dialogにprotectedという語が唯一使われる現状を述べ、pinnedsessionのcleanup表現への変更を要求する。"
+    },
+    {
+      "id": "census-117",
+      "E": "yes",
+      "O": "yes",
+      "basis": "重複確認・log添付という報告要件を含み、旧LinuxremoteでのGLIBC不足errorと更新前後を報告する。"
+    },
+    {
+      "id": "census-118",
+      "E": "yes",
+      "O": "no",
+      "basis": "sectiontitleのiconを使わない要望を示す。画像以外に具体的実観測の文章はない。"
+    },
+    {
+      "id": "census-119",
+      "E": "yes",
+      "O": "yes",
+      "basis": "gearで15を期待することとgear削除・dialog内操作の要望を示し、実際0になる条件差を報告する。"
+    },
+    {
+      "id": "census-120",
+      "E": "no",
+      "O": "yes",
+      "basis": "OpenRouter modelが現在Copilot tabに見える観測を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-121",
+      "E": "yes",
+      "O": "yes",
+      "basis": "fork後に元sessionへのlink付messageを出す期待を指定し、labelだけ変わり入力無視に見えた実観測を報告する。"
+    },
+    {
+      "id": "census-122",
+      "E": "yes",
+      "O": "yes",
+      "basis": "scan中の進捗表示を要望し、本人環境で15分かかった実観測を報告する。"
+    },
+    {
+      "id": "census-123",
+      "E": "no",
+      "O": "yes",
+      "basis": "fork後一覧にforkchatがなく消えたように見える実再現を報告する。要求状態は明示しない。"
+    },
+    {
+      "id": "census-124",
+      "E": "yes",
+      "O": "no",
+      "basis": "policy適用時の移行・履歴保持・readonly・重複防止など試験期待状態を指定する。未実施checkboxで実結果はない。"
+    },
+    {
+      "id": "census-125",
+      "E": "no",
+      "O": "yes",
+      "basis": "View not foundの実errorstack・version・最終観測時刻を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-126",
+      "E": "no",
+      "O": "yes",
+      "basis": "disposed serviceの実errorstack・version・観測時刻を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-127",
+      "E": "no",
+      "O": "yes",
+      "basis": "重複step登録の実errorstackと破棄結果・観測時刻を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-128",
+      "E": "no",
+      "O": "yes",
+      "basis": "Forbiddenの実errorstack・extension版・観測時刻を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-129",
+      "E": "no",
+      "O": "yes",
+      "basis": "requesttimeoutの実errorstack・extension版・観測時刻を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-130",
+      "E": "yes",
+      "O": "yes",
+      "basis": "folder不要利用・発見しやすい選択導線・icon変更を要望し、本人が実利用時迷った経緯と現行制約を報告する。"
+    },
+    {
+      "id": "census-131",
+      "E": "yes",
+      "O": "yes",
+      "basis": "agent選択時modelとeffort適用の期待を指定し、main/subagent・harness別の再現結果を報告する。"
+    },
+    {
+      "id": "census-132",
+      "E": "no",
+      "O": "yes",
+      "basis": "Failedtofetchの実stack・version・最終観測時刻を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-133",
+      "E": "no",
+      "O": "yes",
+      "basis": "UbuntuでtroubleshootingからWindowsdocへ遷移した実観測を報告する。正しい行先は明示しない。"
+    },
+    {
+      "id": "census-134",
+      "E": "yes",
+      "O": "yes",
+      "basis": "HydraFusion名を隠す期待と代替案を指定し、Freeaccountの現行表示とsource調査を報告する。"
+    },
+    {
+      "id": "census-135",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Instructions復元または永続性説明・pin機能を要求し、現行picker欠落と未発見release記載を報告する。"
+    },
+    {
+      "id": "census-136",
+      "E": "no",
+      "O": "yes",
+      "basis": "CheckMark clickが効かないtaskと消えたtaskの実観測を報告する。要求状態は明示しない。"
+    },
+    {
+      "id": "census-137",
+      "E": "yes",
+      "O": "yes",
+      "basis": "動的toolbarAPIと即時反映・accessibilityの要件を指定し、本人extensionの現行static制約とreload必要性を報告する。"
+    },
+    {
+      "id": "census-138",
+      "E": "yes",
+      "O": "no",
+      "basis": "Enterprise設定でClaudeとCodexも暗黙無効化する期待を指定する。具体的実結果は本文にない。"
+    },
+    {
+      "id": "census-139",
+      "E": "no",
+      "O": null,
+      "basis": "本文は添付URLだけで期待状態はなく、実施・観測の意味は画像未読の本文だけでは確定できない。"
+    },
+    {
+      "id": "census-140",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerへのPR参照要件を含み、upstreamとNixpkg版の差・owner変更・homepage404・update未存在を報告する。"
+    },
+    {
+      "id": "census-141",
+      "E": "yes",
+      "O": "yes",
+      "basis": "自然なpointer移動に耐えるChat submenuを要求し、flyoutが途中で閉じる実状を報告する。"
+    },
+    {
+      "id": "census-142",
+      "E": "no",
+      "O": "yes",
+      "basis": "同profileで142にはなかったsessionが143で出た実観測を報告する。期待状態はない。"
+    },
+    {
+      "id": "census-143",
+      "E": "yes",
+      "O": "yes",
+      "basis": "issue説明追加を求めるtemplate指示と実version・useragent報告を含む。"
+    },
+    {
+      "id": "census-144",
+      "E": "yes",
+      "O": "yes",
+      "basis": "許可後にterminalと実行出力を見られる期待を指定し、今は何も表示されない観測を報告する。"
+    },
+    {
+      "id": "census-145",
+      "E": "yes",
+      "O": "yes",
+      "basis": "変更後にwarm session再利用する期待を引用し、実logでは常に破棄された試験結果を報告する。"
+    },
+    {
+      "id": "census-146",
+      "E": "no",
+      "O": "yes",
+      "basis": "permissiondefaultがAllowOnceからSessionに変化し戻せない現状を報告する。変更要求状態そのものは明示しない。"
+    },
+    {
+      "id": "census-147",
+      "E": "no",
+      "O": "yes",
+      "basis": "inlinepickerのAutoとchatpickerのFusionという実表示差を報告する。期待状態はない。"
+    },
+    {
+      "id": "census-148",
+      "E": "no",
+      "O": "yes",
+      "basis": "mainchattabのrenameを選択してnoopとなる実再現を報告する。期待状態は明示しない。"
+    },
+    {
+      "id": "census-149",
+      "E": "no",
+      "O": "yes",
+      "basis": "Cline実要求時spawnEINVALで完全にblockedという状態と環境を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-150",
+      "E": "no",
+      "O": "yes",
+      "basis": "model一覧の現状とGHlogin・Copilot利用可能なのにwarningが出る実観測を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-151",
+      "E": "yes",
+      "O": "yes",
+      "basis": "authorizedready遷移成功またはretry可能error提示を期待し、2失敗・connector成功・isDraft再確認を報告する。"
+    },
+    {
+      "id": "census-152",
+      "E": "no",
+      "O": "yes",
+      "basis": "monitor移動や復帰時sidebar縮小・元monitorでも継続する実状を報告する。要求状態は明示しない。"
+    },
+    {
+      "id": "census-153",
+      "E": "no",
+      "O": "yes",
+      "basis": "session終了・backgroundagentなし・他chatからsteeringとqueued送信済という実状を報告する。期待状態はない。"
+    },
+    {
+      "id": "census-154",
+      "E": "yes",
+      "O": "yes",
+      "basis": "package依存graphから実行file解決する期待を指定し、実ENOENT・pnpm配置調査・symlink後起動logを報告する。"
+    },
+    {
+      "id": "census-155",
+      "E": "no",
+      "O": "yes",
+      "basis": "sidechat用選択menuが出たり出なかったりする実観測を報告する。要求状態は明示しない。"
+    },
+    {
+      "id": "census-156",
+      "E": "no",
+      "O": "yes",
+      "basis": "local/cloudでautomation作成実行成功したが相互に一覧に出ない2再現を報告する。期待状態は明示しない。"
+    },
+    {
+      "id": "census-157",
+      "E": "yes",
+      "O": "yes",
+      "basis": "scope不足拒否またはhint整合を期待し、workflowなしtoken受容の実再現・未確認意図を報告する。"
+    },
+    {
+      "id": "census-158",
+      "E": "no",
+      "O": "yes",
+      "basis": "昨日までは入力予測したが現在しない実状と環境を報告する。要求状態は明示しない。"
+    },
+    {
+      "id": "census-159",
+      "E": "yes",
+      "O": "yes",
+      "basis": "全worktreeを同時閲覧管理できる期待を指定し、28件所有・71件index・一部だけ表示の実観測を報告する。"
+    },
+    {
+      "id": "census-160",
+      "E": "yes",
+      "O": "yes",
+      "basis": "gridにworkspace情報表示を希望し、各sessionを開き待つ必要がある現状を報告する。"
+    },
+    {
+      "id": "census-161",
+      "E": "no",
+      "O": "yes",
+      "basis": "rg process最大394・継続増加・onoff比較・hook調査・試行結果を報告する。本文に実現すべき状態は明示しない。"
+    },
+    {
+      "id": "census-162",
+      "E": "yes",
+      "O": "yes",
+      "basis": "preview後もcleanupで同sessionを操作できる期待を指定し、一覧から消えた再現を報告する。"
+    },
+    {
+      "id": "census-163",
+      "E": "no",
+      "O": "yes",
+      "basis": "cmdN反復でserverinstance数が増加し減少しない実logを報告する。期待状態は明示しない。"
+    },
+    {
+      "id": "census-164",
+      "E": "yes",
+      "O": "yes",
+      "basis": "modeldownloadとlocal音声認識を期待し、coldcacheで7crash・0byte・stale lockを報告する。"
+    },
+    {
+      "id": "census-165",
+      "E": "yes",
+      "O": "yes",
+      "basis": "限定双方向IPCとsandbox維持などの要件を指定し、現行実装分離workaroundとstate共有制約を報告する。"
+    },
+    {
+      "id": "census-166",
+      "E": "no",
+      "O": "yes",
+      "basis": "viewopen時backbuttonfocus後にhoverが出る実観測を報告する。期待状態は明示しない。"
+    },
+    {
+      "id": "census-167",
+      "E": "yes",
+      "O": "yes",
+      "basis": "試験prompt内にscriptを使わずpatchで1k行生成する入出力要件を含み、Linux/Windowsとharness別CPU・所要時間を実測報告する。"
+    },
+    {
+      "id": "census-168",
+      "E": "no",
+      "O": "yes",
+      "basis": "LICENSEが現在欠けていると報告しlicenseの一般効用を説明するが、追加の明示要求はない。"
+    },
+    {
+      "id": "census-169",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Microsoftprojectに必要なfileという責務を宣言し、現在欠落・追加PR作成済の状況を報告する。"
+    },
+    {
+      "id": "census-170",
+      "E": "no",
+      "O": "yes",
+      "basis": "serverがsectionにあるが移行できず理由不明という実状を報告する。期待状態は明示しない。"
+    },
+    {
+      "id": "census-171",
+      "E": "yes",
+      "O": "no",
+      "basis": "確認dialogを示すMigrateellipsisへの改名を条件付きで要求する。具体的実施結果は本文にない。"
+    },
+    {
+      "id": "census-172",
+      "E": "yes",
+      "O": "yes",
+      "basis": "BYOK0ならwarningなしの期待を指定し、cleanprofile再現・旧版との差・無効化効果・未発見workaroundを報告する。"
+    },
+    {
+      "id": "census-173",
+      "E": "yes",
+      "O": "yes",
+      "basis": "引用されたquota告知は継続利用にAuto切替等を要求し、13%利用なのに枯渇告知という実観測を報告する。"
+    },
+    {
+      "id": "census-174",
+      "E": "yes",
+      "O": "yes",
+      "basis": "SessionStartでlog追記の期待を指定し、windowskeyで未実行・powershellkeyで成功という実結果を報告する。"
+    },
+    {
+      "id": "census-175",
+      "E": "yes",
+      "O": "yes",
+      "basis": "稼働sessionをreconcileで破壊しない期待を指定し、destroylog・disk消失・類似症状・未確定triggerを報告する。"
+    },
+    {
+      "id": "census-176",
+      "E": "yes",
+      "O": "yes",
+      "basis": "消去確認dialog・Cancel defaultまたはundoを要求し、本人がhistoryでも復元できなかった実状を報告する。"
+    },
+    {
+      "id": "census-177",
+      "E": "yes",
+      "O": "yes",
+      "basis": "指定hookでlog追記の期待を指定し、設定path未実行・既定pathでは成功という実結果を報告する。"
+    },
+    {
+      "id": "census-178",
+      "E": "no",
+      "O": "yes",
+      "basis": "upstreamが侵害告知したこととcompromised/clean版・Nixpkgs現行影響版を報告する。本文に必要対応の明示はない。"
+    },
+    {
+      "id": "census-179",
+      "E": "yes",
+      "O": "yes",
+      "basis": "directoryplugin利用の期待と修正案、再現skill内の入出力対応を指定し、plugin欠落とsourcepath調査を報告する。"
+    },
+    {
+      "id": "census-180",
+      "E": "yes",
+      "O": "yes",
+      "basis": "README表示とmissingfile扱いの期待を指定し、install前error・後成功・URI実装調査を報告する。"
+    },
+    {
+      "id": "census-181",
+      "E": "yes",
+      "O": "yes",
+      "basis": "source存在という期待を指定し、source消失・redirectなし・環境を報告する。"
+    },
+    {
+      "id": "census-182",
+      "E": "no",
+      "O": "yes",
+      "basis": "複数sandbox認証が落ちる更新前後の実状と環境を報告する。持続すべき状態の明示要求はない。"
+    },
+    {
+      "id": "census-183",
+      "E": "yes",
+      "O": "yes",
+      "basis": "remoteplugininstall成功とfallback/非表示の修正案を指定し、実error・既存workaround・source調査を報告する。"
+    },
+    {
+      "id": "census-184",
+      "E": "yes",
+      "O": "yes",
+      "basis": "remoteinit結果1の期待と修正案を指定し、実unset・source制限調査を報告する。"
+    },
+    {
+      "id": "census-185",
+      "E": "yes",
+      "O": "yes",
+      "basis": "atuin既定設定起動を期待し、設定なし時実errorとdirectory作成条件調査を報告する。"
+    },
+    {
+      "id": "census-186",
+      "E": "yes",
+      "O": "no",
+      "basis": "trophyiconへの変更とtooltip・state・accessibility・配置保持を要求する。実施結果はない。"
+    },
+    {
+      "id": "census-187",
+      "E": "yes",
+      "O": "no",
+      "basis": "同model複数attempt・config別識別・独立編集・既存limit維持を要求する。実施結果はない。"
+    },
+    {
+      "id": "census-188",
+      "E": "yes",
+      "O": "yes",
+      "basis": "fixtureにaccountservicestubを加える修正案とtemplate手順を指定し、3test失敗と複数PR同一logを報告する。"
+    },
+    {
+      "id": "census-189",
+      "E": "no",
+      "O": "yes",
+      "basis": "freshinstall・key変更・MCP追加後のfreeze/crash継続と無効化無効の実状を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-190",
+      "E": "yes",
+      "O": "yes",
+      "basis": "scrollguard追加の修正案とscroll0の期待を指定し、DOM数値・debug・reset修復・trigger調査を実報告する。"
+    },
+    {
+      "id": "census-191",
+      "E": "yes",
+      "O": "yes",
+      "basis": "標準ghへの永続default・明示override・無設定不変を要求し、既存alias制約と過去issueの終了経緯を報告する。"
+    },
+    {
+      "id": "census-192",
+      "E": "yes",
+      "O": "yes",
+      "basis": "customization由来表示を要望し、plugin詳細にも由来がない現在の状態を報告する。"
+    },
+    {
+      "id": "census-193",
+      "E": "yes",
+      "O": "yes",
+      "basis": "rpathへ置換する修正案を指定し、実GLIBCerror・unset成功・override結果・voice未試験を報告する。"
+    },
+    {
+      "id": "census-194",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Team由来表示とoptoutを期待し、返信後無操作でplugin導入・通知なしを報告する。"
+    },
+    {
+      "id": "census-195",
+      "E": "yes",
+      "O": "yes",
+      "basis": "明確なenabledisableとinstalluninstall導線を期待し、現行hover文言とToolsとの実差を報告する。"
+    },
+    {
+      "id": "census-196",
+      "E": "yes",
+      "O": "yes",
+      "basis": "復元後settingrow操作可を期待し、実DOM0・二再現・control・workaround結果を報告する。"
+    },
+    {
+      "id": "census-197",
+      "E": "yes",
+      "O": "yes",
+      "basis": "gallery更新または新結果通知を期待し、5成功なのに3表示・DOM比較・全PNG検証・再open修復を報告する。"
+    },
+    {
+      "id": "census-198",
+      "E": "yes",
+      "O": "yes",
+      "basis": "centeredlistにSearchという期待と仕様ならTPI修正を要求し、現行欠落・dropdown成功・source調査を報告する。"
+    },
+    {
+      "id": "census-199",
+      "E": "no",
+      "O": null,
+      "basis": "添付URLのみで要求状態はなく、観測内容は本文だけでは判定できない。"
+    },
+    {
+      "id": "census-200",
+      "E": "yes",
+      "O": "yes",
+      "basis": "customendpointでcredit表示なし又はcostAPIを期待し、実0credit表示と環境を報告する。"
+    },
+    {
+      "id": "census-201",
+      "E": "no",
+      "O": "yes",
+      "basis": "本人が最初labelと思った実際の認識を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-202",
+      "E": "no",
+      "O": "yes",
+      "basis": "hover中に背景色がほぼ見えない本人の実観測を報告する。要求状態は明示しない。"
+    },
+    {
+      "id": "census-203",
+      "E": "yes",
+      "O": "yes",
+      "basis": "warningconfirmationが出る期待を引用し、実際には確認なしでskill実行開始した結果を報告する。"
+    },
+    {
+      "id": "census-204",
+      "E": "no",
+      "O": "yes",
+      "basis": "比較選択時だけClaude/Codex tabも出現する実観測を報告する。要求状態はない。"
+    },
+    {
+      "id": "census-205",
+      "E": "yes",
+      "O": "yes",
+      "basis": "plus右空白click後menu開いたままを期待し、実際閉じる観測を報告する。"
+    },
+    {
+      "id": "census-206",
+      "E": "yes",
+      "O": "yes",
+      "basis": "multiDiff全file同layout保持とsharedstate修正を要求し、時刻付き実変化・source原因調査・未検証scopeを報告する。"
+    },
+    {
+      "id": "census-207",
+      "E": "yes",
+      "O": "yes",
+      "basis": "NextをSelectJudgeに改名又は現画面judge追加を希望し、本人がDone/Nextで迷う実体験を報告する。"
+    },
+    {
+      "id": "census-208",
+      "E": "yes",
+      "O": "yes",
+      "basis": "maintainerのPR参照要件を含み、khalbuild失敗log・Hydra再現可・環境を報告する。"
+    },
+    {
+      "id": "census-209",
+      "E": "yes",
+      "O": "yes",
+      "basis": "signedinconnectorのtool公開又は明確な認証promptを期待し、実insufficientScope診断・反復確認・原因未確定を報告する。"
+    },
+    {
+      "id": "census-210",
+      "E": "yes",
+      "O": "yes",
+      "basis": "全agentを同時停止しprompt変更再送したい必要状態を述べ、現状一件ずつしか止められないことを報告する。"
+    }
+  ]
+}

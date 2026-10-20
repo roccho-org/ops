@@ -1,0 +1,69 @@
+{
+  "schema": "root.census.both-pass-independent.v1",
+  "source1": "20d76d39fae4dfe62e70a2d1140f390d03c4984a",
+  "source2": "bfc1bdfcd6fe44934991ba3cf73aa8288fc3f99f",
+  "allSevenDatasetNativeBytesEqual": true,
+  "assignedCasesPerPass": 207,
+  "physical": {
+    "assigned": 1656,
+    "qualified": 1656,
+    "unknown": 0
+  },
+  "passes": [
+    {
+      "repId": 1,
+      "joint": [
+        172,
+        172
+      ],
+      "bounds": {
+        "differenceLowerNumerator": 0,
+        "differenceUpperNumerator": 0,
+        "regressionLowerNumerator": 0,
+        "regressionUpperNumerator": 0,
+        "denominator": 207
+      },
+      "accepted": false,
+      "disposition": "NOT_ESTABLISHED"
+    },
+    {
+      "repId": 2,
+      "joint": [
+        168,
+        172
+      ],
+      "bounds": {
+        "differenceLowerNumerator": 4,
+        "differenceUpperNumerator": 4,
+        "regressionLowerNumerator": 0,
+        "regressionUpperNumerator": 0,
+        "denominator": 207
+      },
+      "accepted": true,
+      "disposition": "POSITIVE_FIXED_CENSUS_GAIN"
+    }
+  ],
+  "accepted": false,
+  "disposition": "NOT_RECONFIRMED",
+  "crossPassChoiceChanges": {
+    "bestO": [
+      "census-068",
+      "census-070",
+      "census-137"
+    ],
+    "c2O": [],
+    "c4O": [
+      "census-192"
+    ],
+    "sharedE": [
+      "census-057"
+    ]
+  },
+  "usage": {
+    "input_tokens": 3464162,
+    "output_tokens": 51336,
+    "total_tokensKnown": 0,
+    "total_tokensUnknownPhysicalPosts": 1656
+  },
+  "limits": "Two repeated finite-census snapshots, not414 independent cases. No averaged rescue or population/future/product/model-weight/cost guarantee.207 retired from future holdout use."
+}

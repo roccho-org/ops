@@ -1,0 +1,9 @@
+{
+  "schema": "ops.sys1.census-external-scope-custody.v1",
+  "nativeCommit": "2881999e43ff27d45efae7506bd4130c1eb62829",
+  "nativePrefix": "experiments/sys1-eval-loop/census-root-data/external-scope-1/",
+  "originalFiles": 7,
+  "newIssueMetadataRequests": 0,
+  "newIssueBodyRequests": 0,
+  "newModelRequests": 0
+}

@@ -1,0 +1,3929 @@
+{
+  "schema": "root.census.and-raw-independent.v1",
+  "execution": {
+    "source": "bfc1bdfcd6fe44934991ba3cf73aa8288fc3f99f",
+    "activation": "bfef4ce40fa5d3385e01599a888fb68ec4cd2a09",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39489099753"
+  },
+  "inputDigest": "f4a003c4ebac46a8cd27a4f1aba3499ee14abca3456b15b70b7e808db858357e",
+  "repId": 2,
+  "summary": {
+    "assigned": 207,
+    "resolved": 198,
+    "unknown": 9,
+    "b": 4,
+    "c": 0,
+    "bothCorrect": 168,
+    "bothIncorrect": 26,
+    "baselineCorrect": 168,
+    "candidateCorrect": 172,
+    "regressionCases": 0,
+    "partialKnownRegressionCases": 0,
+    "axes": {
+      "E": {
+        "resolved": 207,
+        "unknown": 0,
+        "regressions": 0,
+        "b": 0,
+        "c": 0,
+        "baselineCorrect": 188,
+        "candidateCorrect": 188,
+        "goldYes": 156,
+        "goldNo": 51,
+        "goldUnknown": 0,
+        "confusion": {
+          "best": {
+            "TP": 138,
+            "TN": 50,
+            "FP": 1,
+            "FN": 18,
+            "unknown": 0
+          },
+          "scoped": {
+            "TP": 138,
+            "TN": 50,
+            "FP": 1,
+            "FN": 18,
+            "unknown": 0
+          }
+        }
+      },
+      "O": {
+        "resolved": 198,
+        "unknown": 9,
+        "regressions": 0,
+        "b": 4,
+        "c": 0,
+        "baselineCorrect": 186,
+        "candidateCorrect": 190,
+        "goldYes": 188,
+        "goldNo": 10,
+        "goldUnknown": 9,
+        "confusion": {
+          "best": {
+            "TP": 176,
+            "TN": 10,
+            "FP": 0,
+            "FN": 12,
+            "unknown": 9
+          },
+          "scoped": {
+            "TP": 180,
+            "TN": 10,
+            "FP": 0,
+            "FN": 8,
+            "unknown": 9
+          }
+        }
+      }
+    },
+    "repaired": [
+      "census-068",
+      "census-070",
+      "census-137",
+      "census-192"
+    ],
+    "regressed": [],
+    "axisRegressed": [],
+    "unknownCases": [
+      "census-002",
+      "census-004",
+      "census-008",
+      "census-010",
+      "census-028",
+      "census-115",
+      "census-118",
+      "census-138",
+      "census-171"
+    ],
+    "modelStable": true,
+    "observedRegressionCases": 0,
+    "effectCounts": {
+      "assigned": 828,
+      "attempts": 828,
+      "actualPosts": 828,
+      "qualified": 828,
+      "unknown": 0,
+      "unattempted": 0
+    },
+    "qualificationComplete": true,
+    "technicalUnknown": false,
+    "bounds": {
+      "differenceLowerNumerator": 4,
+      "differenceUpperNumerator": 4,
+      "regressionLowerNumerator": 0,
+      "regressionUpperNumerator": 0,
+      "denominator": 207
+    },
+    "accepted": true,
+    "disposition": "POSITIVE_FIXED_CENSUS_GAIN"
+  },
+  "logicalCounts": {
+    "assignedCases": 207,
+    "bestQualified": 207,
+    "candidateQualified": 207
+  },
+  "derived": [
+    {
+      "id": "census-001",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-001/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-001/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-002",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-002/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-002/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-003",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-003/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-003/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-004",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-004/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-004/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-005",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-005/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-005/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-006",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-006/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-006/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-007",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-007/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-007/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-008",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-008/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-008/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-009",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-009/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-009/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-010",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-010/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-010/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-011",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-011/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-011/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-012",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-012/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-012/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-013",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-013/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-013/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-014",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-014/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-014/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-015",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-015/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-015/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-017",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-017/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-017/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-018",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-018/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-018/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-019",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-019/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-019/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-020",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-020/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-020/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-021",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-021/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-021/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-022",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-022/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-022/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-023",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-023/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-023/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-024",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-024/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-024/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-025",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-025/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-025/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-026",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-026/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-026/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-027",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-027/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-027/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-028",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-028/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-028/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-029",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-029/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-029/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-030",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-030/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-030/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-031",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-031/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-031/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-032",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-032/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-032/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-033",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-033/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-033/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-034",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-034/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-034/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-035",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-035/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-035/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-036",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-036/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-036/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-037",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-037/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-037/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-038",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-038/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-038/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-039",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-039/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-039/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-040",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-040/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-040/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-041",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-041/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-041/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-042",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-042/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-042/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-043",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-043/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-043/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-044",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-044/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-044/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-045",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-045/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-045/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-046",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-046/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-046/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-047",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-047/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-047/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-048",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-048/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-048/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-049",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-049/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-049/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-050",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-050/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-050/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-051",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-051/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-051/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-052",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-052/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-052/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-053",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-053/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-053/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-054",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-054/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-054/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-056",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-056/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-056/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-057",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-057/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-057/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-058",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-058/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-058/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-059",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-059/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-059/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-060",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-060/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-060/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-061",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-061/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-061/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-062",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-062/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-062/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-063",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-063/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-063/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-064",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-064/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-064/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-065",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-065/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-065/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-066",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-066/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-066/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-067",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-067/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-067/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-068",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-068/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-068/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-069",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-069/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-069/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-070",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-070/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-070/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-071",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-071/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-071/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-072",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-072/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-072/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-073",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-073/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-073/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-074",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-074/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-074/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-075",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-075/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-075/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-076",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-076/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-076/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-077",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-077/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-077/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-078",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-078/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-078/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-079",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-079/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-079/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-080",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-080/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-080/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-081",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-081/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-081/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-082",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-082/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-082/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-083",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-083/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-083/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-084",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-084/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-084/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-085",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-085/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-085/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-086",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-086/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-086/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-087",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-087/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-087/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-088",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-088/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-088/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-089",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-089/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-089/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-090",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-090/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-090/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-091",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-091/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-091/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-093",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-093/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-093/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-094",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-094/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-094/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-095",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-095/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-095/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-096",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-096/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-096/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-097",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-097/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-097/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-098",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-098/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-098/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-099",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-099/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-099/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-100",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-100/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-100/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-101",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-101/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-101/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-102",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-102/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-102/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-103",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-103/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-103/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-104",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-104/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-104/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-105",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-105/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-105/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-106",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-106/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-106/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-107",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-107/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-107/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-108",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-108/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-108/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-109",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-109/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-109/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-110",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-110/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-110/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-111",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-111/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-111/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-112",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-112/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-112/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-113",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-113/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-113/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-114",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-114/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-114/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-115",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-115/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-115/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-116",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-116/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-116/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-117",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-117/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-117/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-118",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-118/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-118/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-119",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-119/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-119/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-120",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-120/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-120/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-121",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-121/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-121/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-122",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-122/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-122/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-123",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-123/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-123/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-124",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-124/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-124/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-125",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-125/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-125/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-126",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-126/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-126/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-127",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-127/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-127/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-128",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-128/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-128/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-129",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-129/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-129/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-130",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-130/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-130/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-131",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-131/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-131/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-132",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-132/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-132/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-133",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-133/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-133/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-134",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-134/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-134/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-135",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-135/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-135/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-136",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-136/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-136/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-137",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-137/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-137/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-138",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-138/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-138/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-139",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-139/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-139/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-140",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-140/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-140/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-141",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-141/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-141/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-142",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-142/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-142/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-143",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-143/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-143/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-144",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-144/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-144/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-145",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-145/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-145/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-146",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-146/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-146/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-147",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-147/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-147/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-148",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-148/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-148/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-149",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-149/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-149/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-150",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-150/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-150/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-151",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-151/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-151/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-152",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-152/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-152/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-153",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-153/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-153/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-154",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-154/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-154/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-155",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-155/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-155/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-156",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-156/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-156/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-157",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-157/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-157/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-158",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-158/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-158/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-159",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-159/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-159/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-160",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-160/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-160/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-161",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-161/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-161/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-162",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-162/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-162/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-163",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-163/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-163/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-164",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-164/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-164/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-165",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-165/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-165/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-166",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-166/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-166/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-167",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-167/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-167/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-168",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-168/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-168/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-169",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-169/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-169/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-170",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-170/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-170/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-171",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-171/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-171/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-172",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-172/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-172/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-173",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-173/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-173/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-174",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-174/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-174/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-175",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-175/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-175/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-176",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-176/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-176/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-177",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-177/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-177/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-178",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-178/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-178/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-179",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-179/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-179/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-180",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-180/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-180/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-181",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-181/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-181/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-182",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-182/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-182/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-183",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-183/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-183/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-184",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-184/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-184/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-185",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-185/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-185/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-186",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-186/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-186/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-187",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-187/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-187/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-188",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-188/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-188/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-189",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-189/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-189/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-190",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-190/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-190/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-191",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-191/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-191/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-192",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-192/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-192/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-193",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-193/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-193/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-194",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-194/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-194/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-195",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-195/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-195/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-196",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-196/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-196/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-197",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-197/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-197/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-198",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-198/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-198/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-199",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-199/c2O",
+          "choice": "no"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-199/c4O",
+          "choice": "no"
+        }
+      ],
+      "choice": "no",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-200",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-200/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-200/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-201",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-201/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-201/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-202",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-202/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-202/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-203",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-203/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-203/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-204",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-204/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-204/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-205",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-205/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-205/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-206",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-206/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-206/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-207",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-207/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-207/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-208",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-208/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-208/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-209",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-209/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-209/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    },
+    {
+      "id": "census-210",
+      "operator": "AND_TWO_QUALIFIED_CHOICES",
+      "components": [
+        {
+          "key": "c2O",
+          "eventId": "rep2/census-210/c2O",
+          "choice": "yes"
+        },
+        {
+          "key": "c4O",
+          "eventId": "rep2/census-210/c4O",
+          "choice": "yes"
+        }
+      ],
+      "choice": "yes",
+      "providerAnswer": false
+    }
+  ],
+  "usage": {
+    "bestO": {
+      "answers": 207,
+      "input_tokens": {
+        "known": 207,
+        "subtotal": 392086,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 207,
+        "subtotal": 6417,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 207
+      }
+    },
+    "c2O": {
+      "answers": 207,
+      "input_tokens": {
+        "known": 207,
+        "subtotal": 498070,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 207,
+        "subtotal": 6417,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 207
+      }
+    },
+    "c4O": {
+      "answers": 207,
+      "input_tokens": {
+        "known": 207,
+        "subtotal": 453772,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 207,
+        "subtotal": 6417,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 207
+      }
+    },
+    "sharedE": {
+      "answers": 207,
+      "input_tokens": {
+        "known": 207,
+        "subtotal": 388153,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 207,
+        "subtotal": 6417,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 207
+      }
+    }
+  },
+  "limits": "Same finite convenience cases per pass, whole-body fixedC5 four physical calls. No2M independent units, Gold infallibility, population/Apps/future/model or same-cost claim; missing usage remains unknown."
+}

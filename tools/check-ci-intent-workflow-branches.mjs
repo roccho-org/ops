@@ -15,6 +15,7 @@ const COUNTERFACTUAL_WORKFLOW = ".github/workflows/sys1-counterfactual.yml";
 const REAL_CASE_WORKFLOW = ".github/workflows/sys1-real-case-evaluation.yml";
 const OBSERVATION_WORKFLOW = ".github/workflows/sys1-observation-improvement.yml";
 const RESERVE_WORKFLOW = ".github/workflows/sys1-observation-reserve.yml";
+const CENSUS_WORKFLOW = ".github/workflows/sys1-observation-census.yml";
 const REGRESSION_WORKFLOW = ".github/workflows/sys1-regression-repair.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
@@ -172,6 +173,10 @@ export function analyzeEffectWorkflow(workflow, boundary) {
     }
     if (boundary.path === RESERVE_WORKFLOW) {
       assertReserveWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === CENSUS_WORKFLOW) {
+      assertCensusWorkflow(workflow,boundary);
       return {issues,contributingJobs:['evaluate']};
     }
     if (boundary.path === OBSERVATION_WORKFLOW) {
@@ -488,6 +493,16 @@ export function assertObservationWorkflow(w,b) {
   assertRealCaseWorkflow(v,{...b,maxCalls:708});
 }
 
+export function assertCensusWorkflow(w,b){
+  need(b.maxCalls===2400,'census two-pass bound differs');
+  need(same(w.on?.push?.branches??[],['codex/jev-observation-census-20261021'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/census/request.json']),'census entry differs');
+  need(w.concurrency?.group==='sys1-observation-census'&&w.jobs?.evaluate?.['timeout-minutes']===330,'census deadline/retention differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/census/runtime.mjs '+mode+' "$RUNNER_TEMP/census"','census command differs');s[n].run='node experiments/sys1-eval-loop/reserve/runtime.mjs '+mode+' "$RUNNER_TEMP/reserve"';}
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-census-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/census','if-no-files-found':'ignore','retention-days':30}),'census receipt differs');
+  v.on.push.branches=['codex/jev-observation-reserve-20261020'];v.on.push.paths=['experiments/sys1-eval-loop/reserve/request.json'];v.concurrency.group='sys1-observation-reserve';v.jobs.evaluate['timeout-minutes']=170;
+  s[5].with={name:'sys1-reserve-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/reserve','if-no-files-found':'ignore','retention-days':30};assertReserveWorkflow(v,{...b,maxCalls:1984});
+}
 export function assertReserveWorkflow(w,b){
   need(b.maxCalls===1984,'reserve series bound differs');
   need(same(w.on?.push?.branches??[],['codex/jev-observation-reserve-20261020'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/reserve/request.json']),'reserve entry differs');

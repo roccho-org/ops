@@ -1,0 +1,11 @@
+{
+  "schema": "ops.sys1.census-metadata-custody.v1",
+  "nativeCommit": "a74b93bd0ebf19ba87e46ac1f910e864c6e1aabd",
+  "nativePrefix": "experiments/sys1-eval-loop/census-root-data/metadata-1/",
+  "originalFiles": 247,
+  "source": "8f3ee9247c84353e871fb5b9d13b57a1c30dd762",
+  "status": "NO_CASES",
+  "scope": "original query/nonsecret variables/replies/cursor chain/captures/visibility retained in native Git; public completion/prefix bytes unchanged",
+  "newIssueBodyRequests": 0,
+  "newModelRequests": 0
+}

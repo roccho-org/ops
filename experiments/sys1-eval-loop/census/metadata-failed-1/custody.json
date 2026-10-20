@@ -1,0 +1,9 @@
+{
+  "schema": "ops.sys1.census-metadata-failure-custody.v1",
+  "nativeCommit": "cd3d2a1f244c43b63eb9ca6721b70252de229ae9",
+  "nativePrefix": "experiments/sys1-eval-loop/census-root-data/external-metadata-1/",
+  "originalFiles": 1863,
+  "publicOriginalBytes": ["attempt.json", "invalid.json"],
+  "protocol": "source30ed explicit per-page standard gh; call01860 HTTP503; original native argv/query/variables/replies/stderr/exit and incomplete capture retained privately; no completed prefix or evaluation frame",
+  "disposition": "FRAME_INVALID; no partial reuse, resume or implicit retry; new body/Gold/model requests zero"
+}

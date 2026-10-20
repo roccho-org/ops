@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "30edc2d562380f43a4c0feb5fb6febd9c958883d",
+  "startedAt": "2026-10-20T17:45:22.085Z",
+  "maxMs": 3600000,
+  "status": "STARTED",
+  "mode": "ALL_HISTORY_CURSOR",
+  "scopeRepositories": 3,
+  "newBodyRequests": 0,
+  "newModelRequests": 0
+}

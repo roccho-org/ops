@@ -1,0 +1,24 @@
+{
+  "schema": "ops.sys1.census-external-repository-scope.v1",
+  "status": "PUBLIC_SCOPE_AWAITING_NATIVE_RETAIN",
+  "repositories": [
+    {
+      "nodeId": "MDEwOlJlcG9zaXRvcnkyMTI2MTMwNDk=",
+      "fullName": "cli/cli"
+    },
+    {
+      "nodeId": "MDEwOlJlcG9zaXRvcnk0NTQyNzE2",
+      "fullName": "NixOS/nixpkgs"
+    },
+    {
+      "nodeId": "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA==",
+      "fullName": "microsoft/vscode"
+    }
+  ],
+  "newIssueBodyRequests": 0,
+  "newModelRequests": 0,
+  "scope": "three prospectively named convenience repositories; no substitution, random sampling or population-representativeness claim",
+  "sourceCommit": "fbd7ebc7072c5e83ccdc825067f24965eb65b76f",
+  "startedAt": "2026-10-20T17:32:58.914Z",
+  "endedAt": "2026-10-20T17:33:00.855Z"
+}

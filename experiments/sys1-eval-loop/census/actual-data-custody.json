@@ -1,0 +1,67 @@
+{
+  "schema": "ops.sys1.census-actual-data-custody.v1",
+  "originals": [
+    {
+      "target": "experiments/sys1-eval-loop/census/body-frame.json",
+      "commit": "94b7a1ae68aee940c57f6304b5ff8c21f529839d",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-body-1/frame.json",
+      "bytes": 683129
+    },
+    {
+      "target": "experiments/sys1-eval-loop/census/gold-view.json",
+      "commit": "94b7a1ae68aee940c57f6304b5ff8c21f529839d",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-gold-1/view.json",
+      "bytes": 535874
+    },
+    {
+      "target": "experiments/sys1-eval-loop/census/gold-root-initial.json",
+      "commit": "e7ad27694d2df0734eadc9a8a9e080e9eb28e27a",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-gold-1/gold-root-initial.json",
+      "bytes": 46620
+    },
+    {
+      "target": "experiments/sys1-eval-loop/census/gold-counter-initial.json",
+      "commit": "e7ad27694d2df0734eadc9a8a9e080e9eb28e27a",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-gold-1/gold-counter-initial.json",
+      "bytes": 38500
+    },
+    {
+      "target": "experiments/sys1-eval-loop/census/corpus.json",
+      "commit": "b320e75b1c52ed33d0a54c11b3654b58fa1bf51e",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-gold-1/corpus.json",
+      "bytes": 739556
+    },
+    {
+      "target": "experiments/sys1-eval-loop/census/gold-adjudication.json",
+      "commit": "b320e75b1c52ed33d0a54c11b3654b58fa1bf51e",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-gold-1/gold-adjudication.json",
+      "bytes": 47927
+    },
+    {
+      "target": "experiments/sys1-eval-loop/census/metadata-complete-2/completion.json",
+      "commit": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-metadata-2/completion.json",
+      "bytes": 799
+    },
+    {
+      "target": "experiments/sys1-eval-loop/census/metadata-complete-2/prefix.json",
+      "commit": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-metadata-2/prefix.json",
+      "bytes": 57344
+    },
+    {
+      "target": "experiments/sys1-eval-loop/census/body-complete-1/completion.json",
+      "commit": "94b7a1ae68aee940c57f6304b5ff8c21f529839d",
+      "source": "experiments/sys1-eval-loop/census-root-data/external-body-1/completion.json",
+      "bytes": 551
+    }
+  ],
+  "initialGoldCommit": "cbc49e606b5ff96fcc9e23546506c43fb215364a",
+  "correctedGoldCommit": "b320e75b1c52ed33d0a54c11b3654b58fa1bf51e",
+  "correction": "Only adjudication schema spelling corrected to the existing contract; all labels, basis, body, source, order and initial originals unchanged; original cbc retained.",
+  "metadataNativeCommit": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+  "bodyNativeCommit": "94b7a1ae68aee940c57f6304b5ff8c21f529839d",
+  "privateRawPreserved": true,
+  "publicProjection": "Only original accepted prefix/completion, body frame, selected view and Gold are retained here; private full-history pages and out-of-scope/private prior metadata are not copied.",
+  "newModelPosts": 0
+}

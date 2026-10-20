@@ -1,0 +1,21 @@
+{
+  "query": "query($owner:String!,$name:String!){repository(owner:$owner,name:$name){__typename id nameWithOwner isPrivate hasIssuesEnabled}}",
+  "variables": {
+    "owner": "cli",
+    "name": "cli"
+  },
+  "startedAt": "2026-10-20T17:32:58.916Z",
+  "endedAt": "2026-10-20T17:32:59.590Z",
+  "exitStatus": 0,
+  "reply": {
+    "data": {
+      "repository": {
+        "__typename": "Repository",
+        "id": "MDEwOlJlcG9zaXRvcnkyMTI2MTMwNDk=",
+        "nameWithOwner": "cli/cli",
+        "isPrivate": false,
+        "hasIssuesEnabled": true
+      }
+    }
+  }
+}

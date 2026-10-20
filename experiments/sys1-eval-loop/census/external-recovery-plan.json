@@ -1,0 +1,22 @@
+{
+  "schema": "ops.sys1.census-external-metadata-recovery.v1",
+  "evaluationContractIndex": 2,
+  "roundIndex": 4,
+  "metadataAttempt": 2,
+  "previousAttempt": "metadata-failed-1/custody.json; original FRAME_INVALID remains unchanged",
+  "basePlan": "external-plan.json; same fixed three repository IDs, created UTC day, maximum prefix300, original407 prior recipe, C5, Gold rubric, census acceptance and two passes",
+  "operation": "one fresh full capture from the beginning using standard gh api graphql --paginate --slurp per repository; no manual per-page retry, resume, cursor carry-over, cache or partial result reuse; no further attempt automatically admitted",
+  "repositoryScope": "external-scope/scope.json, replayed from its original captures; names and IDs unchanged; pre/post public/issue-enabled/name/ID exact",
+  "query": "EXTERNAL_ISSUE_QUERY, unchanged complete OPEN/CLOSED history with native cursor termination, no since, Search, date early stop or new ID header",
+  "maximumWindowMs": 3600000,
+  "maximumNativeCommands": 5,
+  "nativeProtocol": "record actual gh version, exact argv/query/initial nonsecret variables and original stdout/stderr/exit for three standard paginated Issue commands and two visibility commands; GH_DEBUG empty and no verbose/auth trace; parsed slurp only after exit0",
+  "responseAccounting": "nativeCommands counts five GraphQL CLI invocations (local version inspection is separate); observedGraphQLResponses counts all returned Issue pages plus two visibility replies. Existing nativeQueries compatibility field, if present, means observed response pages, not actual HTTP attempts. Internal transport attempts are unknown.",
+  "validation": "full slurped original page arrays, nativeCLI complete normal termination and cursor semantics, every repository terminal, all typed Issue IDs/fullrow conflicts before time filter, fixed UTC window and pooled ordinal-ID prefix300, one-hour cap through replay/retention, no filtering of contradictory rows",
+  "extensions": "GraphQL root response may contain optional map extensions separately from exact selected data; errors and unselected data fields remain invalid. Preserve all extensions privately, publish only aggregate counts/policy; no opaque-ID decoding, replacement or migration header.",
+  "failure": "any nonzero command, missing/partial/malformed stdout, GraphQL error, scope/public/name/version inconsistency, missing terminal or timeout invalidates this whole attempt. Preserve every original including partial stdout/stderr/exit; no shorter prefix, repository/day substitution, backfill or automatic resend.",
+  "freshness": "metadata-only observations from the failed attempt are not added to this same cohort's pre-fixed407 prior set; no body, Gold or model output has been acquired. Actual successful attempt has its own capture timestamps and native source, never represented as completion of source30ed.",
+  "authorizationBoundary": "this prospective source and the concrete standard-gh host require all three independent acceptance before acquisition; no body/model authorization inferred, no new executor/auth/ledger or copied SHA gate",
+  "newBodyRequests": 0,
+  "newModelRequests": 0
+}

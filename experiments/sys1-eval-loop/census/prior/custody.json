@@ -1,0 +1,15 @@
+{
+  "schema": "ops.sys1.census-prior-custody.v1",
+  "nativeCommit": "38d5ef5bb3233fa4976a7f74dd83102bdafc2e4f",
+  "nativePrefix": "experiments/sys1-eval-loop/census-root-data/external-prior-1/",
+  "privateOriginalFiles": 40,
+  "completion": "original native bytes",
+  "publicManifest": {
+    "nativeFile": "experiments/sys1-eval-loop/census-root-data/external-prior-1/resolution-private.json",
+    "pointer": "/publicManifest",
+    "form": "exact JSON value projection, not a byte copy of the private enclosing blob"
+  },
+  "privateGlobalIdsPublished": false,
+  "newBodyRequests": 0,
+  "newModelRequests": 0
+}

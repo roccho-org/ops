@@ -1,0 +1,19 @@
+{
+  "status": "OBSERVED_FRAME_AWAITING_NATIVE_RETAIN",
+  "sourceCommit": "dd99af5e98b0ac400c8375252dcd469d26508205",
+  "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+  "priorNative": "38d5ef5bb3233fa4976a7f74dd83102bdafc2e4f",
+  "startedAt": "2026-10-20T19:26:42.638Z",
+  "endedAt": "2026-10-20T19:29:22.431Z",
+  "nativeQueries": 212,
+  "coverage": {
+    "prefixCases": 210,
+    "knownIssue": 0,
+    "bodyRequests": 210,
+    "priorExactBody": 0,
+    "emptyBody": 1,
+    "oversize": 2,
+    "eligible": 207
+  },
+  "newModelRequests": 0
+}
