@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import {scopedDevelopmentProjection,verifyScopedEffects} from './regression/scoped-development.mjs';
+import {freshScopedProjection,verifyFreshEffects} from './regression/scoped-fresh.mjs';
 const read=n=>JSON.parse(fs.readFileSync(new URL(n,import.meta.url),'utf8'));
 test('retained D2 is the actual E32 guard pass with historical O and immutable first failed development',async()=>{
  const at='./results/regression-scoped-development-20261020/',input=read(at+'input.json'),report=read(at+'predictions.json');
@@ -10,4 +11,10 @@ test('retained D2 is the actual E32 guard pass with historical O and immutable f
  assert.deepEqual(p,read(at+'projection.json'));assert.equal(p.comparison.correct,31);assert.equal(p.comparison.disposition,'DEVELOPMENT_GUARD_PASS');assert.deepEqual(p.comparison.pair.resolved,['confirmation-17','confirmation-21']);assert.deepEqual(p.comparison.pair.axisRegressed,[]);assert.equal(p.effectCounts.actualPosts,32);
  assert.equal(read(at+'provider.json').runId,39392227245);assert.equal(read(at+'provider.json').runAttempt,1);
  assert.equal(Object.values(read('./results/regression-validation-20261020/projection.json').comparisons).every(c=>c.disposition==='OBSERVED_REGRESSION'),true);
+});
+
+test('retained S preserves all144 physical observations and freezes the same one configuration before audit',async()=>{
+ const at='./results/regression-screen-20261020/',i=read(at+'input.json'),r=read(at+'predictions.json'),events=fs.readFileSync(new URL(at+'events.jsonl',import.meta.url),'utf8').trim().split('\n').map(x=>JSON.parse(x));
+ const p={...await freshScopedProjection(i,r,read('./regression/screen-gold.json').cases),effectCounts:verifyFreshEffects(i,r,events)};assert.deepEqual(p,read(at+'projection.json'));assert.equal(p.comparison.baselineCorrect,41);assert.equal(p.comparison.candidateCorrect,45);assert.equal(p.comparison.disposition,'FINITE_GAIN');assert.deepEqual(p.comparison.pair.axisRegressed,[]);assert.equal(p.effectCounts.actualPosts,144);
+ const selected=read(at+'selection.json');assert.equal(selected.auditAtSelection,'NOT_READ_NOT_RUN');assert.equal(selected.noFurtherCandidateChanges,true);assert.deepEqual(selected.configuration,{bestInstructions:i.best,templateProof:i.templateProof});
 });

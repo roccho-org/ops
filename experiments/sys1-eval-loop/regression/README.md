@@ -34,13 +34,23 @@ identityはinstructionsや版名ではなく、既存標準clientのnetworkな�
 - S48: caseごとBestE・候補E・sharedOを事前循環で3実測、最大144POST。共有Oのunknownは両roleへ同じく伝播し、独立2証拠や2callに数えない。
 - A64: screen通過後に候補一本を固定し、同じ3実測で一度だけ最終確認、最大192POST。
 
-合計は保持済D1 128＋D2 32＋S144＋A192＝**496 Jev POST上限**、既実施の標準generate2要求は別単位。先の800/640/672の設計案を足し合わせたり、本人確認待ちの通算上限へ変えない。各phaseは有限の技術上限・3者事前受容・既存標準client/CI/secret profileで実行する。現sliceはD1/D2の閉じた実証、adapter/template、S144の実entry、S/A固定3templateの純粋処理を保持する。S48だけをDguard成立後にroot保持commit718bから開封し、原bytesをscreen-gold.jsonへ取込み、sourceCommit/sourcePath/開示条件をscreen-origin.jsonに残した。起動可能な新phaseはsource/必要check/3者受容後のscreen一回だけ。native履歴はD1/D2と新Sの3runを検査し、旧phase再起動や既run再試行を拒否する。A64は未開封、audit実entryは未実装・別受容。
+合計は保持済D1 128＋D2 32＋S144＋A192＝**496 Jev POST上限**、既実施の標準generate2要求は別単位。先の800/640/672の設計案を足し合わせたり、本人確認待ちの通算上限へ変えない。各phaseは有限の技術上限・3者事前受容・既存標準client/CI/secret profileで実行する。現sliceはD1/D2/Sの閉じた実証、adapter/template、A192の実entry、S/A固定3templateの純粋処理を保持する。S48だけをDguard成立後にroot保持commit718bから開封し、原bytesをscreen-gold.jsonへ取込み、sourceCommit/sourcePath/開示条件をscreen-origin.jsonに残した。Sentryは一回完了後に閉じ、現新phaseはsource/必要check/3者受容後のaudit一回だけ。native履歴はD1/D2/Sと新Aの4runを検査し、旧phase再起動や既run再試行を拒否する。
 
 sharedOによる呼出削減は実験測定の節約で、配備後の分類が安くなった証拠ではない。S/AのusageはBestE/scopedE/sharedOという物理template単位で一回だけ集計し、候補運用相当のE+Oとpaired実験全体を分ける。E criteria追記は入力tokensを増やし得る。品質gainと効率改善を同一視せず、金額未取得を0費用としない。
 
+## 開発screenを通過した固定候補
+
+[source2a514](https://github.com/roccho-org/ops/tree/2a514365736a50cfb23b6898066d806c7cb4e41c)の[run39394190268](https://github.com/roccho-org/ops/actions/runs/39394190268)でS48を一回実測した。artifact12250891662（35916B、SHA256 `af9ecfff24193412a439e9f351765807177b0e03251b601a48d345d5833be1e5`）を実取得し、原5file/provider/decisionを`results/regression-screen-20261020/`へ保持した。144物理POSTが全qualified/model stable、unknown0。Best41→scoped45/48、001/005/013/041のEを修復し、case/軸退行0。sharedO48は全正答だったが、候補によるO改善とは数えない。これは開発screenであり、最終auditの代用にしない。
+
+3者独立算術とcanonical再生一致後、候補一本と実S inputの全wire proofをnative Git f966a47eのselection.jsonへ固定し、候補変更禁止/A未開封未実行を記録した。その後だけA64をroot718bのaudit-gold.jsonから原bytes取込みした。Aはこれが初開示で、候補/Best/E-O全wireはS時と同値。Gold変更や候補添削はしない。audit-origin.jsonへ元commit/path/開示前Srun/selectioncommitを保持する。
+
+現CLIはaudit一回だけを受け入れる。credential前にnativehistory4件、D1負結果/D2guard/Spositiveguardと3原run identity、実S selection/全wire同一を再検査する。Gold/basisは実行inputから除外し、providerへはbodyと固定判定設定だけ渡す。A192物理queryはcaseごとBestE/scopedE/sharedOを事前循環し、alias/unknownを二重計数しない。source/必要check/3者counterが揃ってから一度だけ実行し、結果から候補/Gold/主判定を変更しない。
+
+Sの物理usageはBestE input48096、scopedE65472、sharedO49008、outputは各1488。total_tokensは全144未提供。運用相当E+O入力はBest97104/scoped114480だが、共有Oは同一実測の投影で独立二観測ではない。候補の入力増を効率改善と称さず、USD未取得/生成内部usageunknownを維持する。ここまでの実JevはD1 128＋D2 32＋S144＝304、標準generate2は別単位。A192はまだ未実行。
+
 ## 3者counterと知識境界
 
-適用policyはADRS `0dd39ca41718fafe40e58c6927a2ebb0ea297eee`。同じroot＋W＋counterreviewが主張/反証/再提案を担う。Wは製品source/処置author、rootは別data worktreeで新S/Aを出力前固定し、root/RがGoldを事前反証済み。SはD2guard後にWへ開示済み、Aはscreen通過/候補固定後にだけ開く。root/Rの候補意味レビューは公開task契約への適合だけで、封印S/Aから添削や最適化ヒントを返さない。同UIDのOS秘匿や独立第三者著作は主張しない。
+適用policyはADRS `0dd39ca41718fafe40e58c6927a2ebb0ea297eee`。同じroot＋W＋counterreviewが主張/反証/再提案を担う。Wは製品source/処置author、rootは別data worktreeで新S/Aを出力前固定し、root/RがGoldを事前反証済み。SはD2guard後、Aはscreen通過/候補固定後にだけWへ開示した。root/Rの候補意味レビューは公開task契約への適合だけで、封印S/Aから添削や最適化ヒントを返さない。同UIDのOS秘匿や独立第三者著作は主張しない。
 
 ```mermaid
 flowchart TB
@@ -50,7 +60,7 @@ flowchart TB
   R <-->|主張・反証・再提案| W
   W <-->|主張・反証・再提案| C
   C <-->|主張・反証・再提案| R
-  R --> K["🔒 S開示前freeze済・A64はW非開示"]
+  R --> K["✅ S/Aは段階開示前に候補/データ固定"]
   W --> B["✅ 標準N/F各一回・生出力freeze"]
   B --> D["✅ D1 128実測・両01E退行を棄却"]
   D --> P["🧩 W: 元Best＋E criteriaだけの処置候補"]
@@ -63,18 +73,18 @@ flowchart TB
 flowchart TB
   A["✅ 606/旧FAIL/旧H32を既使用Dとして保存"] --> B["✅ 標準生成2要求・N/F freeze"]
   B --> D1["✅ D1 128qualified・F/Nとも01E退行"]
-  D1 --> J1["❌ 両guard不合格・Best保持・S/A未開封"]
+  D1 --> J1["❌ D1両guard不合格・当時S/A未開封"]
   J1 --> C["🧩 候補一本: 元Best＋scope E criteria"]
   C --> V["✅ D2 E32qualified・31/32・01E保持"]
   V --> G{"📏 全32qualified・既正答軸破壊0"}
   G -->|不成立| R["🔁 負結果保持・変更処置を先に契約し開発へ"]
   R --> C
-  G -->|成立| S["⏳ S48開封済・source/必要check/3者counter後144一回"]
+  G -->|成立| S["✅ S144全qualified・41→45/48・軸退行0"]
   S --> SG{"📏 casegain正・既正答軸破壊0・全qualified"}
   SG -->|不成立| SD["🔁 S退役→開発・fresh Sを先固定"]
   SD --> R
-  SG -->|成立| F["🔒 候補一本固定・以降変更なし"]
-  F --> H["🔒 A64開封・同3templateで192上限、一回"]
+  SG -->|成立| F["✅ 実wireから候補一本固定・以降変更なし"]
+  F --> H["⏳ A64開封済・source/check/3者counter後192一回"]
   H --> Q{"📏 casegain正・既正答軸破壊0・全qualified"}
   Q -->|成立| P["📏 この固定未使用audit内の有限改善/観測退行0"]
   Q -->|不成立/unknown| N["🔁 全失敗保存・A退役・Best維持・fresh Aを先固定"]
