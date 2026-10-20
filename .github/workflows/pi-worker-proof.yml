@@ -92,6 +92,17 @@ jobs:
         run: |
           set -euo pipefail
           { pnpm exec tsc && pnpm exec tsc -p tsconfig.client.json && pnpm build && pnpm exec wrangler deploy --dry-run --outdir .wrangler/dry-run; } 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/app-build.log"
+      - name: Package the separate keyless owner runtime (no deployment)
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ../ops/experiments/pi-worker-proof/package-runtime.py "$RUNNER_TEMP/pi-jev-runtime"
+          pnpm exec wrangler deploy --config "$RUNNER_TEMP/pi-jev-runtime/wrangler.json" --dry-run --outdir "$RUNNER_TEMP/runtime-dry-run"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pi-jev-runtime-${{ github.sha }}
+          path: ${{ runner.temp }}/pi-jev-runtime/
       - name: Workerd app and regression tests with remote network denied
         id: runtime
         if: ${{ !cancelled() && steps.overlay.outcome == 'success' }}

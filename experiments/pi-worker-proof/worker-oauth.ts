@@ -4,6 +4,7 @@ import {
   type Credential,
   type CredentialStore,
 } from "@earendil-works/pi-ai";
+import type { Provider } from "@earendil-works/pi-ai";
 import { openaiProvider } from "@earendil-works/pi-ai/providers/openai";
 import { openaiChatGPTOAuth } from "pi-proof-openai-oauth";
 import { KeyedSerialQueue } from "./serial.ts";
@@ -99,4 +100,91 @@ export function createWorkerModels(storage: DurableObjectStorage) {
   // An absent/revoked subscription must not silently become billed API usage.
   models.setProvider({ ...provider, auth: { oauth: openaiChatGPTOAuth } });
   return models;
+}
+
+export type ProofEnvironment = {
+  PI_JEV_PROOF_SESSION?: string;
+  PI_JEV_PROOF_API_KEY?: string;
+  PI_PROOF_TRANSIENT?: string;
+  PI_ACCESS_ISSUER?: string;
+  PI_ACCESS_AUDIENCE?: string;
+  PI_ACCESS_OWNER_HASH?: string;
+};
+
+/** Finite owner proof only. Credentials live in this instance, never storage. */
+export class TransientWorkerProof {
+  readonly bootId = crypto.randomUUID();
+  #access?: { token: string; expires: number };
+  readonly storage: DurableObjectStorage;
+  constructor(storage: DurableObjectStorage) { this.storage = storage; }
+
+  get tokenPresent() { return this.#access !== undefined && this.#access.expires > Date.now(); }
+
+  async attach(request: Request, env: ProofEnvironment) {
+    const { verifyAccessOwner } = await import("pi-proof-auth");
+    await verifyAccessOwner(request.headers.get("Cf-Access-Jwt-Assertion") ?? "", {
+      issuer: env.PI_ACCESS_ISSUER ?? "", audience: env.PI_ACCESS_AUDIENCE ?? "",
+      subjectHash: env.PI_ACCESS_OWNER_HASH ?? "",
+    });
+    const priorToken = this.tokenPresent;
+    const token = request.headers.get("Pi-Proof-Access");
+    const expires = Number(request.headers.get("Pi-Proof-Expires"));
+    if (!token || token.startsWith("sk-") || !Number.isFinite(expires) ||
+        expires <= Date.now() + 30_000 || expires > Date.now() + 3_600_000) {
+      throw new Error("Fresh ChatGPT access required");
+    }
+    this.#access = { token, expires };
+    return { "Pi-Proof-Boot": this.bootId, "Pi-Proof-Prior-Token": String(priorToken), "Pi-Proof-Posts": String(await this.counts()) };
+  }
+
+  async counts() { return await this.storage.get<number>("pi.proof.responses.posts") ?? 0; }
+
+  #bearer() {
+    if (!this.tokenPresent) { this.#access = undefined; throw new Error("Fresh ChatGPT access required"); }
+    return this.#access!.token;
+  }
+
+  readonly fetch: typeof fetch = async (input, init) => {
+    this.#bearer();
+    const request = new Request(input, init);
+    if (request.url !== "https://api.openai.com/v1/responses" || request.method !== "POST") {
+      throw new Error("Proof transport rejected");
+    }
+    await this.storage.transaction(async tx => {
+      const count = await tx.get<number>("pi.proof.responses.posts") ?? 0;
+      if (count >= 3) throw new Error("Proof physical request budget consumed");
+      await tx.put("pi.proof.responses.posts", count + 1);
+    });
+    // Count before send: an UNKNOWN result is never refunded.
+    return globalThis.fetch(request, { redirect: "error" });
+  };
+
+  models() {
+    const models = createModels({ authContext: { env: async () => undefined, fileExists: async () => false } });
+    const base: Provider = openaiProvider();
+    const options = <T,>(input: T) => ({
+      ...input, maxRetries: 0, transport: "sse" as const, fetch: this.fetch,
+      onPayload: (raw: unknown) => {
+        const payload = raw as Record<string, unknown>;
+        if (payload.store !== false || payload.stream !== true || payload.previous_response_id !== undefined ||
+            !Array.isArray(payload.input)) throw new Error("Unsupported proof wire shape");
+        for (const message of payload.input as Record<string, unknown>[]) {
+          if (message.role === "system") message.role = "developer";
+        }
+        if (payload.tools !== undefined) {
+          payload.input.unshift({ type: "additional_tools", role: "developer", tools: payload.tools });
+          delete payload.tools;
+        }
+        return payload;
+      },
+    });
+    models.setProvider({
+      ...base,
+      auth: { apiKey: { name: "Transient validated ChatGPT OAuth access", resolve: async () =>
+        ({ auth: { apiKey: this.#bearer() }, source: "owner-transient-oauth" }) } },
+      stream: (model, context, config) => base.stream(model, context, options(config)),
+      streamSimple: (model, context, config) => base.streamSimple(model, context, options(config)),
+    });
+    return models;
+  }
 }

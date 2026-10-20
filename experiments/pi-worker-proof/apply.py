@@ -55,3 +55,13 @@ replace_once("src/chat.ts", "      extensions: [chatExtension],", "      extensi
 replace_once("src/session.ts", 'import { bootstrapWorkerCredential, createWorkerModels } from "./worker-oauth.ts";', 'import { bootstrapWorkerCredential, createWorkerModels } from "./worker-oauth.ts";\nimport { bindJevProof } from "./worker-jev.ts";')
 replace_once("src/session.ts", "    const chatOptions = createChatHarnessOptions(", "    const proof = this.env as Env & { PI_JEV_PROOF_API_KEY?: string; PI_JEV_PROOF_SESSION?: string };\n    const selected = proof.PI_JEV_PROOF_SESSION !== undefined && this.env.SESSIONS.idFromName(proof.PI_JEV_PROOF_SESSION).equals(this.ctx.id);\n    const chatOptions = createChatHarnessOptions(")
 replace_once("src/session.ts", "      createWorkerModels(this.ctx.storage),", "      createWorkerModels(this.ctx.storage),\n      selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY) : undefined,")
+
+# The shared verifier is derived from this Ops tree and its separate frozen lock.
+shutil.copyfile(source / "operator/dist/auth.mjs", "src/proof-auth.mjs")
+replace_once("src/session.ts", "bootstrapWorkerCredential, createWorkerModels", "bootstrapWorkerCredential, createWorkerModels, TransientWorkerProof, type ProofEnvironment")
+replace_once("src/session.ts", "  #harness!: Harness;", "  #harness!: Harness;\n  #proof?: TransientWorkerProof;")
+replace_once("src/session.ts", "    await bootstrapWorkerCredential(this.ctx, this.env);\n", "")
+replace_once("src/session.ts", "    const chatOptions = createChatHarnessOptions(", "    const transient = selected && (proof as ProofEnvironment).PI_PROOF_TRANSIENT === \"true\";\n    if (transient) this.#proof = new TransientWorkerProof(this.ctx.storage);\n    else await bootstrapWorkerCredential(this.ctx, this.env);\n    const chatOptions = createChatHarnessOptions(")
+replace_once("src/session.ts", "      createWorkerModels(this.ctx.storage),", "      this.#proof ? this.#proof.models() : createWorkerModels(this.ctx.storage),")
+replace_once("src/session.ts", "    const pair = new WebSocketPair();", "    let witness: HeadersInit | undefined;\n    if (this.#proof) {\n      try { witness = await this.#proof.attach(request, this.env as ProofEnvironment); }\n      catch { return json({ error: \"Owner authorization required\" }, 403); }\n    }\n    const pair = new WebSocketPair();")
+replace_once("src/session.ts", "return new Response(null, { status: 101, webSocket: client });", "return new Response(null, { status: 101, webSocket: client, headers: witness });")
