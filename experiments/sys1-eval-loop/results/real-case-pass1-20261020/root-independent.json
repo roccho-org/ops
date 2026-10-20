@@ -1,0 +1,152 @@
+{
+  "repId": 1,
+  "assigned": 118,
+  "resolved": 114,
+  "unknown": 4,
+  "b": 0,
+  "c": 0,
+  "bothCorrect": 79,
+  "bothIncorrect": 35,
+  "baselineCorrect": 79,
+  "candidateCorrect": 79,
+  "regressionCases": 0,
+  "partialKnownRegressionCases": 0,
+  "axes": {
+    "E": {
+      "resolved": 118,
+      "unknown": 0,
+      "regressions": 0,
+      "b": 0,
+      "c": 0,
+      "baselineCorrect": 118,
+      "candidateCorrect": 118,
+      "goldYes": 93,
+      "goldNo": 25,
+      "goldUnknown": 0,
+      "confusion": {
+        "best": {
+          "TP": 93,
+          "TN": 25,
+          "FP": 0,
+          "FN": 0,
+          "unknown": 0
+        },
+        "scoped": {
+          "TP": 93,
+          "TN": 25,
+          "FP": 0,
+          "FN": 0,
+          "unknown": 0
+        }
+      }
+    },
+    "O": {
+      "resolved": 114,
+      "unknown": 4,
+      "regressions": 0,
+      "b": 0,
+      "c": 0,
+      "baselineCorrect": 79,
+      "candidateCorrect": 79,
+      "goldYes": 66,
+      "goldNo": 48,
+      "goldUnknown": 4,
+      "confusion": {
+        "best": {
+          "TP": 44,
+          "TN": 35,
+          "FP": 13,
+          "FN": 22,
+          "unknown": 4
+        },
+        "scoped": {
+          "TP": 44,
+          "TN": 35,
+          "FP": 13,
+          "FN": 22,
+          "unknown": 4
+        }
+      }
+    }
+  },
+  "repaired": [],
+  "regressed": [],
+  "axisRegressed": [],
+  "unknownCases": [
+    "real-015",
+    "real-076",
+    "real-095",
+    "real-115"
+  ],
+  "modelStable": true,
+  "observedRegressionCases": 0,
+  "effectCounts": {
+    "assigned": 354,
+    "attempts": 354,
+    "actualPosts": 354,
+    "qualified": 354,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "bounds": {
+    "B_L": 0,
+    "B_U": 4,
+    "C_L": 0,
+    "C_U": 4,
+    "R_U": 4,
+    "differenceLowerNumerator": -4,
+    "differenceUpperNumerator": 4,
+    "denominator": 118,
+    "differenceLower": -0.03389830508474576,
+    "differenceUpper": 0.03389830508474576,
+    "regressionUpper": 0.03389830508474576
+  },
+  "disposition": "NOT_ESTABLISHED",
+  "usage": {
+    "bestE": {
+      "answers": 118,
+      "input_tokens": {
+        "known": 118,
+        "subtotal": 241834
+      },
+      "output_tokens": {
+        "known": 118,
+        "subtotal": 3658
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0
+      }
+    },
+    "scopedE": {
+      "answers": 118,
+      "input_tokens": {
+        "known": 118,
+        "subtotal": 284550
+      },
+      "output_tokens": {
+        "known": 118,
+        "subtotal": 3658
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0
+      }
+    },
+    "sharedO": {
+      "answers": 118,
+      "input_tokens": {
+        "known": 118,
+        "subtotal": 244076
+      },
+      "output_tokens": {
+        "known": 118,
+        "subtotal": 3658
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0
+      }
+    }
+  }
+}

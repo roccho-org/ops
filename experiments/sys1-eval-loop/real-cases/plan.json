@@ -1,6 +1,6 @@
 {
   "schema": "ops.sys1.real-case-plan.v1",
-  "status": "real-corpus-blind-gold-retained-source-review-before-effects",
+  "status": "pass1-closed-not-established-pass2-prospective-assignment-pending",
   "purpose": "Approximate fixed-frame gain of the unchanged PR611 request configuration; no population-zero or deployment claim",
   "frozenComparison": {
     "source": "PR611 final 641fed724f3a8ec4ca4e17be8a230d01ed40fca1",
