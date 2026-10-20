@@ -1743,3 +1743,17 @@ test('Issue route composition, JA: executor 3-key refusal -> issueRefusalOrigin 
   assert.equal((await admitIssueCommand(issueAdmissionInput(REQUEST_PREFIX + JSON.stringify(tampered), JA_SUBJECT, 4301), ISSUE_SETTINGS)).status, 'NOT_ADMITTED');
   assert.equal((await admitIssueCommand(issueAdmissionInput(out.envelope, subjectIssue(JA_BODY, { ...EDITS, userContentEditsTotal: 3 }), 4302), ISSUE_SETTINGS)).status, 'NOT_ADMITTED');
 });
+
+test('importing prepare from eval with its path in argv does not execute the CLI', () => {
+  const directory = cliTemp(), module = fileURLToPath(new URL('./prepare.mjs', import.meta.url));
+  const code = "const { pathToFileURL } = await import('node:url'); await import(pathToFileURL(process.argv[1]));";
+  for (const [name, evaluation] of [['short', ['-e', code]], ['long', ['--eval', code]], ['joined', ['--eval=' + code]]]) {
+    const output = join(directory, name);
+    const execution = spawnSync(process.execPath, ['--input-type=module', ...evaluation, module, join(directory, 'absent.json'), output],
+      { shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 4194304, timeout: 15000 });
+    assert.equal(execution.status, 0, execution.stderr.toString());
+    assert.equal(execution.stdout.length, 0);
+    assert.equal(execution.stderr.length, 0);
+    assert.equal(existsSync(output), false);
+  }
+});

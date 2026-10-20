@@ -530,7 +530,8 @@ export function prepareMain(args = process.argv.slice(2)) {
     notProjected: projection.notProjected?.length ?? null, missing: projection.missing?.length ?? null };
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (!process.execArgv.some(arg => arg === '-e' || arg === '--eval' || arg.startsWith('--eval='))
+  && process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try { process.stdout.write(JSON.stringify(prepareMain()) + '\n'); }
   catch (error) {
     const code = ['EEXIST', 'ENOENT', 'ENOTDIR', 'EACCES', 'EPERM', 'ENOSPC'].includes(error?.code) ? error.code : 'INVALID_INPUT';
