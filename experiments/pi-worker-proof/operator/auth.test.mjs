@@ -41,3 +41,51 @@ test("Access origin verifies exact owner; missing config and all wrong claims fa
   await assert.rejects(verifyAccessOwner(good, { ...config, subjectHash: "" }, keys));
   await assert.rejects(verifyAccessOwner(good, config, async () => { throw new Error("private"); }));
 });
+
+test("derived Pi callback/exchange validates nonce and scope before returning any credential; listener closes", async () => {
+  const { openaiChatGPTOAuth } = await import("./dist/oauth.mjs");
+  const realFetch = globalThis.fetch;
+  for (const failure of [undefined, "nonce", "scope", "cancel"]) {
+    const controller = new AbortController();
+    let nonce;
+    let callback;
+    globalThis.fetch = async (input, init) => {
+      const url = String(input);
+      if (url === "https://auth.openai.com/.well-known/jwks.json") {
+        return Response.json({ keys: [{ ...await exportJWK(publicKey), kid: "test", alg: "RS256" }] });
+      }
+      assert.equal(url, "https://auth.openai.com/api/accounts/oauth/token");
+      const body = new URLSearchParams(init.body);
+      assert.equal(body.get("client_id"), "issued-client");
+      return Response.json({ access_token: "fixture-access", refresh_token: "fixture-refresh",
+        expires_in: 3600, scope: failure === "scope" ? "openid" : "chatgpt.tokens.use.direct",
+        id_token: await token({ nonce: failure === "nonce" ? "wrong" : nonce }) });
+    };
+    try {
+      const result = openaiChatGPTOAuth.login({
+        signal: controller.signal,
+        notify(event) {
+          if (event.type !== "auth_url") return;
+          const url = new URL(event.url);
+          nonce = url.searchParams.get("nonce");
+          assert.equal(url.searchParams.get("redirect_uri"), "http://127.0.0.1:1455/auth/callback");
+          if (failure === "cancel") { queueMicrotask(() => controller.abort()); return; }
+          const destination = new URL("http://127.0.0.1:1455/auth/callback");
+          destination.search = new URLSearchParams({ code: "fixture-code",
+            state: url.searchParams.get("state"), client_id: "issued-client" }).toString();
+          callback = realFetch(destination).then(response => response.text());
+        },
+        prompt({ signal }) {
+          return new Promise((_, reject) => {
+            if (signal.aborted) reject(new Error("cancelled"));
+            else signal.addEventListener("abort", () => reject(new Error("cancelled")), { once: true });
+          });
+        },
+      }, { getDeviceId: () => "00000000-0000-4000-8000-000000000608" });
+      if (failure) await assert.rejects(result);
+      else assert.equal((await result).access, "fixture-access");
+      await callback;
+      await assert.rejects(realFetch("http://127.0.0.1:1455/auth/callback"));
+    } finally { controller.abort(); globalThis.fetch = realFetch; }
+  }
+});

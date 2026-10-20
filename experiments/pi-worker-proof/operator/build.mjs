@@ -20,7 +20,6 @@ replace("    return credentialFromTokenResponse(token, clientId);\n}\nasync func
   "    await verifyIdToken(token.id_token, clientId, nonce);\n    return credentialFromTokenResponse(token, clientId);\n}\nasync function refreshAccessToken");
 replace('throw new Error(`OpenAI OAuth token request failed (${response.status}): ${responseBody || response.statusText}`);',
   'throw new Error("OpenAI OAuth token request failed");');
-patched = patched.replaceAll("\\\n", "\n");
 const out = resolve(import.meta.dirname, "dist");
 await mkdir(out, { recursive: true });
 await writeFile(out + "/oauth.original.js", original);

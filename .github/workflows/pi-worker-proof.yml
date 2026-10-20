@@ -71,8 +71,8 @@ jobs:
         run: |
           set -euo pipefail
           pnpm install --frozen-lockfile --ignore-scripts
-          node --test auth.test.mjs 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/auth-validation.log"
           node build.mjs "$GITHUB_WORKSPACE/upstream"
+          node --test auth.test.mjs 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/auth-validation.log"
           cp package.json pnpm-lock.yaml dist/oauth.original.js dist/oauth.verified.js "$RUNNER_TEMP/pi-worker-proof/"
           git diff --exit-code -- package.json pnpm-lock.yaml
       - name: Apply the bounded runtime integration

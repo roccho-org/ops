@@ -1,75 +1,62 @@
-# Worker Pi → Jev proof
+# Worker Pi / Jev bounded proof
 
-This is a source/mock checkpoint toward Worker-hosted Pi calling Jev and remembering its answer. It is not deployed ChatGPT inference, a quality experiment, or completion of ops#523.
+Active route update (SOURCE GO only; new implementation not yet accepted).
 
-Existing resources supply nearly everything:
+Previous head 8af351a11c0b477d55f81cee791f298b9c83ed40 remains an accepted SOURCE/MOCK checkpoint: 100 mock tests; 21 checks terminal (14 SUCCESS / 7 SKIPPED). [CI](https://github.com/roccho-org/ops/actions/runs/39380346001), [R](https://github.com/roccho-org/ops/pull/608#pullrequestreview-5581517095), [Root](https://github.com/roccho-org/ops/pull/608#pullrequestreview-5581504291). Mock counts 2 inputs / 3 model requests / 1 Jev POST. Native workerd failed before tests; OAuth screen NOT_PROVEN. No live/quality/merge acceptance.
 
-| Reused resource | Remaining gap |
-| --- | --- |
-| `packages/jev/src/client.mjs` + `core.mjs`: typed named questions, fixed endpoint, one native POST, deadline and closed errors | Pi ToolRegistration and caller composition |
-| Pinned upstream `dcb56ce2d174babb3f00112ac5b8cd597e58ab45`, its lock, pi-durable 1.2 | Register the tool using native extension/tools |
-| Existing Harness document transactions and unsafe replay policy | One experimental allowance consumed before sending, shared across new tool tasks |
-| Existing app WebSocket/SQLite/DO lifecycle tests and Ubuntu proof workflow | Exercise an actual mocked model tool call, typed result, recreation, interruption and isolation |
+Three-party route rebuttal completed. Local candidate normally merged proposals 17b8fb08d86a9de470cb172f546e984f619be7a5, preserving accepted history. New source and exact-head CI are pending.
 
-`apply.py` copies the canonical Jev client/core bytes into the generated upstream build; it does not maintain a client fork. The small declaration describes the used JS surface. No transport, decoder, auth framework, broker, daemon or general quota service is added.
-
-An operator-provided `PI_JEV_PROOF_SESSION` selects exactly one named DO (native idFromName equality); only that DO with `PI_JEV_PROOF_API_KEY` selects the bounded proof composition: only `ask_jev`, SDK retries zero and durable generation retries disabled. With missing/nonmatching session or missing key, legacy tools and retry/compaction defaults remain. No real key is supplied by this fixture. Model arguments contain only bounded state and question. The canonical decoder returns a fixed typed numeric assessment into transcript `output`.
-
-The allowance is experiment-only, one per conversation, inherited as consumed by forks. The allowance is per conversation, not a global job/spend cap. Proof binding uses native Fetch redirect:error so 307/308 cannot issue another POST. Unsafe replay prevents rerunning an interrupted task; the persisted allowance also blocks new tasks. An uncertain result never restores it. UNKNOWN does not mean no charge. Adapter-returned failures ask the standard Harness to terminate. Engine-synthesized interruption on recovery may still cause model requests: the allowance bounds Jev POSTs, not all model activity. No exactly-once claim is made.
-
-Current resources are separate evidence classes:
+Single-owner internal dedicated runtime, same connected app/user, not offered to others, no pooling or SIWC charge: Terms section 1 restricts persistent token storage; section 2 permits user-controlled remote runtime. Transient access-only processing is an explicit interpretation, not provider endorsement or an assumed exception. Persistent DO OAuth storage is rejected. DevKit code is excluded due its separate license condition; independently authored Pi/JOSE validation does not inherit its noncommercial restriction.
 
 ```mermaid
 flowchart TB
-  Ops["📚 Existing Ops Jev client + Pi overlay + Ubuntu CI"] --> Gap["🧩 Thin Pi tool + bounded proof integration"]
-  Pin["📌 Pinned upstream + frozen lock"] --> Gap
-  Native["🖥️ Native type check; workerd loader failed, zero tests"] --> Limits["⚠️ Native runtime unproved"]
-  Screen["🌐 Current admitted screen package: no chat/DO/credential binding"] --> Runtime["❔ Full deployed runtime/DO inventory unverified"]
-  Key["🔑 Existing Ops CI org-secret name JEV_API_KEY confirmed"] --> Binding["❔ Worker key binding/custody unverified"]
-  Auth["⛔ Current persistent DO ChatGPT token storage not admitted"]
+  Existing["📚 Existing Pi / Jev / SQLite / Ubuntu CI"] --> Reuse["♻️ Reuse native interfaces"]
+  Accepted["✅ Prior 8af SOURCE/MOCK"] --> New["🛠️ New route SOURCE GO; unverified"]
+  Gap["⚠️ Pi ID-token validation gap"] --> JOSE["🔐 Minimal authored JOSE validation; exact operator lock"]
+  Secret["🔑 Existing envs org Jev secret name confirmed"] --> Binding["❔ Actual Worker binding unproved"]
+  Screen["🌐 Screen-only admission preserved"] --> Runtime["📦 Separate full-runtime admission"]
 ```
-
-Conditional completion target:
 
 ```mermaid
 flowchart TB
-  User["👤 Owner, same session/conversation IDs"] --> Pi["🧠 Protected Worker Pi Sys2"]
-  Auth["⛔ Supported ChatGPT custody unresolved"] -. blocks .-> Pi
-  Pi --> Tool["🔧 Native tool; consume atomic proof allowance"]
-  Tool --> Jev["🌐 Existing client → actual Jev Sys1 POST ×1"]
-  Jev --> Use["📏 Typed answer returned and consumed by Pi"]
-  Use --> Commit["💾 SQLite commits nonsecret marker + answer"]
-  Commit --> Restart["🔄 Close client; verify DO recreation; reopen same IDs"]
-  Restart --> Recall["🗣️ Neutral recall; no client history/value reinjection"]
-  Recall --> Check["✅ Marker + answer recalled; separate-ID read-only isolation"]
+  Owner["👤 Native supported Pi OAuth; browser callback via SSH forward"] --> Verify["🔐 Signature / issuer / audience / expiry / nonce / subject / grant"]
+  Verify --> Memory["🧠 Local child memory; no native inference"]
+  Memory -->|"TLS access only"| Access["🛡️ Worker verifies Access JWT and exact owner"]
+  Access --> Pi["☁️ Selected Worker Pi; volatile bearer only"]
+  Pi --> Budget["📏 Persisted actual Responses POST cap 3; retries off; redirect error"]
+  Budget --> Jev["🔧 Canonical Jev; atomic conversation POST allowance 1"]
+  Jev --> Commit["💾 Typed answer consumed; marker and answer committed"]
+  Commit --> Recreate["🔄 New boot ID observed; prior token absent"]
+  Recreate --> Resupply["🔑 Owner access resupply; same IDs reopened"]
+  Resupply --> Recall["🗣️ Neutral recall; no values/history reinjected"]
+  Recall --> Proof["🏁 Actual Worker/Jev/recreation receipt"]
 ```
-
-Two user turns normally require three logical model requests: tool request, tool-result continuation, recall. Physical requests and hidden retries require independent observation. Mock fixtures prove transport/state behavior only; their scripted answers prove no model quality or general benefit.
-
-Closure process:
 
 ```mermaid
 flowchart TB
-  Audit["🔎 Resource audit + three-party rebuttal"] --> GO["🟢 Bounded source GO"]
-  GO --> PR["📤 Meaningful Draft PR"] --> CI["🧪 Existing exact-head Ubuntu build/workerd CI"]
-  CI --> R["🔍 Independent R exact-tree review"]
-  R -->|FAIL| Fix["🛠️ Same PR correction"] --> CI
-  R -->|PASS| Source["✅ Source/mock checkpoint"]
-  Audit --> Basis["📚 Applicable provider custody basis"]
-  Basis -->|absent or unknown| Block["⛔ SOURCE_ONLY; no real credential storage/calls"]
-  Source --> Gate{"🔒 AND: source/CI/R + custody basis + target Jev binding + full-runtime/Access/DO admission + bounded spend evidence"}
-  Basis -->|established| Gate
-  Gate -->|missing| Block
-  Gate -->|all met + effect GO| Deploy["☁️ Existing envs/Wrangler path; necessary admission change + exact deployment readback"]
-  Deploy --> Live["🧾 Actual Worker tool/Jev/DO recreation/recall proof"]
-  Live -->|post-send UNKNOWN| Stop["🛑 No automatic resend; charge unknown"]
-  Live -->|known failure| Diagnose["🔎 Diagnose; correct source; new paid-attempt budget required"]
-  Diagnose --> CI
-  Live -->|proved| Done["🏁 Independent R + Root entry check + User acceptance"]
+  Agree["🤝 Three-party resource and route agreement"] --> Source["🛠️ Same Draft PR source"]
+  Source --> CI["🧪 Exact-head JWT / wire / workerd tests"]
+  CI --> Review["🔍 Independent R + Root"]
+  Review -->|FAIL| Fix["🩹 Same PR correction"] --> CI
+  Review -->|PASS| Artifact["📦 Accepted separate runtime artifact"]
+  Artifact --> Envs["🔒 Companion envs admission; preserve screen gate"]
+  Envs --> Gate{"🚦 Accepted artifact + owner pins + existing key custody + admitted migration plan + effect GO"}
+  Gate -->|missing| Stop["⛔ No live effects; exact missing condition"]
+  Gate -->|all met| Deploy["☁️ Standard deployment creates binding and applies migration"]
+  Deploy --> Readback["🔎 Actual version / binding / migration readback"]
+  Readback --> OAuth["🔐 Fresh validated local OAuth + Access + remaining budgets"]
+  OAuth --> Live["🧾 Actual bounded Worker proof"]
+  Live -->|UNKNOWN| Halt["🛑 No automatic paid resend; charge unknown"]
+  Live -->|no new instance| NoProof["⚠️ NOT_PROVEN; reconnect insufficient"]
+  Live -->|proved| Done["✅ Independent live acceptance"]
 ```
 
-The existing screen-only package/admission stays unchanged. Access GET302 proves a perimeter redirect, not origin version or deployed chat/DO behavior. Ubuntu CI does not repair or prove the separate native Nix workerd runtime.
+Reuse canonical Jev transport/decoder/deadline and existing Pi model transport/SQLite/CI. Add only validated local OAuth composition, volatile selected-proof bearer, supported wire hook, physical-request bound, recreation witness and separate keyless runtime package. Preserve legacy unselected behavior and screen packaging. No new framework, inference proxy, global installation or credential bridge.
 
-Full live also requires supported OAuth token/nonce validation and runtime compatibility; the pinned SDK's existing validation gaps are not addressed by this Jev source slice. No inference with that unresolved authentication path is accepted.
+Required source: exact JOSE/ws lock and derived SDK bytes; required exp/sub/nonce and strict JWT negatives; supported native-fetch injection, no global monkeypatch; HTTP only; Access JWT signature/issuer/audience/exact owner before bearer attachment; no remote refresh/ID tokens, bootstrap, secret logs or persisted WS headers. New instance/expiry fails closed until resupply. Actual auth, deployment, secret writes and inference are outside SOURCE GO. Standard cloudflared local cache is separate from SIWC token custody. No auth has occurred.
 
-Live credential storage remains blocked: [SIWC Terms §1–2](https://openai.com/policies/sign-in-with-chatgpt-terms/) distinguish local persistent token storage from user-controlled remote execution. [Self-hosted VM technical documentation](https://developers.openai.com/siwc/token-sharing-open-source/self-hosted-vms) does not establish an exception for this persistent DO store. Applicable app approval/basis is absent or unknown. No API-key substitute, credential transfer, real inference, deployment or merge is authorized by this source checkpoint.
+Policy roccho-dev/adrs@6e4abcd22dbee397105625b6041ce1a0d4720182; native /work/repos/ops.git/.worktrees/pi-jev-worker-20261020. No ops#523 or quality completion claim.
+
+Current new candidate: 0415575686f932987f63f4dbb12d4923be3e0bff. Shared validator and volatile/runtime composition published; native JWT helper tests and regenerated overlay type check passed. Exact-head CI, derived-login integration, focused runtime tests and operator proof orchestration remain pending; no new SOURCE/MOCK acceptance.
+
+Primary basis: [SIWC Terms](https://openai.com/policies/sign-in-with-chatgpt-terms/), [ID-token validation](https://developers.openai.com/siwc/token-sharing-open-source/sign-in), [preview wire limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations), [Cloudflare origin JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/). CF owner login/pin preparation is separate from expiring ChatGPT OAuth, which occurs after runtime deployment/readback.

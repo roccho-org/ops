@@ -478,3 +478,83 @@ describe("bounded Jev proof failure and legacy boundaries", () => {
     await closeSocket(client.socket);
   });
 });
+
+describe("finite transient proof transport — keyless mocks only", () => {
+  it("verifies owner, emits supported wire, counts actual POSTs and loses access after real DO eviction", async () => {
+    const { TransientWorkerProof } = await import("../src/worker-oauth.ts");
+    const keys = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048,
+      publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
+    const jwk = await crypto.subtle.exportKey("jwk", keys.publicKey);
+    const encode = (value: string) => btoa(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+    const now = Math.floor(Date.now() / 1000);
+    const header = encode(JSON.stringify({ alg: "RS256", kid: "fixture" }));
+    const claims = encode(JSON.stringify({ iss: "https://fixture.cloudflareaccess.com",
+      aud: "fixture-app", sub: "fixture-owner", iat: now, exp: now + 3600 }));
+    const unsigned = header + "." + claims;
+    const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", keys.privateKey, new TextEncoder().encode(unsigned));
+    const jwt = unsigned + "." + encode(String.fromCharCode(...new Uint8Array(signature)));
+    const subjectHash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("fixture-owner")))]
+      .map(x => x.toString(16).padStart(2, "0")).join("");
+    const config = { PI_ACCESS_ISSUER: "https://fixture.cloudflareaccess.com",
+      PI_ACCESS_AUDIENCE: "fixture-app", PI_ACCESS_OWNER_HASH: subjectHash };
+    const request = () => new Request("https://example.com/", { headers: {
+      "Cf-Access-Jwt-Assertion": jwt, "Pi-Proof-Access": "fixture-oauth-bearer",
+      "Pi-Proof-Expires": String(Date.now() + 300_000),
+    } });
+    let posts = 0;
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (!(input instanceof Request)) {
+        expect(String(input)).toBe(config.PI_ACCESS_ISSUER + "/cdn-cgi/access/certs");
+        return Response.json({ keys: [{ ...jwk, kid: "fixture", alg: "RS256" }] });
+      }
+      expect(input.url).toBe("https://api.openai.com/v1/responses");
+      expect(init?.redirect).toBe("error");
+      const body = await input.json() as Record<string, unknown>;
+      expect(body.store).toBe(false);
+      expect(body.stream).toBe(true);
+      for (const name of ["tools", "previous_response_id", "max_output_tokens", "max_tool_calls",
+        "temperature", "top_p", "metadata", "prompt_cache_key", "prompt_cache_retention"]) expect(body).not.toHaveProperty(name);
+      expect(JSON.stringify(body.input)).toContain('"type":"additional_tools"');
+      expect(JSON.stringify(body.input)).not.toContain('"role":"system"');
+      posts++;
+      return responseStream("fixture-transient-answer");
+    });
+    const stub = env.SESSIONS.getByName("transient-transport");
+    let firstBoot = "";
+    await runInDurableObject(stub, async (_instance, state) => {
+      const proof = new TransientWorkerProof(state.storage);
+      await expect(proof.attach(new Request("https://example.com"), config)).rejects.toThrow();
+      expect(await proof.counts()).toBe(0);
+      const witness = await proof.attach(request(), config);
+      expect(witness["Pi-Proof-Prior-Token"]).toBe("false");
+      firstBoot = witness["Pi-Proof-Boot"];
+      const models = proof.models();
+      const model = models.getModel("openai", "gpt-6-luna")!;
+      for (let i = 0; i < 2; i++) {
+        const result = await models.completeSimple(model, {
+          systemPrompt: "Finite proof", messages: [{ role: "user", content: "fixture", timestamp: Date.now() }],
+          tools: [{ name: "ask_jev", description: "fixture", parameters: { type: "object", properties: {} } }],
+        });
+        expect(result.stopReason).toBe("stop");
+      }
+      expect(await proof.counts()).toBe(2);
+      expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
+    });
+    await evictDurableObject(stub);
+    await runInDurableObject(stub, async (_instance, state) => {
+      const proof = new TransientWorkerProof(state.storage);
+      expect(proof.bootId).not.toBe(firstBoot);
+      expect(proof.tokenPresent).toBe(false);
+      await expect(proof.fetch("https://api.openai.com/v1/responses", { method: "POST" })).rejects.toThrow();
+      expect(await proof.counts()).toBe(2);
+      const witness = await proof.attach(request(), config);
+      expect(witness["Pi-Proof-Prior-Token"]).toBe("false");
+      await proof.fetch("https://api.openai.com/v1/responses", { method: "POST",
+        body: JSON.stringify({ store: false, stream: true, input: [{ type: "additional_tools" }] }) });
+      await expect(proof.fetch("https://api.openai.com/v1/responses", { method: "POST" })).rejects.toThrow("budget consumed");
+      expect(await proof.counts()).toBe(3);
+      expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
+    });
+    expect(posts).toBe(3);
+  });
+});
