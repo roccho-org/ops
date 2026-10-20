@@ -1,0 +1,31 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {prepare,score} from './feedback-improvement.mjs';
+import {digest} from './run.mjs';
+import {parseEvents} from './self-grading.mjs';
+const root=new URL('./results/feedback-development-20261020/',import.meta.url);
+const j=name=>JSON.parse(fs.readFileSync(new URL(name,root),'utf8'));
+test('retained real D12 outputs replay with fixed Gold; all no-change stops without inventing a candidate',()=>{
+  const input=j('input.json'),report=j('predictions.json'),measurement=j('measurement.json'),artifact=j('artifact.json'),decision=j('decision.json');
+  assert.equal(input.execution.mode,'live');assert.equal(input.phase,'development');
+  assert.deepEqual(input,prepare('development',input.execution));assert.deepEqual(measurement,score(input,report));
+  assert.equal(artifact.workflow_run.head_sha,input.execution.sourceSha);
+  assert.equal(input.execution.runUrl,`https://github.com/roccho-org/ops/actions/runs/${artifact.workflow_run.id}`);
+  assert.equal(artifact.name,`sys1-feedback-${artifact.workflow_run.id}`);
+  assert.deepEqual(j('attempt.json'),{inputDigest:digest(input),phase:'development',maxCalls:12});
+  const {events,truncatedFinalRecord}=parseEvents(fs.readFileSync(new URL('events.jsonl',root),'utf8'));
+  assert.equal(truncatedFinalRecord,false);assert.equal(events.filter(x=>x.kind==='attempt').length,12);
+  assert.equal(events.filter(x=>x.kind==='answer').length,8);assert.equal(events.filter(x=>x.kind==='diagnosis').length,4);
+  assert.deepEqual(events.filter(x=>x.kind==='row').map(x=>x.row),report.rows);
+  assert.equal(report.actualCalls,12);assert.equal(report.terminalReceipt,true);assert.equal(measurement.arms.baseline.correct,4);
+  assert.equal(measurement.diagnostic.matched,4);assert.equal(decision.outcome,'NO_PROPOSAL_KEEP_BASELINE');
+  for(const f of decision.feedback){const row=report.rows.find(x=>x.id===f.caseId);assert.equal(row.evaluator.answer.choice,f.diagnosis);assert.equal(f.change,null);}
+  assert.equal(decision.actualPosts,report.actualCalls);assert.equal(decision.unspentPosts,48);
+  assert.equal(decision.evaluator.targetErrorDenominator,0);assert.equal(decision.evaluator.errorDetectionRate,null);
+  assert.equal(decision.candidateCreated,false);assert.equal(decision.confirmationExecuted,false);assert.equal(decision.confirmationConsumed,false);
+  assert.equal(decision.targetImprovement,'NOT_ESTABLISHED');assert.equal(decision.qualityAdoptionAuthorized,false);
+  assert.equal(fs.existsSync(fileURLToPath(new URL('./feedback-candidate.json',import.meta.url))),false);
+  assert.equal(fs.existsSync(fileURLToPath(new URL('./feedback-confirmation-live.json',import.meta.url))),false);
+});

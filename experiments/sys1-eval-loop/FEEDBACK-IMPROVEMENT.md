@@ -24,19 +24,28 @@ Goldの適用範囲は当該機能への要求/現実の観測である。『実
 
 ```mermaid
 flowchart TB
-  P["📌 現Best・D/H・Gold・上限を実行前固定"] --> D["🤖 対象Jev：D4のE/Oを実回答"]
-  D --> E["🔎 評価役Jev：typed修正仮説を選択"]
-  E --> W["🛠️ 修正担当：実診断の採否と差分を記録"]
-  W --> N{"📦 有用な候補を作れた？"}
-  N -->|"なし"| Z["🛑 NO_PROPOSAL・旧Best保持"]
-  N -->|"あり"| F["❄️ candidateとCIを独立review・固定"]
-  F --> H["🧪 新H12入力で対象baseline/candidateを実行"]
-  H --> S["📏 鍵なしGold照合・完成率・不明・原価"]
-  S --> G{"⚖️ 完了・同model・正解増・退行0？"}
-  G -->|"はい"| R["✅ 有限改善の研究候補・自動採用なし"]
-  G -->|"いいえ／不明"| Z
-  R --> L["📝 PR・実artifact・限界を保存して停止"]
-  Z --> L
+  C["📌 第1周：D4/H12・Gold・現Best・上限60を固定"] --> T["🤖 対象Jev：D4本文からE/O回答・実trace保存"]
+  T --> E["🔎 評価役Jev：body＋対象回答からtyped修正仮説"]
+  T --> V["📏 鍵なし固定Gold照合：対象E/O正誤"]
+  E --> V
+  V --> J["🧭 期待診断と実診断を突合\n一致・誤指摘・見逃し・誤軸・保留・不明"]
+  J --> W["🛠️ 実診断ごとの採用/棄却と理由\n診断ID→変更差分を記録、評価役に拒否権なし"]
+  W --> P{"📦 有用なcandidateを1つ生成できた？"}
+  P -->|"なし"| N["🛑 NO_PROPOSAL：旧Best保持\n未実行Hは未消費、残予算を自動使用しない"]
+  P -->|"あり"| F["❄️ candidate固定・独立review/CI\ncorpus/Gold・baseline・評価役は変更しない"]
+  F --> H["🧪 H12新入力：両armを各2軸で実行\nGold結果を修正へ渡さない、最大48POST"]
+  H --> M["📏 鍵なしGoldで両arm測定\n全割当完成率・軸FP/FN・repair/break・消費・不明"]
+  M --> L["🧾 診断ID→採否→変更差分→H実成果を対応\n評価役の寄与因果はNOT_IDENTIFIED"]
+  L --> G{"⚖️ 同model・全完了・正解数増\n各case/軸の既存正解破壊0？"}
+  G -->|"満たす"| R["✅ 有限改善の研究候補\n製品へ自動採用しない"]
+  G -->|"同点・退行"| B["↩️ 旧Best保持・candidate不採用\n失敗結果も保持"]
+  G -->|"失敗・不明"| U["❓ 比較未完了・旧Best保持\n不明を誤答/成功へ読み替えない"]
+  R --> X["📚 使用したHを未使用扱いから退役\n同Hで再修正・再選択しない"]
+  B --> X
+  U --> X
+  X --> Z["🛑 第1周を証拠とともに停止"]
+  N --> Z
+  Z -. "別の次周：自動補充ではない" .-> Q["🆕 集合・予算・対象責務を事前固定\n同じ権限境界と独立reviewで次周判断"]
 ```
 
 ```mermaid
@@ -46,9 +55,11 @@ flowchart TB
   A --> O["📦 実E/Oとmodel・消費・traceを保存"]
   B --> O
   O --> S["📏 固定Goldで全割当を照合"]
-  S --> Q["📊 対象性能の有限差・repair/break"]
-  E["💬 評価役のChoice"] -. "開発の修正入力だけ" .-> B
-  E -. "🚫 採否の拒否権なし" .-> Q
+  S --> Q["📊 対象性能の有限差・軸FP/FN・不明・repair/break"]
+  E["💬 開発段階の評価役typed診断"] --> J["📏 別の測定対象：診断の妥当性\n誤指摘/見逃し/誤軸/保留/不明"]
+  J --> W["🛠️ 修正担当の採否と差分"]
+  W -. "H実行前に固定" .-> B
+  Q --> G["⚖️ 有限candidateの受容条件\n評価役との一致を要求しない"]
 ```
 
 ## 実行・証拠境界
@@ -57,4 +68,25 @@ local subがW、rootが独立R。同じmodel/effortの追加はUser明示指示�
 
 標準Actionsはmarkerだけのpushで各phase一度起動。最初のdevelopment history1件、confirmation history2件で先行成功を確認し、attempt1のみ。native Git親・差分でreview sourceとactivationを対応させ、手転記blob SHA gateは追加しない。これはtrusted ownerの誤操作防止であり悪性owner/runnerの暗号attestationではない。既存Org JEV_API_KEYを評価stepだけに渡し値を取得/コピー/表示しない。旧workflowと必要checkは変更しない。
 
-各attempt・answer・diagnosis・rowを逐次artifact用eventsとnative logへ保存。部分終了は終端不明のactualCalls:null・INCOMPLETEを残す。runner喪失時のuploadは保証しない。失敗・作用不明で同じphaseを再送しない。実artifact保存後はkeylessで再計算可能にする。現時点ではactivation未作成、実モデル0POST。
+各attempt・answer・diagnosis・rowを逐次artifact用eventsとnative logへ保存。部分終了は終端不明のactualCalls:null・INCOMPLETEを残す。runner喪失時のuploadは保証しない。失敗・作用不明で同じphaseを再送しない。実artifact保存後はkeylessで再計算可能にする。
+
+## 第1周の実結果：NO_PROPOSAL・現Best保持
+
+[source CI39350733705](https://github.com/roccho-org/ops/actions/runs/39350733705)は329/329・fail0、fresh consumerも成功。独立rootのsource/Gold反証と軸退行guard是正後、review source1734fe6eを親にmarkerだけのactivation5c86a823を一回push。[実development39352118583](https://github.com/roccho-org/ops/actions/runs/39352118583)はattempt1で成功し、native workflow履歴はtotal1。追加run/retry/refillなし。
+
+|対象|実観測|
+|---|---|
+|対象Jev|4/4正答・完了4/4・不明0。E/O各軸TP2/TN2/FP0/FN0|
+|評価役Jev|4/4がno_change。通常コードで算出した期待診断とも一致4/4|
+|評価役の誤り検出感度|対象誤答の分母0で測定不能。no_change一致だけで診断全般を認定しない|
+|修正担当の処理|各実no_changeを保持判断として採用。変更差分null、候補生成なし|
+|実POST|対象8＋評価4＝12。terminal true、error/not_run0|
+|usage・原価|入力11711/output500 tokens。金額・人手原価UNKNOWN|
+|Hと残予算|H未実行・未消費。残48POSTを自動使用しない|
+|対象改善・自己修正・Apps効果|未証明/未実行。評価役そのものの寄与因果も未識別|
+
+このDは現Bestに対して天井だった。改善すべき実診断が無いのに候補を作って『評価を使った改善』と捏造せず、事前契約に従いNO_PROPOSAL_KEEP_BASELINEで停止した。対象改善の成功ではない。4例に誤答が無かったことを母集団精度100%や実案件全体の保証にしない。
+
+PR603はaccept/rejectという正否採点、今回は修正箇所を選ぶtyped診断で、課題・rubric・標本が異なる。今回の一致4/4をPR603との評価役性能改善として比較しない。有効な修正仮説からのrepairも分母0で、評価→修正→対象性能向上の閉包はNOT_PROVENである。
+
+artifact12233975172を実取得し、provider digest/sizeと実ZIP（13013bytes）の再計算一致、全5fileのbytes保持とcanonical prepare/score再計算一致を確認した。[生出力・測定・診断採否・native metadata](results/feedback-development-20261020)を保存、feedback-evidence.test.mjsで再推論なしに読戻す。H48/candidateは開始していない。別の次周は新しい事前契約と独立reviewを要し、この周の未使用枠を黙って再配分しない。

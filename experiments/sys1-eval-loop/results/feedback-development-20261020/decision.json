@@ -1,0 +1,30 @@
+{
+  "schema": "ops.sys1.feedback-decision.v1",
+  "outcome": "NO_PROPOSAL_KEEP_BASELINE",
+  "developmentRunUrl": "https://github.com/roccho-org/ops/actions/runs/39352118583",
+  "sourceCiUrl": "https://github.com/roccho-org/ops/actions/runs/39350733705",
+  "sourceCiTests": {"pass":329,"fail":0},
+  "feedback": [
+    {"caseId":"d-atlas","diagnosis":"no_change","decision":"retain baseline; evaluator requested no correction","change":null},
+    {"caseId":"d-brook","diagnosis":"no_change","decision":"retain baseline; evaluator requested no correction","change":null},
+    {"caseId":"d-cedar","diagnosis":"no_change","decision":"retain baseline; evaluator requested no correction","change":null},
+    {"caseId":"d-delta","diagnosis":"no_change","decision":"retain baseline; evaluator requested no correction","change":null}
+  ],
+  "target": {"correct":4,"assigned":4,"completed":4,"unknown":0},
+  "evaluator": {"correctlyRetainedCorrect":4,"correctOutputDenominator":4,"targetErrorDenominator":0,"errorDetectionRate":null},
+  "actualPosts":12,
+  "phaseBudget":12,
+  "wholeIterationBudget":60,
+  "unspentPosts":48,
+  "candidateCreated":false,
+  "confirmationExecuted":false,
+  "confirmationConsumed":false,
+  "repairEffect":"NOT_TESTED",
+  "targetImprovement":"NOT_ESTABLISHED",
+  "evaluatorContribution":"NOT_IDENTIFIED",
+  "appsEffect":"NOT_TESTED",
+  "providerCost":null,
+  "humanCost":null,
+  "qualityAdoptionAuthorized":false,
+  "restart":"No automatic refill. A subsequent iteration needs a new predeclared task/budget/source contract and independent review. This pilot does not claim broad performance, statistical power, or author-independent Gold."
+}
