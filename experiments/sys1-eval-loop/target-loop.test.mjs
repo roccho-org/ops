@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {makeInput,casesFor,evaluate,score,compareDevelopment,failureDetails,admit,BRANCH,REQUEST} from './target-loop/loop.mjs';
+import {makeInput,casesFor,evaluate,score,compareDevelopment,failureDetails,responseFlags,admit,BRANCH,REQUEST} from './target-loop/loop.mjs';
 const read=p=>JSON.parse(fs.readFileSync(new URL('./target-loop/'+p,import.meta.url),'utf8'));
 const request={phase:'development',dataset:'development',configuration:'baseline',sourceSha:'a'.repeat(40)};
 const answer=choice=>({choice,model:'jev-1.13.0',usage:{input_tokens:1,output_tokens:1}});
@@ -90,4 +90,19 @@ test('retained completion replays actual full-target evidence and every diagnosi
   assert.ok(c.instructions.startsWith(b.instructions));assert.ok(Buffer.byteLength(c.instructions)<6000);assert.equal(d.rows.length,48);assert.equal(d.usefulEvaluatorRepairs,0);
   assert.deepEqual(Object.fromEntries(['accept_no_change','reject_false_alarm','reject_missed_error','retain_unknown'].map(k=>[k,d.rows.filter(r=>r.decision===k).length])),{accept_no_change:36,reject_false_alarm:2,reject_missed_error:9,retain_unknown:1});
   for(const r of d.rows){const actual=m.rows.find(a=>a.id===r.caseId);assert.equal(r.actualDiagnosis,actual.evaluator?.answer.choice??null);assert.equal(r.expectedDiagnosis,actual.expectedDiagnosis);}
+});
+test('partial validation is immutable; only its unissued18 cases produce54 new requests',async()=>{
+  const old=read('../results/target-validation-20261020/input.json'),prior=read('../results/target-validation-20261020/predictions.json'),m=read('../results/target-validation-20261020/measurement.json');
+  assert.deepEqual(score(old,prior,read),m);assert.equal(prior.actualPosts,90);assert.equal(m.arms['candidate-1'].completed,30);
+  const req={...request,phase:'validation-completion',configuration:'candidate-1'},i=makeInput(req,{},read).input;assert.equal(i.maxPosts,54);assert.equal(i.prior.rows.length,30);
+  const seen=[],events=[],ask=oracle(i);let n=0;const r=await evaluate(i,q=>{n++;seen.push(JSON.parse(q.text).body);return ask(q);},e=>events.push(e));r.actualPosts=n;
+  const s=score(i,r,read);assert.equal(n,54);assert.equal(s.assignmentStatus,'OBSERVATION_COMPLETE');assert.equal(s.targetStatus,'OBSERVATION_COMPLETE');assert.equal(s.status,'INCOMPLETE');
+  assert.equal(s.priorActualPosts,90);assert.equal(s.arms['candidate-1'].completed,48);assert.equal(s.arms['candidate-1'].correct,47);assert.equal(s.diagnostic.unknown,1);
+  const cases=casesFor('development',read);assert.ok(!seen.includes(cases[29].body));assert.equal(events.filter(e=>e.kind==='row'&&e.row.arm==='baseline').length,0,'tail events retain actual candidate arm');
+  const b=read('../results/target-completion-20261020/measurement.json'),c=compareDevelopment([b],s);assert.equal(c.delta,8);assert.equal(c.axisRegressed.length,0);
+});
+test('granular response flags diagnose invariant failures without model text, headers or secret fields',()=>{
+  const data={model:'jev-1.13.0',answers:{live:{choice:'a',probabilities:{a:.48,b:.49},confidence:.2}},secret:'hidden'};
+  const f=responseFlags(data,'jev-1.13.0');assert.equal(f.modelMatches,true);assert.equal(f.answerKeyMatches,true);assert.equal(f.probabilitySum,.97);assert.equal(f.sumMatches,false);assert.equal(f.selectedIsMax,false);assert.ok(!JSON.stringify(f).includes('hidden'));
+  assert.equal(responseFlags({model:'other',answers:{}},'jev-1.13.0').modelMatches,false);
 });

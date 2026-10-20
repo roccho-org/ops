@@ -113,3 +113,26 @@ Actual evaluator error detection is **0/9**: every wrong target answer received 
 `candidate-1-decisions.json` retains all48 actual diagnosis decisions:36 accepted no-change observations, nine rejected missed errors, two rejected false alarms, one unknown retained. **Useful evaluator repair advice:0.** Candidate-1 is explicitly **Gold/Sys2-led**. Its instruction supplement preserves the entire Best prefix and adds two general reading operations: ground quoted vocabulary/specimen/role-label material in its outer discourse before treating it as an applied requirement or real event; recognize asserted current negative implementation/verification/permission status even inside a proposal. It preserves real quoted logs/comments and functional responsibility tables to avoid fixing false positives by creating false negatives.
 
 The nine-error-to-rule mapping and rejected false alarms are in `candidate-1.json`; no model-generated rationale is invented. No case ID, Gold label list or Issue-number rule is put in target instructions. This candidate is **not yet validated**. Next is one144-POST full-D48 candidate validation under fixed evaluator v1; compare all48 plus separate synthetic/public strata and formerly correct E/O axes. Nominal current path reserves302+144+192=638; more candidates only if complete-phase budget still permits. Root confirmation remains unseen by the repair author until development selection and candidate freeze. No performance gain or evaluator-caused repair has been demonstrated yet.
+
+## Partial candidate validation and remaining54
+
+[Validation39359811930](https://github.com/roccho-org/ops/actions/runs/39359811930) stopped at90 actual POSTs:30 candidate target labels known (29 correct, one `html-4` O false positive),18 unknown. Its failed90th request was `inject-2`'s evaluator. Safe diagnostics show HTTP200 and a response-contract assertion; the exact failed invariant/value was not captured. This does not establish a rate limit, transport failure or a specific provider inconsistency. Original INCOMPLETE artifacts and all90 attempts remain unchanged in `../results/target-validation-20261020/`. Whole48 gain stays unknown; no population or full-development gain is inferred from29/30. Public Issue stratum is0 observed/8 assigned at that point.
+
+Root accepted one explicit completion of **only unissued18 cases ×3=54 new POSTs** under unchanged candidate-1/evaluator v1, never resending observed89 valid answers or failed90th diagnostic. It reuses the same small completion pattern, including the two-case tail without padding. Candidate target48 and diagnostic47+1unknown remain separate. Conservative reservations become446+54=500; actual series calls before completion are160+90=250. The next whole-candidate comparison may use all48 target labels when known even though one evaluator answer stays unknown; H remains unopened.
+
+```mermaid
+flowchart TB
+  A["📦 Candidate validation90 POST:30 target known,18 unknown"] --> B["🔒 Preserve candidate/Gold/receipt; failed diagnostic stays unknown"]
+  B --> C["👥 Root reviews only-unissued54 source and normal CI"]
+  C --> D["🧮 Reserve446+54; no retransmission of89 answers or failed90th"]
+  D --> E["🧪 Complete remaining18 target/diagnosis pairs"]
+  E --> F["📏 WholeD48 target + separate diagnostic denominator + per-stratum/axis comparison"]
+  F -->|target unknown| U["❔ Keep INCOMPLETE; no full gain claim"]
+  F -->|target complete| G["⚖️ Select/keep/reject using independent Gold, never judge agreement"]
+```
+
+Future provider receipts expose only bounded numeric/boolean flags: reported-model match, answer-key match, finite/range checks, probability sum and selected-versus-maximum probabilities. No raw model text, keys, response body, headers or secret are recorded. Existing model/key/sum/selected-maximum rejection checks remain unchanged. Local sum tolerance1e-5 and maximum tolerance1e-6 are explicit experiment tolerances.
+
+Primary-source contract review (2026-10-20): [TypeSafe Choice response documentation](https://docs.typesafe.ai/primitives/choice) specifies a full distribution totaling one and selection of a maximum-probability option; [System One API](https://docs.typesafe.ai/api/system-one) identifies per-question answers and returned model. Thus the checks follow documented properties even though the compatibility client's narrower validator does not enforce sum/argmax. The vendor SDK's [issue15](https://github.com/typesafe-ai/typesafe-sdk-python/issues/15) contains first-hand inconsistency reports and a contributor acknowledging an API problem. Those reports do **not** identify the cause of our failed90th answer; no check is relaxed or probability mass inferred from them.
+
+The official [OpenAPI ChoiceAnswer schema](https://api.typesafe.ai/openapi.json) uses an approximate total rather than specifying exact numerical precision, while also describing selection of a highest-probability option. It supplies no numerical error bound or rounding mechanism. Our1e-5 total tolerance therefore remains a local conservative requirement, not a vendor-guaranteed precision claim. This documentation ambiguity and the missing failed response values are recorded; neither justifies turning the failed diagnostic into a valid answer or changing rejection thresholds after observing results.

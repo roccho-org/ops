@@ -28,7 +28,7 @@ export function casesFor(dataset,read=readLocal) {
 }
 export function makeInput(request,execution={mode:'test-double'},read=readLocal) {
   assert.deepEqual(Object.keys(request).sort(),['configuration','dataset','phase','sourceSha']);
-  assert.ok(['development','completion','stress','validation','confirmation'].includes(request.phase));
+  assert.ok(['development','completion','stress','validation','validation-completion','confirmation'].includes(request.phase));
   assert.ok(['development','stress','expanded','confirmation'].includes(request.dataset));
   assert.match(request.sourceSha,/^[a-f0-9]{40}$/);
   assert.ok(request.configuration==='baseline'||/^candidate-[1-3]$/.test(request.configuration));
@@ -36,6 +36,7 @@ export function makeInput(request,execution={mode:'test-double'},read=readLocal)
   if(request.phase==='completion')assert.ok(request.dataset==='development'&&request.configuration==='baseline');
   if(request.phase==='stress')assert.ok(request.dataset==='stress'&&request.configuration==='baseline');
   if(request.phase==='validation')assert.ok(['development','expanded'].includes(request.dataset)&&request.configuration!=='baseline');
+  if(request.phase==='validation-completion')assert.ok(request.dataset==='development'&&request.configuration==='candidate-1');
   if(request.phase==='confirmation')assert.ok(request.dataset==='confirmation'&&request.configuration!=='baseline');
   const cases=casesFor(request.dataset,read);
   assert.equal(cases.length,{development:48,stress:24,expanded:72,confirmation:48}[request.dataset]);
@@ -50,16 +51,19 @@ export function makeInput(request,execution={mode:'test-double'},read=readLocal)
     for(const f of candidate.feedback)assert.ok(typeof f.caseId==='string'&&['evaluator','gold-sys2'].includes(f.origin)&&typeof f.decision==='string'&&f.decision.trim());
   }
   let prior=null;
-  if(request.phase==='completion'){
-    const oldInput=read('../results/target-discovery-20261020/input.json'),oldReport=read('../results/target-discovery-20261020/predictions.json');
-    const oldScore=score(oldInput,oldReport,read);assert.equal(oldScore.status,'INCOMPLETE');assert.equal(oldReport.actualPosts,18);
+  if(['completion','validation-completion'].includes(request.phase)){
+    const validation=request.phase==='validation-completion',prefix=validation?30:6,where=validation?'target-validation':'target-discovery';
+    const oldInput=read(`../results/${where}-20261020/input.json`),oldReport=read(`../results/${where}-20261020/predictions.json`);
+    const oldScore=score(oldInput,oldReport,read);assert.equal(oldScore.status,'INCOMPLETE');assert.equal(oldReport.actualPosts,validation?90:18);
+    assert.equal(oldInput.request.phase,validation?'validation':'development');assert.equal(oldInput.request.configuration,request.configuration);
+    if(validation)assert.deepEqual(oldInput.candidate,candidate);
     assert.deepEqual(oldInput.rows,cases.map(({id,body,family})=>({id,body,family:family??'unspecified'})));
     assert.equal(oldInput.baseline,baseline);assert.equal(oldReport.rows.length,48);
-    assert.ok(oldReport.rows.slice(0,5).every(r=>r.status==='ok'&&r.trace.length===2&&r.evaluator));
-    assert.ok(oldReport.rows[5].status==='error'&&oldReport.rows[5].trace.length===2&&!oldReport.rows[5].evaluator);
-    assert.ok(oldReport.rows.slice(6).every(r=>r.status==='not_run'&&r.trace.length===0));
+    assert.ok(oldReport.rows.slice(0,prefix-1).every(r=>r.status==='ok'&&r.trace.length===2&&r.evaluator));
+    assert.ok(oldReport.rows[prefix-1].status==='error'&&oldReport.rows[prefix-1].trace.length===2&&!oldReport.rows[prefix-1].evaluator);
+    assert.ok(oldReport.rows.slice(prefix).every(r=>r.status==='not_run'&&r.trace.length===0));
     assert.ok(oldReport.controls.every(r=>r.status==='not_run'));
-    prior={sourceRunUrl:oldInput.execution.runUrl,actualPosts:18,rows:oldReport.rows.slice(0,6)};
+    prior={sourceRunUrl:oldInput.execution.runUrl,actualPosts:oldReport.actualPosts,rows:oldReport.rows.slice(0,prefix)};
   }
   const controls=['development','completion'].includes(request.phase)?cases.slice(0,16).map((c,n)=>{
     assert.ok(known(c.gold));const flip=x=>x==='yes'?'no':'yes';
@@ -95,10 +99,11 @@ export async function evaluate(input,ask,observe=()=>{}) {
     const inner={phase:confirmation?'confirmation':'development',maxCalls:confirmation?48:12,
       rows:chunk.map(({id,body})=>({id,body})),baseline:confirmation?input.baseline:input.candidate?.instructions??input.baseline,
       candidate:input.candidate,expectedModel:input.expectedModel};
-    // The explicit 42-case completion has a two-case tail. The closed helper
+    // Explicit unissued-work completions have a two-case tail. The closed helper
     // keeps its exact four-row contract; this small tail uses its same requests.
-    const report=chunk.length===size?await evaluateChunk(inner,ask,e=>observed(e.kind==='row'?{kind:'row',row:rename(e.row)}:e)):
-      await evaluateTail(chunk,inner.baseline,input.expectedModel,ask,observed);
+    const emit=e=>observed(e.kind==='row'?{kind:'row',row:rename(e.row)}:e);
+    const report=chunk.length===size?await evaluateChunk(inner,ask,emit):
+      await evaluateTail(chunk,inner.baseline,input.expectedModel,ask,emit);
     rows.push(...report.rows.map(rename));stopped=report.rows.some(r=>r.status!=='ok');
   }
   for(const c of input.controls){
@@ -127,15 +132,22 @@ async function evaluateTail(chunk,instructions,model,ask,observe){
 const expectedDiagnosis=(gold,E,O)=>!known(gold)?null:E!==gold.E?(O!==gold.O?'both_scope':'requirement_scope'):(O!==gold.O?'evidence_scope':'no_change');
 export function failureDetails(error,stage,httpStatus){
   const codes=['provider_http_error','provider_invalid_response','provider_unreachable','provider_error','input_invalid','auth_missing'];
-  return {stage:['provider','response-contract','typed-contract'].includes(stage)?stage:'local',
+  return {stage:['provider','response-model','response-answers','response-probabilities','typed-contract'].includes(stage)?stage:'local',
     code:codes.includes(error?.code)?error.code:'unknown',name:['JevError','JevContractError','JevTransportError','AssertionError','TimeoutError','AbortError'].includes(error?.name)?error.name:'unknown',
     httpStatus:Number.isInteger(httpStatus)&&httpStatus>=100&&httpStatus<=599?httpStatus:null};
+}
+export function responseFlags(data,expectedModel){
+  const answer=data?.answers?.live,p=answer?.probabilities,values=p&&typeof p==='object'&&!Array.isArray(p)?Object.values(p):[],finite=values.length>0&&values.every(v=>typeof v==='number'&&Number.isFinite(v));
+  const sum=finite?values.reduce((a,b)=>a+b,0):null,selected=finite&&typeof p[answer?.choice]==='number'?p[answer.choice]:null,max=finite?Math.max(...values):null;
+  return {modelMatches:data?.model===expectedModel,answerKeyMatches:!!data?.answers&&Object.keys(data.answers).length===1&&Object.hasOwn(data.answers,'live'),
+    probabilityCount:values.length,probabilitiesFinite:finite,probabilitiesInRange:finite&&values.every(v=>v>=0&&v<=1),probabilitySum:sum,
+    sumMatches:finite&&Math.abs(sum-1)<1e-5,selectedProbability:selected,maxProbability:max,selectedIsMax:selected!==null&&selected>=max-1e-6};
 }
 // Development selection consumes ALL baseline batches, including correct cases.
 // It is separate from one-shot confirmation and cannot turn judge agreement
 // into an adoption gate.
 export function compareDevelopment(baselines,candidate) {
-  assert.ok(baselines.length>0&&candidate.request.phase==='validation');
+  assert.ok(baselines.length>0&&['validation','validation-completion'].includes(candidate.request.phase));
   assert.ok(baselines.every(b=>['development','completion','stress'].includes(b.request.phase)));
   const before=baselines.flatMap(b=>b.rows),after=candidate.rows;
   assert.equal(new Set(before.map(r=>r.id)).size,before.length);
@@ -242,8 +254,11 @@ async function main(){
     const bound=client.bindJev({apiKey:process.env.JEV_API_KEY,fetch:async(u,i)=>{const r=await fetch(u,{...i,redirect:'error'});httpStatus=r.status;return r;}});
     const ask=async request=>{let usage=null;httpStatus=null;stage='local';try{const provider={available:bound.available,post:async body=>{
       assert.equal(body.model,'jev-latest');assert.equal(Object.keys(body.answers??{}).length,0);assert.ok(Buffer.byteLength(JSON.stringify(body))<24000);
-      assert.ok(calls<input.maxPosts);calls++;stage='provider';const data=await bound.post(body,{deadlineMs:15000});stage='response-contract';assert.equal(data.model,input.expectedModel);
-      assert.deepEqual(Object.keys(data.answers??{}),['live']);const a=data.answers.live,p=a.probabilities;
+      assert.ok(calls<input.maxPosts);calls++;stage='provider';const data=await bound.post(body,{deadlineMs:15000});
+      observe({kind:'response-flags',id:activeId,...responseFlags(data,input.expectedModel)});
+      stage='response-model';assert.equal(data.model,input.expectedModel);
+      stage='response-answers';assert.deepEqual(Object.keys(data.answers??{}),['live']);const a=data.answers.live,p=a.probabilities;
+      stage='response-probabilities';
       assert.ok(Math.abs(Object.values(p).reduce((s,v)=>s+v,0)-1)<1e-5&&p[a.choice]>=Math.max(...Object.values(p))-1e-6);
       usage=Object.fromEntries(Object.entries(data.usage??{}).filter(([k,v])=>['input_tokens','output_tokens','total_tokens'].includes(k)&&Number.isFinite(v)&&v>=0));stage='typed-contract';return data;}};
       const r=await client.askJevChoice({...request,provider});return {choice:r.choice.choice,model:r.model,usage};
