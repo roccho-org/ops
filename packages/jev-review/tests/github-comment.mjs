@@ -758,8 +758,7 @@ for (const program of [entry, compatibility]) {
   assert.deepEqual([envsLiteral.status, Object.hasOwn(envsLiteral, 'observed'), envsLiteral.identity?.repository, envsLiteral.identity?.subject?.revision],
     ['ADMITTED', false, ENVS, subjectRevision(jaApps)], envsLiteral.cause);
 }
-  githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,
-  claim: 'SOURCE_FIXTURE_ONLY_NOT_REAL_ISSUE_COMPLETION' }));
+
 
 // Validate today's operative settings separately from the frozen historical controls below.
 {
@@ -777,3 +776,5 @@ for (const program of [entry, compatibility]) {
 }
 
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
+  githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,
+  claim: 'SOURCE_FIXTURE_ONLY_NOT_REAL_ISSUE_COMPLETION' }));
