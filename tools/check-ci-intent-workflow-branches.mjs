@@ -511,7 +511,7 @@ export function assertCensusWorkflow(w,b){
 export function assertExpectationWorkflow(w,b){
   need(b.maxCalls===2307,'expectation fixed series bound differs');
   need(same(w.on?.push?.branches??[],['codex/jev-expectation-census-20261021'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/expectation/request.json']),'expectation entry differs');
-  need(w.concurrency?.group==='sys1-expectation-census'&&w.jobs?.evaluate?.['timeout-minutes']===150,'expectation development deadline differs');
+  need(w.concurrency?.group==='sys1-expectation-census'&&w.jobs?.evaluate?.['timeout-minutes']===250,'expectation census deadline differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;
   for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/expectation/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation"','expectation command differs');s[n].run='node experiments/sys1-eval-loop/reserve/runtime.mjs '+mode+' "$RUNNER_TEMP/reserve"';}
   need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-expectation-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation','if-no-files-found':'ignore','retention-days':30}),'expectation receipt differs');

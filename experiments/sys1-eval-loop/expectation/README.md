@@ -1,6 +1,6 @@
 # 元rubricのE scope一候補と退役507件の開発guard
 
-[PR617](https://github.com/roccho-org/ops/pull/617) のH1差0/H2単回差4/207・退行0、事前二回AND NOT_RECONFIRMED/未採用/207退役を変更しない。H2正差を消さず、O追加が常に無効ともE優先の原因が証明されたとも言わない。今回D507は全資格でguard PASS、次Hは旧観測metadataから事前窓の122候補を固定済みで、本文/Gold/予測は未取得である。
+[PR617](https://github.com/roccho-org/ops/pull/617) のH1差0/H2単回差4/207・退行0、事前二回AND NOT_RECONFIRMED/未採用/207退役を変更しない。H2正差を消さず、O追加が常に無効ともE優先の原因が証明されたとも言わない。今回D507は全資格でguard PASS、次Hは旧観測metadataから事前窓の122候補を固定し、一回の本文取得と別reader再生を完了した。prior exact1/oversize2を補充せず119件が適格、モデル予測は0。原body/view native322399で固定後、root/Rが予測を見ず相互未読のGold初稿を作成中である。
 
 このsliceは元Best/元E yes/no/元instructions/全bodyを保ち、E criteriaだけへ一つのlabel別補足を加える。既611の「対象について」狭義化を再送せず、本文中の真正な条件付き提出指示・実依頼引用・IO宣言もANY本文として数える仮説である。語句や作文/架空例として展示するだけなら要求にしない。テンプレ/引用/チェック欄/Please/命令形だけで一律yesにせず、未実施/未採用と要求として使われない見本を混同しない。候補の文章があることは実モデル準拠の証明ではない。
 
@@ -12,9 +12,9 @@
 
 `prospective-plan.json` は新count/本文/予測前の窓・prefix300・補充0と最大資源を記す。次target案は既取得native8bcの観測metadata内だけのUTC `[2026-10-20T00:00Z,18:00Z)`。全履歴APIの再取得はせず、新snapshot/全日網羅を称さない。元407に実210bodyを加えるpriorは除外empty/oversize3も含み、metadata-only322718 IDsをtask本文既使用へ混ぜて自己除外しない。候補actual fullwireと開発guardを閉じるまで新H本文/Goldを候補作者へ渡さない。M0も保存し、件数/成績を見た窓拡大をしない。
 
-新D507・新H3M×2最大1800の新scope上限は2307。元Best Oは変えず新Hの当回sharedOを一物理receiptだけ共有する。両armのO呼出し数が同じでも、E補足のtoken/時間/費用が同じとは言わない。既存標準client/recorder/資格と共通Gold補完の再用を優先し、任意profile/endpoint/constructor override、新executor/auth/ledgerを加えない。今回実物理はD507、追加metadata API/新H本文/Gold/計測0。
+新D507・新H3M×2最大1800の新scope上限は2307。元Best Oは変えず新Hの当回sharedOを一物理receiptだけ共有する。両armのO呼出し数が同じでも、E補足のtoken/時間/費用が同じとは言わない。既存標準client/recorder/資格と共通Gold補完の再用を優先し、任意profile/endpoint/constructor override、新executor/auth/ledgerを加えない。今回実物理はD507、新metadata API0、新本文122/公開前後2の計124 native CLI commands。新Hモデル計測0で、Goldは独立作成中。内部HTTP試行数は未観測で、CLI数をHTTP数へ置換しない。
 
-固定D入口はrequest-only pushの最初の一回だけを認め、request.jsonは作用開始まで存在しない。鍵前に全507/1014原資格・request・projectionを再生し、四原providerの実API run/actor/branch/workflowと実Git親/固定request path/phase/repを照合する。鍵下は固定sourceからbody/best/原templateを読み直すsecret-safe比較だけを行い、wireTemplateやGold採点を呼ばない。既存standardRecorderの507上限・15秒・redirect拒否・flags/failureを用い、鍵なしprojectionで原rawから資格/guardを再生する。意味FAILでも原結果を保存し、欠測と既知退行を別に保持する。workflow150分は507×15秒=126.75分＋検証/保存余裕の技術capで、完了保証ではない。現sourceの独立受容/必要CI前には作用せず、新H入口/本文/Goldは後続source受容である。
+固定D入口はrequest-only pushの最初の一回だけを認め、request.jsonは作用開始まで存在しない。鍵前に全507/1014原資格・request・projectionを再生し、四原providerの実API run/actor/branch/workflowと実Git親/固定request path/phase/repを照合する。鍵下は固定sourceからbody/best/原templateを読み直すsecret-safe比較だけを行い、wireTemplateやGold採点を呼ばない。既存standardRecorderの507上限・15秒・redirect拒否・flags/failureを用い、鍵なしprojectionで原rawから資格/guardを再生する。意味FAILでも原結果を保存し、欠測と既知退行を別に保持する。元D実workflow150分は507×15秒=126.75分＋検証/保存余裕の技術capだった。新H実装では元の事前契約どおり同workflowを250分へ変更し、最大3×300×15秒=225分＋検証/保存余裕を取る。完了保証ではない。新H源の独立受容/必要CIと実data/Gold結合前にはモデル作用しない。
 
 `prefix.mjs` は既受容8bcの全原metadataを旧窓で再生して保存prefix全値と一致させた後だけ、新事前窓へ投影するpure readerである。三者入口受容後、root/Rが全11blob/5原CLI command stdout/cursor/pageInfo/visibilityを別readerで再生し、旧322718観測Issueから新窓122/prefix122の全値順序が一致した。native77477の原prefix/receipt2file34,737Bをここへ原bytesで保持し、Wもnative原版保存/bytesを確認した。関数への任意capturesや自己申告native文字列だけで実取得真性を証明せず、保存pageInfoと受容済標準CLIの終端意味を再用する。追加API/新snapshot/当日全Issue網羅を称さない。122はmetadata候補数でeligibleMではない。
 
@@ -28,7 +28,7 @@
 
 新wrapperはround5/prefix schema/00–18窓と整列、prefix native receipt、別typed/reference集合を検査し、既知・参照除外を本文query前に分離する。各captureの固定queryとvariables `{id}`、immutable Issue/source/全体clock1h、固定public repo ID/name/issue-enabledの前後一致を要求する。実D原5/selectionを再生して固定したBestE/newE/sharedOの3標準payloadすべてを厳密に24,000B未満で検査し、切詰め/補充をしない。原literal/編集版timestamp、prefix index由来のid/gap、同bodyのIssue別weightを保つ。新frameは`ops.sys1.expectation-body-frame.v1`/round5。失敗・不明・private/移管・query/source不整合はINVALIDで、適当に除外して成立させない。
 
-pure wrapperへのnative文字列/自己申告だけでは実原版の真性を認証しない。実hostは77477原prefix/receipt、84559の原2240参照補強、元407＋全実210のtyped740/body1916、成功D原provider/API/Git親/request-only/原5/selection、実標準gh query/variables/stdout/stderr/status、全公開前後/時刻、source前後固定を別途結合する。84559はprivate custodyであり外/私的URL/IDをpublicへ複写しない。現在body API/Gold/新Hモデルは0、sourceとこの具体hostの三者受容前に取得しない。通常CIの成功や新H効果も先取りしない。
+pure wrapperへのnative文字列/自己申告だけでは実原版の真性を認証しない。実hostは77477原prefix/receipt、84559の原2240参照補強、元407＋全実210のtyped740/body1916、成功D原provider/API/Git親/request-only/原5/selection、実標準gh query/variables/stdout/stderr/status、全公開前後/時刻、source前後固定を別途結合する。84559はprivate custodyであり外/私的URL/IDをpublicへ複写しない。3972 source/具体hostの三者受容後にrootが一回取得し、124原command/122本文をroot/Rの別readerで全値再生した。既typed/reference0、priorExact1/oversize2/empty0/eligible119、全3wire/順序/source/時刻/公開前後が一致。原body129file＋body-only viewをprivate native322399に130file/1,641,986Bで保持し、モデル0のままGold初稿へ進んだ。Wはこの時点で新本文/Goldを候補調整へ使わず、root/Rの独立採点を待つ。
 
 ```mermaid
 flowchart TB
@@ -40,8 +40,10 @@ flowchart TB
   PURE --> ENTRY[✅ 今回e6受容/CI630・次回は新source/CI必須]
   ENTRY --> D[✅ 今回D507完了392→400/union破壊0]
   D -->|guard成立時：今回はPASS| FREEZE[✅ 実Core→標準payload再構成固定]
-  FREEZE --> REVIEW[⏳ 原版/freeze現source三者受容]
-  REVIEW --> H[⏳ body source/host受容→122候補本文/独立Gold/3M二回]
+  FREEZE --> REVIEW[✅ da9原版/freeze三者受容]
+  REVIEW --> BODY[✅ 3972 source/host受容・122本文→119適格・補充0]
+  BODY --> GOLD[⏳ root/R 相互未読初稿をnative固定→合議/null]
+  GOLD --> H[⏳ 新H source/実data/必要CI受容→357×2]
   ENTRY -. 以後の別Dが未達/unknownなら .-> KEEP[全負結果/unknown/実会計保持]
   KEEP --> COUNTER[W/root/R 原因と別の意味ある仮説を反証]
   COUNTER --> CONTRACT[同GO内で有限assignment/timeout/全会計をsource化]
@@ -61,3 +63,11 @@ flowchart TB
 次priorは受容済407原版と実210本文から740 typed Issue IDs/1916 exact bodyを固定する。追加29件は210の本文文字列内Issue/pull参照の旧集合との差分であり未型解決残余として私的保持する。自Issueの出典URL210はtyped IDと結合済みである。旧38d5の35repo/2211参照解決を新29へ拡張済みとは称さず、typed実観測ID/exactbody非重複が主境界で、URL露出や意味/作者/学習への独立性は保証しない。
 
 本文前の追加eligibility補強を[事前記録6301559042](https://github.com/roccho-org/ops/pull/620#issuecomment-6301559042)で固定した。旧2211＋追加29の全2240正規化参照へ一律に、固定scope canonical名のcase-insensitive一致と正整数numberがprefix Issue metadataへ一致したら別集合referenceExcludedCandidateIdsへ保守除外する。原issues/pull型と実metadata Issue型を保持し、型差があっても参照のsafe側除外と記録するだけで、PRをIssueへ変換したり参照を本文既読へ昇格させない。740実観測ID/1916本文集合と原122prefix/順序/補充0は不変。root/Rの別parser実適用で参照match/追加除外/既typed overlapはすべて0。0でも規則は保持し、本文/Gold/成績後に緩和しない。旧e6契約は履歴に保持し、この補強は次H sourceへ明示して結合する。alias/改名/外scope移管/意味未使用の保証は増やさず、新APIも0。
+
+新Hの`held-measurement.mjs`/`held-runtime.mjs`はcode-onlyで接続した。既`observation/measurement.mjs`を非公開の旧O比較/newE比較という2つの固定contextへ抽出し、旧公開API・input/report fields・3呼出しのcase-index循環順・保存済み原2回の再生を保持する。新contextはbestE/scopedE/sharedO、3Mとround5専用schemaで、任意profile/schema/max/endpoint/callback executorを公開しない。既recorderのflags/failure/15秒/redirect拒否をそのまま通す。Goldやsource属性はprovider stateへ渡さず、bodyだけを使う。
+
+`census/feasible.mjs`と`data.mjs`も非公開coreと2つの名前付き固定wrapperだけを共有する。旧4M/round4/207は不変、新3M/round5は同じ実case内共通Gold全補完を使い、技術欠測/driftで包絡をnullとし、他軸Gold未確定でも既知E破壊は保持する。単回の全3M資格/expected model/差下限正/退行上限0を二回ANDで受容する。両回を足して2M件とせず、標本CI/将来モデル保証へ昇格しない。
+
+新native入口は元実Dを同workflowのnative history/原Git親/request-only phaseに結合し、原5・全507/1014・stored selectionを再生して実候補全値へ結合する。H1はhistory2、H2はhistory3。H2は先行H1のnative API/Git親/request・原5/attempt/全資格を再生し、same7 DATAの原source全値（本文/Gold/元属性/両初稿/裁定/selection）を拘束する。意味FAIL/普通の資格unknownでは予定H2を取り消さず、実model driftは技術停止する。originに非空native文字列があること自体は原blobの認証でなく、初回data統合時のroot/R原native bytes/全frame/Gold独立確認と三者受容が必要である。
+
+現在の新corpus/Gold DATA_PATHSは未配置で、REQUESTも元developmentのままなので新H作用不可。119原版のGold handoff後に原bytesを統合し、全714標準payload/3wireサイズ/元sourceと実rubricを再評価し、実データsource/必要CIを受容してからrequest-only child一回へ進む。コード検査・人工fixtureを実Jev改善や初回data真性と混同しない。

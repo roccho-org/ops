@@ -45,7 +45,8 @@
       "count": 122,
       "eligibleM": null,
       "newMetadataQueries": 0,
-      "bodyGoldPredictions": 0
+      "bodyGoldPredictions": 0,
+      "stateAtNativeProjection": "before body acquisition; metadata count is not eligible M"
     },
     "conservativeReferenceSupplement": {
       "checkpoint": "https://github.com/roccho-org/ops/pull/620#issuecomment-6301559042",
@@ -77,6 +78,21 @@
       "modelPosts": 0,
       "priorReferenceNative": "84559b85a8440b156e1d62f8b59f2712e1c7c1d7",
       "authenticity": "host/root/R native originals and full independent replay, not caller-supplied accepted booleans or new copied blob gates"
+    },
+    "actualBody": {
+      "native": "322399f7ca322402270f575928538a0d959e21bb",
+      "prefixCases": 122,
+      "nativeCLICommands": 124,
+      "bodyRequests": 122,
+      "knownIssue": 0,
+      "priorReference": 0,
+      "priorExactBody": 1,
+      "emptyBody": 0,
+      "oversize": 2,
+      "eligible": 119,
+      "newModelRequests": 0,
+      "internalHTTPAttempts": "UNKNOWN",
+      "noRefill": true
     }
   },
   "freshMeasurement": {
@@ -93,11 +109,12 @@
     "proposedJobMinutes": 250,
     "deadlineBasis": "900*15 seconds=225 minutes plus preparation/projection/retention margin; cap, not completion guarantee",
     "combinedNewMaximum": 2307,
-    "accounting": "507 development plus at most1800 fresh H posts. Historical aliases have no new cost. Old PR616/617 calls and all failures remain separately recorded; money/internal compute/total_tokens absence unknown; equal O call count is not same token cost"
+    "accounting": "507 development plus at most1800 fresh H posts. Historical aliases have no new cost. Old PR616/617 calls and all failures remain separately recorded; money/internal compute/total_tokens absence unknown; equal O call count is not same token cost",
+    "implementation": "two closed measurement contexts reuse standard recorder and common Gold-completion math; code-only native history2/3; actual corpus/Gold and new effect source acceptance still required"
   },
-  "currentStage": "actualD original guard/freeze accepted by all3; new read-only body pure wrapper implemented for source/host review; actual H body/Gold/provider measurement0 and H effect entry not yet implemented",
+  "currentStage": "actualD guard/freeze accepted; one readonly H body acquisition completed122->119 after priorExact1/oversize2; raw/view native fixed, independent prediction-blinded Gold in progress; new H native entry code-only, actual corpus/request/sourceCI acceptance incomplete and model0",
   "newMetadataQueries": 0,
-  "newBodyQueries": 0,
+  "newBodyQueries": 122,
   "newModelPosts": 507,
   "adopted": false,
   "seriesClosure": {
