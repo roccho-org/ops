@@ -1,6 +1,6 @@
 {
   "schema": "ops.sys1.real-case-plan.v1",
-  "status": "design-proposal-no-collection-or-effects",
+  "status": "frame-native-retained-sampler-source-before-models",
   "purpose": "Approximate fixed-frame gain of the unchanged PR611 request configuration; no population-zero or deployment claim",
   "frozenComparison": {
     "source": "PR611 final 641fed724f3a8ec4ca4e17be8a230d01ed40fca1",
@@ -58,7 +58,8 @@
     "size": "min(300, eligible frame N)",
     "reserve": "undrawn permutation suffix stays sealed; no reserve invented when census exhausts frame",
     "redraw": false,
-    "claim": "fixed eligible frame only, not future issues or all GitHub"
+    "claim": "fixed eligible frame only, not future issues or all GitHub",
+    "receipt": "create-new output descriptor before first random draw; retain draws/permutation/native frame reference; no redraw after partial or uncertain write"
   },
   "gold": {
     "raters": [
@@ -74,7 +75,7 @@
   "inference": {
     "roundFamily": "real-case approximation, consecutive j starts at 1 and never resets for retries/new audit",
     "alpha": "0.05 / 2**j",
-    "tails": "alpha_j / 5",
+    "tails": "alpha_j / (5 * 2) per pass; first round each tail 1/400",
     "method": "finite-population hypergeometric inverted B_L/B_U/C_L/C_U/R_U; conservative Bonferroni composition",
     "unknown": "fully unresolved cases u remain assigned: B [b,b+u], C [c,c+u], R [r,r+u]; r counts only fully resolved cases, partial known regression is separately observed",
     "acceptance": [
@@ -90,13 +91,18 @@
       "E": "descriptive paired counts/rates/FPFN only, no additional CI/pvalue or success endpoint",
       "repositories": "descriptive strata and natural Gold/unknown distributions; union keeps one issue one weight"
     },
-    "tailBoundary": "retain tail >= alpha, equality included conservatively"
+    "tailBoundary": "retain tail >= alpha, equality included conservatively",
+    "census": "HG point intervals express zero sampling uncertainty only, not model/Gold/future uncertainty; two passes provide empirical reconfirmation, not independent-case doubling or future expected-gain confidence"
   },
   "execution": {
-    "plannedPhysicalCalls": "3 * sample n, at most 900 per round",
+    "plannedPhysicalCalls": "two prospectively fixed passes, 3*n each; actual M=n118 means 708 POST total; run both regardless of first outcome",
     "route": "reuse existing native standard Jev client/CI/credential boundary; no new route exists in this slice",
     "retry": "do not resend successful or effect-uncertain requests",
     "money": "record physical usage and unknown money, not alias rows",
-    "mergeOrAdoption": false
+    "mergeOrAdoption": false,
+    "repetitions": 2,
+    "perPassJobBoundMinutes": 110,
+    "replication": "both passes must meet primary conditions; no averaging rescue, n remains issue count; O shared within each pass only",
+    "technicalStop": "model drift and existing safety/qualification guards remain; unissued assigned work stays unknown, no outcome-based cancellation"
   }
 }

@@ -1,6 +1,6 @@
 # 実案件から独立採取するJev改善効果の近似評価
 
-目的は、PR611で固定したBest対scoped設定を変えず、実GitHub案件の事前定義frameから無作為に採取した未使用集合で正のgainを近似できるか測ること。611の合成audit54→62/64・全負結果・Bestは不変。現sliceは**設計＋純粋算術だけ**で、本文採取0・本文開示0・モデル作用0。成立を先に約束しない。
+目的は、PR611で固定したBest対scoped設定を変えず、実GitHub案件の事前定義frameから無作為に採取した未使用集合で正のgainを近似できるか測ること。611の合成audit54→62/64・全負結果・Bestは不変。root/Rが受容したcollectorでframeを一回取得・native Git保持済み。Wへのframe本文開示0・sampling未実行・モデル作用0。成立を先に約束しない。
 
 ## frameと何を一般化するか
 
@@ -22,6 +22,10 @@ whole-body原版、repo/issue不変ID、取得window、除外理由とcoverage�
 
 ## 一回の抽出とGold
 
+取得はroot保持commit6536da40c5ea57c1e7171b78cdae9d9089ce13f9、26.046秒のwindowで718 itemsからPR542・既使用56・oversize2を事前規則で除きeligible118（Ops91/Apps27）。Rが原APIとframeを別再生して一致。n118のcensusでreserve0。同本文3群/extra8件はissue weightのまま保持した。本文はW未開示。
+
+sample.mjsはnative Git保持bytesを検証し、乱数前に一つの出力をcreate-newで確保してから標準crypto.randomIntで一回だけ抽出する。途中書込みが不明なら再抽選せず、partial原記録を保持する。
+
 frame原bytesをnative Git保持した後、一回だけ標準crypto.randomIntのFisher–Yatesでuniform permutationを作る。n=min(300,M)、Mはeligible frame件数。draw indicesとpermutationを一つのsampling receiptへ保持し純粋再生する。独自PRNG/beacon/手転記SHA gateは不要。残れば非開示suffixをreserve、M<=300ならcensus。reserve維持のため恣意的に標本を半減しない。欠測・曖昧例の後付け再抽選/穴埋めはしない。
 
 rootとcounterreviewがモデル出力を見る前に、bodyとopaque IDだけからE/Oを各独立採点する。各原annotationと不一致を保持し、出力前に合議、未解決軸はnull。盲検はarm出力に対するもので、両者が候補方式自体を知らないという主張ではない。旧正本の広義E/Oを使い、コメント先で意味を補わず、出力後Gold編集はしない。
@@ -30,7 +34,7 @@ rootとcounterreviewがモデル出力を見る前に、bodyとopaque IDだけ�
 
 ## paired測定と近似判定
 
-1caseにつきBestE/scopedE/sharedOの3physical request、固定循環順、上限3n<=900を予定する。共有Oは同じreceipt/unknownを両roleへ投影し、独立二証拠・追加callにしない。既存標準Jev client/CI/認証境界を使う予定で、現sliceに実行routeはない。model drift/資格拒否/輸送不明はunknown、盲再送をしない。
+1caseにつきBestE/scopedE/sharedOの3physical request、固定循環順、各pass上限3n<=900とし、出力前に2passを固定する。今回のM=n118では各354、計708 POST。初回の意味結果が不成立でも2回目を取消・再抽選しない。model drift等の技術停止guardは維持し、未試行は割当分母のunknownへ残す。両passそれぞれprimary条件を満たすことを要求し、平均による退行救済はしない。repIDをattempt/post/usageへ保持し、共有Oはpass内だけ、pass間は別物理観測。各jobは15秒deadline×354=88.5分と保存余裕を満たす110分を予定する。共有Oは同じreceipt/unknownを両roleへ投影し、独立二証拠・追加callにしない。既存標準Jev client/CI/認証境界を使う予定で、現sliceに実行routeはない。model drift/資格拒否/輸送不明はunknown、盲再送をしない。
 
 完全正答の改善b=Best誤→候補正、改悪c=Best正→候補誤をcase単位に数える。case内E/Oのどちらか一つでも既正答を壊せばcase退行event。両完全誤答間のE修復/O破壊も退行なので、cとcase退行rを混同しない。
 
@@ -38,11 +42,13 @@ fully unresolved casesをuとし、rはfully resolved内だけで数える。par
 
 反復familyのround j>=1でalpha_j=.05/2^j。初回.025、全roundを足して.05以下。新PR/失敗/候補変更でjをリセットしない。E軸はpaired件数/率/FPFN、repo別/自然Gold分布/unknown率は記述副次だけで、別CI/p値/成功判定を追加しない。Eだけ良くてもjoint未成立を全体successへ変えず、unionの1issue1weightをrepo等重みに後変更しない。
 
-有限population hypergeometric反転でB_L/B_U/C_L/C_U/R_Uの5tailsへ各alpha_j/5を割り当てる。tail==alphaを除外せず、tail>=alphaを保守的にretainする。実装は3者反証/独立数値検証前。uはB観測[b,b+u]、C[c,c+u]、R[r,r+u]として最悪向きへ入れる。差区間は[(B_L−C_U)/M,(B_U−C_L)/M]、退行上側R_U/Mを報告する。
+有限population hypergeometric反転でB_L/B_U/C_L/C_U/R_Uの5tailsへ2pass計10tailsへ各alpha_j/10（初回1/400）を割り当てる。tail==alphaを除外せず、tail>=alphaを保守的にretainする。実装は3者反証/独立数値検証前。uはB観測[b,b+u]、C[c,c+u]、R[r,r+u]として最悪向きへ入れる。差区間は[(B_L−C_U)/M,(B_U−C_L)/M]、退行上側R_U/Mを報告する。
 
 事前受入案は差lower>0、観測既知case軸退行0（partial含む）、全n worst-caseでも正の差、sampling/provenance/modelに未解決無効化なし。退行upper<=1%はUser要求でなく設計上届かない場合があるためgateにしない。必ず上限を数値報告し、人口ゼロ/1%保証とは呼ばない。
 
 hypergeometricのdesign exactnessは固定finite binary outcomesとSRS仮定下。モデル確率性/alias backend/時間順序/Gold誤りまで95%保証とせず、当該固定frameと標準測定protocolでの近似とする。区間実装はまだなく、現summary.mjsはpaired件数/全母数unknown/部分退行だけを算出し、効果受容を返さない。
+
+censusのHG点区間は抽出誤差0だけを表す。2passは同118件での経験的な再確認であり、n236への水増し・backend独立・未来期待gainの95%保証にしない。モデル確率性とGold不確実性はHGで消えない。
 
 ## 3者と知識境界
 
@@ -71,7 +77,7 @@ flowchart TB
   PR --> FRAME["🔒 root: 公開API全frame原版・既使用除外を保持"]
   FRAME --> SAMPLE["🎲 一回SRSWOR・n=min300,M・残reserve封印"]
   SAMPLE --> GOLD["📝 独立Gold→不一致保持→未解決unknown全n"]
-  GOLD --> RUN["⚙️ 固定3template/3n上限・資格基準不変"]
+  GOLD --> RUN["⚙️ 固定3template×2pass・各pass3n上限・資格基準不変"]
   RUN --> RAW["🗃️ 物理raw/usage/unknownを全件保持"]
   RAW --> EST["📏 paired差区間・case退行上側・alpha支出"]
   EST --> DECIDE{"📏 事前近似条件を満たすか"}
@@ -85,4 +91,4 @@ flowchart TB
   WAIT --> END
 ```
 
-現状は設計slice。区間方式/受入/loop契約の全3者収斂後、frame取得へ進む。モデル作用は実source/資格境界/必要CI/3者受容後。費用は物理usage/人手と不明額を分離し、共有callの節約を配備後効率へ読み替えない。false positiveを避けるため不成立/unknownの枝も閉包として残し、改善成功そのものを保証しない。
+現状はframe保持済み、sampler source/区間方式/2pass受入を3者counter中。sampler受容後に一回抽出・独立Goldへ進む。モデル作用は実source/資格境界/必要CI/3者受容後。費用は物理usage/人手と不明額を分離し、共有callの節約を配備後効率へ読み替えない。false positiveを避けるため不成立/unknownの枝も閉包として残し、改善成功そのものを保証しない。
