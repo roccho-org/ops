@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: roccho-dev/apps
-          ref: c023c2a28f635cbf722e8872c3c49e7f6ab72ba2
+          ref: 17c0108a5c2549ffaf7cef791a569f2e1926659f
           path: apps-repair
           fetch-depth: 1
           persist-credentials: false
@@ -163,7 +163,7 @@ jobs:
             .contract.meaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
             .old.coverage == {applicable:13,evaluated:13,met:8,unmet:5,unknown:0,conflict:0,stale:0} and
             .repaired.provider.revision == "fe968fc6b8919fed48151a57f421667bce0aac87" and
-            .repaired.consumer.revision == "c023c2a28f635cbf722e8872c3c49e7f6ab72ba2" and
+            .repaired.consumer.revision == "17c0108a5c2549ffaf7cef791a569f2e1926659f" and
             .coverage == {applicable:13,evaluated:13,met:13,unmet:0,unknown:0,conflict:0,stale:0,residual:0} and
             .status == "CONFORMANT"
           ' out/logger-language-neutral-baseline/closure.json >/dev/null
@@ -212,8 +212,8 @@ jobs:
             --arg appsTree "a32423848d2298b4c54cf43cd22119859f25c905" \
             --arg provider "fe968fc6b8919fed48151a57f421667bce0aac87" \
             --arg providerTree "b306bf999aba32a678ac48b5a56e4b4a0a3c0cf8" \
-            --arg appsRepair "c023c2a28f635cbf722e8872c3c49e7f6ab72ba2" \
-            --arg appsRepairTree "4bb77338569e729d6f7623adc919f6e1f608e374" \
+            --arg appsRepair "17c0108a5c2549ffaf7cef791a569f2e1926659f" \
+            --arg appsRepairTree "3d603665d54c83dd770873870c66863959904b42" \
             --arg meaning "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" \
             '{
               schema: "ops.logger-language-neutral.closure-evidence/1",
@@ -264,7 +264,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: roccho-dev/apps
-          ref: c023c2a28f635cbf722e8872c3c49e7f6ab72ba2
+          ref: 17c0108a5c2549ffaf7cef791a569f2e1926659f
           path: apps-repair
           fetch-depth: 1
           persist-credentials: false
@@ -298,7 +298,7 @@ jobs:
             (.observationTree | test("^[0-9a-f]{40}$")) and
             .candidateMeaningSha256 == "sha256:ab3c271e57ba33a7e663f99d417680f6044cc59c099e5223978e2e4ef6811e3c" and
             .repairedTreeSet[0].revision == "fe968fc6b8919fed48151a57f421667bce0aac87" and
-            .repairedTreeSet[1].revision == "c023c2a28f635cbf722e8872c3c49e7f6ab72ba2" and
+            .repairedTreeSet[1].revision == "17c0108a5c2549ffaf7cef791a569f2e1926659f" and
             .actualInterchangeExecution == true and
             .actualBrowserExecution == true and
             .actualFailureStateExecution == true and
