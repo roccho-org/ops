@@ -1,4 +1,4 @@
-name: Jev single E role procedure development
+name: Jev fixed expectation development
 on:
   push:
     branches: [codex/jev-expectation-role-20261021]

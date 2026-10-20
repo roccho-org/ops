@@ -529,14 +529,14 @@ export function assertExpectationWorkflow(w,b){
   s[5].with={name:'sys1-reserve-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/reserve','if-no-files-found':'ignore','retention-days':30};assertReserveWorkflow(v,{...b,maxCalls:1984});
 }
 export function assertExpectationRoleWorkflow(w,b){
-  need(b.maxCalls===3052,'role fixed series bound differs');
+  need(b.maxCalls===4304,'role fixed series bound differs');
   need(same(w.on?.push?.branches??[],['codex/jev-expectation-role-20261021'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/expectation-role/request.json']),'role entry differs');
   need(w.concurrency?.group==='sys1-expectation-role'&&w.jobs?.evaluate?.['timeout-minutes']===350,'role development deadline differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;
   for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/expectation-role/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-role"','role command differs');s[n].run='node experiments/sys1-eval-loop/expectation-or/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-or"';}
   need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-expectation-role-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation-role','if-no-files-found':'ignore','retention-days':30}),'role receipt differs');
   v.on.push.branches=['codex/jev-expectation-or-20261021'];v.on.push.paths=['experiments/sys1-eval-loop/expectation-or/request.json'];v.concurrency.group='sys1-expectation-or';v.jobs.evaluate['timeout-minutes']=350;
-  s[5].with={name:'sys1-expectation-or-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation-or','if-no-files-found':'ignore','retention-days':30};assertExpectationOrWorkflow(v,b);
+  s[5].with={name:'sys1-expectation-or-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation-or','if-no-files-found':'ignore','retention-days':30};assertExpectationOrWorkflow(v,{...b,maxCalls:3052});
 }
 export function assertExpectationOrWorkflow(w,b){
   need(b.maxCalls===3052,'OR fixed series bound differs');

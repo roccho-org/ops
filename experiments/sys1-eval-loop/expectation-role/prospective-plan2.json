@@ -1,0 +1,54 @@
+{
+  "schema": "ops.sys1.expectation-boundary-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593193516",
+  "previousPlan": "prospective-plan.json stays unchanged with original role D1/604/3052 contract",
+  "candidate": "Restore original620 E-specific suffix and common instructions/current yes-no supplement; append one ASCII space then the agreed short declaration/observation boundary to each criterion. Single E candidate, not OR, no isolated placement/shortness causality.",
+  "development": {
+    "phase": "development2",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "priorPhysicalE": 4501,
+    "protectedE": 607,
+    "primary": "fresh qualified originalBestE versus single boundary E, both with same fixed first historical O; first anchor diagnostic only",
+    "acceptance": "all1252 qualification and expected model AND positive complete known joint gain AND zero destruction of607 historical E correctness AND zero known fresh E regression; all17 O-null stay assigned",
+    "admission": "exactly original D1 plus current D2 native history2, first role raw complete/modelStable/source/Core/old604/outcome replayed unchanged; current native request-only child of acceptedsource; semantic D1FAIL retained but not cancellation, technical ineligibility rejected",
+    "timeoutMinutes": 350
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 250,
+    "admission": "actualD2guardPASS/originals and standard-client reconstructed full-request freeze accepted by three parties before count/body/Gold; current H untouched",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion"
+  },
+  "seriesMaximum": 4304,
+  "accounting": "D1 actual1252 + D2 maximum1252 + prospective H maximum1800. Finite assignment, not a new User budget permission or claimed consumption; historical4501 evidence receipts are not new calls.",
+  "entry": "same existing branch/workflow/secret and350-minute sixstep; source-only does not change original D1 REQUEST; activation2 changes only REQUEST to development2/acceptedsourceSHA once",
+  "status": "LOCAL_CODE_ONLY; new source/necessaryCI/threeparty acceptance before D2; no new H count/body/Gold/model",
+  "continuation": "all failures/costs retained; distinct prospective hypothesis after counter; no role blind retry, original Gold revision or same-H rescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting."
+}

@@ -40,3 +40,31 @@ flowchart TB
 ```
 
 同GOで別仮説をsource/必要CI/三者受容後だけ実施する。新User予算/認証/merge承認を追加せず、負結果/実費用を全て残す。
+
+## 次の一候補：D2 criteria境界（code-only）
+
+[三者の出力前counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593193516)に従い、原620のE専用suffixへ戻し、yes/no基準へ短い境界対を半角space一つで追加する。本文の機能/IO宣言を説明・表示・再現記録という置き場所で捨てず、観測記録から未記載の仕様を補わない。元ANYの責務/対応指示/提出依頼/引用/回復要求は削らず、「本来」「不満」を独立predicateにしない。復帰＋短criteria対の一候補bundleで、配置/短文化の単独因果は主張しない。case/見出し/語句lookupもない。
+
+既measurement内部の二固定contextとnamed wrapperで標準2E loop/資格だけを共有する。旧role D1のschema、template、historyScope、604 guard、全projection/usageScopeは全値再生した。新境界は別input/predictions/projection schema・constructorで正直に識別し、任意schema/max/profile/constructor overrideを公開しない。全4501物理E原版から607全IDを再生し、fresh2Eの同歴史O primary・freshE退行0・607保護・joint正差・全資格を別ANDにする。
+
+同branch/workflowを再用し、sourcebatchでは元D1 REQUESTを一切変更しない。新sourceの必要CI/三者受容後だけrequest-only childへdevelopment2を書き、native historyは元D1/currentD2ちょうど二つ、各実Git親/phase/source/actorを拘束する。D1意味FAILは新D2の取消理由にはしないが、原資格/モデル/来歴の不成立は拒否する。新9nativeと原attempt1252を鍵前/投影で結合し、秘密下は新8field/全body/全Coreを固定sourceと比較する。
+
+4304は消費済D1 1252＋新D2最大1252＋prospective H最大1800で、実消費とは別。D各350分/H各250分は完了保証でなく、追加User予算/認証待ちを設けない。旧prospective-plan.jsonは原文不変、prospective-plan2.jsonへ前向きに記録した。新H窓/prior/無補充/両回AND/Gold射程は同じで、現時点の新count/body/Gold/modelは0。必要sourceCI・実D2・H・最終全CI/Readyは未完。
+
+```mermaid
+flowchart TB
+  P1[✅ D1原5/604/正差6と両退行を固定保持] --> C[✅ 三者宣言/観測の短対を反証]
+  C --> CODE[✅ 旧原版完全再生/607/閉二context code-only]
+  CODE --> CI[⏳ 新source必要CI/三者exact受容]
+  CI --> D2[⏳ request-only development2/history2 一回]
+  D2 --> G{全1252資格/607とfreshE無退行/正差?}
+  G -->|失敗/unknown| KEEP[原版/会計保持・別仮説を三者反証]
+  KEEP --> C
+  G -->|通過| H[⏳ 実要求固定後のみ未開封H/独立Gold]
+  H --> TWO[⏳ 固定3M二回/共通Gold包絡AND]
+  TWO -->|未達| RETIRE[H退役・別未使用H契約]
+  RETIRE --> C
+  TWO -->|両回成立| END[⏳ 有限集合改善近似/全CI/記録/Ready未merge]
+```
+
+歴史ever-correct保護は工学的な採用条件であり、偏りのない性能推定量ではない。D626はwholebody620/同全文GoldE矛盾0という診断を得たが、意味同値やGold無誤謬を証明しない。新Hは便宜的な未使用有限targetでありSRS/相互独立標本とは称さず、実取得後はM Issue ID数とdistinct wholebody数/固定参照の不整合も記述診断として報告する。重複を事後除外/補充/再重み付けする新条件は追加しない。
