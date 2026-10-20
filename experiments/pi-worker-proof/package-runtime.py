@@ -48,3 +48,8 @@ export default {
     "forbidden_binding": "PI_CHATGPT_BOOTSTRAP",
     "admission": "Separate envs review, owner pins, migration and actual deployment readback required",
 }, indent=2) + "\n")
+
+import hashlib
+(out / "SHA256SUMS").write_text("".join(
+    f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(out)}\n"
+    for path in sorted(out.rglob("*")) if path.is_file() and path.name != "SHA256SUMS"))

@@ -1,4 +1,5 @@
 import { cloudflareTest } from "@cloudflare/vitest-plugin";
+import { createHash } from "node:crypto";
 import { defineConfig } from "vitest/config";
 import { oauthAlias } from "./worker-oauth.alias.ts";
 
@@ -28,6 +29,10 @@ export default defineConfig({
           PI_JEV_PROOF_API_KEY: "fixture-jev-not-real",
           PI_JEV_PROOF_SESSION: "jev-proof",
           OPENAI_API_KEY: "",
+          PI_PROOF_TRANSIENT: process.env.PI_PROOF_TEST_TRANSIENT === "true" ? "true" : "false",
+          PI_ACCESS_ISSUER: "https://fixture.cloudflareaccess.com",
+          PI_ACCESS_AUDIENCE: "fixture-app",
+          PI_ACCESS_OWNER_HASH: createHash("sha256").update("fixture-owner").digest("hex"),
           PI_OAUTH_HOST_ID: "00000000-0000-4000-8000-000000000563",
           PI_PROOF_AUTH: JSON.stringify(credential),
           PI_CHATGPT_BOOTSTRAP: JSON.stringify({

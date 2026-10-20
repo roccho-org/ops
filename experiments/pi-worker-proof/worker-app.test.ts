@@ -49,10 +49,10 @@ async function saved(session: string) {
   );
 }
 
-async function connect(session: string, conversationId = 1) {
+async function connect(session: string, conversationId = 1, headers: Record<string, string> = {}) {
   const response = await exports.default.fetch(
     `https://example.com/api/sessions/${session}?username=Owner`,
-    { headers: { Upgrade: "websocket" } },
+    { headers: { Upgrade: "websocket", ...headers } },
   );
   expect(response.status).toBe(101);
   const socket = response.webSocket!;
@@ -70,6 +70,7 @@ async function connect(session: string, conversationId = 1) {
   }
   return {
     socket,
+    response,
     messages,
     get conversationId() { return conversationId; },
     create: async (requestId: string) => {
@@ -558,3 +559,79 @@ describe("finite transient proof transport — keyless mocks only", () => {
     expect(posts).toBe(3);
   });
 });
+
+it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT !== "true")(
+  "selected-transient Session authenticates, uses Jev and loses access across actual recreation", async () => {
+    const keys = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048,
+      publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
+    const jwk = await crypto.subtle.exportKey("jwk", keys.publicKey);
+    const encode = (value: string) => btoa(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+    const now = Math.floor(Date.now() / 1000);
+    const unsigned = encode(JSON.stringify({ alg: "RS256", kid: "session-fixture" })) + "." +
+      encode(JSON.stringify({ iss: "https://fixture.cloudflareaccess.com", aud: "fixture-app",
+        sub: "fixture-owner", iat: now, exp: now + 3600 }));
+    const signed = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", keys.privateKey, new TextEncoder().encode(unsigned));
+    const jwt = unsigned + "." + encode(String.fromCharCode(...new Uint8Array(signed)));
+    const headers = { "Cf-Access-Jwt-Assertion": jwt, "Pi-Proof-Access": "fixture-volatile-oauth",
+      "Pi-Proof-Expires": String(Date.now() + 600_000) };
+    const bodies: unknown[] = [];
+    let posts = 0;
+    const marker = "fixture-transient-marker-7fb96e1a";
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "https://fixture.cloudflareaccess.com/cdn-cgi/access/certs") {
+        return Response.json({ keys: [{ ...jwk, kid: "session-fixture", alg: "RS256" }] });
+      }
+      if (String(input) === "https://api.typesafe.ai/v1/systemone") {
+        posts++;
+        return Response.json({ model: "jev-latest", answers: { assessment: { type: "noul", noul: 0.41729 } } });
+      }
+      expect(input).toBeInstanceOf(Request);
+      const request = input as Request;
+      expect(init?.redirect).toBe("error");
+      const body = await request.json();
+      expect(body.store).toBe(false);
+      expect(body.stream).toBe(true);
+      expect(body).not.toHaveProperty("tools");
+      expect(JSON.stringify(body)).toContain('"type":"additional_tools"');
+      bodies.push(body);
+      if (bodies.length === 1) return jevToolStream(1, "transient-session");
+      expect(JSON.stringify(body)).toContain("0.41729");
+      if (bodies.length === 2) return responseStream("fixture-volatile-consumed");
+      expect(JSON.stringify(body)).toContain(marker);
+      return responseStream("fixture-volatile-recalled");
+    });
+    const session = "jev-proof";
+    const first = await connect(session, 1, headers);
+    const boot = first.response.headers.get("Pi-Proof-Boot");
+    expect(first.response.headers.get("Pi-Proof-Prior-Token")).toBe("false");
+    expect(boot).toBeTruthy();
+    await first.create("transient-create");
+    first.submit("transient-first", "Remember " + marker + " and ask Jev once.");
+    await submissionStatus(session, "transient-first", "done", first.conversationId);
+    await vi.waitFor(() => expect(JSON.stringify(first.messages)).toContain("fixture-volatile-consumed"), wait);
+    expect(await saved(session)).toBeUndefined();
+    await closeSocket(first.socket);
+    await evictDurableObject(env.SESSIONS.getByName(session));
+    const missing = await exports.default.fetch("https://example.com/api/sessions/" + session, {
+      headers: { Upgrade: "websocket", "Cf-Access-Jwt-Assertion": jwt },
+    });
+    expect(missing.status).toBe(403);
+    expect(bodies).toHaveLength(2);
+    expect(posts).toBe(1);
+    await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
+      expect(await state.storage.get("pi.proof.responses.posts")).toBe(2);
+      expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
+    });
+    const second = await connect(session, first.conversationId, headers);
+    expect(second.response.headers.get("Pi-Proof-Boot")).not.toBe(boot);
+    expect(second.response.headers.get("Pi-Proof-Prior-Token")).toBe("false");
+    expect(second.response.headers.get("Pi-Proof-Posts")).toBe("2");
+    second.submit("transient-second", "Recall the marker and assessment from our earlier exchange.");
+    await submissionStatus(session, "transient-second", "done", first.conversationId);
+    await vi.waitFor(() => expect(JSON.stringify(second.messages)).toContain("fixture-volatile-recalled"), wait);
+    expect(bodies).toHaveLength(3);
+    expect(posts).toBe(1);
+    expect(await saved(session)).toBeUndefined();
+    await closeSocket(second.socket);
+  },
+);
