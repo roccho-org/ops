@@ -221,8 +221,11 @@ Pre-output review found no Gold ambiguity requiring a change. One paired confirm
 | E false positives / false negatives |1 /0|1 /0|
 | O false positives / false negatives |2 /0|1 /0|
 | Unknown target labels |0|0|
+| Input tokens |97894|158086|
+| Output tokens |2976|2976|
+| Summed request elapsed ms |9219.039|9208.628|
 
-Candidate-2 repaired `hc16` (HTML comment used as hypothetical input, O false positive) and broke no formerly-correct case or axis. Both arms still misclassify `hc12` (vocabulary table, E false positive) and `hc48` (isolated teaching quotations, O false positive). Repair1/3 and break0/45 are finite observed fractions, not population guarantees. The gate returns `FINITE_IMPROVEMENT_CANDIDATE`; the raw paired gain is only1/48. This single observation, with one discordant pair, does not establish a statistically reliable general improvement. H covers fictional mechanism cases, not Apps end-to-end outcomes or representative production frequency.
+Candidate-2 repaired `hc16` (HTML comment used as hypothetical input, O false positive) and broke no formerly-correct case or axis. Both arms still misclassify `hc12` (vocabulary table, E false positive) and `hc48` (isolated teaching quotations, O false positive). Repair1/3 and break0/45 are finite observed fractions, not population guarantees. The gate returns `FINITE_IMPROVEMENT_CANDIDATE`; the raw paired gain is only1/48. Candidate input tokens increased60192 (about61.5%) for that one repair; this is a quality/input tradeoff, not demonstrated efficiency or speed improvement. This single observation, with one discordant pair, does not establish a statistically reliable general improvement. H covers fictional mechanism cases, not Apps end-to-end outcomes or representative production frequency.
 
 This completes an actual discovery → repair → development rejection/revision → frozen confirmation path. The **repair was Gold/Sys2-led**, because unchanged evaluator v1 missed all actual errors it judged. The evaluator-driven improvement loop remains **NOT_PROVEN**, as does causal value versus an equal-budget no-feedback repair. Full evaluator coverage was explicitly abandoned; no target gain can be credited to evaluator accuracy or feedback. No new Best, merge or production adoption is authorized. H is retired for selection, candidate-2 and Gold stay unchanged, and no extra model calls are planned in this series.
 
