@@ -1,6 +1,6 @@
 # 実案件から独立採取するJev改善効果の近似評価
 
-目的は、PR611で固定したBest対scoped設定を変えず、実GitHub案件の事前定義frameから無作為に採取した未使用集合で正のgainを近似できるか測ること。611の合成audit54→62/64・全負結果・Bestは不変。root/Rが受容したcollectorでframeを一回取得・native Git保持済み。Wへのframe本文開示0・sampling未実行・モデル作用0。成立を先に約束しない。
+目的は、PR611で固定したBest対scoped設定を変えず、実GitHub案件の事前定義frameから無作為に採取した未使用集合で正のgainを近似できるか測ること。611の合成audit54→62/64・全負結果・Bestは不変。root/Rが受容したcollectorでframeを一回取得・native Git保持済み。Wへのframe本文開示0・一回sampling保持済み・モデル作用0。成立を先に約束しない。
 
 ## frameと何を一般化するか
 
@@ -42,11 +42,11 @@ fully unresolved casesをuとし、rはfully resolved内だけで数える。par
 
 反復familyのround j>=1でalpha_j=.05/2^j。初回.025、全roundを足して.05以下。新PR/失敗/候補変更でjをリセットしない。E軸はpaired件数/率/FPFN、repo別/自然Gold分布/unknown率は記述副次だけで、別CI/p値/成功判定を追加しない。Eだけ良くてもjoint未成立を全体successへ変えず、unionの1issue1weightをrepo等重みに後変更しない。
 
-有限population hypergeometric反転でB_L/B_U/C_L/C_U/R_Uの5tailsへ2pass計10tailsへ各alpha_j/10（初回1/400）を割り当てる。tail==alphaを除外せず、tail>=alphaを保守的にretainする。実装は3者反証/独立数値検証前。uはB観測[b,b+u]、C[c,c+u]、R[r,r+u]として最悪向きへ入れる。差区間は[(B_L−C_U)/M,(B_U−C_L)/M]、退行上側R_U/Mを報告する。
+有限population hypergeometric反転でB_L/B_U/C_L/C_U/R_Uの5tailsへ2pass計10tailsへ各alpha_j/10（初回1/400）を割り当てる。tail==alphaを除外せず、tail>=alphaを保守的にretainする。inference.mjsはnative BigIntの整数HG tail/二分反転を実装。等号境界・census・小M全K coverage・unknown・2pass ANDを鍵なし検証し、3者反証/独立oracle照合は進行中。uはB観測[b,b+u]、C[c,c+u]、R[r,r+u]として最悪向きへ入れる。差区間は[(B_L−C_U)/M,(B_U−C_L)/M]、退行上側R_U/Mを報告する。
 
 事前受入案は差lower>0、観測既知case軸退行0（partial含む）、全n worst-caseでも正の差、sampling/provenance/modelに未解決無効化なし。退行upper<=1%はUser要求でなく設計上届かない場合があるためgateにしない。必ず上限を数値報告し、人口ゼロ/1%保証とは呼ばない。
 
-hypergeometricのdesign exactnessは固定finite binary outcomesとSRS仮定下。モデル確率性/alias backend/時間順序/Gold誤りまで95%保証とせず、当該固定frameと標準測定protocolでの近似とする。区間実装はまだなく、現summary.mjsはpaired件数/全母数unknown/部分退行だけを算出し、効果受容を返さない。
+hypergeometricのdesign exactnessは固定finite binary outcomesとSRS仮定下。モデル確率性/alias backend/時間順序/Gold誤りまで95%保証とせず、当該固定frameと標準測定protocolでの近似とする。summary.mjsはpaired件数/全母数unknown/部分退行/各arm軸FPFNを算出する。inference.mjsは各passの事前条件と2pass ANDを別に判定し、同じcase IDs/件数/roundであることを検証する。
 
 censusのHG点区間は抽出誤差0だけを表す。2passは同118件での経験的な再確認であり、n236への水増し・backend独立・未来期待gainの95%保証にしない。モデル確率性とGold不確実性はHGで消えない。
 
@@ -91,4 +91,4 @@ flowchart TB
   WAIT --> END
 ```
 
-現状はframe保持済み、sampler source/区間方式/2pass受入を3者counter中。sampler受容後に一回抽出・独立Goldへ進む。モデル作用は実source/資格境界/必要CI/3者受容後。費用は物理usage/人手と不明額を分離し、共有callの節約を配備後効率へ読み替えない。false positiveを避けるため不成立/unknownの枝も閉包として残し、改善成功そのものを保証しない。
+現状はframe保持済み、sampler source/区間方式/2pass受入を3者counter中。sampler受容後の一回抽出をnative9311bb9d31a224e36e32f199eb95f85cd7e88de7へ保持し、root/Rが原body-onlyのopaque Gold viewから各独立Goldを進める。モデル作用は実source/資格境界/必要CI/3者受容後。費用は物理usage/人手と不明額を分離し、共有callの節約を配備後効率へ読み替えない。false positiveを避けるため不成立/unknownの枝も閉包として残し、改善成功そのものを保証しない。

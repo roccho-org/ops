@@ -14,3 +14,5 @@ test('partial known regressions are observed but are not double counted in the w
 test('bad identifiers/labels do not silently become a missing case, while model drift remains visible',()=>{
  const a=row('x',{E:'no',O:'no'},{E:'no',O:'no'});assert.throws(()=>summarizeObserved([a,a]));assert.throws(()=>summarizeObserved([{...a,gold:{E:'maybe',O:'no'}}]));assert.throws(()=>summarizeObserved([{...a,best:{E:'no'}}]));const p=summarizeObserved([a],{modelStable:false});assert.equal(p.modelStable,false);assert.equal(p.approximation,'NOT_COMPUTED');
 });
+
+test('descriptive confusion keeps each arm denominator when only the other arm is unknown',()=>{const p=summarizeObserved([row('a',{E:'yes',O:'no'},{E:null,O:'no'}),row('b',{E:'no',O:'no'},{E:'yes',O:'no'},{E:'yes',O:'no'})]);assert.deepEqual(p.axes.E.confusion.best,{TP:0,TN:0,FP:1,FN:1,unknown:0});assert.deepEqual(p.axes.E.confusion.scoped,{TP:1,TN:0,FP:0,FN:0,unknown:1});assert.equal(p.assigned,2);});

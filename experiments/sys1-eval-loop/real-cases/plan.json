@@ -1,6 +1,6 @@
 {
   "schema": "ops.sys1.real-case-plan.v1",
-  "status": "frame-native-retained-sampler-source-before-models",
+  "status": "sample-native-retained-gold-blind-ratings-in-progress-models-zero",
   "purpose": "Approximate fixed-frame gain of the unchanged PR611 request configuration; no population-zero or deployment claim",
   "frozenComparison": {
     "source": "PR611 final 641fed724f3a8ec4ca4e17be8a230d01ed40fca1",
@@ -86,7 +86,7 @@
     ],
     "regressionUpper": "always report numerically, no arbitrary 1% acceptance threshold",
     "assumptions": "design-based exactness presumes fixed finite binary outcomes and SRS; model stochasticity/backend/Gold uncertainty limit the actual protocol claim to an approximation",
-    "implementation": "not yet implemented or accepted",
+    "implementation": "native BigInt exact inclusive HG integer tails and two-pass AND implemented; independent oracle/source review pending",
     "secondary": {
       "E": "descriptive paired counts/rates/FPFN only, no additional CI/pvalue or success endpoint",
       "repositories": "descriptive strata and natural Gold/unknown distributions; union keeps one issue one weight"
