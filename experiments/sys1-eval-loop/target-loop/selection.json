@@ -1,0 +1,15 @@
+{
+  "schema": "ops.sys1.target-selection.v1",
+  "candidate": "candidate-2",
+  "candidatePath": "experiments/sys1-eval-loop/target-loop/candidate-2.json",
+  "decision": "freeze_for_one_root_confirmation",
+  "developmentRunUrl": "https://github.com/roccho-org/ops/actions/runs/39364101877",
+  "comparisonPath": "experiments/sys1-eval-loop/results/target-only-20261020/comparison.json",
+  "selectedUsing": "all D48 target outcomes, synthetic/public strata, no formerly-correct case or axis broken",
+  "repairOrigin": "gold-sys2",
+  "evaluatorDrivenRepair": "NOT_PROVEN",
+  "evaluatorCoverage": "5 valid,1 rejected,42 not requested; original full coverage abandoned",
+  "rootConfirmationKnowledge": "not read by repair author before the native Git commit containing this selection",
+  "afterFreeze": "no candidate changes or further D-based selection after root H disclosure",
+  "qualityAdoptionAuthorized": false
+}

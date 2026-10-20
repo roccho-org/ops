@@ -125,3 +125,9 @@ test('candidate2 strict sum failure remains rejected; target-only completion mak
   assert.equal(events.filter(e=>e.kind==='diagnosis').length,0);assert.ok(!seen.includes(i.rows[5].body));assert.deepEqual(report.rows.slice(0,6),i.prior.rows);
   const comparison=compareDevelopment([read('../results/target-completion-20261020/measurement.json')],s);assert.equal(comparison.outcome,'DEVELOPMENT_CANDIDATE');assert.equal(comparison.assigned,48);
 });
+test('actual whole-D candidate2 result freezes selection before any root confirmation knowledge',()=>{
+  const i=read('../results/target-only-20261020/input.json'),r=read('../results/target-only-20261020/predictions.json'),m=read('../results/target-only-20261020/measurement.json');assert.deepEqual(score(i,r,read),m);
+  const c=compareDevelopment([read('../results/target-completion-20261020/measurement.json')],m);assert.deepEqual(c,read('../results/target-only-20261020/comparison.json'));
+  assert.equal(c.delta,8);assert.deepEqual(c.regressed,[]);assert.deepEqual(c.axisRegressed,[]);assert.equal(c.strata.synthetic.candidateCorrect,40);assert.equal(c.strata.publicIssue.candidateCorrect,7);
+  const s=read('selection.json');assert.equal(s.candidate,'candidate-2');assert.equal(s.qualityAdoptionAuthorized,false);assert.equal(s.evaluatorDrivenRepair,'NOT_PROVEN');
+});

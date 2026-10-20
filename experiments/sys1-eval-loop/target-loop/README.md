@@ -183,3 +183,24 @@ flowchart TB
   F -->|unknown or regression| R["↩️ No adoption; retain Best and evidence"]
   F -->|gain without observed axis regression| S["🔒 Freeze candidate before root H disclosure"]
 ```
+
+## Whole-D target result and pre-confirmation freeze
+
+[Target-only39364101877](https://github.com/roccho-org/ops/actions/runs/39364101877) completed84 new target calls, no new evaluator calls. Artifact12238426963 (118249-byte ZIP) was retrieved and provider digest/size verified; canonical replay and root's separate raw recount agreed. Existing six target pairs were retained exactly. All48 candidate-2 target labels are known: **47/48**, synthetic40/40, public Issue bodies7/8. E FP0/FN0; O FP0/FN1 (`public-ops-529` remains wrong). Compared with Best39/48, eight cases improved and **no formerly-correct case or E/O axis broke**. The development gate returns `DEVELOPMENT_CANDIDATE`. This is not independent confirmation or universal error-free performance.
+
+Evaluator coverage remains5 valid,1 rejected,42 not requested=43 unknown. Original full judge coverage is abandoned, not satisfied. Original failed receipts remain unchanged. Repair was Gold/Sys2-led; evaluator-driven improvement is not proven. Actual series POSTs406, conservative reservations728; one H192 would bring actual maximum598 and reservations920.
+
+`selection.json` selects and freezes **candidate-2 before the repair author reads root H**. Candidate-2 instructions remain exactly those tested, and no further candidate edits or D selection will occur after H is disclosed. Candidate-1 stays rejected, Best stays unchanged, production adoption remains unauthorized. Root independently accepted the full-D/axis/stratum result before H handoff. The native Git commit holding this selection is the freeze evidence; no manually copied source hash gate is added.
+
+```mermaid
+flowchart TB
+  A["📏 AllD: Best39/48 → candidate2 47/48; axis regressions0"] --> B["🧾 Preserve remaining error, strata40/40 and7/8, judge coverage abandonment"]
+  B --> C["🔒 Commit selection and unchanged candidate2 while H remains unseen"]
+  C --> D["📬 Root releases pre-existing frozen H48; trusted knowledge separation"]
+  D --> E["🧪 One paired192-call target confirmation; no evaluator or repairs"]
+  E --> F["📏 Independent fixed Gold: delta, case/axis regression, unknown and tokens"]
+  F -->|gain and zero observed regression| G["✅ Finite target-improvement candidate, no automatic adoption"]
+  F -->|no gain, regression or unknown| K["↩️ Keep Best or INCOMPLETE; retain all evidence"]
+  G --> R["🗃️ Retire H; no further selection on its results"]
+  K --> R
+```
