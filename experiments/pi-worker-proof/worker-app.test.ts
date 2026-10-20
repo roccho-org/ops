@@ -634,6 +634,27 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
     });
     const session = "jev-proof";
     const first = await connect(session, 1, headers);
+    // Actual Session automatic root baseline, before any client create/open/prompt.
+    // pi-durable 1.2.0 snapshotOf and Session.#watchConversation define these fields.
+    await vi.waitFor(() => {
+      expect(first.messages.some((frame: any) => frame.type === "conversation.inbox" && frame.conversationId === 1)).toBe(true);
+    }, wait);
+    const initialSession = first.messages.find((frame: any) => frame.type === "session.snapshot") as any;
+    expect(initialSession.session.conversations).toEqual([{ id: 1 }]);
+    expect(initialSession.session.activity).toEqual({ tasks: {} });
+    const rootFrame = first.messages.find((frame: any) => frame.type === "conversation.events" && frame.conversationId === 1) as any;
+    expect(rootFrame.events).toHaveLength(1);
+    const root = rootFrame.events[0];
+    expect(Object.keys(root).sort()).toEqual(["agent","compactions","entries","inbox","nestedTools","tools","type","usage"]);
+    expect(root.type).toBe("snapshot");
+    for (const key of ["entries","tools","nestedTools","compactions","inbox"]) expect(root[key]).toEqual([]);
+    expect(root.agent).toBeTypeOf("object");
+    expect(root.agent).not.toBeNull();
+    expect(root.usage).toEqual({ models: {}, tools: {} });
+    expect(first.messages.find((frame: any) => frame.type === "conversation.inbox" && frame.conversationId === 1)).toMatchObject({ items: [] });
+    expect(first.response.headers.get("Pi-Proof-Posts")).toBe("0");
+    expect(bodies).toHaveLength(0);
+    expect(posts).toBe(0);
     const boot = first.response.headers.get("Pi-Proof-Boot");
     expect(first.response.headers.get("Pi-Proof-Prior-Token")).toBe("false");
     expect(boot).toBeTruthy();

@@ -270,3 +270,102 @@ test("owned socket scope terminates real loopback sockets on failure and owner a
     await new Promise(resolve=>server.close(resolve));
   }
 });
+function automaticRootFrames() {
+  return [
+    { type: "session.snapshot", session: { conversations: [{ id: 1 }], activity: { tasks: {} } } },
+    { type: "conversation.events", conversationId: 1, events: [{
+      type: "snapshot", entries: [], tools: [], nestedTools: [], compactions: [], inbox: [],
+      agent: {}, usage: { models: {}, tools: {} },
+    }] },
+    { type: "conversation.inbox", conversationId: 1, items: [] },
+    { type: "presence.typing", conversationId: 1, usernames: [] },
+  ];
+}
+test("reconciliation requires every explicit empty root field and preserves the original UNKNOWN", async () => {
+  const { emptyRootCertificate, proofStageAllowed, parseOwnerFrame } = await import("./owner.mjs");
+  const witness = { boot: "00000000-0000-4000-8000-000000000608", posts: 0, prior: "false" };
+  const certificate = emptyRootCertificate(automaticRootFrames(), witness);
+  const original = { state: "UNKNOWN", attemptedStage: "seed" };
+  assert.throws(() => proofStageAllowed(original, "seed"));
+  proofStageAllowed(original, "reconcile");
+  assert.throws(() => proofStageAllowed({ ...original, reconciliation: { state: "UNKNOWN" } }, "reconcile"));
+  const reconciled = { state: "RECONCILED_EMPTY", originalUnknown: original, reconciliation: certificate };
+  proofStageAllowed(reconciled, "seed");
+  assert.deepEqual(reconciled.originalUnknown, original);
+  for (const change of [{ originalUnknown: undefined }, { reconciliation: { ...certificate, posts: 1 } },
+    { reconciliation: { ...certificate, boot: "" } }]) assert.throws(() => proofStageAllowed({ ...reconciled, ...change }, "seed"));
+  for (const mutate of [
+    f => f.splice(0, 1), f => f.splice(1, 1), f => f.splice(2, 1),
+    f => { delete f[0].session.activity; },
+    f => { f[0].session.activity.tasks = { pending: {} }; },
+    f => { f[0].session.conversations.push({ id: 2 }); },
+    f => { f[0].session.conversations[0].parent = 2; },
+    f => { f[0].session.conversations[0].owner = "task"; },
+    f => { f[1].conversationId = 2; },
+    f => { f[1].events[0].entries = [{ id: 1 }]; },
+    f => { delete f[1].events[0].nestedTools; },
+    f => { f[1].events[0].tools = null; },
+    f => { f[1].events[0].nestedTools = [{}]; },
+    f => { f[1].events[0].compactions = [{}]; },
+    f => { f[1].events[0].inbox = [{}]; },
+    f => { f[1].events[0].run = {}; },
+    f => { f[1].events[0].generation = {}; },
+    f => { f[1].events[0].compactionFailure = {}; },
+    f => { f[1].events[0].usage.models = { model: {} }; },
+    f => { delete f[1].events[0].usage.tools; },
+    f => { f[1].events[0].agent = null; },
+    f => { f[2].items = [{}]; },
+    f => { delete f[2].items; },
+    f => { f[2].conversationId = 2; },
+    f => { f[3].usernames = ["other"]; },
+    f => { f.push({ type: "session.activity", activity: { tasks: { pending: {} } } }); },
+    f => { f.push({ type: "command.error", detail: "synthetic-private" }); },
+  ]) {
+    const frames = automaticRootFrames(); mutate(frames);
+    assert.throws(() => emptyRootCertificate(frames, witness));
+  }
+  for (const change of [{ posts: 1 }, { posts: "0" }, { boot: "" }, { prior: undefined }])
+    assert.throws(() => emptyRootCertificate(automaticRootFrames(), { ...witness, ...change }));
+  assert.throws(() => parseOwnerFrame('not-json-synthetic-private'), error =>
+    error.message === "Invalid owner protocol frame" && !error.message.includes("synthetic-private"));
+});
+test("real loopback reconciliation receives automatic root frames and sends ZERO client commands", async () => {
+  const { reconcileConnection, waitOwnerFrame, closeOwnerSocket, parseOwnerFrame, withOwnerSockets } = await import("./owner.mjs");
+  const { WebSocket, WebSocketServer } = await import("ws");
+  const { once } = await import("node:events");
+  for (const mode of ["empty", "nonempty", "incomplete"]) {
+    const server = new WebSocketServer({ host: "127.0.0.1", port: 0 });
+    await once(server, "listening");
+    let sentCommands = 0;
+    server.on("connection", socket => {
+      socket.on("message", () => sentCommands++);
+      const frames = automaticRootFrames();
+      if (mode === "nonempty") frames[1].events[0].entries.push({ id: "prior-input" });
+      if (mode === "incomplete") frames.splice(2, 1);
+      for (const frame of frames) socket.send(JSON.stringify(frame));
+    });
+    const abort = new AbortController();
+    try {
+      await withOwnerSockets(abort.signal, async sockets => {
+        const frames = [];
+        const socket = new WebSocket("ws://127.0.0.1:" + server.address().port);
+        sockets.add(socket); socket.on("error", () => {});
+        socket.on("message", data => frames.push(parseOwnerFrame(data)));
+        await once(socket, "open");
+        const connection = {
+          frames, witness: { boot: "00000000-0000-4000-8000-000000000608", posts: 0, prior: "true" },
+          wait: predicate => waitOwnerFrame(frames, socket, predicate, abort.signal, 100),
+          close: () => closeOwnerSocket(socket, abort.signal),
+        };
+        if (mode !== "empty") await assert.rejects(reconcileConnection(connection));
+        else assert.deepEqual(await reconcileConnection(connection),
+          { boot: connection.witness.boot, posts: 0, rootId: 1, empty: true });
+        if (mode !== "incomplete") assert.equal(socket.readyState, WebSocket.CLOSED);
+      });
+      assert.equal(sentCommands, 0);
+    } finally {
+      for (const socket of server.clients) socket.terminate();
+      await new Promise(resolve => server.close(resolve));
+    }
+  }
+});

@@ -20,6 +20,7 @@ After independent source/CI acceptance and separate custody/auth/effect decision
 
 - `login` creates a validated registration; `reauth` explicitly reuses its issued client/host.
 - `seed --continue` authorizes bounded Worker recovery BEFORE bearer attachment, submits exactly one seed prompt, correlates the actual Jev call/result and Pi consumption, saves local expectations and exits.
+- After an unlocalized seed UNKNOWN, a separately authorized `reconcile --continue` attaches to the SAME session and receives only its automatic root snapshot/inbox; it sends ZERO client commands. Attachment can resume paid engine work within the unchanged cap. Only posts=0 plus the complete root-only empty snapshot, empty activity/usage/inbox and no run/generation/tasks can save RECONCILED_EMPTY, retaining the original UNKNOWN. Nonempty, incomplete or ambiguous state stops. This is a current empty-state certificate, not proof of zero historical effects. Exit, idle without probes, and a changed boot/prior-token=false/posts=0 are required before a separately authorized first seed; there is no reset, automatic seed or replay.
 - `refresh` performs only one permitted local renewal and atomic replacement; it never connects to the Worker.
 - A later native process `recall --continue` requires that durable rotation, observes a different DO boot/prior-token absence on resupply, opens the SAME conversation and submits a neutral recall with no marker, assessment or history reinjection.
 
@@ -55,6 +56,8 @@ flowchart TB
   Rotate -->|UNKNOWN| Stop
   Recall -->|UNKNOWN / no new boot| Stop
 ```
+
+Fixed phase-entry labels and numeric HTTP status (when actually observed) localize future failures without raw errors, frames, URLs, headers or tokens. Phase entry is not completion or zero-effect evidence. The frozen pi-durable 1.2.0 real Session fixture asserts the automatic empty root baseline before any client command; native parser negatives and real loopback sockets separately verify strict reconciliation and ZERO outbound commands.
 
 Keyless Node tests use synthetic private directories and real independent child processes, including SIGKILL after the premark and after a synthetic token response. They do not prove provider refresh, native custody, Worker inference or durable live memory. The existing Ubuntu workerd suite remains the mock-runtime evidence; known native workerd loader failure is not relabeled PASS. Artifacts contain explicit source/derived files only, never custody directories.
 
