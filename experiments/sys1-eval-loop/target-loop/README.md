@@ -76,3 +76,24 @@ One dedicated branch and one mutable request path replace per-phase marker proli
 Root H knowledge separation is trusted actor discipline, not OS isolation. The repair author does not inspect its dedicated ref/worktree until candidate freeze. Root knows H but never authors the candidate. H becomes consumed once inspected, whether success or failure. Source author also authored fictional D and Gold: no independent-development claim. Body meta-description versus actual current task state is a documented semantic boundary; disputed cases are not quietly scored as model misses.
 
 Finish by retaining exact raw receipts and source, replay tests, candidate diff/origins and final negative or positive outcome in the PR. Compare full assigned accuracy plus E/O false positives/negatives, per-family outcomes, completion/unknown, broken former correct axes, target/evaluator calls, tokens, latency and unknown monetary/human cost. `qualityAdoptionAuthorized` stays false. Publish no private handoff or secret material.
+
+## Initial partial run and explicit unissued-work completion
+
+Initial native [run39356822518](https://github.com/roccho-org/ops/actions/runs/39356822518), attempt1, stopped at actual POST18: six target E/O pairs completed (five correct, one O false positive), five evaluator diagnoses (three matched, one false alarm, one missed error), and 42 target cases plus all16 controls unissued. Failure occurred on `condition-2`'s evaluator request. Its technical cause was not captured by the legacy helper; **unknown**, not an asserted rate-limit, transport or model-quality failure. The original receipt/status remains `INCOMPLETE`, accuracy null with assigned denominator48. Raw provider files are byte-preserved in `../results/target-discovery-20261020/` and replayed keylessly. Gold is unchanged.
+
+Root independently retrieved and verified the ZIP and accepted **one explicit completion of only the unissued work**: 42 untouched cases × (E+O+diagnosis) +16 untouched controls = **142 new POSTs**. Observed17 valid answers are retained, never re-requested. Failed18th request is never resent and remains one diagnostic unknown. The original160 reservation remains; completion adds142, bringing conservative native reservations to302 (not actual302). This is not a refill of the failed assignment.
+
+```mermaid
+flowchart TB
+  A["📦 Immutable initial run: 18 POST, 17 valid answers; INCOMPLETE"] --> B["👥 Root verifies exact artifact and approves only unissued requests"]
+  B --> C["📌 Commit reviewed completion source; same request path, new native child"]
+  C --> D["🧮 Reserve160 +142; never resend the failed diagnostic or observed answers"]
+  D --> E["🧪 Run remaining42 cases and16 controls; two-case tail has no padding"]
+  E --> F["🧾 Merge retained/new provenance; target48 and evaluator48 denominators stay fixed"]
+  F --> G{"📏 Target96 axis answers complete?"}
+  G -->|yes| H["🛠️ Target repair may proceed; evaluator47 complete +1 unknown cannot veto"]
+  G -->|no| I["❔ Preserve unknown; no full target quality claim"]
+  F --> J["🗃️ Original status stays INCOMPLETE; new assignment status is separate"]
+```
+
+The completion report separately exposes `assignmentStatus` (did the new142 finish), `targetStatus` (are all48 target labels known) and `status` (full target/evaluator observation, still INCOMPLETE with the locked unknown). Success of the new CI assignment is not a claim that the original experiment completed. New HTTP count and retained run's18 count are separate; observed token/latency totals include retained valid responses with provenance, while unavailable usage for the failed call remains unknown. Future failures emit only allowlisted code/name/stage and numeric HTTP status, never error messages, headers or response bodies. No retry is added.

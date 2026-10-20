@@ -28,11 +28,12 @@ export function casesFor(dataset,read=readLocal) {
 }
 export function makeInput(request,execution={mode:'test-double'},read=readLocal) {
   assert.deepEqual(Object.keys(request).sort(),['configuration','dataset','phase','sourceSha']);
-  assert.ok(['development','stress','validation','confirmation'].includes(request.phase));
+  assert.ok(['development','completion','stress','validation','confirmation'].includes(request.phase));
   assert.ok(['development','stress','expanded','confirmation'].includes(request.dataset));
   assert.match(request.sourceSha,/^[a-f0-9]{40}$/);
   assert.ok(request.configuration==='baseline'||/^candidate-[1-3]$/.test(request.configuration));
   if(request.phase==='development')assert.ok(request.dataset==='development'&&request.configuration==='baseline');
+  if(request.phase==='completion')assert.ok(request.dataset==='development'&&request.configuration==='baseline');
   if(request.phase==='stress')assert.ok(request.dataset==='stress'&&request.configuration==='baseline');
   if(request.phase==='validation')assert.ok(['development','expanded'].includes(request.dataset)&&request.configuration!=='baseline');
   if(request.phase==='confirmation')assert.ok(request.dataset==='confirmation'&&request.configuration!=='baseline');
@@ -48,13 +49,25 @@ export function makeInput(request,execution={mode:'test-double'},read=readLocal)
     assert.notEqual(candidate.instructions,baseline);assert.ok(Array.isArray(candidate.feedback)&&candidate.feedback.length>0);
     for(const f of candidate.feedback)assert.ok(typeof f.caseId==='string'&&['evaluator','gold-sys2'].includes(f.origin)&&typeof f.decision==='string'&&f.decision.trim());
   }
-  const controls=request.phase==='development'?cases.slice(0,16).map((c,n)=>{
+  let prior=null;
+  if(request.phase==='completion'){
+    const oldInput=read('../results/target-discovery-20261020/input.json'),oldReport=read('../results/target-discovery-20261020/predictions.json');
+    const oldScore=score(oldInput,oldReport,read);assert.equal(oldScore.status,'INCOMPLETE');assert.equal(oldReport.actualPosts,18);
+    assert.deepEqual(oldInput.rows,cases.map(({id,body,family})=>({id,body,family:family??'unspecified'})));
+    assert.equal(oldInput.baseline,baseline);assert.equal(oldReport.rows.length,48);
+    assert.ok(oldReport.rows.slice(0,5).every(r=>r.status==='ok'&&r.trace.length===2&&r.evaluator));
+    assert.ok(oldReport.rows[5].status==='error'&&oldReport.rows[5].trace.length===2&&!oldReport.rows[5].evaluator);
+    assert.ok(oldReport.rows.slice(6).every(r=>r.status==='not_run'&&r.trace.length===0));
+    assert.ok(oldReport.controls.every(r=>r.status==='not_run'));
+    prior={sourceRunUrl:oldInput.execution.runUrl,actualPosts:18,rows:oldReport.rows.slice(0,6)};
+  }
+  const controls=['development','completion'].includes(request.phase)?cases.slice(0,16).map((c,n)=>{
     assert.ok(known(c.gold));const flip=x=>x==='yes'?'no':'yes';
     return {id:'injected-'+c.id,caseId:c.id,body:c.body,E:n%3===1?c.gold.E:flip(c.gold.E),O:n%3===0?c.gold.O:flip(c.gold.O)};
   }):[];
-  const maxPosts=cases.length*(request.phase==='confirmation'?4:3)+controls.length;
+  const maxPosts=(cases.length-(prior?.rows.length??0))*(request.phase==='confirmation'?4:3)+controls.length;
   const input={schema:'ops.sys1.target-loop-input.v1',request,execution,baseline,candidate,
-    rows:cases.map(({id,body,family})=>({id,body,family:family??'unspecified'})),controls,maxPosts,expectedModel:'jev-1.13.0',deadlineMs:15000};
+    rows:cases.map(({id,body,family})=>({id,body,family:family??'unspecified'})),controls,...(prior?{prior}:{}),maxPosts,expectedModel:'jev-1.13.0',deadlineMs:15000};
   const key=digest({phase:request.phase,bodies:input.rows.map(r=>r.body),baseline,candidate:candidate?.instructions??null,controls});
   return {input,plan:{maxPosts,key}};
 }
@@ -75,13 +88,17 @@ const order=input=>input.rows.flatMap((r,n)=>(input.request.phase==='confirmatio
 export async function evaluate(input,ask,observe=()=>{}) {
   const confirmation=input.request.phase==='confirmation',size=confirmation?12:4,rows=[],controls=[];let stopped=false,attemptedPosts=0;
   const observed=e=>{if(e.kind==='attempt')attemptedPosts++;observe(e);};
-  for(let offset=0;offset<input.rows.length;offset+=size){
+  rows.push(...(input.prior?.rows??[]));
+  for(let offset=input.prior?.rows.length??0;offset<input.rows.length;offset+=size){
     const chunk=input.rows.slice(offset,offset+size),rename=r=>({...r,arm:r.arm==='candidate'?input.request.configuration:confirmation?'baseline':input.request.configuration});
     if(stopped){rows.push(...order({...input,rows:chunk}).map(r=>({...r,status:'not_run',trace:[]})));continue;}
     const inner={phase:confirmation?'confirmation':'development',maxCalls:confirmation?48:12,
       rows:chunk.map(({id,body})=>({id,body})),baseline:confirmation?input.baseline:input.candidate?.instructions??input.baseline,
       candidate:input.candidate,expectedModel:input.expectedModel};
-    const report=await evaluateChunk(inner,ask,e=>observed(e.kind==='row'?{kind:'row',row:rename(e.row)}:e));
+    // The explicit 42-case completion has a two-case tail. The closed helper
+    // keeps its exact four-row contract; this small tail uses its same requests.
+    const report=chunk.length===size?await evaluateChunk(inner,ask,e=>observed(e.kind==='row'?{kind:'row',row:rename(e.row)}:e)):
+      await evaluateTail(chunk,inner.baseline,input.expectedModel,ask,observed);
     rows.push(...report.rows.map(rename));stopped=report.rows.some(r=>r.status!=='ok');
   }
   for(const c of input.controls){
@@ -94,13 +111,32 @@ export async function evaluate(input,ask,observe=()=>{}) {
   }
   return {schema:'ops.sys1.target-loop-predictions.v1',inputDigest:digest(input),terminalReceipt:true,attemptedPosts,rows,controls};
 }
+async function evaluateTail(chunk,instructions,model,ask,observe){
+  const rows=[];let stopped=false;
+  for(const c of chunk){const row={id:c.id,arm:'baseline',status:'not_run',trace:[]};
+    if(!stopped)try{
+      for(const axis of ['E','O']){const request=targetRequest(c.body,instructions,axis),id=`${c.id}/baseline/${axis}`;observe({kind:'attempt',id});const start=performance.now(),answer=await ask(request);
+        assert.equal(answer.model,model);assert.ok(['yes','no'].includes(answer.choice));const item={axis,request,answer,elapsedMs:performance.now()-start};row.trace.push(item);observe({kind:'answer',id,item});}
+      row.prediction=classify(...row.trace.map(t=>t.answer.choice));const request=evaluatorRequest(c.body,...row.trace.map(t=>t.answer.choice)),id=c.id+'/evaluator';observe({kind:'attempt',id});
+      const start=performance.now(),answer=await ask(request);assert.equal(answer.model,model);assert.ok(Object.hasOwn(DIAGNOSIS,answer.choice));row.evaluator={request,answer,elapsedMs:performance.now()-start};row.status='ok';observe({kind:'diagnosis',id,item:row.evaluator});
+    }catch{row.status='error';stopped=true;}
+    rows.push(row);observe({kind:'row',row});
+  }
+  return {rows};
+}
 const expectedDiagnosis=(gold,E,O)=>!known(gold)?null:E!==gold.E?(O!==gold.O?'both_scope':'requirement_scope'):(O!==gold.O?'evidence_scope':'no_change');
+export function failureDetails(error,stage,httpStatus){
+  const codes=['provider_http_error','provider_invalid_response','provider_unreachable','provider_error','input_invalid','auth_missing'];
+  return {stage:['provider','response-contract','typed-contract'].includes(stage)?stage:'local',
+    code:codes.includes(error?.code)?error.code:'unknown',name:['JevError','JevContractError','JevTransportError','AssertionError','TimeoutError','AbortError'].includes(error?.name)?error.name:'unknown',
+    httpStatus:Number.isInteger(httpStatus)&&httpStatus>=100&&httpStatus<=599?httpStatus:null};
+}
 // Development selection consumes ALL baseline batches, including correct cases.
 // It is separate from one-shot confirmation and cannot turn judge agreement
 // into an adoption gate.
 export function compareDevelopment(baselines,candidate) {
   assert.ok(baselines.length>0&&candidate.request.phase==='validation');
-  assert.ok(baselines.every(b=>['development','stress'].includes(b.request.phase)));
+  assert.ok(baselines.every(b=>['development','completion','stress'].includes(b.request.phase)));
   const before=baselines.flatMap(b=>b.rows),after=candidate.rows;
   assert.equal(new Set(before.map(r=>r.id)).size,before.length);
   assert.deepEqual(before.map(r=>r.id).sort(),after.map(r=>r.id).sort());
@@ -110,7 +146,7 @@ export function compareDevelopment(baselines,candidate) {
       if(x&&y){assert.equal(x.request.text,y.request.text);assert.equal(x.answer.model,y.answer.model);
         if(known(b.gold)&&x.answer.choice===b.gold[axis]&&y.answer.choice!==b.gold[axis])axisRegressed.push({id:b.id,axis});}}
     if(b.correct===true&&c.correct===false)regressed.push(b.id);if(b.correct===false&&c.correct===true)resolved.push(b.id);}
-  const complete=[...baselines,candidate].every(s=>s.status==='OBSERVATION_COMPLETE'),delta=complete?after.filter(r=>r.correct).length-before.filter(r=>r.correct).length:null;
+  const complete=[...baselines,candidate].every(s=>(s.targetStatus??s.status)==='OBSERVATION_COMPLETE'),delta=complete?after.filter(r=>r.correct).length-before.filter(r=>r.correct).length:null;
   return {scope:'development selection only; not confirmation',assigned:before.length,delta,resolved,regressed,axisRegressed,
     outcome:!complete?'INCOMPLETE':regressed.length||axisRegressed.length?'REGRESSION_KEEP_BASELINE':delta>0?'DEVELOPMENT_CANDIDATE':'NO_EFFECT_KEEP_BASELINE'};
 }
@@ -140,7 +176,7 @@ export function score(input,report,read=readLocal) {
       }
     }else{a.unknown++;if(input.request.phase!=='confirmation')diagnostic.unknown++;}
     const f=a.families[c.family??'unspecified']??={assigned:0,correct:0,wrong:0,unknown:0};f.assigned++;f[correct===null?'unknown':correct?'correct':'wrong']++;
-    rows.push({...row,gold:c.gold,correct,expectedDiagnosis:diagnosis});
+    rows.push({...row,...(input.prior?{observationOrigin:input.prior.rows.some(p=>p.id===row.id)?{kind:'retained',sourceRunUrl:input.prior.sourceRunUrl}:{kind:'new',sourceRunUrl:input.execution.runUrl??null}}:{}),gold:c.gold,correct,expectedDiagnosis:diagnosis});
   }
   assert.deepEqual(report.controls.map(r=>r.id),input.controls.map(r=>r.id));
   const injected={assigned:input.controls.length,matched:0,wrong:0,uncertain:0,unknown:0,rows:[]};
@@ -159,14 +195,17 @@ export function score(input,report,read=readLocal) {
   diagnostic.actualErrors=group(errors);diagnostic.actualCorrect=group(correct);
   diagnostic.errorDetection=rate(errors.filter(r=>r.evaluator&&!['no_change','uncertain'].includes(r.evaluator.answer.choice)).length,errors.length);
   diagnostic.falseAlarmRate=rate(diagnostic.actualCorrect.falseAlarm,correct.length);
-  for(const a of Object.values(arms)){a.completion=rate(a.completed,a.assigned);a.accuracy=complete?rate(a.correct,a.assigned):{...rate(a.correct,a.assigned),value:null};}
+  const targetComplete=Object.values(arms).every(a=>a.unknown===0);
+  const assignmentComplete=report.terminalReceipt===true&&report.actualPosts===input.maxPosts&&report.attemptedPosts===input.maxPosts
+    &&report.rows.slice(input.prior?.rows.length??0).every(r=>r.status==='ok')&&report.controls.every(r=>r.status==='ok');
+  for(const a of Object.values(arms)){a.completion=rate(a.completed,a.assigned);a.accuracy=a.unknown===0?rate(a.correct,a.assigned):{...rate(a.correct,a.assigned),value:null};}
   const resolved=[],regressed=[],axisRegressed=[];
   if(input.request.phase==='confirmation')for(const c of cases){const b=rows.find(r=>r.id===c.id&&r.arm==='baseline'),v=rows.find(r=>r.id===c.id&&r.arm!=='baseline');
     if(b.correct===false&&v.correct===true)resolved.push(c.id);if(b.correct===true&&v.correct===false)regressed.push(c.id);
     for(const axis of ['E','O']){const before=b.trace.find(t=>t.axis===axis),after=v.trace.find(t=>t.axis===axis);if(known(c.gold)&&before&&after&&before.answer.choice===c.gold[axis]&&after.answer.choice!==c.gold[axis])axisRegressed.push({id:c.id,axis});}}
   const usageRows=observations.filter(x=>Object.values(x.answer.usage??{}).some(Number.isFinite));
   const result={schema:'ops.sys1.target-loop-measurement.v1',execution:input.execution,request:input.request,inputDigest:digest(input),status:complete?'OBSERVATION_COMPLETE':'INCOMPLETE',
-    actualPosts:report.actualPosts??null,maxPosts:input.maxPosts,arms,diagnostic,injectedControls:injected,rows,resolved,regressed,axisRegressed,
+    actualPosts:report.actualPosts??null,maxPosts:input.maxPosts,...(input.request.phase!=='development'?{targetStatus:targetComplete?'OBSERVATION_COMPLETE':'INCOMPLETE'}:{}),...(input.prior?{priorActualPosts:input.prior.actualPosts,assignmentStatus:assignmentComplete?'OBSERVATION_COMPLETE':'INCOMPLETE'}:{}),arms,diagnostic,injectedControls:injected,rows,resolved,regressed,axisRegressed,
     usage:usageRows.length?usageRows.reduce((s,x)=>{for(const[k,v]of Object.entries(x.answer.usage))if(Number.isFinite(v))s[k]=(s[k]??0)+v;return s;},{}):null,
     usageRows:usageRows.length,elapsedMs:observations.reduce((s,x)=>s+(x.elapsedMs??0),0),providerCost:null,humanCost:null,
     evidenceScope:input.request.phase==='confirmation'?'root-authored, trusted knowledge-separated one-shot confirmation; not OS-isolated or a population claim':'all assigned development cases; never confirmation quality',
@@ -193,28 +232,30 @@ async function main(){
   }else if(mode==='evaluate'){
     const input=JSON.parse(fs.readFileSync(at('input.json'),'utf8'));assert.ok(process.env.JEV_API_KEY?.trim());assert.equal(process.env.GITHUB_RUN_ATTEMPT,'1');
     write(at('attempt.json'),{inputDigest:digest(input),maxPosts:input.maxPosts,reservedPosts:input.execution.reservedPosts});
-    const observe=e=>{fs.appendFileSync(at('events.jsonl'),JSON.stringify(e)+'\n',{mode:0o600});console.log('TARGET_LOOP_EVENT '+JSON.stringify(e));};
+    let activeId=null,httpStatus=null,stage='local';
+    const observe=e=>{if(e.kind==='attempt')activeId=e.id;fs.appendFileSync(at('events.jsonl'),JSON.stringify(e)+'\n',{mode:0o600});console.log('TARGET_LOOP_EVENT '+JSON.stringify(e));};
     const client=await import('../../../packages/jev/src/client.mjs');let calls=0;
-    const bound=client.bindJev({apiKey:process.env.JEV_API_KEY,fetch:(u,i)=>fetch(u,{...i,redirect:'error'})});
-    const ask=async request=>{let usage=null;const provider={available:bound.available,post:async body=>{
+    const bound=client.bindJev({apiKey:process.env.JEV_API_KEY,fetch:async(u,i)=>{const r=await fetch(u,{...i,redirect:'error'});httpStatus=r.status;return r;}});
+    const ask=async request=>{let usage=null;httpStatus=null;stage='local';try{const provider={available:bound.available,post:async body=>{
       assert.equal(body.model,'jev-latest');assert.equal(Object.keys(body.answers??{}).length,0);assert.ok(Buffer.byteLength(JSON.stringify(body))<24000);
-      assert.ok(calls<input.maxPosts);calls++;const data=await bound.post(body,{deadlineMs:15000});assert.equal(data.model,input.expectedModel);
+      assert.ok(calls<input.maxPosts);calls++;stage='provider';const data=await bound.post(body,{deadlineMs:15000});stage='response-contract';assert.equal(data.model,input.expectedModel);
       assert.deepEqual(Object.keys(data.answers??{}),['live']);const a=data.answers.live,p=a.probabilities;
       assert.ok(Math.abs(Object.values(p).reduce((s,v)=>s+v,0)-1)<1e-5&&p[a.choice]>=Math.max(...Object.values(p))-1e-6);
-      usage=Object.fromEntries(Object.entries(data.usage??{}).filter(([k,v])=>['input_tokens','output_tokens','total_tokens'].includes(k)&&Number.isFinite(v)&&v>=0));return data;}};
-      const r=await client.askJevChoice({...request,provider});return {choice:r.choice.choice,model:r.model,usage};};
+      usage=Object.fromEntries(Object.entries(data.usage??{}).filter(([k,v])=>['input_tokens','output_tokens','total_tokens'].includes(k)&&Number.isFinite(v)&&v>=0));stage='typed-contract';return data;}};
+      const r=await client.askJevChoice({...request,provider});return {choice:r.choice.choice,model:r.model,usage};
+      }catch(error){observe({kind:'failure',id:activeId,...failureDetails(error,stage,httpStatus)});throw error;}};
     const report=await evaluate(input,ask,observe);report.actualPosts=calls;write(at('predictions.json'),report);
-    if(report.rows.some(r=>r.status!=='ok')||report.controls.some(r=>r.status!=='ok'))process.exitCode=2;
+    if(report.rows.slice(input.prior?.rows.length??0).some(r=>r.status!=='ok')||report.controls.some(r=>r.status!=='ok'))process.exitCode=2;
   }else{
     assert.ok(!process.env.JEV_API_KEY);const input=JSON.parse(fs.readFileSync(at('input.json'),'utf8'));let report;
     try{report=JSON.parse(fs.readFileSync(at('predictions.json'),'utf8'));}catch{
       const {events,truncatedFinalRecord}=parseEvents(fs.existsSync(at('events.jsonl'))?fs.readFileSync(at('events.jsonl'),'utf8'):'');
       report={schema:'ops.sys1.target-loop-predictions.v1',inputDigest:digest(input),terminalReceipt:false,actualPosts:null,attemptedPosts:events.filter(e=>e.kind==='attempt').length,truncatedFinalRecord,
-        rows:order(input).map(r=>events.find(e=>e.kind==='row'&&e.row.id===r.id&&e.row.arm===r.arm)?.row??{...r,status:'not_run',trace:[]}),
+        rows:order(input).map(r=>input.prior?.rows.find(p=>p.id===r.id&&p.arm===r.arm)??events.find(e=>e.kind==='row'&&e.row.id===r.id&&e.row.arm===r.arm)?.row??{...r,status:'not_run',trace:[]}),
         controls:input.controls.map(c=>events.find(e=>e.kind==='control'&&e.row.id===c.id)?.row??{id:c.id,caseId:c.caseId,status:'not_run'})};
       write(at('recovered-predictions.json'),report);}
     const result=score(input,report);write(at('measurement.json'),result);console.log('TARGET_LOOP_RESULT '+JSON.stringify(result));
-    if(result.status!=='OBSERVATION_COMPLETE')process.exitCode=2;
+    if((result.assignmentStatus??result.status)!=='OBSERVATION_COMPLETE')process.exitCode=2;
   }
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href)main().catch(()=>{console.error('TARGET_LOOP_STOP: source, input, model, auth or transport failure; no automatic retry');process.exitCode=2;});

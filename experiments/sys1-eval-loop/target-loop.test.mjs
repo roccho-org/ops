@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {makeInput,casesFor,evaluate,score,compareDevelopment,admit,BRANCH,REQUEST} from './target-loop/loop.mjs';
+import {makeInput,casesFor,evaluate,score,compareDevelopment,failureDetails,admit,BRANCH,REQUEST} from './target-loop/loop.mjs';
 const read=p=>JSON.parse(fs.readFileSync(new URL('./target-loop/'+p,import.meta.url),'utf8'));
 const request={phase:'development',dataset:'development',configuration:'baseline',sourceSha:'a'.repeat(40)};
 const answer=choice=>({choice,model:'jev-1.13.0',usage:{input_tokens:1,output_tokens:1}});
@@ -61,4 +61,24 @@ test('native admission reserves all roles, rejects refill, reruns and cumulative
   assert.throws(()=>admit(request,env,both,source,{...plans,[old.head_sha]:{key:'x',maxPosts:160}}));
   assert.throws(()=>admit(request,env,both,source,{...plans,[old.head_sha]:{key:'other',maxPosts:900}}));
   assert.throws(()=>admit(request,env,h,{...source,changed:[REQUEST,'other']},plans));
+});
+test('retained initial failure replays byte-preserved observations without a new call',()=>{
+  const input=read('../results/target-discovery-20261020/input.json'),report=read('../results/target-discovery-20261020/predictions.json'),m=read('../results/target-discovery-20261020/measurement.json');
+  assert.deepEqual(score(input,report,read),m);assert.equal(report.actualPosts,18);assert.equal(m.arms.baseline.wrong,1);
+});
+test('completion sends only 142 previously unissued requests, preserves one failed diagnosis as unknown',async()=>{
+  const req={...request,phase:'completion'},f={...makeInput(req,{},read),read};assert.equal(f.input.maxPosts,142);assert.equal(f.input.prior.rows.length,6);
+  const seen=[],ask=oracle(f.input);let calls=0;
+  const report=await evaluate(f.input,q=>{calls++;seen.push(JSON.parse(q.text).body);return ask(q);});report.actualPosts=calls;
+  const m=score(f.input,report,read);assert.equal(calls,142);assert.equal(m.actualPosts,142);assert.equal(m.priorActualPosts,18);
+  assert.equal(m.status,'INCOMPLETE');assert.equal(m.targetStatus,'OBSERVATION_COMPLETE');assert.equal(m.assignmentStatus,'OBSERVATION_COMPLETE');
+  assert.equal(m.arms.baseline.completed,48);assert.equal(m.arms.baseline.correct,47);assert.equal(m.arms.baseline.accuracy.value,47/48);
+  assert.equal(m.diagnostic.unknown,1);assert.equal(m.injectedControls.matched,16);assert.equal(m.rows[5].evaluator,undefined);
+  const cases=casesFor('development',read);assert.equal(seen.filter(body=>body===cases[5].body).length,1,'only its injected control, never retry failed actual diagnosis or target');
+  assert.deepEqual(report.rows.slice(0,6),f.input.prior.rows);assert.equal(report.rows.at(-1).id,cases.at(-1).id);
+});
+test('safe failure diagnostics expose only allowlisted numeric/status fields',()=>{
+  const f=failureDetails({name:'JevError',code:'provider_error',message:'secret',headers:{authorization:'secret'}},'provider',429);
+  assert.deepEqual(f,{name:'JevError',code:'provider_error',stage:'provider',httpStatus:429});assert.ok(!JSON.stringify(f).includes('secret'));
+  assert.deepEqual(failureDetails({name:'secret',code:'secret'},'secret','secret'),{stage:'local',code:'unknown',name:'unknown',httpStatus:null});
 });
