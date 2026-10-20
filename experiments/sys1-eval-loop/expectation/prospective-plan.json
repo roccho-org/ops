@@ -128,13 +128,13 @@
       "passes": 2,
       "totalFreshPosts": 714,
       "combinedDevelopmentAndPlannedFresh": 1221,
-      "currentFreshPosts": 0
+      "currentFreshPosts": 357
     }
   },
-  "currentStage": "actualD507 guard/freeze and original119 body/Gold data integrated; native same7DATA+all714 complete payloads checked keyless; exact data/source reviews and requiredCI pending, request still original development and fresh H model0",
+  "currentStage": "H1 actual357 allqualified/stable, positive8/119 and zero regression accepted as one pass only; raw retained, same candidate/Gold/119 unchanged, fixed H2 not yet executed",
   "newMetadataQueries": 0,
   "newBodyQueries": 122,
-  "newModelPosts": 507,
+  "newModelPosts": 864,
   "adopted": false,
   "seriesClosure": {
     "name": "fixed-e-prospective-census-closure",
@@ -169,5 +169,33 @@
     "outputTokens": 15717,
     "totalTokensMissing": 507,
     "limit": "nonconcurrent development diagnostic, not fresh-H improvement/adoption or network-body byte capture"
-  }
+  },
+  "actualFreshPasses": [
+    {
+      "repId": 1,
+      "runId": 39505411380,
+      "activation": "031db1a3efb2ea0e69d2b4c51f337418a9cf87da",
+      "source": "f8487a09f8fd360aef1e46c4728aed754f9cab8c",
+      "physicalPosts": 357,
+      "qualified": 357,
+      "modelStable": true,
+      "knownBefore": 85,
+      "knownAfter": 93,
+      "knownResolved": 118,
+      "unresolved": 1,
+      "difference": [
+        8,
+        8
+      ],
+      "regression": [
+        0,
+        0
+      ],
+      "denominator": 119,
+      "accepted": true,
+      "inputTokens": 860975,
+      "outputTokens": 11067,
+      "totalTokensMissing": 357
+    }
+  ]
 }

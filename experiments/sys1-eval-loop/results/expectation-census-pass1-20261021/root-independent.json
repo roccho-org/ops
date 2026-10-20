@@ -1,0 +1,3683 @@
+{
+  "schema": "root.expectation-census-raw-independent.v1",
+  "execution": {
+    "source": "f8487a09f8fd360aef1e46c4728aed754f9cab8c",
+    "activation": "031db1a3efb2ea0e69d2b4c51f337418a9cf87da",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39505411380"
+  },
+  "inputDigest": "075a4a5a2d7935114f2c38308431700d4020999f8f288116a3d9e60b183827e0",
+  "repId": 1,
+  "disposition": "POSITIVE_FIXED_CENSUS_GAIN",
+  "result": {
+    "repId": 1,
+    "assigned": 119,
+    "resolved": 118,
+    "bestCorrect": 85,
+    "candidateCorrect": 93,
+    "repairs": [
+      "expectation-013",
+      "expectation-034",
+      "expectation-056",
+      "expectation-057",
+      "expectation-059",
+      "expectation-082",
+      "expectation-093",
+      "expectation-116"
+    ],
+    "breaks": [],
+    "knownRegressions": [],
+    "physical": {
+      "assigned": 357,
+      "attempts": 357,
+      "posts": 357,
+      "qualified": 357,
+      "unknown": 0
+    },
+    "qualificationComplete": true,
+    "modelStable": true,
+    "bounds": {
+      "differenceLowerNumerator": 8,
+      "differenceUpperNumerator": 8,
+      "regressionLowerNumerator": 0,
+      "regressionUpperNumerator": 0,
+      "denominator": 119
+    },
+    "accepted": true,
+    "feasible": [
+      {
+        "id": "expectation-001",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 0,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          },
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-002",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-003",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-004",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-005",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-006",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-008",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-009",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-010",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-011",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-012",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-013",
+        "ranges": {
+          "b": {
+            "min": 1,
+            "max": 1
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 1,
+            "max": 1
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 1,
+            "c": 0,
+            "delta": 1,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-014",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-015",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-016",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-017",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-018",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-019",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-020",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-021",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-022",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-023",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-024",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-025",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-026",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-027",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-028",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-029",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-030",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-032",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-033",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-034",
+        "ranges": {
+          "b": {
+            "min": 1,
+            "max": 1
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 1,
+            "max": 1
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 1,
+            "c": 0,
+            "delta": 1,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-035",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-036",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-037",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-038",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-039",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-040",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-041",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-042",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-043",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-044",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-045",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-046",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-047",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-048",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-049",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-050",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-051",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-052",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-053",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-054",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-055",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-056",
+        "ranges": {
+          "b": {
+            "min": 1,
+            "max": 1
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 1,
+            "max": 1
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 1,
+            "c": 0,
+            "delta": 1,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-057",
+        "ranges": {
+          "b": {
+            "min": 1,
+            "max": 1
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 1,
+            "max": 1
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 1,
+            "c": 0,
+            "delta": 1,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-058",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-059",
+        "ranges": {
+          "b": {
+            "min": 1,
+            "max": 1
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 1,
+            "max": 1
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 1,
+            "c": 0,
+            "delta": 1,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-060",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-061",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-062",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-063",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-064",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-065",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-066",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-067",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-068",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-069",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-070",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-071",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-072",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-073",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-074",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-075",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-076",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-077",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-078",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-079",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-080",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-081",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-082",
+        "ranges": {
+          "b": {
+            "min": 1,
+            "max": 1
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 1,
+            "max": 1
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 1,
+            "c": 0,
+            "delta": 1,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-083",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-084",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-085",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-086",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-087",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-088",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-089",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-090",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-091",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-092",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-093",
+        "ranges": {
+          "b": {
+            "min": 1,
+            "max": 1
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 1,
+            "max": 1
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 1,
+            "c": 0,
+            "delta": 1,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-094",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-095",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-096",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-097",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-098",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-099",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-100",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-101",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-102",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-103",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-105",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-106",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-107",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-108",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-109",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-110",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-111",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-112",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 2,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-113",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-114",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-115",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-116",
+        "ranges": {
+          "b": {
+            "min": 1,
+            "max": 1
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 1,
+            "max": 1
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 1,
+            "c": 0,
+            "delta": 1,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-117",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-118",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-119",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-120",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-121",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 1,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      },
+      {
+        "id": "expectation-122",
+        "ranges": {
+          "b": {
+            "min": 0,
+            "max": 0
+          },
+          "c": {
+            "min": 0,
+            "max": 0
+          },
+          "delta": {
+            "min": 0,
+            "max": 0
+          },
+          "R": {
+            "min": 0,
+            "max": 0
+          }
+        },
+        "vertices": [
+          {
+            "G": 3,
+            "b": 0,
+            "c": 0,
+            "delta": 0,
+            "R": 0
+          }
+        ]
+      }
+    ]
+  },
+  "usage": {
+    "bestE": {
+      "answers": 119,
+      "input_tokens": {
+        "known": 119,
+        "subtotal": 275409,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 119,
+        "subtotal": 3689,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 119
+      }
+    },
+    "scopedE": {
+      "answers": 119,
+      "input_tokens": {
+        "known": 119,
+        "subtotal": 307896,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 119,
+        "subtotal": 3689,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 119
+      }
+    },
+    "sharedO": {
+      "answers": 119,
+      "input_tokens": {
+        "known": 119,
+        "subtotal": 277670,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 119,
+        "subtotal": 3689,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 119
+      }
+    }
+  },
+  "limits": "Same finite convenience cases per pass, fixed E supplement and original shared O within pass. No2M independent units, Gold infallibility, population/Apps/future/model or same-cost claim; missing usage remains unknown."
+}
