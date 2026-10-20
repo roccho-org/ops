@@ -59,6 +59,24 @@
       "observedMatches": 0,
       "observedExcludedCandidateIds": 0,
       "observedActualTypedOverlap": 0
+    },
+    "bodyProtocol": {
+      "querySource": "EXPECTATION_BODY_QUERY in expectation/body.mjs reuses the fixed whole-Issue query; no title/comments/labels",
+      "input": "fixed metadata/prefix native77477 receipt; original private reference native84559; native407+actual210 prior740/1916; retained successful actualD provider/raw/guard/selection fully reconstructed",
+      "capture": "each native capture keeps query and variables exactly {id}, original stdout/stderr/status and native protocol; shared strict per-Issue/source validation preserves old210/207 output",
+      "frameSchema": "ops.sys1.expectation-body-frame.v1",
+      "roundIndex": 5,
+      "physicalKeys": [
+        "bestE",
+        "scopedE",
+        "sharedO"
+      ],
+      "maximumWireBytesExclusive": 24000,
+      "acquisitionWindowMs": 3600000,
+      "apiBeforeSourceHostAcceptance": false,
+      "modelPosts": 0,
+      "priorReferenceNative": "84559b85a8440b156e1d62f8b59f2712e1c7c1d7",
+      "authenticity": "host/root/R native originals and full independent replay, not caller-supplied accepted booleans or new copied blob gates"
     }
   },
   "freshMeasurement": {
@@ -77,7 +95,7 @@
     "combinedNewMaximum": 2307,
     "accounting": "507 development plus at most1800 fresh H posts. Historical aliases have no new cost. Old PR616/617 calls and all failures remain separately recorded; money/internal compute/total_tokens absence unknown; equal O call count is not same token cost"
   },
-  "currentStage": "actual D507 completed and original five retained; guard PASS and actual qualified-Core to standard-client payload reconstruction frozen; current retention/freeze source review and future body/H source acceptance remain; new H body/Gold/model0",
+  "currentStage": "actualD original guard/freeze accepted by all3; new read-only body pure wrapper implemented for source/host review; actual H body/Gold/provider measurement0 and H effect entry not yet implemented",
   "newMetadataQueries": 0,
   "newBodyQueries": 0,
   "newModelPosts": 507,

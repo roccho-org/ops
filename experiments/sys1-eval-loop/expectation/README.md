@@ -24,6 +24,12 @@
 
 `selection.mjs` は原5を再生してguard成立を確認し、実保存された全507 qualified Core requestから既存標準clientでpayloadを再構成し、body stateだけを固定placeholderへ替えた全値とinput templateProofを照合する。原BestE/sharedOは受容済歴史receipt由来の別来歴として保持する。rootは製品constructor/wireTemplateを使わず、自己原D507と原BestE/O507ずつから全1521 payloadを直接標準clientで再構成し、3templates全値一致を確認した。post eventはIDのみであり、network上のHTTP body全bytesを捕捉したという証拠ではない。候補は固定済み・adopted=false。今後の本文/H sourceはこの原結果とselection全値を再生し、eligibleフラグの自己申告だけでは受容しない。
 
+次body pure wrapperは`body.mjs`。旧`census/body.mjs`からstrict per-Issue/source検査だけを`capturedWholeIssue`へ抽出し、旧19日custody/4wire/207結果を新窓へ移植しない。root/Rがそれぞれ原94b7全210返信（empty1/oversize2も含む）・原8bc metadata・原prior/visibility/clockから旧materializerを再生し、host付帯custody3項目を別確認したうえで全旧frame/除外/順序/source/4wireが不変と確認した。新4＋旧body5の9testsも通る。
+
+新wrapperはround5/prefix schema/00–18窓と整列、prefix native receipt、別typed/reference集合を検査し、既知・参照除外を本文query前に分離する。各captureの固定queryとvariables `{id}`、immutable Issue/source/全体clock1h、固定public repo ID/name/issue-enabledの前後一致を要求する。実D原5/selectionを再生して固定したBestE/newE/sharedOの3標準payloadすべてを厳密に24,000B未満で検査し、切詰め/補充をしない。原literal/編集版timestamp、prefix index由来のid/gap、同bodyのIssue別weightを保つ。新frameは`ops.sys1.expectation-body-frame.v1`/round5。失敗・不明・private/移管・query/source不整合はINVALIDで、適当に除外して成立させない。
+
+pure wrapperへのnative文字列/自己申告だけでは実原版の真性を認証しない。実hostは77477原prefix/receipt、84559の原2240参照補強、元407＋全実210のtyped740/body1916、成功D原provider/API/Git親/request-only/原5/selection、実標準gh query/variables/stdout/stderr/status、全公開前後/時刻、source前後固定を別途結合する。84559はprivate custodyであり外/私的URL/IDをpublicへ複写しない。現在body API/Gold/新Hモデルは0、sourceとこの具体hostの三者受容前に取得しない。通常CIの成功や新H効果も先取りしない。
+
 ```mermaid
 flowchart TB
   OLD[✅ 617単回正差と再確認未達・207退役] --> CLAIM[✅ W 真正E要求scope一候補]
@@ -35,7 +41,7 @@ flowchart TB
   ENTRY --> D[✅ 今回D507完了392→400/union破壊0]
   D -->|guard成立時：今回はPASS| FREEZE[✅ 実Core→標準payload再構成固定]
   FREEZE --> REVIEW[⏳ 原版/freeze現source三者受容]
-  REVIEW --> H[⏳ 新H body source/122候補本文/独立Gold/3M二回]
+  REVIEW --> H[⏳ body source/host受容→122候補本文/独立Gold/3M二回]
   ENTRY -. 以後の別Dが未達/unknownなら .-> KEEP[全負結果/unknown/実会計保持]
   KEEP --> COUNTER[W/root/R 原因と別の意味ある仮説を反証]
   COUNTER --> CONTRACT[同GO内で有限assignment/timeout/全会計をsource化]
