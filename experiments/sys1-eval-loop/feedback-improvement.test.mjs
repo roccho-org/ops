@@ -90,6 +90,15 @@ test('positive gain with zero observed regressions is a research candidate only'
     r.actualCalls=calls;const s=score(i,r,root);assert.equal(s.outcome,'FINITE_IMPROVEMENT_CANDIDATE');assert.equal(s.qualityAdoptionAuthorized,false);assert.equal(s.repairRate.value,1);
   }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+test('breaking a previously correct axis in an already wrong case also retains baseline',async()=>{
+  const i=fixture('confirmation'),root=tempRoot(i.candidate);let calls=0;
+  try{const r=await evaluate(i,async q=>{calls++;const a=await perfect(i)(q),id=i.rows.find(x=>x.body===JSON.parse(q.text).body).id;
+    const candidate=q.instructions.startsWith(i.candidate.instructions),axis=q.instructions.includes('本問はEだけ')?'E':'O';
+    if((!candidate&&['h-lantern','h-harbor'].includes(id)&&axis==='O')||(candidate&&id==='h-lantern'&&axis==='E'))a.choice=a.choice==='yes'?'no':'yes';return a;});
+    r.actualCalls=calls;const s=score(i,r,root);assert.equal(s.delta,1);assert.deepEqual(s.regressed,[]);
+    assert.deepEqual(s.axisRegressed,[{id:'h-lantern',axis:'E'}]);assert.equal(s.outcome,'REGRESSION_KEEP_BASELINE');
+  }finally{fs.rmSync(root,{recursive:true,force:true});}
+});
 test('complete claim rejects missing terminal/calls, wrong order, altered request or model',async()=>{
   const i=prepare('development'),r=await evaluate(i,perfect(i));r.actualCalls=12;
   for(const mutate of [x=>x.terminalReceipt=false,x=>x.actualCalls=null]){const x=structuredClone(r);mutate(x);assert.equal(score(i,x).status,'INCOMPLETE');}

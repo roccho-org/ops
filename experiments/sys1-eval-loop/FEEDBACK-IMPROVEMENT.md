@@ -16,7 +16,7 @@ Goldの適用範囲は当該機能への要求/現実の観測である。『実
 2. developmentの生Choice・source/run/artifactを保存。修正担当が各診断の採用/棄却とinstructions差分の対応をfeedback-candidate.jsonに記録する。candidateは事前に作らない。全no_change/有用な診断なしならNO_PROPOSALとしてこの周を閉じてよい。
 3. candidate/sourceとCIを独立rootが確認後、confirmation: H12の新入力でbaseline/candidate E/Oを2POST×12件×2arm=48。caseごとにarm順を交替、candidate変更・Gold結果参照・best-of-k・retry/refillなし。上限はこの一周全体60POST、15秒/POST、各job16分。
 4. 全回答完了後、鍵なしscoreで固定Goldに照合。全割当の完成率・正解/誤り/不明・repair/break・tokens/所要時間を保存。金額と人手原価はUNKNOWN（0ではない）。unknownのある実行はINCOMPLETEで採用不能。
-5. 同じ報告model=jev-1.13.0、全件完了、candidate正解数増、baseline正解→candidate誤答0件なら有限改善の研究候補。それ以外は元Best保持。aliasはimmutable buildの証明ではない。重大退行は今回一件の正答破壊を含む。有限例退行0を普遍的無退行・偽陽性0と呼ばない。
+5. 同じ報告model=jev-1.13.0、全件完了、candidate正解数増、baseline正解→candidate誤答0件かつ各caseの既存正解E/O軸の破壊0件なら有限改善の研究候補。それ以外は元Best保持。baselineが合成ラベルでは既に誤答でも、その中の正しい軸を壊して相殺する変更は受容しない。aliasはimmutable buildの証明ではない。有限例退行0を普遍的無退行・偽陽性0と呼ばない。
 
 今回の2条件では対象設定変更の有限差だけを測る。評価役助言そのものの寄与はNOT_IDENTIFIED。次に必要なら同修正役・同予算の助言なし条件を設けるが、今回には追加しない。H結果を見て修正する場合はHを開発へ降格し、新しい集合・予算・source契約が必要。この一周で自動補充しない。
 

@@ -131,20 +131,23 @@ export function score(input,report,root=ROOT) {
   }
   const complete=report.terminalReceipt===true&&report.actualCalls===input.maxCalls&&report.attemptedCalls===input.maxCalls&&report.rows.every(r=>r.status==='ok')&&Object.values(arms).every(a=>a.completed===a.assigned);
   for(const a of Object.values(arms)){a.completion={numerator:a.completed,denominator:a.assigned,value:a.completed/a.assigned};a.accuracy=complete?a.correct/a.assigned:null;}
-  const resolved=[],regressed=[];
+  const resolved=[],regressed=[],axisRegressed=[];
   if(input.phase==='confirmation')for(const r of input.rows){const b=rows.find(x=>x.id===r.id&&x.arm==='baseline'),a=rows.find(x=>x.id===r.id&&x.arm==='candidate');
-    if(b.correct===false&&a.correct===true)resolved.push(r.id);if(b.correct===true&&a.correct===false)regressed.push(r.id);}
+    if(b.correct===false&&a.correct===true)resolved.push(r.id);if(b.correct===true&&a.correct===false)regressed.push(r.id);
+    const gold=c.confirmation.find(x=>x.id===r.id).gold;
+    for(const axis of ['E','O']){const before=b.trace.find(x=>x.axis===axis),after=a.trace.find(x=>x.axis===axis);
+      if(before&&after&&before.answer.choice===gold[axis]&&after.answer.choice!==gold[axis])axisRegressed.push({id:r.id,axis});}}
   const observations=rows.flatMap(x=>[...x.trace,...(x.evaluator?[x.evaluator]:[])]),usageRows=observations.filter(x=>Object.values(x.answer.usage??{}).some(Number.isFinite));
   const result={schema:'ops.sys1.feedback-measurement.v1',phase:input.phase,execution:input.execution,inputDigest:digest(input),
     status:complete?'OBSERVATION_COMPLETE':'INCOMPLETE',actualCalls:report.actualCalls??null,attemptedCalls:report.attemptedCalls??null,maxCalls:input.maxCalls,
-    arms,resolved,regressed,rows,diagnostic,cost:null,usageRows:usageRows.length,
+    arms,resolved,regressed,axisRegressed,rows,diagnostic,cost:null,usageRows:usageRows.length,
     usage:usageRows.length?usageRows.reduce((s,x)=>{for(const [k,v] of Object.entries(x.answer.usage))if(Number.isFinite(v))s[k]=(s[k]??0)+v;return s;},{}):null,
     elapsedMs:observations.reduce((s,x)=>s+(x.elapsedMs??0),0),goldAuthorIndependent:false,
     holdout:'unused for this model execution and candidate selection, author-nonindependent; not secret or statistically independent',
     evaluatorContribution:'NOT_IDENTIFIED',appsEffect:'NOT_TESTED',qualityAdoptionAuthorized:false};
   if(input.phase==='confirmation') {
     result.delta=complete?arms.candidate.correct-arms.baseline.correct:null;
-    result.outcome=!complete?'INCOMPLETE':regressed.length?'REGRESSION_KEEP_BASELINE':result.delta>0?'FINITE_IMPROVEMENT_CANDIDATE':'NO_EFFECT_KEEP_BASELINE';
+    result.outcome=!complete?'INCOMPLETE':regressed.length||axisRegressed.length?'REGRESSION_KEEP_BASELINE':result.delta>0?'FINITE_IMPROVEMENT_CANDIDATE':'NO_EFFECT_KEEP_BASELINE';
     result.repairRate={numerator:resolved.length,denominator:arms.baseline.wrong,value:complete&&arms.baseline.wrong?resolved.length/arms.baseline.wrong:null};
     result.breakRate={numerator:regressed.length,denominator:arms.baseline.correct,value:complete&&arms.baseline.correct?regressed.length/arms.baseline.correct:null};
   }
