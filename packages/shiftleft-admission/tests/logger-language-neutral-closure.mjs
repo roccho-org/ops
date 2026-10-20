@@ -71,8 +71,8 @@ const PROVIDER = Object.freeze({
 
 const APPS_REPAIR = Object.freeze({
   repository: "roccho-dev/apps",
-  revision: "c023c2a28f635cbf722e8872c3c49e7f6ab72ba2",
-  tree: "4bb77338569e729d6f7623adc919f6e1f608e374",
+  revision: "17c0108a5c2549ffaf7cef791a569f2e1926659f",
+  tree: "3d603665d54c83dd770873870c66863959904b42",
   package: "packages/voice-ui",
 });
 
