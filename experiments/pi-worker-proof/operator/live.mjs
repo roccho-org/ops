@@ -109,6 +109,9 @@ const messages = await first.turn(created.conversationId,
 const results = messages.filter(message => message.role === "toolResult" && message.toolName === "ask_jev");
 assert.equal(results.length, 1);
 assert.equal(results[0].isError, false);
+const toolCalls = messages.filter(message => message.role === "assistant").flatMap(message => message.content).filter(part => part.type === "toolCall");
+assert.equal(toolCalls.length, 1);
+assert.equal(toolCalls[0].id, results[0].toolCallId);
 const assessment = JSON.parse(results[0].content.filter(part => part.type === "text").map(part => part.text).join(""));
 assert.equal(assessment.type, "noul");
 assert.equal(typeof assessment.noul, "number");
@@ -116,19 +119,16 @@ assert.ok(Number.isFinite(assessment.noul));
 const firstAnswer = assistant(messages);
 assert.ok(firstAnswer.includes(marker) && firstAnswer.includes(String(assessment.noul)), "Pi did not consume marker and actual assessment");
 await first.close();
-const end = Date.now() + idleSeconds * 1000;
-let reopened;
-while (Date.now() < end) {
-  await delay(10_000);
-  const next = await connect();
-  if (next.witness.boot !== first.witness.boot && next.witness.prior === "false") { reopened = next; break; }
-  await next.close();
-}
-assert.ok(reopened, "NOT_PROVEN: independent new DO instance not observed; no second prompt sent");
+// Early reconnect probes could themselves keep the object alive.
+for (let elapsed = 0; elapsed < idleSeconds; elapsed += 10) await delay(Math.min(10, idleSeconds - elapsed) * 1000);
+const reopened = await connect();
+assert.ok(reopened.witness.boot !== first.witness.boot && reopened.witness.prior === "false",
+  "NOT_PROVEN: independent new DO instance not observed; no second prompt sent");
 assert.equal(reopened.witness.posts, 2);
 await reopened.command({ type: "conversation.open", requestId: randomUUID(), conversationId: created.conversationId });
-const recalled = assistant(await reopened.turn(created.conversationId,
-  "Recall the marker and exact Jev assessment from our earlier exchange. Return only JSON with keys marker and assessment. Do not call tools."));
+const recallMessages = await reopened.turn(created.conversationId,
+  "Recall the marker and exact Jev assessment as its original typed object from our earlier exchange. Return only JSON with keys marker and assessment. Do not call tools.");
+const recalled = assistant(recallMessages);
 const parsed = JSON.parse(recalled);
 assert.equal(parsed.marker, marker);
 assert.deepEqual(parsed.assessment, assessment);
@@ -136,7 +136,14 @@ await reopened.close();
 const receipt = await connect();
 assert.equal(receipt.witness.posts, 3);
 await receipt.close();
-console.log(JSON.stringify({ scope: "ACTUAL_WORKER_FINITE_PROOF", session: values.session,
+const completions = [...messages, ...recallMessages].filter(message => message.role === "assistant").map(message => ({
+  responseId: message.responseId ?? null, model: message.model ?? null, stopReason: message.stopReason,
+  usage: message.usage ? { input: message.usage.input, output: message.usage.output,
+    totalTokens: message.usage.totalTokens } : null,
+}));
+assert.equal(completions.length, 3);
+assert.deepEqual(completions.map(item => item.stopReason), ["toolUse", "stop", "stop"]);
+console.log(JSON.stringify({ completions, scope: "ACTUAL_WORKER_FINITE_PROOF", session: values.session,
   conversationId: created.conversationId, userTurns: 2, responsesPostAttempts: 3,
   successfulJevToolResults: 1, recreated: true, priorTokenAbsent: true,
   markerSha256: createHash("sha256").update(marker).digest("hex"), assessment,

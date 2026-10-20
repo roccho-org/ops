@@ -588,7 +588,7 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
       expect(input).toBeInstanceOf(Request);
       const request = input as Request;
       expect(init?.redirect).toBe("error");
-      const body = await request.json();
+      const body = await request.json() as Record<string, unknown>;
       expect(body.store).toBe(false);
       expect(body.stream).toBe(true);
       expect(body).not.toHaveProperty("tools");
