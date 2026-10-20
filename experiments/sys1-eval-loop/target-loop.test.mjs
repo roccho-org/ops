@@ -115,3 +115,13 @@ test('actual candidate1 gain cannot hide its regression; candidate2 starts from 
   const next=read('candidate-2.json'),d=read('candidate-2-decisions.json');assert.ok(next.instructions.startsWith(read('../candidates/binary-eo-v3.json').instructions));assert.ok(Buffer.byteLength(next.instructions)<6000);
   assert.notEqual(next.instructions,read('candidate-1.json').instructions);assert.equal(d.rows.length,48);assert.equal(d.rows.filter(r=>r.decision==='reject_missed_error').length,3);assert.equal(d.rows.filter(r=>r.decision==='retain_unknown').length,1);
 });
+test('candidate2 strict sum failure remains rejected; target-only completion makes84 target POSTs and zero judge POSTs',async()=>{
+  const old=read('../results/target-candidate2-validation-20261020/input.json'),r=read('../results/target-candidate2-validation-20261020/predictions.json'),m=read('../results/target-candidate2-validation-20261020/measurement.json');
+  assert.deepEqual(score(old,r,read),m);assert.equal(r.actualPosts,18);assert.equal(m.arms['candidate-2'].completed,6);
+  const req={...request,phase:'target-completion',configuration:'candidate-2'},i=makeInput(req,{},read).input;assert.equal(i.maxPosts,84);assert.equal(i.targetOnly,true);
+  const seen=[],ask=oracle(i),events=[];let n=0;const report=await evaluate(i,q=>{assert.ok(!Object.hasOwn(q.criteria,'no_change'));n++;seen.push(JSON.parse(q.text).body);return ask(q);},e=>events.push(e));report.actualPosts=n;
+  const s=score(i,report,read);assert.equal(n,84);assert.equal(s.assignmentStatus,'OBSERVATION_COMPLETE');assert.equal(s.targetStatus,'OBSERVATION_COMPLETE');assert.equal(s.status,'INCOMPLETE');
+  assert.equal(s.arms['candidate-2'].completed,48);assert.equal(s.diagnostic.unknown,43);assert.equal(s.diagnosticCoverage.originalFullCoverage,'ABANDONED');assert.equal(s.diagnosticCoverage.notRequested,42);
+  assert.equal(events.filter(e=>e.kind==='diagnosis').length,0);assert.ok(!seen.includes(i.rows[5].body));assert.deepEqual(report.rows.slice(0,6),i.prior.rows);
+  const comparison=compareDevelopment([read('../results/target-completion-20261020/measurement.json')],s);assert.equal(comparison.outcome,'DEVELOPMENT_CANDIDATE');assert.equal(comparison.assigned,48);
+});

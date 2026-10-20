@@ -112,7 +112,7 @@ Actual evaluator error detection is **0/9**: every wrong target answer received 
 
 `candidate-1-decisions.json` retains all48 actual diagnosis decisions:36 accepted no-change observations, nine rejected missed errors, two rejected false alarms, one unknown retained. **Useful evaluator repair advice:0.** Candidate-1 is explicitly **Gold/Sys2-led**. Its instruction supplement preserves the entire Best prefix and adds two general reading operations: ground quoted vocabulary/specimen/role-label material in its outer discourse before treating it as an applied requirement or real event; recognize asserted current negative implementation/verification/permission status even inside a proposal. It preserves real quoted logs/comments and functional responsibility tables to avoid fixing false positives by creating false negatives.
 
-The nine-error-to-rule mapping and rejected false alarms are in `candidate-1.json`; no model-generated rationale is invented. No case ID, Gold label list or Issue-number rule is put in target instructions. This candidate is **not yet validated**. Next is one144-POST full-D48 candidate validation under fixed evaluator v1; compare all48 plus separate synthetic/public strata and formerly correct E/O axes. Nominal current path reserves302+144+192=638; more candidates only if complete-phase budget still permits. Root confirmation remains unseen by the repair author until development selection and candidate freeze. No performance gain or evaluator-caused repair has been demonstrated yet.
+The nine-error-to-rule mapping and rejected false alarms are in `candidate-1.json`; no model-generated rationale is invented. No case ID, Gold label list or Issue-number rule is put in target instructions. At this proposal checkpoint the candidate was not validated; the plan was144-POST full-D48 validation under fixed evaluator v1, then one H, reserving302+144+192=638. Subsequent checkpoints below retain the actual failed/completed runs and regression rejection. No evaluator-caused repair is claimed.
 
 ## Partial candidate validation and remaining54
 
@@ -149,7 +149,7 @@ The official [OpenAPI ChoiceAnswer schema](https://api.typesafe.ai/openapi.json)
 
 Seven former wrong cases became correct, **but public-ops-524's O axis broke** (no→yes), so the pre-fixed gate returns `REGRESSION_KEEP_BASELINE`. Aggregate improvement does not override that rejection. Remaining candidate-1 mistakes: specimen HTML O false positive, document-meaning O false positive, completed-human-permission O false negative. E FP0/FN0; O FP2/FN1. H was not opened. Candidate-1 and its complete evidence are immutable; it is not adopted or used as the new Best.
 
-Candidate-2 is another **Gold/Sys2-led** proposal. Its supplement replaces candidate-1's broad status emphasis with explicit priority for the outside use of quoted material and the subject of a reported state/action: an actual implementation status or completed human action differs from definitions of document meaning, permission boundaries or where observations should be recorded. Real quoted logs and functional responsibilities still count. The original Best prefix is unchanged; no ID/Issue lookup is in instructions. Its full48 diagnosis decision table keeps44 accepted no-change,3 rejected misses and1 unknown, with no useful evaluator repair advice claimed. Candidate-2 has not run; next is all D48 ×3=144 after source/CI review. Reservations for that plus one H are500+144+192=836, under1000. No independent confirmation improvement is established.
+Candidate-2 is another **Gold/Sys2-led** proposal. Its supplement replaces candidate-1's broad status emphasis with explicit priority for the outside use of quoted material and the subject of a reported state/action: an actual implementation status or completed human action differs from definitions of document meaning, permission boundaries or where observations should be recorded. Real quoted logs and functional responsibilities still count. The original Best prefix is unchanged; no ID/Issue lookup is in instructions. Its full48 diagnosis decision table keeps44 accepted no-change,3 rejected misses and1 unknown, with no useful evaluator repair advice claimed. At this proposal checkpoint it had not run; the plan was all D48 ×3=144 after source/CI review, reserving500+144+192=836 including H. The following checkpoint records the actual interruption and narrower future phase. No independent confirmation improvement is established.
 
 ```mermaid
 flowchart TB
@@ -161,4 +161,25 @@ flowchart TB
   F --> G{"📏 Gain without observed axis regression?"}
   G -->|no| N["↩️ Keep Best; next finite decision within remaining budget"]
   G -->|yes| H["🔒 Freeze selected candidate before root H disclosure"]
+```
+
+## Candidate-2 probability rejection; target-only completion
+
+[Candidate-2 run39362613357](https://github.com/roccho-org/ops/actions/runs/39362613357) stopped at18 actual POSTs. Six target labels are known and correct;42 remain unknown, so full accuracy/gain remain unknown. This time safe flags identify the rejected `condition-2/evaluator` response: HTTP200, model/key match true, five finite in-range probability values, total0.9900000000000001, selected probability0.56 equals maximum0.56, sum check false. The strict rejection remains in force. It is a response-total inconsistency under our unchanged qualification tolerance, **not a target semantic error or rate-limit inference**. The original failure/receipt and raw events are immutable in `../results/target-candidate2-validation-20261020/`.
+
+After root counter-review, the next phase is deliberately narrowed to **only42 unissued target cases × E/O=84 POSTs**. Remaining42 evaluator calls are no longer requested; their original full-coverage plan is explicitly **ABANDONED**, not completed. Evaluator v1 already missed every observed actual error and now has a demonstrated invalid response. It cannot veto an independently measured Gold/Sys2-led target improvement by starving the target execution. No evaluator answer is invented, normalized or converted to `uncertain`.
+
+This is one explicit target-only branch of the existing thin remainder loop. No new engine, error cache, query ledger or retry is added. The six existing target pairs and five valid diagnoses remain byte-preserved; failed18th diagnostic and previously failed exact queries are never reissued because **no new evaluator requests are made**. The completed-target comparison can cover all48 while evaluator coverage remains5 valid/1 rejected/42 not requested=43 unknown. `status` stays INCOMPLETE for the originally planned full observation; `targetStatus` and current84-call `assignmentStatus` are separate.
+
+Conservative reservations are644+84=728 and one H192 would bring them to920, within1000. Actual series calls before this phase are322; the new maximum is84, not an obligation to consume unused budget. Candidate-2, Best, corpus, Gold, strict model/typed/probability checks and fixed evaluator v1 are unchanged. Abandoning remaining judge coverage means this phase cannot measure evaluator improvement, feedback effectiveness or a fully closed evaluator-driven repair; the claim under test is finite **target configuration** improvement.
+
+```mermaid
+flowchart TB
+  A["🛑 Candidate2 evaluator response: sum0.99 rejected, original run failed"] --> B["🗃️ Keep6 target pairs,5 diagnoses and failed diagnostic unknown"]
+  B --> C["👥 Counter-review: judge failures must not starve independent target measurement"]
+  C --> D["📉 Explicitly abandon42 remaining judge calls; mark unknown/not requested"]
+  D --> E["🧪 Complete only42 new target cases ×2=84 POSTs"]
+  E --> F["📏 WholeD48 target/axes/strata comparison; judge coverage5 valid +43 unknown"]
+  F -->|unknown or regression| R["↩️ No adoption; retain Best and evidence"]
+  F -->|gain without observed axis regression| S["🔒 Freeze candidate before root H disclosure"]
 ```

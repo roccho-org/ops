@@ -28,7 +28,7 @@ export function casesFor(dataset,read=readLocal) {
 }
 export function makeInput(request,execution={mode:'test-double'},read=readLocal) {
   assert.deepEqual(Object.keys(request).sort(),['configuration','dataset','phase','sourceSha']);
-  assert.ok(['development','completion','stress','validation','validation-completion','confirmation'].includes(request.phase));
+  assert.ok(['development','completion','stress','validation','validation-completion','target-completion','confirmation'].includes(request.phase));
   assert.ok(['development','stress','expanded','confirmation'].includes(request.dataset));
   assert.match(request.sourceSha,/^[a-f0-9]{40}$/);
   assert.ok(request.configuration==='baseline'||/^candidate-[1-3]$/.test(request.configuration));
@@ -37,6 +37,7 @@ export function makeInput(request,execution={mode:'test-double'},read=readLocal)
   if(request.phase==='stress')assert.ok(request.dataset==='stress'&&request.configuration==='baseline');
   if(request.phase==='validation')assert.ok(['development','expanded'].includes(request.dataset)&&request.configuration!=='baseline');
   if(request.phase==='validation-completion')assert.ok(request.dataset==='development'&&request.configuration==='candidate-1');
+  if(request.phase==='target-completion')assert.ok(request.dataset==='development'&&request.configuration==='candidate-2');
   if(request.phase==='confirmation')assert.ok(request.dataset==='confirmation'&&request.configuration!=='baseline');
   const cases=casesFor(request.dataset,read);
   assert.equal(cases.length,{development:48,stress:24,expanded:72,confirmation:48}[request.dataset]);
@@ -51,10 +52,11 @@ export function makeInput(request,execution={mode:'test-double'},read=readLocal)
     for(const f of candidate.feedback)assert.ok(typeof f.caseId==='string'&&['evaluator','gold-sys2'].includes(f.origin)&&typeof f.decision==='string'&&f.decision.trim());
   }
   let prior=null;
-  if(['completion','validation-completion'].includes(request.phase)){
-    const validation=request.phase==='validation-completion',prefix=validation?30:6,where=validation?'target-validation':'target-discovery';
+  const targetOnly=request.phase==='target-completion';
+  if(['completion','validation-completion','target-completion'].includes(request.phase)){
+    const validation=request.phase==='validation-completion'||targetOnly,prefix=targetOnly?6:validation?30:6,where=targetOnly?'target-candidate2-validation':validation?'target-validation':'target-discovery';
     const oldInput=read(`../results/${where}-20261020/input.json`),oldReport=read(`../results/${where}-20261020/predictions.json`);
-    const oldScore=score(oldInput,oldReport,read);assert.equal(oldScore.status,'INCOMPLETE');assert.equal(oldReport.actualPosts,validation?90:18);
+    const oldScore=score(oldInput,oldReport,read);assert.equal(oldScore.status,'INCOMPLETE');assert.equal(oldReport.actualPosts,targetOnly?18:validation?90:18);
     assert.equal(oldInput.request.phase,validation?'validation':'development');assert.equal(oldInput.request.configuration,request.configuration);
     if(validation)assert.deepEqual(oldInput.candidate,candidate);
     assert.deepEqual(oldInput.rows,cases.map(({id,body,family})=>({id,body,family:family??'unspecified'})));
@@ -69,9 +71,9 @@ export function makeInput(request,execution={mode:'test-double'},read=readLocal)
     assert.ok(known(c.gold));const flip=x=>x==='yes'?'no':'yes';
     return {id:'injected-'+c.id,caseId:c.id,body:c.body,E:n%3===1?c.gold.E:flip(c.gold.E),O:n%3===0?c.gold.O:flip(c.gold.O)};
   }):[];
-  const maxPosts=(cases.length-(prior?.rows.length??0))*(request.phase==='confirmation'?4:3)+controls.length;
+  const maxPosts=(cases.length-(prior?.rows.length??0))*(request.phase==='confirmation'?4:targetOnly?2:3)+controls.length;
   const input={schema:'ops.sys1.target-loop-input.v1',request,execution,baseline,candidate,
-    rows:cases.map(({id,body,family})=>({id,body,family:family??'unspecified'})),controls,...(prior?{prior}:{}),maxPosts,expectedModel:'jev-1.13.0',deadlineMs:15000};
+    rows:cases.map(({id,body,family})=>({id,body,family:family??'unspecified'})),controls,...(prior?{prior}:{}),...(targetOnly?{targetOnly:true}:{}),maxPosts,expectedModel:'jev-1.13.0',deadlineMs:15000};
   const key=digest({phase:request.phase,bodies:input.rows.map(r=>r.body),baseline,candidate:candidate?.instructions??null,controls});
   return {input,plan:{maxPosts,key}};
 }
@@ -102,8 +104,8 @@ export async function evaluate(input,ask,observe=()=>{}) {
     // Explicit unissued-work completions have a two-case tail. The closed helper
     // keeps its exact four-row contract; this small tail uses its same requests.
     const emit=e=>observed(e.kind==='row'?{kind:'row',row:rename(e.row)}:e);
-    const report=chunk.length===size?await evaluateChunk(inner,ask,emit):
-      await evaluateTail(chunk,inner.baseline,input.expectedModel,ask,emit);
+    const report=chunk.length===size&&!input.targetOnly?await evaluateChunk(inner,ask,emit):
+      await evaluateTail(chunk,inner.baseline,input.expectedModel,ask,emit,input.targetOnly===true);
     rows.push(...report.rows.map(rename));stopped=report.rows.some(r=>r.status!=='ok');
   }
   for(const c of input.controls){
@@ -116,14 +118,17 @@ export async function evaluate(input,ask,observe=()=>{}) {
   }
   return {schema:'ops.sys1.target-loop-predictions.v1',inputDigest:digest(input),terminalReceipt:true,attemptedPosts,rows,controls};
 }
-async function evaluateTail(chunk,instructions,model,ask,observe){
+async function evaluateTail(chunk,instructions,model,ask,observe,targetOnly=false){
   const rows=[];let stopped=false;
   for(const c of chunk){const row={id:c.id,arm:'baseline',status:'not_run',trace:[]};
     if(!stopped)try{
       for(const axis of ['E','O']){const request=targetRequest(c.body,instructions,axis),id=`${c.id}/baseline/${axis}`;observe({kind:'attempt',id});const start=performance.now(),answer=await ask(request);
         assert.equal(answer.model,model);assert.ok(['yes','no'].includes(answer.choice));const item={axis,request,answer,elapsedMs:performance.now()-start};row.trace.push(item);observe({kind:'answer',id,item});}
-      row.prediction=classify(...row.trace.map(t=>t.answer.choice));const request=evaluatorRequest(c.body,...row.trace.map(t=>t.answer.choice)),id=c.id+'/evaluator';observe({kind:'attempt',id});
-      const start=performance.now(),answer=await ask(request);assert.equal(answer.model,model);assert.ok(Object.hasOwn(DIAGNOSIS,answer.choice));row.evaluator={request,answer,elapsedMs:performance.now()-start};row.status='ok';observe({kind:'diagnosis',id,item:row.evaluator});
+      row.prediction=classify(...row.trace.map(t=>t.answer.choice));
+      if(targetOnly)row.evaluatorDisposition='not_requested';
+      else{const request=evaluatorRequest(c.body,...row.trace.map(t=>t.answer.choice)),id=c.id+'/evaluator';observe({kind:'attempt',id});
+        const start=performance.now(),answer=await ask(request);assert.equal(answer.model,model);assert.ok(Object.hasOwn(DIAGNOSIS,answer.choice));row.evaluator={request,answer,elapsedMs:performance.now()-start};observe({kind:'diagnosis',id,item:row.evaluator});}
+      row.status='ok';
     }catch{row.status='error';stopped=true;}
     rows.push(row);observe({kind:'row',row});
   }
@@ -147,7 +152,7 @@ export function responseFlags(data,expectedModel){
 // It is separate from one-shot confirmation and cannot turn judge agreement
 // into an adoption gate.
 export function compareDevelopment(baselines,candidate) {
-  assert.ok(baselines.length>0&&['validation','validation-completion'].includes(candidate.request.phase));
+  assert.ok(baselines.length>0&&['validation','validation-completion','target-completion'].includes(candidate.request.phase));
   assert.ok(baselines.every(b=>['development','completion','stress'].includes(b.request.phase)));
   const before=baselines.flatMap(b=>b.rows),after=candidate.rows;
   assert.equal(new Set(before.map(r=>r.id)).size,before.length);
@@ -188,7 +193,7 @@ export function score(input,report,read=readLocal) {
         if(row.evaluator){assert.deepEqual(row.evaluator.request,evaluatorRequest(c.body,...row.trace.map(t=>t.answer.choice)));assert.equal(row.evaluator.answer.model,input.expectedModel);assert.ok(Object.hasOwn(DIAGNOSIS,row.evaluator.answer.choice));observations.push(row.evaluator);
           const actual=row.evaluator.answer.choice;
           diagnostic[!diagnosis?'unknown':actual===diagnosis?'matched':actual==='uncertain'?'uncertain':diagnosis==='no_change'?'falseAlarm':actual==='no_change'?'missed':'wrongAxis']++;
-        }else diagnostic.unknown++;
+        }else{if(row.evaluatorDisposition==='not_requested')assert.ok(input.targetOnly===true&&!input.prior.rows.some(r=>r.id===row.id));diagnostic.unknown++;}
       }
     }else{a.unknown++;if(input.request.phase!=='confirmation')diagnostic.unknown++;}
     const f=a.families[c.family??'unspecified']??={assigned:0,correct:0,wrong:0,unknown:0};f.assigned++;f[correct===null?'unknown':correct?'correct':'wrong']++;
@@ -221,7 +226,7 @@ export function score(input,report,read=readLocal) {
     for(const axis of ['E','O']){const before=b.trace.find(t=>t.axis===axis),after=v.trace.find(t=>t.axis===axis);if(known(c.gold)&&before&&after&&before.answer.choice===c.gold[axis]&&after.answer.choice!==c.gold[axis])axisRegressed.push({id:c.id,axis});}}
   const usageRows=observations.filter(x=>Object.values(x.answer.usage??{}).some(Number.isFinite));
   const result={schema:'ops.sys1.target-loop-measurement.v1',execution:input.execution,request:input.request,inputDigest:digest(input),status:complete?'OBSERVATION_COMPLETE':'INCOMPLETE',
-    actualPosts:report.actualPosts??null,maxPosts:input.maxPosts,...(input.request.phase!=='development'?{targetStatus:targetComplete?'OBSERVATION_COMPLETE':'INCOMPLETE'}:{}),...(input.prior?{priorActualPosts:input.prior.actualPosts,assignmentStatus:assignmentComplete?'OBSERVATION_COMPLETE':'INCOMPLETE'}:{}),arms,diagnostic,injectedControls:injected,rows,resolved,regressed,axisRegressed,
+    actualPosts:report.actualPosts??null,maxPosts:input.maxPosts,...(input.request.phase!=='development'?{targetStatus:targetComplete?'OBSERVATION_COMPLETE':'INCOMPLETE'}:{}),...(input.prior?{priorActualPosts:input.prior.actualPosts,assignmentStatus:assignmentComplete?'OBSERVATION_COMPLETE':'INCOMPLETE'}:{}),...(input.targetOnly?{diagnosticCoverage:{total:48,requested:6,valid:5,rejected:1,notRequested:42,originalFullCoverage:'ABANDONED'}}:{}),arms,diagnostic,injectedControls:injected,rows,resolved,regressed,axisRegressed,
     usage:usageRows.length?usageRows.reduce((s,x)=>{for(const[k,v]of Object.entries(x.answer.usage))if(Number.isFinite(v))s[k]=(s[k]??0)+v;return s;},{}):null,
     usageRows:usageRows.length,elapsedMs:observations.reduce((s,x)=>s+(x.elapsedMs??0),0),providerCost:null,humanCost:null,
     evidenceScope:input.request.phase==='confirmation'?'root-authored, trusted knowledge-separated one-shot confirmation; not OS-isolated or a population claim':'all assigned development cases; never confirmation quality',
