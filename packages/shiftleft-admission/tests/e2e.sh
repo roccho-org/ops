@@ -37,5 +37,15 @@ cmp "$OUT/proof/receipt.1.json" "$OUT/proof/receipt.2.json"
 POLICYCTL="$POLICYCTL" bash "$ROOT/tests/git-write-admission.sh"
 POLICYCTL_BIN="$POLICYCTL" AST_GREP_BIN="$AST_GREP_BIN" node "$ROOT/tests/local-e2e.mjs" > "$OUT/local-e2e.json"
 grep -q '"status":"PASS"' "$OUT/local-e2e.json"
-node "$ROOT/../structured-diagnostic/tests/interoperability.mjs" > "$OUT/structured-diagnostic-interoperability.txt"
-grep -q 'structured-diagnostic interoperability: PASS' "$OUT/structured-diagnostic-interoperability.txt"
+node "$ROOT/../structured-diagnostic/tests/interoperability.mjs" > "$OUT/structured-diagnostic-interoperability.json"
+node -e '
+  const fs = require("node:fs");
+  const report = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (report.schema !== "diagnostic-interchange-proof/1"
+      || report.status !== "PASS"
+      || report.authority !== false
+      || report.interchange?.javascriptToPython !== "byte-identical"
+      || report.interchange?.pythonToJavascript !== "byte-identical") {
+    process.exit(1);
+  }
+' "$OUT/structured-diagnostic-interoperability.json"
