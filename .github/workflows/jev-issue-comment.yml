@@ -1,7 +1,7 @@
 name: Jev Issue comment evaluation
 
 # Closed Org origins; PR609 accepts supplied input for one fresh finite follow-up trial.
-# Two fresh singleton PR slots; no shared reaction claim.
+# One PR budget claim across a finite ordinal window; no refill.
 # Historical grants remain; no rerun spending or automatic ordinal following.
 on:
   issue_comment:
@@ -22,7 +22,8 @@ jobs:
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.repository.owner.type == 'Organization' &&
-      (github.event.comment.body == '/jev-evaluate' ||
+      ((github.event.comment.body == '/jev-evaluate' &&
+      (github.event.issue.pull_request == null || github.event.issue.number == 511)) ||
       (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&
       github.event.issue.number == 609 &&
       startsWith(github.event.comment.body, fromJSON('"/jev-evaluate\n"')))) &&
@@ -38,7 +39,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: roccho-org/ops
-          ref: 740671a02bcc5ce39ab3c6557036299ae41e18d2
+          ref: 1e5901312ad29c8c24a5be3473abeebcbfafc126
           persist-credentials: false
 
       - name: Install fixed toolchain provisioner
@@ -51,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          runtime_source=740671a02bcc5ce39ab3c6557036299ae41e18d2
+          runtime_source=1e5901312ad29c8c24a5be3473abeebcbfafc126
           test "$(git rev-parse HEAD)" = "$runtime_source"
           out="$(nix build --no-link --print-out-paths .#jev-review)"
           line="$(grep '^exec ' "$out/bin/jev-review")"
