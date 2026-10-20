@@ -12,6 +12,14 @@ eligible条件は出力前に固定する。全文が非空で、611固定の3�
 
 このeligible固定frameへの近似であり、将来GitHub、全ops、Appsの完成性能への一般化ではない。「未使用」は旧入力/取得snapshot/候補開発に未投入という境界で、model pretrainingや全actorの生涯未読を保証しない。updated_atだけ変わった同本文や同issue改版をprimaryのfresh案件へ戻さない。
 
+## 収斂した取得routeと失敗境界
+
+capture.mjsはrootの私的data worktreeでだけ使う標準gh API capture。開始から最大3600000ms（1h）、既存認証でmetadata-only GraphQLによりpublic repo IDと既source issue/pullの不変node IDを解決し、RESTのgh api --paginate --slurpを各repo一回正常終端まで実行する。自前cursor/HTTP broker/新authは置かない。全raw pageとAPI invocation結果を私的ファイルへ保持する。API/identity/pagination/timeout/順序/duplicate不成立はFRAME_INVALID、部分原文を残してsampling/model作用0。空eligibleはNO_ELIGIBLE_FRAMEで近似成功ではない。
+
+priorは611base refをnative Gitで一度commitへ解決し、そのexperiments/**/*.jsonからURLとbody値（旧provider text内のJSON bodyも含む）を機械抽出する。旧605はmetadata100＋本文8という実在差を保持し、100URLを保守的identity除外する。GraphQLはbodyを要求せず、不変repo/issue node IDへ解決。未解決をURL fallbackで通さない。別issueのprior完全同本文も除外する。文字列の意味/nearcloneによる恣意除外なし。新frame内の同本文複数issueは排除せず群数/重複数を記述する。
+
+whole-body原版、repo/issue不変ID、取得window、除外理由とcoverageをpure materializeFrameで検証する。完了直後はOBSERVED_FRAME_AWAITING_NATIVE_RETAINで、rootが原raw/frameをnative Git保持・独立readbackするまでcold Capturedやsampling可とはしない。Wは未抽出frame本文/Goldを読まない。
+
 ## 一回の抽出とGold
 
 frame原bytesをnative Git保持した後、一回だけ標準crypto.randomIntのFisher–Yatesでuniform permutationを作る。n=min(300,M)、Mはeligible frame件数。draw indicesとpermutationを一つのsampling receiptへ保持し純粋再生する。独自PRNG/beacon/手転記SHA gateは不要。残れば非開示suffixをreserve、M<=300ならcensus。reserve維持のため恣意的に標本を半減しない。欠測・曖昧例の後付け再抽選/穴埋めはしない。
@@ -28,7 +36,9 @@ rootとcounterreviewがモデル出力を見る前に、bodyとopaque IDだけ�
 
 fully unresolved casesをuとし、rはfully resolved内だけで数える。partialでも判明した軸退行は別に観測し、観測退行0の判定に含める。全nで差のworst-case境界[(b−c−u)/n,(b−c+u)/n]、退行上側(r+u)/nを残し、既知subsetだけで成績を上げない。
 
-反復familyのround j>=1でalpha_j=.05/2^j。初回.025、全roundを足して.05以下。新PR/失敗/候補変更でjをリセットしない。有限population hypergeometric反転でB_L/B_U/C_L/C_U/R_Uの5tailsへ各alpha_j/5を割り当てる案を3者反証中。uはB観測[b,b+u]、C[c,c+u]、R[r,r+u]として最悪向きへ入れる。差区間は[(B_L−C_U)/M,(B_U−C_L)/M]、退行上側R_U/Mを報告する。
+反復familyのround j>=1でalpha_j=.05/2^j。初回.025、全roundを足して.05以下。新PR/失敗/候補変更でjをリセットしない。E軸はpaired件数/率/FPFN、repo別/自然Gold分布/unknown率は記述副次だけで、別CI/p値/成功判定を追加しない。Eだけ良くてもjoint未成立を全体successへ変えず、unionの1issue1weightをrepo等重みに後変更しない。
+
+有限population hypergeometric反転でB_L/B_U/C_L/C_U/R_Uの5tailsへ各alpha_j/5を割り当てる。tail==alphaを除外せず、tail>=alphaを保守的にretainする。実装は3者反証/独立数値検証前。uはB観測[b,b+u]、C[c,c+u]、R[r,r+u]として最悪向きへ入れる。差区間は[(B_L−C_U)/M,(B_U−C_L)/M]、退行上側R_U/Mを報告する。
 
 事前受入案は差lower>0、観測既知case軸退行0（partial含む）、全n worst-caseでも正の差、sampling/provenance/modelに未解決無効化なし。退行upper<=1%はUser要求でなく設計上届かない場合があるためgateにしない。必ず上限を数値報告し、人口ゼロ/1%保証とは呼ばない。
 

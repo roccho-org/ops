@@ -37,7 +37,21 @@
       "late replacement of missing or ambiguous sampled cases"
     ],
     "snapshot": "created before cutoff; newest body actually obtained per record during a bounded acquisition window, not atomic historical snapshot; record created_at/updated_at/retrievedAt separately",
-    "identity": "resolve immutable repository IDs before acquisition; preserve issue provider ID/number/URL and captured body bytes"
+    "identity": "resolve immutable repository IDs before acquisition; preserve issue provider ID/number/URL and captured body bytes",
+    "acquisition": {
+      "maxWindowMs": 3600000,
+      "start": "before the first metadata/body API invocation",
+      "completion": "native gh API --paginate --slurp exit0 with terminal pagination; raw pages preserved",
+      "invalid": "API error, timeout, missing identity, duplicate/invalid pagination, changed repository or >1h capture keeps partial raw and forbids sampling",
+      "version": "each item body with created_at/updated_at and per-native-invocation completion retrievedAt; no historical atomic snapshot"
+    },
+    "priorInputs": {
+      "nativeSource": "resolve the declared PR611 base ref once with native Git; read retained experiments/**/*.json objects from that commit",
+      "references": "all issue/pull URLs in those retained JSON values, plus explicit ops482; conservatively resolve all100 metadata-only old605 inventory URLs without claiming body100 observation",
+      "identity": "body-free standard GraphQL issueOrPullRequest -> repository and issue immutable node IDs; unresolved is INVALID, no URL fallback",
+      "body": "exact prior body values including serialized old provider body JSON; separate issue with identical body excluded without semantic nearclone filtering",
+      "newFrameDuplicates": "retain and describe identical-body groups inside new frame; one issue remains one weight"
+    }
   },
   "sampling": {
     "method": "SRSWOR via one random permutation of the frozen eligible frame",
@@ -71,7 +85,12 @@
     ],
     "regressionUpper": "always report numerically, no arbitrary 1% acceptance threshold",
     "assumptions": "design-based exactness presumes fixed finite binary outcomes and SRS; model stochasticity/backend/Gold uncertainty limit the actual protocol claim to an approximation",
-    "implementation": "not yet implemented or accepted"
+    "implementation": "not yet implemented or accepted",
+    "secondary": {
+      "E": "descriptive paired counts/rates/FPFN only, no additional CI/pvalue or success endpoint",
+      "repositories": "descriptive strata and natural Gold/unknown distributions; union keeps one issue one weight"
+    },
+    "tailBoundary": "retain tail >= alpha, equality included conservatively"
   },
   "execution": {
     "plannedPhysicalCalls": "3 * sample n, at most 900 per round",
