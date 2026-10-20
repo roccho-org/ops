@@ -1,0 +1,48 @@
+{
+  "schema": "ops.sys1.expectation-census-plan.v1",
+  "roundIndex": 5,
+  "purpose": "One new E-only presentation hypothesis under the original broad E/O rubric; no rescue of PR617's predeclared NOT_RECONFIRMED outcome, no product E2E or same-cost claim",
+  "development": {
+    "cases": "all retired old300 plus all retired census207, existing body/source/Gold unchanged; original IDs preserved",
+    "jointAnchor": "mechanical first snapshot: observation-pass1-20261020 for old300 and census-and-pass1-20261021 for retired207; their original BestE and BestO receipts, never a favorable snapshot",
+    "protection": "known-correct E union from all four actual sharedE histories: observation-pass1/pass2-20261020 and census-and-pass1/pass2-20261021; 1014 physical E receipts. All five reserve-development phases' first-snapshot E aliases must equal their original receipt and add no physical evidence or cost",
+    "knownBeforeCandidate": {"cases": 507, "physicalHistoricalE": 1014, "protectedE": 486, "firstJointCorrect": 392, "jointGoldUnresolved": 16},
+    "acceptance": "all507 new E qualified and expected model, positive complete E/O known joint gain against fixed first-snapshot historical O, and zero known-correct E union destruction; missing candidate E is UNKNOWN, not a known regression; known regression and missing remain separately visible",
+    "newPosts": 507,
+    "proposedJobMinutes": 150,
+    "deadlineBasis": "507*15 seconds=126.75 minutes, plus keyless preparation and retention margin; cap, not completion guarantee",
+    "limit": "Nonconcurrent development diagnostic only. E-only repair is not necessarily complete E/O repair. Does not establish fresh contemporary O/E performance or unseen-case improvement"
+  },
+  "freshTarget": {
+    "metadataNativeCommit": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "metadataPrefix": "experiments/sys1-eval-loop/census-root-data/external-metadata-2/",
+    "membership": "Only Issue metadata actually observed in that accepted full-history capture and its same three immutable public repository IDs; not a fresh snapshot or proof of all issues in an entire day",
+    "createdAtInclusive": "2026-10-20T00:00:00Z",
+    "createdAtExclusive": "2026-10-20T18:00:00Z",
+    "order": "validate all original query/page/cursor/global typed-ID versions, then UTC created window, immutable ID dedup, createdAt plus locale-independent ordinal issue ID sort, prefix at most300 fixed before body",
+    "maximumPrefix": 300,
+    "priorRecipe": "Exactly PR617's fixed407 native input blobs plus native94b7a1ae68aee940c57f6304b5ff8c21f529839d external-body-1 full actual210 body captures and typed identities, including its empty1/oversize2 exclusions; replay exact body/typed-ID/explicit-array semantics. Do not add all322718 metadata-only IDs as used task bodies or include current-round bodies into their own prior",
+    "body": "Only after candidate actual fullwire freeze, development guard and source acceptance: fixed-prefix known IDs excluded before body; standard immutable Issue wholebody once, original order/versions; prior exact body, empty and any of three serialized requests>=24000 bytes excluded; no truncation or refill",
+    "visibility": "Same public ID/name/Issue-enabled checks before/after body, complete source/clock/query/reply originals, one-hour cap, changes or uncertainty invalidate; non-atomic visibility race is not absolutely excluded",
+    "gold": "Existing real-case corpus/body-only view; original split.mjs rubric, mutually unread prediction-blinded root/R initials native-frozen before adjudication; unresolved null and every eligible case remain; candidate-known same-model-rater limitation",
+    "M0": "NO_CASES/model0 retained; no post hoc window/repository/prefix expansion or substitution",
+    "scopeLimit": "Operational nonoverlap with actual retained typed IDs and exact bodies, not semantic/author/template/pretraining independence; 1 Issue 1 weight including duplicate bodies. Existing prior-reference transfer limits remain"
+  },
+  "freshMeasurement": {
+    "physicalKeys": ["bestE", "scopedE", "sharedO"],
+    "perPassMaximum": 900,
+    "passes": 2,
+    "maximumPosts": 1800,
+    "rule": "Both E arms measured contemporaneously with one sharedO per case within each pass; no historical O or cross-pass reuse. Each pass all3M qualified, expected model, positive minimum complete E/O gain and zero maximum axis regression over common Gold completions",
+    "continuation": "Semantic FAIL or ordinary qualification unknown does not cancel planned pass2; actual model drift remains technical stop; no average/winner selection or doubling case denominator",
+    "proposedJobMinutes": 250,
+    "deadlineBasis": "900*15 seconds=225 minutes plus preparation/projection/retention margin; cap, not completion guarantee",
+    "combinedNewMaximum": 2307,
+    "accounting": "507 development plus at most1800 fresh H posts. Historical aliases have no new cost. Old PR616/617 calls and all failures remain separately recorded; money/internal compute/total_tokens absence unknown; equal O call count is not same token cost"
+  },
+  "currentStage": "pure candidate, historical replay, fixed guard and prospective contract only; native activation/runtime and fresh collector admission are separate later source reviews",
+  "newMetadataQueries": 0,
+  "newBodyQueries": 0,
+  "newModelPosts": 0,
+  "adopted": false
+}

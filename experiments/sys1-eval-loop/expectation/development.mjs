@@ -1,0 +1,21 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+import {retainedDevelopment,verifyHistoricalDevelopment,historicalRows} from '../reserve/development.mjs';
+import {retainedCensus} from '../census/runtime.mjs';import {validateCensusDataset} from '../census/data.mjs';import {verifyCensusPassRecord,reconfirmCensus} from '../census/measurement.mjs';
+import {expectationRequest,expectationTemplates} from './request.mjs';import {wireTemplate} from '../regression/scoped-request.mjs';
+const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url),'utf8'));
+const censusRecord=rep=>{const p=`results/census-and-pass${rep}-20261021/`;return {input:read(p+'input.json'),report:read(p+'predictions.json'),provider:read(p+'provider.json'),projection:read(p+'projection.json'),events:fs.readFileSync(new URL('../'+p+'events.jsonl',import.meta.url),'utf8').trim().split('\n').map(JSON.parse)};};
+export async function retainedExpectationDevelopment(){
+ assert.ok(!process.env.JEV_API_KEY);const old=retainedDevelopment(),validated=await verifyHistoricalDevelopment(old),oldAliases=historicalRows(old),current=retainedCensus();validateCensusDataset(current);const recent=[1,2].map(censusRecord),measured=[];
+ for(const record of recent){const base=structuredClone(record),saved=base.projection.reconfirmation;delete base.projection.reconfirmation;const p=await verifyCensusPassRecord(base,current.corpus.cases,current.selection);assert.equal(p.measurement.effectCounts.qualified,828);assert.equal(p.measurement.modelStable,true);if(saved)assert.deepEqual(saved,reconfirmCensus([measured[0],p]));measured.push(p);}
+ // All five old D phases refer to the first actual sharedE; these are aliases,
+ // not five additional physical E measurements or opportunities to pick a run.
+ for(const phase of [1,2,3,4,5]){const input=read(`results/reserve-development${phase}-20261020/input.json`);assert.equal(input.rows.length,300);for(const [i,row]of input.rows.entries()){assert.equal(row.id,oldAliases[i].id);assert.equal(row.body,oldAliases[i].body);assert.deepEqual(row.aliases.E,oldAliases[i].aliases.E);}}
+ const provenance=(h,rep)=>({repId:rep,key:'sharedE',runId:h.provider.runId,source:h.provider.source,activation:h.provider.head,runUrl:h.provider.runUrl,artifactId:h.provider.artifactId});
+ const groups=[{corpus:old.corpus,history:old.history,values:[validated.h1,validated.h2]},{corpus:current.corpus,history:recent,values:measured.map(p=>p.measurement.rows.map(r=>({id:r.id,...r.best})))}],rows=groups.flatMap(g=>g.corpus.cases.map((c,i)=>{const snapshots=g.values.map((values,rep)=>{assert.equal(values[i].id,c.id);return {E:values[i].E,O:values[i].O,provenance:provenance(g.history[rep],rep+1)};});return {id:c.id,body:c.body,sourceId:c.sourceId,source:c.source,gold:c.gold,snapshots};}));assert.equal(rows.length,507);assert.equal(new Set(rows.map(r=>r.id)).size,507);
+ for(const g of groups)for(const h of g.history)assert.equal(h.input.best,old.history[0].input.best);const physicalHistories=groups.flatMap(g=>g.history.map((h,i)=>({...provenance(h,i+1),cases:g.corpus.cases.length})));assert.equal(physicalHistories.reduce((n,h)=>n+h.cases,0),1014);
+ return {rows,best:old.history[0].input.best,physicalHistories,aliasPhases:[1,2,3,4,5],scope:'old300 and retired207, mechanical first snapshot for joint gain; all four original sharedE physical histories for E protection; historical aliases remain nonconcurrent'};
+}
+export async function prepareExpectationDevelopment(data,execution){
+ assert.ok(!process.env.JEV_API_KEY);assert.equal(data.rows.length,507);const rows=data.rows.map(({id,body})=>({id,body})),templateProof=await expectationTemplates(data.best);for(const row of rows)assert.ok(Buffer.byteLength(JSON.stringify(await wireTemplate(expectationRequest(row.body,data.best,'scopedE'))))<24000);
+ return {schema:'ops.sys1.expectation-development.v1',rows,best:data.best,templateProof,expectedModel:'jev-1.13.0',maxPosts:507,execution,historyScope:'mechanical first joint anchor; four original physical E histories, not repeated alias receipts'};
+}
