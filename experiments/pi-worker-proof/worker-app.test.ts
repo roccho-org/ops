@@ -49,7 +49,7 @@ async function saved(session: string) {
   );
 }
 
-async function connect(session: string) {
+async function connect(session: string, conversationId = 1) {
   const response = await exports.default.fetch(
     `https://example.com/api/sessions/${session}?username=Owner`,
     { headers: { Upgrade: "websocket" } },
@@ -60,11 +60,25 @@ async function connect(session: string) {
   socket.addEventListener("message", (event) => { messages.push(JSON.parse(String(event.data))); });
   socket.accept();
   await vi.waitFor(() => expect(messages.length).toBeGreaterThanOrEqual(4), wait);
+  const result = (requestId: string) => messages.find((message) =>
+    (message as { requestId?: string }).requestId === requestId,
+  ) as { ok: boolean; conversationId: number } | undefined;
+  if (conversationId !== 1) {
+    const requestId = `open-${conversationId}`;
+    socket.send(JSON.stringify({ type: "conversation.open", requestId, conversationId }));
+    await vi.waitFor(() => expect(result(requestId)?.ok).toBe(true), wait);
+  }
   return {
     socket,
     messages,
+    get conversationId() { return conversationId; },
+    create: async (requestId: string) => {
+      socket.send(JSON.stringify({ type: "conversation.create", requestId }));
+      await vi.waitFor(() => expect(result(requestId)?.ok).toBe(true), wait);
+      conversationId = result(requestId)!.conversationId;
+    },
     submit: (requestId: string, content: string) =>
-      socket.send(JSON.stringify({ type: "prompt.submit", conversationId: 1, requestId, content })),
+      socket.send(JSON.stringify({ type: "prompt.submit", conversationId, requestId, content })),
   };
 }
 
@@ -129,13 +143,13 @@ function mockRemote(replies: string[], revoked = false) {
   return { inference, rotations: () => rotations };
 }
 
-async function submissionStatus(session: string, requestId: string, expected: string) {
+async function submissionStatus(session: string, requestId: string, expected: string | readonly string[], conversationId: number = ROOT_CONVERSATION_ID) {
   await vi.waitFor(async () => {
     const status = await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
       const storage = await openDurableObjectSqliteStorage(state.storage);
-      return (await storage.submissionByRequest(ROOT_CONVERSATION_ID, requestId, BACKGROUND_CONTEXT))?.status;
+      return (await storage.submissionByRequest(conversationId as typeof ROOT_CONVERSATION_ID, requestId, BACKGROUND_CONTEXT))?.status;
     });
-    expect(status).toBe(expected);
+    expect(typeof expected === "string" ? [expected] : expected).toContain(status);
   }, wait);
 }
 
@@ -297,7 +311,7 @@ function jevToolStream(calls = 1) {
 
 describe("Worker Pi -> canonical Jev client -> SQLite proof (all remote replies mocked)", () => {
   it("commits typed tool output, recreates the DO and restores it for a neutral second user turn", async () => {
-    const session = "jev-tool-reopen";
+    const session = "jev-proof";
     await seed(session, fixture());
     const marker = "fixture-marker-6f1d84b8538a4fb9";
     const inference: unknown[] = [];
@@ -308,6 +322,7 @@ describe("Worker Pi -> canonical Jev client -> SQLite proof (all remote replies 
       if (String(input) === "https://api.typesafe.ai/v1/systemone") {
         jevPosts++;
         expect(new Headers(init?.headers).get("authorization")).toBe("Bearer fixture-jev-not-real");
+        expect(init?.redirect).toBe("error");
         expect(body).toMatchObject({ model: "jev-latest", questions: { assessment: { type: "noul" } } });
         return Response.json({ model: "jev-latest", answers: { assessment: { type: "noul", noul: 0.734125 } } });
       }
@@ -327,6 +342,7 @@ describe("Worker Pi -> canonical Jev client -> SQLite proof (all remote replies 
       throw new Error("Unexpected extra model request");
     });
     const first = await connect(session);
+    await first.create("jev-first-conversation");
     first.submit("jev-first", `Remember ${marker}; ask Jev once and use its answer.`);
     await vi.waitFor(() => {
       expect(JSON.stringify(first.messages)).toContain("fixture-consumed-jev-answer");
@@ -334,7 +350,7 @@ describe("Worker Pi -> canonical Jev client -> SQLite proof (all remote replies 
     }, wait);
     await closeSocket(first.socket);
     await evictDurableObject(env.SESSIONS.getByName(session));
-    const second = await connect(session);
+    const second = await connect(session, first.conversationId);
     expect(JSON.stringify(second.messages)).toContain("0.734125");
     // Fresh client sends no previous values, transcript or prompt.
     second.submit("jev-recall", "Recall the marker and assessment from our earlier exchange.");
@@ -350,7 +366,7 @@ describe("Worker Pi -> canonical Jev client -> SQLite proof (all remote replies 
   });
 
   it("admits only one native POST when the model emits two calls in the same round", async () => {
-    const session = "jev-parallel-admission";
+    const session = "jev-proof";
     await seed(session, fixture());
     let models = 0, posts = 0;
     vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
@@ -362,6 +378,7 @@ describe("Worker Pi -> canonical Jev client -> SQLite proof (all remote replies 
       return ++models === 1 ? jevToolStream(2) : responseStream("fixture-two-calls-settled");
     });
     const client = await connect(session);
+    await client.create("jev-parallel-conversation");
     client.submit("jev-parallel", "Ask for the assessment.");
     await vi.waitFor(() => expect(JSON.stringify(client.messages)).toContain("fixture-two-calls-settled"), wait);
     expect(posts).toBe(1);
@@ -385,7 +402,7 @@ describe("bounded Jev proof failure and legacy boundaries", () => {
   });
 
   it("retains the consumed allowance after post-send interruption, recreation and a new task", async () => {
-    const session = "jev-interrupted";
+    const session = "jev-proof";
     await seed(session, fixture());
     let posts = 0, requests = 0;
     vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -399,21 +416,25 @@ describe("bounded Jev proof failure and legacy boundaries", () => {
       return responseStream("fixture-interruption-recovery");
     });
     const first = await connect(session);
+    await first.create("jev-interrupted-conversation");
     first.submit("jev-interrupt-first", "Ask for one assessment.");
     await vi.waitFor(() => expect(posts).toBe(1), wait);
     first.socket.close(1000, "forced recreation test");
     await abortAllDurableObjects();
-    const reopened = await connect(session);
+    const reopened = await connect(session, first.conversationId);
     reopened.submit("jev-interrupt-new-task", "Try a new assessment");
     await vi.waitFor(() => expect(JSON.stringify(reopened.messages)).toContain("JEV_PROOF_ATTEMPT_CONSUMED"), wait);
+    await submissionStatus(session, "jev-interrupt-new-task", ["done", "unanswered"], first.conversationId);
     expect(posts).toBe(1);
+    expect(requests).toBeGreaterThanOrEqual(2);
+    console.info("fixture-interruption-counts", JSON.stringify({ userTurns: 2, modelRequests: requests, jevPosts: posts }));
     const frames = JSON.stringify(reopened.messages);
     expect(frames.includes("interrupted") || frames.includes("JEV_OUTCOME_UNKNOWN")).toBe(true);
     await closeSocket(reopened.socket);
   });
 
   it("halts an invalid-response round without provider-text exposure or retry", async () => {
-    const session = "jev-invalid";
+    const session = "jev-proof";
     await seed(session, fixture());
     let posts = 0, requests = 0;
     vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
@@ -426,6 +447,7 @@ describe("bounded Jev proof failure and legacy boundaries", () => {
       return jevToolStream(2);
     });
     const client = await connect(session);
+    await client.create("jev-invalid-conversation");
     client.submit("jev-invalid-result", "Ask for the assessment.");
     await vi.waitFor(() => {
       expect(JSON.stringify(client.messages)).toContain("JEV_OUTCOME_UNKNOWN");

@@ -13,9 +13,9 @@ Existing resources supply nearly everything:
 
 `apply.py` copies the canonical Jev client/core bytes into the generated upstream build; it does not maintain a client fork. The small declaration describes the used JS surface. No transport, decoder, auth framework, broker, daemon or general quota service is added.
 
-An operator-provided `PI_JEV_PROOF_API_KEY` selects the bounded proof composition: only `ask_jev`, SDK retries zero and durable generation retries disabled. With no binding, legacy tools and retry/compaction defaults remain. No real key is supplied by this fixture. Model arguments contain only bounded state and question. The canonical decoder returns a fixed typed numeric assessment into transcript `output`.
+An operator-provided `PI_JEV_PROOF_SESSION` selects exactly one named DO (native idFromName equality); only that DO with `PI_JEV_PROOF_API_KEY` selects the bounded proof composition: only `ask_jev`, SDK retries zero and durable generation retries disabled. With missing/nonmatching session or missing key, legacy tools and retry/compaction defaults remain. No real key is supplied by this fixture. Model arguments contain only bounded state and question. The canonical decoder returns a fixed typed numeric assessment into transcript `output`.
 
-The allowance is experiment-only, one per conversation, inherited as consumed by forks. Unsafe replay prevents rerunning an interrupted task; the persisted allowance also blocks new tasks. An uncertain result never restores it. UNKNOWN does not mean no charge. Adapter-returned failures ask the standard Harness to terminate. Engine-synthesized interruption on recovery may still cause model requests: the allowance bounds Jev POSTs, not all model activity. No exactly-once claim is made.
+The allowance is experiment-only, one per conversation, inherited as consumed by forks. The allowance is per conversation, not a global job/spend cap. Proof binding uses native Fetch redirect:error so 307/308 cannot issue another POST. Unsafe replay prevents rerunning an interrupted task; the persisted allowance also blocks new tasks. An uncertain result never restores it. UNKNOWN does not mean no charge. Adapter-returned failures ask the standard Harness to terminate. Engine-synthesized interruption on recovery may still cause model requests: the allowance bounds Jev POSTs, not all model activity. No exactly-once claim is made.
 
 Current resources are separate evidence classes:
 
@@ -69,5 +69,7 @@ flowchart TB
 ```
 
 The existing screen-only package/admission stays unchanged. Access GET302 proves a perimeter redirect, not origin version or deployed chat/DO behavior. Ubuntu CI does not repair or prove the separate native Nix workerd runtime.
+
+Full live also requires supported OAuth token/nonce validation and runtime compatibility; the pinned SDK's existing validation gaps are not addressed by this Jev source slice. No inference with that unresolved authentication path is accepted.
 
 Live credential storage remains blocked: [SIWC Terms §1–2](https://openai.com/policies/sign-in-with-chatgpt-terms/) distinguish local persistent token storage from user-controlled remote execution. [Self-hosted VM technical documentation](https://developers.openai.com/siwc/token-sharing-open-source/self-hosted-vms) does not establish an exception for this persistent DO store. Applicable app approval/basis is absent or unknown. No API-key substitute, credential transfer, real inference, deployment or merge is authorized by this source checkpoint.

@@ -26,6 +26,7 @@ export default defineConfig({
           new Response("MOCK_ONLY: native outbound denied", { status: 401 }),
         bindings: {
           PI_JEV_PROOF_API_KEY: "fixture-jev-not-real",
+          PI_JEV_PROOF_SESSION: "jev-proof",
           OPENAI_API_KEY: "",
           PI_OAUTH_HOST_ID: "00000000-0000-4000-8000-000000000563",
           PI_PROOF_AUTH: JSON.stringify(credential),

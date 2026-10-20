@@ -59,5 +59,5 @@ function stopped(code: string) {
 
 // Server binding only: no model argument can set a key, provider, URL or model.
 export function bindJevProof(apiKey?: string) {
-  return apiKey ? createJevProofTool(bindJev({ apiKey })) : undefined;
+  return apiKey ? createJevProofTool(bindJev({ apiKey, fetch: (input, init) => globalThis.fetch(input, { ...init, redirect: "error" }) })) : undefined;
 }
