@@ -38,6 +38,16 @@ C5・原Best・式・二回AND・全分母/資格/未知・最大2400/330分案�
 
 ## 最小系列と完成条件
 
+### 本文materializer（現在は人工fixtureのみ）
+
+`body.mjs` / `body-contract.json` はmetadataとpriorの実原版受容後のwholebody段階を実装する。metadataの自称statusだけを採用せず、同native revision由来のcompletion/prefix/source/count/time一致・invalid不在を要求する。pure関数はcallerが与えたnative文字列自体を認証できないため、標準hostが実Git原版・無invalid・全query/cursor原traceの独立受容を結合する。新copied-SHA gateや別台帳は作らない。private prior ID union/body集合も固定407＋実型解決の受容済み原版から渡す。
+
+prefixの既知IDは本文前に除外し、残りだけをimmutable Issue node queryで元順に一回取得。本文を切詰めず、exact prior body→empty→全4wire24000 bytes未満の順で判定し、除外理由を全prefix分残して補充しない。子repoのID/現在名/public、Issue ID/number/createdAtを照合、metadata updatedAtと取得本文updatedAt/retrievedAtを別保持する。前後両snapshotが同じ別名でも固定3repo元名への一致を要求し、全capが公開観測内/全1hに収まることを検証する。非原子的raceは絶対0と称さない。
+
+C5検証は既存reserveのfrozen configurationをexport aliasで再用し、旧関数本体/23行schema/92予算は変えない。標準request builderとkeyless wire captureでactual selectionの全4templateと各本文の上限を検証し、Jevの実network/資格情報を使わない。新frame内同bodyはIssueごとのweightを保つ。original Gold rubric/独立初稿/native凍結/合議nullは後段、現在は実body/model0、人工fixtureの通過を品質改善とはしない。provider/native entryはまだ未実装・未受容である。
+
+未使用の証拠範囲は、実保持した530 typed Issue ID/1708 exact bodyと今回の公開scope内追加型解決との非重複である。35repo名のID解決だけでは、scope外の旧Issue URLが移管/redirectで新scopeへ入った可能性まで排除しない。参照URLは本文観測と同じではなく、未解決/scope外の2211参照残余は私的metadataとして保持する。「全参照Issueを世界全体で未使用」「全actorの生涯未読」「意味/学習未見」と称さない。この限界を隠す全2211追加問い合わせや、本文/成績を見た除外変更は行わない。
+
 同repo/Issue523、同policy0dd39、同三者・W sole writer。baseは616最終source5c6d9c44d786d9af054768a62272c84fa9802871。この一PRを、実数学→metadata/body取得契約/collector→native原frameと独立Gold→固定二回→全raw/独立算術/費用/最終CI/Ready未mergeの順に進める。後続PR番号や成功を先に作らない。cross-PR gateは `fixed-c5-prospective-census-closure` とし、入力は616不変原版/actualC5 proofと当PR最終tree・新cohort native/両回raw、失敗条件は旧判定改変/設定drift/不完全原版/資格不明/片回未達/未閉CIである。既存native原版・通常CI・独立reviewの結合条件を説明する名称で、独自管理・台帳・別基盤を追加しない。実entryは未実装。
 
 C5は元BestよりO呼出しを一つ多く使う追加資源bundle。新二回で得るのも固定集合の観測精度差と未確定Goldに対するrobust整数包絡であり、同原価改善・モデル重み向上・backend固定・未来期待性能・実製品E2E・費用改善は未証明のままにする。
