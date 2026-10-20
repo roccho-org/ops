@@ -1,3 +1,4 @@
+import {assertGraphQLEnvelope} from './issue-pages.mjs';
 import assert from 'node:assert/strict';
 
 // A separately declared convenience cohort, never a replacement for the
@@ -9,7 +10,7 @@ export function replayExternalRepositoryScope(captures){
  assert.deepEqual(captures.map(c=>c.requestedFullName).sort(),[...EXTERNAL_REPOSITORIES].sort());
  const ids=new Set(),repositories=[];
  for(const fullName of EXTERNAL_REPOSITORIES){
-  const c=captures.find(c=>c.requestedFullName===fullName);assert.equal(c.status,'SUCCESS');assert.equal(c.error,null);exact(c.reply,['data']);exact(c.reply.data,['repository']);
+  const c=captures.find(c=>c.requestedFullName===fullName);assert.equal(c.status,'SUCCESS');assert.equal(c.error,null);assertGraphQLEnvelope(c.reply);exact(c.reply.data,['repository']);
   const r=c.reply.data.repository;assert.ok(r);exact(r,['__typename','id','nameWithOwner','isPrivate','hasIssuesEnabled']);assert.equal(r.__typename,'Repository');assert.ok(typeof r.id==='string'&&r.id&&!ids.has(r.id));ids.add(r.id);assert.equal(r.nameWithOwner,fullName);assert.equal(r.isPrivate,false);assert.equal(r.hasIssuesEnabled,true);
   repositories.push({nodeId:r.id,fullName:r.nameWithOwner});
  }

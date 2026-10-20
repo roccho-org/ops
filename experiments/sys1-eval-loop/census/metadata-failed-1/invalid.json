@@ -1,0 +1,10 @@
+{
+  "status": "FRAME_INVALID",
+  "sourceCommit": "30edc2d562380f43a4c0feb5fb6febd9c958883d",
+  "startedAt": "2026-10-20T17:45:22.085Z",
+  "endedAt": "2026-10-20T18:20:50.705Z",
+  "nativeQueries": 1860,
+  "reason": "native metadata call failed; no automatic retry",
+  "newBodyRequests": 0,
+  "newModelRequests": 0
+}

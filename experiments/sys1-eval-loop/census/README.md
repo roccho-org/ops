@@ -34,11 +34,19 @@ C5・原Best・式・二回AND・全分母/資格/未知・最大2400/330分案�
 
 `issue-pages.mjs` は旧117と新3scopeのpage形状/field whitelist/UTC filter/ordinal prefixだけを共有するpure reader。旧default queryと境界は維持し、旧native a74の117 raw全再生で354/window0/prefix0と全既存出力・query一致を確認した。`external-issues.mjs` は保存された3scope原capturesを再生し、実scope ID・元名称・mode/window/max300/1時間へ拘束する。providerの完全性・実after=前endCursor・公開確認・native来歴はpure reader単独では証明せず、標準host原traceの独立検証を必要とする。原pageをtraceとcaptureへ二重物理複写せず、traceからメモリpagesを作ってreaderへ渡してよい。本文materializerは後段のpure sourceとして実装済みで、実body host/provider入口の受容は別段階である。
 
-追加counterとして全typed Issue IDのmetadata整合性をwindow filter前にも検証する。同IDのoutside→insideやoutside同士のfullrow矛盾をINVALIDとし、同一duplicateは原row/既存window内countを保持する。updatedAtは可変なので差分をprovider不正と断定せず、非原子的capture内の版整合が成立しない技術状態として扱う。稼働中のsource30ed取得は再起動せず原source/raw/prefixを保持し、終端後に新readerとroot/Rの独立full-ID mapで同原版を追加再生する。原30edがこの強化を元から保証したとは称さず、矛盾なしの実再生後だけprefix不変を受容し、再取得や除外で整えることはしない。
+追加counterとして全typed Issue IDのmetadata整合性をwindow filter前にも検証する。同IDのoutside→insideやoutside同士のfullrow矛盾をINVALIDとし、同一duplicateは原row/既存window内countを保持する。updatedAtは可変なので差分をprovider不正と断定せず、非原子的capture内の版整合が成立しない技術状態として扱う。source30ed取得は途中再起動せず原source/rawを保持したが、call01860のHTTP503でFRAME_INVALIDとなり受容可能prefixはない。成功した原replyも新readerとroot/Rの独立full-ID mapで診断するが、partialからframeを作らない。原30edがこの強化を元から保証したとは称さず、矛盾なしの実再生後だけprefix不変を受容し、再取得や除外で整えることはしない。
 
 既使用参照の型解決は全history取得とは別の1時間以内のmetadata-only stageとして本文前に行う。`prior-references.mjs` の標準queryを使い、固定407由来の参照2211から全distinct repo名（現在35）をmetadata IDへ解決してからscope IDで絞る。直接名一致が0でもこの段階を省かない。scope内だけIssueOrPullRequestをIssue/PullRequest別fragmentで問い合わせ、typename/idと子の現在repositoryを検証する。子repoのID/name/publicが親と固定scopeへ一致しなければ、移管/redirect/private/nullをINVALIDとして原版を保持し、推測で現在publicとしない。Issue IDを既知530へunion、PRは混ぜない。null/不明・private/outside原metadataは私的保持し、既知scope aliasの未解決・矛盾ID・scope内型解決失敗はINVALIDとする。`knownScopeAliases` は原版で結合が証明されたname/expected repositoryIdの組だけをroot/Rが渡し、現在scopeの元名も対応するexact IDに拘束する。別scope IDやnull/privateへの変化も拒否する。全global既知ID集合はprivate resolutionとして保持し、case除外へ使う。公開projectionは現在の公開scope内typed参照/同Issue IDと集計だけに分け、scope外/private IDや存在情報を増やさない。標準hostでの全入力・query/variables/原応答・全coverageの受容は別に必要である。
 
 ## 最小系列と完成条件
+
+### 全history取得失敗と別の事前回復契約
+
+source30edの一回取得は2026-10-20T17:45:22.085Z～18:20:50.705Z、call01860のHTTP503でFRAME_INVALIDとなった。成功1859 replyと失敗argv/variables/stdout/stderr/exit等1863原fileはnative `cd3d2a1f244c43b63eb9ca6721b70252de229ae9` に保持する。`metadata-failed-1/attempt.json` と `invalid.json` は原bytes。完了prefix/本文/Gold/model測定はなく、partial採択・再開で救済しない。
+
+`external-recovery-plan.json` は同じ評価contract2/round4の別metadata attempt2を事前に定める。変更は標準 `gh api graphql --paginate --slurp` によるfrom-start一回と、標準GraphQL extensionsへの読み取り整合だけで、三repo/日窓/全履歴/全ID整合/prefix300/1時間/C5/407prior/Gold/判定基準を変えない。query/初期variables/CLI版とargv、全slurp原stdout/stderr/exitを保持し、正常終端時だけ全pageを再生する。CLIの三Issue＋前後二visibilityの五GraphQL起動と、観測response page数を区別し、内部HTTP試行数はunknown。503再送機能を標準CLIが保証するとは言わず、失敗時は全attempt INVALIDを保持し自動retryしない。新captureは別source/時刻であり旧30edの完走ではない。failed metadataを同cohortの既固定priorへ足して自己除外もしない。
+
+実成功replyにあった警告は[GraphQL標準extensions](https://spec.graphql.org/September2025/#sec-Extensions)であり、旧readerのroot data-only制約は潜在的不整合だった。新readerはroot optional map extensionsを選択dataと分けて許容し、dataのfield whitelist/型/日時/identity検査は保つ。extensions原文は私的保持し公開prefixへ投影しない。[GitHubのID二形式](https://docs.github.com/en/graphql/guides/migrating-graphql-global-node-ids)を理由にIDをdecode/自動置換したりmigration headerを加えたりしない。原失敗の直接終端原因はHTTP503であり、後から警告だけの失敗へ書き換えない。回復の実host/三者受容前に新APIを開始せず、本文/provider経路も引き続き別途受容する。
 
 ### 計測部品（現在は人工fixtureのみ、実entryは未実装）
 
@@ -56,7 +64,7 @@ C5検証は既存reserveのfrozen configurationをexport aliasで再用し、旧
 
 未使用の証拠範囲は、実保持した530 typed Issue ID/1708 exact bodyと今回の公開scope内追加型解決との非重複である。35repo名のID解決だけでは、scope外の旧Issue URLが移管/redirectで新scopeへ入った可能性まで排除しない。参照URLは本文観測と同じではなく、未解決/scope外の2211参照残余は私的metadataとして保持する。「全参照Issueを世界全体で未使用」「全actorの生涯未読」「意味/学習未見」と称さない。この限界を隠す全2211追加問い合わせや、本文/成績を見た除外変更は行わない。
 
-参照型解決の実stageはsource4bで正常終端した。固定407原版を再構成して全530 ID/1708 body/2211 refs一致を確認後、全35repo名を標準ghでmetadata解決し、現在3scope内参照0/typed問い合わせ0、本文/model0。root/Rは全query/variables/reply/型・privacy projectionを独立再生し、native `38d5ef5bb3233fa4976a7f74dd83102bdafc2e4f` に40原fileを保持した。`prior/completion.json` は原bytes、`public-manifest.json` はprivate resolution内publicManifestのJSON値投影であり、private全体blobのbytecopyと偽らない。global530 IDs/原1708 bodiesとscope外/private応答は公開せず、本文除外のprivate入力として保持する。全history metadataは別source30edでまだ稼働中、全終端/native prefix受容前の本文APIは0である。
+参照型解決の実stageはsource4bで正常終端した。固定407原版を再構成して全530 ID/1708 body/2211 refs一致を確認後、全35repo名を標準ghでmetadata解決し、現在3scope内参照0/typed問い合わせ0、本文/model0。root/Rは全query/variables/reply/型・privacy projectionを独立再生し、native `38d5ef5bb3233fa4976a7f74dd83102bdafc2e4f` に40原fileを保持した。`prior/completion.json` は原bytes、`public-manifest.json` はprivate resolution内publicManifestのJSON値投影であり、private全体blobのbytecopyと偽らない。global530 IDs/原1708 bodiesとscope外/private応答は公開せず、本文除外のprivate入力として保持する。全history metadataの別source30edは503で失敗原版を保持し、受容可能prefixなし。本文APIは0である。
 
 同repo/Issue523、同policy0dd39、同三者・W sole writer。baseは616最終source5c6d9c44d786d9af054768a62272c84fa9802871。この一PRを、実数学→metadata/body取得契約/collector→native原frameと独立Gold→固定二回→全raw/独立算術/費用/最終CI/Ready未mergeの順に進める。後続PR番号や成功を先に作らない。cross-PR gateは `fixed-c5-prospective-census-closure` とし、入力は616不変原版/actualC5 proofと当PR最終tree・新cohort native/両回raw、失敗条件は旧判定改変/設定drift/不完全原版/資格不明/片回未達/未閉CIである。既存native原版・通常CI・独立reviewの結合条件を説明する名称で、独自管理・台帳・別基盤を追加しない。実entryは未実装。
 
@@ -82,7 +90,9 @@ flowchart TB
   ZERO --> REVIEW[✅ 別3repo便宜cohort契約/source三者反証]
   REVIEW --> SCOPE[✅ 公開repo metadata3・ID原版固定]
   SCOPE --> ADMIT[✅ 全history/1h source・host受容]
-  ADMIT --> META[⏳ 全history稼働・prefix原版/独立再生待ち]
+  ADMIT --> BAD[✅ source30ed全history・503 INVALID原版保持]
+  BAD --> RECOVER[⏳ 新from-start標準gh契約/source/host三者受容]
+  RECOVER --> META[⏳ 別attempt2全終端/native prefix受容]
   SCOPE --> PRIOR[✅ 35repo参照metadata・typed0・private原版保持]
   SCOPE --> BODY[✅ wholebody pure実装/人工検査]
   BODY --> BODYREVIEW[⏳ 現source/実host三者受容]
