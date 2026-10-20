@@ -2,7 +2,7 @@
 
 PR613の実118件/2passは**E改善差0**で閉じた（[PR613](https://github.com/roccho-org/ops/pull/613)、exactbase ce906a1d7a656cf5abd31d2462523b9f1abc4285）。Eは両118/118、既知114の完全正答は両79、O FP13/FN22、Goldnull4。旧結果/全708呼出し/未採用を保全する。本PRは次の**O request configuration改善**を主目的とし、旧E改善や元Ops+Apps母集団の成功へすり替えない。
 
-現在は**D118を実測して開発guard通過・候補wire固定、新issue本文0・新H model呼出し0**。標準client/既存organization JEV_API_KEYを、既存6step境界の限定profileで再利用する。同root/W/RのUser GOを継承し、全員が主張・反証・再提案する。policy ADRS exact0dd39ca41718fafe40e58c6927a2ebb0ea297eee、bare/.worktrees、W solewriter。merge/adoptionは別。
+現在は**D118を実測して開発guard通過・候補wire固定、取得済frame323から一回300抽出・reserve23封印、root/R独立Gold作成中、新H model呼出し0**。Wは新本文/Gold未読のままsynthetic fixtureで測定sourceを準備した。実corpus取込み・3者受容・必要CI後にのみ新Hへ進む。標準client/既存organization JEV_API_KEYを、既存6step境界の限定profileで再利用する。同root/W/RのUser GOを継承し、全員が主張・反証・再提案する。policy ADRS exact0dd39ca41718fafe40e58c6927a2ebb0ea297eee、bare/.worktrees、W solewriter。merge/adoptionは別。
 
 ## 候補修正前に固定したmetadata scope
 
@@ -50,11 +50,17 @@ rootは原APIを私的に取得・保持、Wの[frame.mjs](frame.mjs)は固定sc
 
 whole-body frameの原bytesをnative保持後、一回の標準crypto Fisher–Yates。n=min(300,M)、残ればreserve封印、小Mならcensus。空frameはNO_ELIGIBLE_FRAMEで成功ではない。300は最小必要精度の保証でなく、情報/Gold600判定/効果資源の**事前上限**。M/結果を見て標本数を下げて選別しない。
 
+同原版の再生結果は1376 rawからPR1022・既使用18・empty2・oversize11を事前規則で除いた**M323**（priorExact0、新frame同文重複0）。rootが原117raw/元INVALID/新frameをnative034a16b70a71127bbb09175229048875db649980へ保持し、Rが別再生で一致した。既存sample.mjsを一回だけ実行し、**n300/reserve23**のreceipt/selected-only Goldviewをnative1959840a9b42378f5b9c08418d91610fb05dd45bへ保持。全frame原文/reserveはWへ渡さず、root/Rの独立初稿は作成中である。
+
 root/R各独立Goldは元split.mjsのhasExpectation/hasObservation/questionが意味正本で、新候補の補足をGoldoracleにしない。body-only/arm出力盲検だが候補設計は既知であり、完全盲検とは言わない。原初稿を互いに見る前に凍結、不一致を出力前合議、未解決nullを全assignedへ残す。Wは新H本文/Goldを候補選定へ使わず、候補固定後にselectedだけ初開示。全frame原文とreserveはroot私的native保持、Rの機械再生は集計/ID/サイズだけ表示し、ratersはselected Goldviewだけ読む。same UID秘匿/Gold無謬/全actor生涯未見は主張しない。
 
 ## 新Hの測定・採否と有限条件
 
 各case oldO/newO/sharedEの3physical requestsを循環順、共有Eは各pass内だけ。2passを出力前固定し、初回意味FAILによる取消/再抽選/平均救済なし。model drift等技術停止は維持、未試行も全割当unknown。各pass最大900、2pass最大1800＋D118。各job250分は900×15秒=225分＋保持余裕25分で、実待ち予測ではない。Userの予算不要を勝手な通算1000停止gateへ変えない。
+
+[measurement.mjs](measurement.mjs)/[data.mjs](data.mjs)/[runtime.mjs](runtime.mjs)は同じ標準client/実workflowへ測定phaseを追加する。native履歴は閉D=1、pass1=2、pass2=3と固定し、先行D原rawのguard/候補actual wire、pass2前にはpass1原rawとnative終端identityを鍵なしで再生する。先行runのconclusionは保存実値との一致を求め、意味上の成功だけを選別しない。repIDは全eventに残し、qualification/transport unknownはその要求を再送せず次の独立要求へ進む。model driftは技術停止し、未試行全割当を保持する。Goldはprepareで形式検証、projectでだけ採点に使用し、providerへ渡すstateはbodyだけでID/出典/Goldは送らない。
+
+測定資格が一つでも不足すれば、数値上の保守boundが正でも受容dispositionをUNKNOWN_INCOMPLETE_MEASUREMENTとする。既観測退行は別に保持し、unknownで隠さない。これは新protocolの資格gateとの整合であり、旧613の数学的bound/結果を不正扱いして変更するものではない。実corpusはこのsliceに未収録なので本体起動は未受容。
 
 primaryは従前と同じE/O完全正答paired差＋case内既正答軸退行。O副次だけを選んでjoint失敗を救済しない。全assignedのnot fully resolved cases（一軸unknown含む）を保守的B/C/R範囲へ残す。次j=2、alphaRound=1/80、2pass×5 inclusive HG tails各1/800、resetなし。各passでlower gain>0・観測既知軸退行0・全n worst-case正を要求、両pass ANDで有限近似/再確認を判定。既知FAILとunknownを共に残す。
 
@@ -74,7 +80,7 @@ flowchart TB
   R <-->|主張・反証・再提案| P
   P --> K["🔒 新H本文は候補固定までWへ非開示"]
   R --> K
-  W --> C["✅ scope/実D118/候補固定・新H本文/model0"]
+  W --> C["✅ scope/実D118/候補固定・新H model0"]
   K --> C
 ```
 
@@ -87,8 +93,8 @@ flowchart TB
   D --> DG{"✅ 開発guard/全118資格・modelStable成立"}
   DG -->|不成立/不明| NEG["❌ 負/unknownを保持・H選択で救済しない"]
   DG -->|成立| FREEZE["✅🔒 実wireをnative Git固定・変更なし"]
-  FREEZE --> CAP["⏳ 取得契約/純source/標準gh helperの3者受容"]
-  CAP --> FRAME["⏳ 固定117repo全文frame/除外/一回抽出"]
+  FREEZE --> CAP["✅ 取得契約/純source/標準gh helperの3者受容"]
+  CAP --> FRAME["✅ 固定117repo原版→323frame・一回n300/reserve23"]
   FRAME --> GOLD["⏳ root/R独立Gold→原稿凍結→合議/null"]
   GOLD --> SOURCE["⏳ Gold-free実wire/3者受容/必要CI"]
   SOURCE --> P1["⏳ 新H pass1/oldO-newO-sharedE"]
@@ -99,4 +105,4 @@ flowchart TB
   END --> NEXT["🔁 失敗なら次事前契約・freshを捏造しない"]
 ```
 
-現sliceは実D原結果/候補固定、次の全文frame純再生と取得契約。新issue本文API/新H model作用は未着手で、取得sourceの3者受容後にrootが標準API取得へ進む。旧613は同headの通常CI（484/484・consumerを含む9成功/7既存skip）とReadyを3者が読戻して閉じており、未merge・正改善未達を保持する。
+現sliceは実D原結果/候補固定、取得・抽出済みのaggregate、synthetic fixtureによるH測定sourceまで。新Hの実corpus/Gold取込みと実入力検証・3者受容・必要CIはまだ残り、本体model作用0。旧613は同headの通常CI（484/484・consumerを含む9成功/7既存skip）とReadyを3者が読戻して閉じており、未merge・正改善未達を保持する。

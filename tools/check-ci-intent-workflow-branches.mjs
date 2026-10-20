@@ -469,9 +469,9 @@ export function assertRealCaseWorkflow(w,b) {
 }
 
 export function assertObservationWorkflow(w,b) {
-  need(b.maxCalls===118,'observation development bound differs');
+  need(b.maxCalls===1918,'observation series bound differs');
   need(same(w.on?.push?.branches??[],['codex/jev-observation-improvement-20261020'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/observation/request.json']),'observation entry differs');
-  need(w.concurrency?.group==='sys1-observation-improvement'&&w.jobs?.evaluate?.['timeout-minutes']===40,'observation development deadline/retention differs');
+  need(w.concurrency?.group==='sys1-observation-improvement'&&w.jobs?.evaluate?.['timeout-minutes']===250,'observation per-pass deadline/retention differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;
   for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){
     need(s[n]?.run==='node experiments/sys1-eval-loop/observation/runtime.mjs '+mode+' "$RUNNER_TEMP/observation"','observation command differs');
