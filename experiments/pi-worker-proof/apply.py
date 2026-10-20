@@ -37,3 +37,20 @@ replace_once("src/index.ts", 'export { Session } from "./session.ts";', 'export 
 replace_once("src/index.ts", "    const url = new URL(request.url);\n", '    const url = new URL(request.url);\n    if (url.pathname === "/auth" || url.pathname.startsWith("/auth/")) return oauthScreen(request, env);\n')
 replace_once("wrangler.jsonc", '  "compatibility_date": "2026-09-23",', '  "compatibility_date": "2026-09-23",\n  "compatibility_flags": ["nodejs_compat"],')
 replace_once("wrangler.jsonc", '"run_worker_first": ["/api/*"]', '"run_worker_first": ["/api/*", "/auth", "/auth/*"]')
+# The proof tool consumes the canonical client bytes; no handwritten client fork.
+jev = source.parent.parent / "packages" / "jev" / "src"
+Path("src/jev-client").mkdir(exist_ok=True)
+for name in ("client.mjs", "core.mjs"):
+    shutil.copyfile(jev / name, Path("src/jev-client") / name)
+shutil.copyfile(source / "jev-client.d.mts", "src/jev-client/client.d.mts")
+shutil.copyfile(source / "worker-jev.ts", "src/worker-jev.ts")
+replace_once("src/chat.ts", 'import { createScheduleTool, getWeatherTool } from "./tools.ts";', 'import { createScheduleTool, getWeatherTool } from "./tools.ts";\nimport type { ToolRegistration } from "@earendil-works/pi-durable";')
+replace_once("src/chat.ts", "  models = defaultModels,\n", "  models = defaultModels,\n  jevTool?: ToolRegistration,\n")
+replace_once("src/chat.ts", "  const scheduleTool = createScheduleTool(ensureWakeupAt);", "  const scheduleTool = createScheduleTool(ensureWakeupAt);\n  const tools = jevTool ? [jevTool] : [getWeatherTool, scheduleTool, searchHistoryTool];")
+chat = Path("src/chat.ts")
+text = chat.read_text()
+assert text.count("tools: [getWeatherTool, scheduleTool, searchHistoryTool],") == 2
+chat.write_text(text.replace("tools: [getWeatherTool, scheduleTool, searchHistoryTool],", "tools,"))
+replace_once("src/chat.ts", "      extensions: [chatExtension],", "      extensions: [chatExtension],\n      ...(jevTool ? { stream: { maxRetries: 0 }, retry: { enabled: false, maxRetries: 0 } } : {}),")
+replace_once("src/session.ts", 'import { bootstrapWorkerCredential, createWorkerModels } from "./worker-oauth.ts";', 'import { bootstrapWorkerCredential, createWorkerModels } from "./worker-oauth.ts";\nimport { bindJevProof } from "./worker-jev.ts";')
+replace_once("src/session.ts", "      createWorkerModels(this.ctx.storage),", "      createWorkerModels(this.ctx.storage),\n      bindJevProof((this.env as Env & { PI_JEV_PROOF_API_KEY?: string }).PI_JEV_PROOF_API_KEY),")

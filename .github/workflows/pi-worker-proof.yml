@@ -2,10 +2,11 @@ name: Pi Worker proof (mock inference, OAuth screen)
 
 on:
   push:
-    branches: [poc/pi-worker-oauth-20261017, proposals]
+    branches: [poc/pi-worker-oauth-20261017, codex/pi-jev-worker-20261020, proposals]
     paths:
       - experiments/pi-worker-proof/**
       - .github/workflows/pi-worker-proof.yml
+      - packages/jev/src/**
       - ci.intent.v1.jsonl
 
 permissions:
@@ -71,7 +72,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 ../ops/experiments/pi-worker-proof/apply.py
-          git add -N src/worker-oauth.ts src/worker-screen.ts src/oauth-module.d.ts worker-oauth.alias.ts vitest.proof.config.ts test/worker-proof.setup.ts test/worker-auth.test.ts test/worker-app.test.ts test/worker-screen.test.ts
+          git add -N src/worker-oauth.ts src/worker-screen.ts src/worker-jev.ts src/jev-client/ src/oauth-module.d.ts worker-oauth.alias.ts vitest.proof.config.ts test/worker-proof.setup.ts test/worker-auth.test.ts test/worker-app.test.ts test/worker-screen.test.ts
           git diff > "$RUNNER_TEMP/pi-worker-proof/app-overlay.patch"
           git diff --exit-code -- package.json pnpm-lock.yaml
       - name: Type-check, build and dry-run the integrated Worker (not test aliases only)

@@ -6,6 +6,8 @@ import { ROOT_CONVERSATION_ID } from "@earendil-works/pi-durable";
 import { openDurableObjectSqliteStorage } from "@earendil-works/pi-durable/storage/sqlite/cloudflare";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bootstrapWorkerCredential, createWorkerModels, WorkerCredentialStore } from "../src/worker-oauth.ts";
+import { createChatHarnessOptions } from "../src/chat.ts";
+import { bindJevProof } from "../src/worker-jev.ts";
 
 // Two graceful evictions can each drain for 30s. This bound includes both;
 // assertion polling stays 10s. Cleanup is a forced reset, never a storage reset.
@@ -263,5 +265,175 @@ describe("real Worker app path with synthetic OAuth and mocked remote responses"
         expect(await store.read("openai")).toBeUndefined();
       });
     });
+  });
+});
+function jevToolStream(calls = 1) {
+  const output = Array.from({ length: calls }, (_, index) => ({
+    id: `jev-item-${index}`, call_id: `jev-call-${index}`, type: "function_call",
+    name: "ask_jev", arguments: JSON.stringify({ state: "fixture-state", question: "How likely is this fixture?" }),
+    status: "completed",
+  }));
+  const response = {
+    id: "jev-fixture-response", object: "response", created_at: 1,
+    model: "gpt-6-luna", status: "completed", output,
+    usage: { input_tokens: 7, output_tokens: 3, total_tokens: 10 },
+  };
+  const events: unknown[] = [
+    { type: "response.created", response: { ...response, status: "in_progress", output: [] } },
+  ];
+  for (const [index, item] of output.entries()) {
+    events.push(
+      { type: "response.output_item.added", output_index: index, item: { ...item, arguments: "", status: "in_progress" } },
+      { type: "response.function_call_arguments.delta", output_index: index, item_id: item.id, delta: item.arguments },
+      { type: "response.function_call_arguments.done", output_index: index, item_id: item.id, arguments: item.arguments },
+      { type: "response.output_item.done", output_index: index, item },
+    );
+  }
+  events.push({ type: "response.completed", response });
+  return new Response(events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join("") + "data: [DONE]\n\n", {
+    headers: { "content-type": "text/event-stream" },
+  });
+}
+
+describe("Worker Pi -> canonical Jev client -> SQLite proof (all remote replies mocked)", () => {
+  it("commits typed tool output, recreates the DO and restores it for a neutral second user turn", async () => {
+    const session = "jev-tool-reopen";
+    await seed(session, fixture());
+    const marker = "fixture-marker-6f1d84b8538a4fb9";
+    const inference: unknown[] = [];
+    let jevPosts = 0;
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      expect(init?.method).toBe("POST");
+      const body = JSON.parse(String(init?.body));
+      if (String(input) === "https://api.typesafe.ai/v1/systemone") {
+        jevPosts++;
+        expect(new Headers(init?.headers).get("authorization")).toBe("Bearer fixture-jev-not-real");
+        expect(body).toMatchObject({ model: "jev-latest", questions: { assessment: { type: "noul" } } });
+        return Response.json({ model: "jev-latest", answers: { assessment: { type: "noul", noul: 0.734125 } } });
+      }
+      expect(String(input)).toBe("https://api.openai.com/v1/responses");
+      expect(body).toMatchObject({ stream: true });
+      inference.push(body);
+      if (inference.length === 1) return jevToolStream();
+      if (inference.length === 2) {
+        expect(JSON.stringify(body)).toContain("0.734125");
+        return responseStream("fixture-consumed-jev-answer");
+      }
+      if (inference.length === 3) {
+        expect(JSON.stringify(body)).toContain(marker);
+        expect(JSON.stringify(body)).toContain("0.734125");
+        return responseStream("fixture-recalled-from-committed-history");
+      }
+      throw new Error("Unexpected extra model request");
+    });
+    const first = await connect(session);
+    first.submit("jev-first", `Remember ${marker}; ask Jev once and use its answer.`);
+    await vi.waitFor(() => {
+      expect(JSON.stringify(first.messages)).toContain("fixture-consumed-jev-answer");
+      expect(JSON.stringify(first.messages)).toContain('"type":"run_end"');
+    }, wait);
+    await closeSocket(first.socket);
+    await evictDurableObject(env.SESSIONS.getByName(session));
+    const second = await connect(session);
+    expect(JSON.stringify(second.messages)).toContain("0.734125");
+    // Fresh client sends no previous values, transcript or prompt.
+    second.submit("jev-recall", "Recall the marker and assessment from our earlier exchange.");
+    await vi.waitFor(() => expect(JSON.stringify(second.messages)).toContain("fixture-recalled-from-committed-history"), wait);
+    expect(jevPosts).toBe(1);
+    expect(inference).toHaveLength(3); // 2 user turns; first has a tool continuation.
+    expect(JSON.stringify([...first.messages, ...second.messages])).not.toContain("fixture-jev-not-real");
+    await closeSocket(second.socket);
+    const isolated = await connect("jev-isolated-session");
+    for (const value of [marker, "0.734125"]) expect(JSON.stringify(isolated.messages)).not.toContain(value);
+    await closeSocket(isolated.socket);
+    expect(inference).toHaveLength(3); // isolation inspection invokes no model.
+  });
+
+  it("admits only one native POST when the model emits two calls in the same round", async () => {
+    const session = "jev-parallel-admission";
+    await seed(session, fixture());
+    let models = 0, posts = 0;
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+      if (String(input) === "https://api.typesafe.ai/v1/systemone") {
+        posts++;
+        return Response.json({ model: "jev-latest", answers: { assessment: { type: "noul", noul: 0.25 } } });
+      }
+      expect(String(input)).toBe("https://api.openai.com/v1/responses");
+      return ++models === 1 ? jevToolStream(2) : responseStream("fixture-two-calls-settled");
+    });
+    const client = await connect(session);
+    client.submit("jev-parallel", "Ask for the assessment.");
+    await vi.waitFor(() => expect(JSON.stringify(client.messages)).toContain("fixture-two-calls-settled"), wait);
+    expect(posts).toBe(1);
+    expect(JSON.stringify(client.messages)).toContain("JEV_PROOF_ATTEMPT_CONSUMED");
+    await closeSocket(client.socket);
+  });
+});
+describe("bounded Jev proof failure and legacy boundaries", () => {
+  it("preserves legacy defaults when proof composition is unselected", () => {
+    const legacy = createChatHarnessOptions(async () => {});
+    const proof = createChatHarnessOptions(async () => {}, undefined, bindJevProof("fixture"));
+    expect(legacy.settings?.extensions?.[0]?.tools).toHaveLength(3);
+    expect(legacy.settings?.stream).toBeUndefined();
+    expect(legacy.settings?.retry).toBeUndefined();
+    expect(legacy.settings?.compaction).toBeUndefined();
+    expect(proof.settings?.extensions?.[0]?.tools?.map((tool) => tool.name)).toEqual(["ask_jev"]);
+    expect(proof.settings?.stream?.maxRetries).toBe(0);
+    expect(proof.settings?.retry).toMatchObject({ enabled: false, maxRetries: 0 });
+    expect(proof.settings?.compaction).toBeUndefined();
+    expect(bindJevProof()).toBeUndefined();
+  });
+
+  it("retains the consumed allowance after post-send interruption, recreation and a new task", async () => {
+    const session = "jev-interrupted";
+    await seed(session, fixture());
+    let posts = 0, requests = 0;
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "https://api.typesafe.ai/v1/systemone") {
+        posts++;
+        return new Promise<Response>(() => {}); // sent, no committed response
+      }
+      expect(String(input)).toBe("https://api.openai.com/v1/responses");
+      requests++;
+      if (requests === 1 || String(init?.body).includes("Try a new assessment")) return jevToolStream();
+      return responseStream("fixture-interruption-recovery");
+    });
+    const first = await connect(session);
+    first.submit("jev-interrupt-first", "Ask for one assessment.");
+    await vi.waitFor(() => expect(posts).toBe(1), wait);
+    first.socket.close(1000, "forced recreation test");
+    await abortAllDurableObjects();
+    const reopened = await connect(session);
+    reopened.submit("jev-interrupt-new-task", "Try a new assessment");
+    await vi.waitFor(() => expect(JSON.stringify(reopened.messages)).toContain("JEV_PROOF_ATTEMPT_CONSUMED"), wait);
+    expect(posts).toBe(1);
+    const frames = JSON.stringify(reopened.messages);
+    expect(frames.includes("interrupted") || frames.includes("JEV_OUTCOME_UNKNOWN")).toBe(true);
+    await closeSocket(reopened.socket);
+  });
+
+  it("halts an invalid-response round without provider-text exposure or retry", async () => {
+    const session = "jev-invalid";
+    await seed(session, fixture());
+    let posts = 0, requests = 0;
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+      if (String(input) === "https://api.typesafe.ai/v1/systemone") {
+        posts++;
+        return Response.json({ model: "fixture", answers: { assessment: { type: "noul", noul: "fixture-provider-private" } } });
+      }
+      expect(String(input)).toBe("https://api.openai.com/v1/responses");
+      if (++requests > 1) throw new Error("Unexpected continuation after UNKNOWN");
+      return jevToolStream(2);
+    });
+    const client = await connect(session);
+    client.submit("jev-invalid-result", "Ask for the assessment.");
+    await vi.waitFor(() => {
+      expect(JSON.stringify(client.messages)).toContain("JEV_OUTCOME_UNKNOWN");
+      expect(JSON.stringify(client.messages)).toContain('"type":"run_end"');
+    }, wait);
+    expect(posts).toBe(1);
+    expect(requests).toBe(1);
+    expect(JSON.stringify(client.messages)).not.toContain("fixture-provider-private");
+    await closeSocket(client.socket);
   });
 });
