@@ -57,6 +57,7 @@ test("derived Pi callback/exchange validates nonce and scope before returning an
       assert.equal(url, "https://auth.openai.com/api/accounts/oauth/token");
       const body = new URLSearchParams(init.body);
       assert.equal(body.get("client_id"), "issued-client");
+      assert.equal(init.redirect, "error");
       return Response.json({ access_token: "fixture-access", refresh_token: "fixture-refresh",
         expires_in: 3600, scope: failure === "scope" ? "openid" : "chatgpt.tokens.use.direct",
         id_token: await token({ nonce: failure === "nonce" ? "wrong" : nonce }) });
@@ -88,4 +89,97 @@ test("derived Pi callback/exchange validates nonce and scope before returning an
       await assert.rejects(realFetch("http://127.0.0.1:1455/auth/callback"));
     } finally { controller.abort(); globalThis.fetch = realFetch; }
   }
+});
+
+test("derived initial exchange UNKNOWN persists issued registration; returning callback reuses it before POST", async () => {
+  const { withRegistration, replaceCredential, ready } = await import("./custody.mjs");
+  const { mkdtemp, readFile, unlink, rmdir } = await import("node:fs/promises");
+  const dir = await mkdtemp(new URL("./.custody-test-", import.meta.url).pathname);
+  const path = dir + "/registration.json";
+  const { openaiChatGPTOAuth } = await import("./dist/oauth.mjs");
+  const realFetch = globalThis.fetch;
+  let calls = 0;
+  try {
+    await withRegistration(path, async store => {
+      for (const stage of ["login", "reauth"]) {
+        const controller = new AbortController();
+        let nonce, callback;
+        globalThis.fetch = async (input, init) => {
+          if (String(input).endsWith("/.well-known/jwks.json")) return Response.json({ keys: [{ ...await exportJWK(publicKey), kid: "test", alg: "RS256" }] });
+          assert.equal(String(input), "https://auth.openai.com/api/accounts/oauth/token");
+          const disk = JSON.parse(await readFile(path, "utf8"));
+          assert.equal(disk.state, "IN_DOUBT"); assert.equal(disk.pendingClientId, "issued-client");
+          assert.equal(init.redirect, "error"); calls++;
+          assert.equal(new URLSearchParams(init.body).get("client_id"), "issued-client");
+          if (stage === "login") throw Error("synthetic response lost");
+          return Response.json({ access_token: "synthetic-access", refresh_token: "synthetic-refresh",
+            expires_in: 3600, scope: "chatgpt.tokens.use.direct", id_token: await token({ nonce }),
+            earliest_refresh_at: { syntheticUnspecifiedSchema: true } });
+        };
+        const execute = () => replaceCredential(store, "00000000-0000-4000-8000-000000000608", stage, () => openaiChatGPTOAuth.login({
+          signal: controller.signal,
+          notify(event) {
+            if(event.type !== "auth_url")return;
+            const auth = new URL(event.url); nonce=auth.searchParams.get("nonce");
+            assert.equal(auth.searchParams.get("client_id"), stage === "login" ? "dynamic_agent_client" : "issued-client");
+            assert.equal(auth.searchParams.has("id_token_hint"), false);
+            if(stage === "reauth")assert.equal(auth.searchParams.has("agent_name_hint"),false);
+            const url=new URL("http://127.0.0.1:1455/auth/callback");
+            url.search=new URLSearchParams({state:auth.searchParams.get("state"),code:"synthetic",...(stage==="login"?{client_id:"issued-client"}:{})});
+            callback=realFetch(url).then(r=>r.text());
+          },
+          prompt({signal}) {return new Promise((_,reject)=>signal.addEventListener("abort",()=>reject(Error("cancelled")),{once:true}));},
+        }, { getDeviceId:()=> "00000000-0000-4000-8000-000000000608",
+          registeredClientId: stage==="reauth"?store.get().pendingClientId:undefined,
+          async beforeTokenExchange(clientId){await store.save({...store.get(),pendingClientId:clientId});}
+        }));
+        if(stage==="login"){await assert.rejects(execute());assert.throws(()=>ready(store.get(),"00000000-0000-4000-8000-000000000608"));}
+        else {
+          const result=await execute();
+          assert.equal(result.identity.subject,"owner"); assert.equal(result.clientId,"issued-client");
+          assert.deepEqual(result.earliestRefreshAt,{syntheticUnspecifiedSchema:true});
+          assert.ok(result.actualExpiresAt>Date.now()+3500000);
+        }
+        await callback; controller.abort();
+      }
+    });
+    assert.equal(calls,2);
+    const disk=await readFile(path,"utf8");
+    assert.equal(disk.includes("synthetic-code"),false);
+    assert.equal(JSON.parse(disk).state,"READY");
+  } finally {
+    globalThis.fetch=realFetch;
+    for(const name of ["registration.json","registration.json.lock"])await unlink(dir+"/"+name).catch(()=>{});
+    await rmdir(dir);
+  }
+});
+test("derived refresh rotates using issued client; optional ID validates retained identity, not prior nonce",async()=>{
+  const {openaiChatGPTOAuth}=await import("./dist/oauth.mjs");
+  const realFetch=globalThis.fetch;
+  const credential={access:"synthetic-old",refresh:"synthetic-old-refresh",clientId:"issued-client",
+    identity:{subject:"owner"},idToken:"retained-synthetic-id"};
+  try {
+    for(const mode of ["absent","same","wrong","scope","http"]) {
+      let requests=0;
+      globalThis.fetch=async(input,init)=>{
+        if(String(input).endsWith("/.well-known/jwks.json"))return Response.json({keys:[{...await exportJWK(publicKey),kid:"test",alg:"RS256"}]});
+        requests++; assert.equal(init.redirect,"error");
+        const body=new URLSearchParams(init.body);
+        assert.equal(body.get("grant_type"),"refresh_token");
+        assert.equal(body.get("client_id"),"issued-client");
+        assert.equal(body.get("refresh_token"),credential.refresh);assert.equal(body.has("scope"),false);
+        if(mode==="http")return new Response("synthetic-private-refresh-echo",{status:401});
+        return Response.json({access_token:"synthetic-new",refresh_token:"synthetic-rotated",expires_in:3600,
+          scope:mode==="scope"?"openid":"chatgpt.tokens.use.direct",
+          ...(mode==="absent"?{}:{id_token:await token({sub:mode==="wrong"?"other":"owner",nonce:"new-or-absent-nonce"})})});
+      };
+      if(["wrong","scope","http"].includes(mode)) {
+        await assert.rejects(openaiChatGPTOAuth.refresh(credential,AbortSignal.timeout(1000)),error=>!error.message.includes("synthetic-private"));
+      } else {
+        const next=await openaiChatGPTOAuth.refresh(credential,AbortSignal.timeout(1000));
+        assert.equal(next.refresh,"synthetic-rotated");assert.deepEqual(next.identity,{subject:"owner"});
+      }
+      assert.equal(requests,1);
+    }
+  }finally{globalThis.fetch=realFetch;}
 });

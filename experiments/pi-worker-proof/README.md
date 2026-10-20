@@ -1,68 +1,63 @@
 # Worker Pi / Jev bounded proof
 
-Active route update (SOURCE GO only; new implementation not yet accepted).
+This experiment keeps inference on the existing Cloudflare Worker. Its SQLite transcript is durable; ChatGPT access is volatile. The owner uses native commands only when needed, with no daemon, keepalive, Tunnel, token API or local inference.
 
-Previous head 8af351a11c0b477d55f81cee791f298b9c83ed40 remains an accepted SOURCE/MOCK checkpoint: 100 mock tests; 21 checks terminal (14 SUCCESS / 7 SKIPPED). [CI](https://github.com/roccho-org/ops/actions/runs/39380346001), [R](https://github.com/roccho-org/ops/pull/608#pullrequestreview-5581517095), [Root](https://github.com/roccho-org/ops/pull/608#pullrequestreview-5581504291). Mock counts 2 inputs / 3 model requests / 1 Jev POST. Native workerd failed before tests; OAuth screen NOT_PROVEN. No live/quality/merge acceptance.
+[PR608](https://github.com/roccho-org/ops/pull/608) records the accepted source/runtime provenance and independently reviewed provider UI observability evidence. API observability `null` remains UNKNOWN; it is never normalized to off. [The three-party lifecycle design](https://github.com/roccho-org/ops/pull/608#issuecomment-6300038289) and [source authorization](https://github.com/roccho-org/ops/pull/608#issuecomment-6300229085) distinguish this finite proof from an ongoing product.
 
-Three-party route rebuttal completed. Local candidate normally merged proposals 17b8fb08d86a9de470cb172f546e984f619be7a5, preserving accepted history. New source and exact-head CI are pending.
+## Native credential lifecycle
 
-Single-owner internal dedicated runtime, same connected app/user, not offered to others, no pooling or SIWC charge: Terms section 1 restricts persistent token storage; section 2 permits user-controlled remote runtime. Transient access-only processing is an explicit interpretation, not provider endorsement or an assumed exception. Persistent DO OAuth storage is rejected. DevKit code is excluded due its separate license condition; independently authored Pi/JOSE validation does not inherit its noncommercial restriction.
+The installed native Pi1.0.4 [AuthStorage](https://github.com/earendil-works/pi/blob/v1.0.4/packages/coding-agent/src/core/auth-storage.ts) provides cross-process locking, but writes in place after its callback; it cannot durably mark an uncertain refresh before sending. The operator therefore reuses the frozen MIT Pi OAuth/callback/PKCE implementation with a small native protected-record adapter. No coding-agent store is copied or full application imported.
+
+Proposed owner custody is `/home/dev/.config/pi-worker-owner/registration.json`, directory0700/file0600. Root/same-UID processes remain trusted readers. All entrypoints take the same standard OS flock, reread current state, reject unsafe metadata/symlinks, write an exclusive private temporary file, fsync, rename and fsync its directory. An IN_DOUBT mark in the SAME registration is durable before initial/returning authorization or refresh. Only a complete validated atomic replacement becomes READY. Unknown results and failed persistence stay blocked across process restart; no rotating-token replay. A validated callback's issued client ID is persisted before token exchange, enabling explicit same-registration reauthorization after a lost initial response. No code, PKCE verifier or authorization URL is stored.
+
+The deterministic derived SDK retains its original bytes and changes only native compatibility seams: validated subject/issued-client binding, retained ID token and actual expiry/earliest-refresh metadata; issued-client reauthorization; optional refreshed ID validation without an old nonce; redirect:error and generic token diagnostics. Workspace association is the registered-client binding, not an invented subject/email workspace claim. Optional ID-token hint is omitted from human URLs. Existing Worker Access validation behavior is unchanged.
+
+The token reference names `earliest_refresh_at`; [pinned provider schema evidence](https://github.com/openai/sign-in-with-chatgpt-devkit/blob/0a36fefeb913055c8c7a1a29b63d82b96b2e841a/packages/local/src/index.ts#L100) establishes numeric Unix seconds or a timestamp string. Independently authored parsing accepts finite numeric seconds or a validated ISO instant, preserves the original field, and refuses malformed/unknown values. No vendor implementation is imported/copied or magnitude heuristic used. Explicit refresh waits until BOTH actual access expiry and this earliest bound; absent earliest uses actual expiry. No fake expiry, background loop or keepalive.
+
+## Finite operator stages
+
+After independent source/CI acceptance and separate custody/auth/effect decisions, run the native `operator/owner.mjs` with existing owner-terminal, URL/session/host/cloudflared arguments and explicit `--stage`:
+
+- `login` creates a validated registration; `reauth` explicitly reuses its issued client/host.
+- `seed --continue` authorizes bounded Worker recovery BEFORE bearer attachment, submits exactly one seed prompt, correlates the actual Jev call/result and Pi consumption, saves local expectations and exits.
+- `refresh` performs only one permitted local renewal and atomic replacement; it never connects to the Worker.
+- A later native process `recall --continue` requires that durable rotation, observes a different DO boot/prior-token absence on resupply, opens the SAME conversation and submits a neutral recall with no marker, assessment or history reinjection.
+
+No native command retries a prompt after UNKNOWN. A socket connection may resume a persisted Harness task and is explicitly paid continuation, not a read-only status query. The existing Worker cap remains three pre-send Responses admissions per selected session and one Jev allowance per proof conversation. Reconnect does not refund/reset it. No new operational budget or unattended/browser-only product is claimed. If prior work consumed the cap, this proof stops; it never creates a silent replacement session.
 
 ```mermaid
 flowchart TB
-  Existing["📚 Existing Pi / Jev / SQLite / Ubuntu CI"] --> Reuse["♻️ Reuse native interfaces"]
-  Accepted["✅ Prior 8af SOURCE/MOCK"] --> New["🛠️ New route SOURCE GO; unverified"]
-  Gap["⚠️ Pi ID-token validation gap"] --> JOSE["🔐 Minimal authored JOSE validation; exact operator lock"]
-  Secret["🔑 Existing envs org Jev secret name confirmed"] --> Binding["❔ Actual Worker binding unproved"]
-  Screen["🌐 Screen-only admission preserved"] --> Runtime["📦 Separate full-runtime admission"]
+  Owner["👤 Native owner; explicit bounded stage"] --> Store["🔐 Protected registration; OS lock; atomic in-doubt/replacement"]
+  Store --> Access["🔑 Access-only existing owner WS; explicit continuation BEFORE attach"]
+  Access --> Pi["☁️ Existing Worker Pi; 3 Responses/session"]
+  Pi --> Jev["🔧 Actual Jev; 1 POST/conversation"]
+  Jev --> Commit["💾 Pi consumes typed assessment; SQLite commits"]
+  Commit --> Exit["🚪 Native process exits; real DO recreation"]
+  Exit --> Refresh["🔄 Permitted local refresh; atomic save; native restart"]
+  Refresh --> Recall["🗣️ New boot/prior-token absence; SAME conversation neutral recall"]
+  Recall --> Evidence["🧾 Marker AND exact actual assessment match"]
 ```
 
 ```mermaid
 flowchart TB
-  Owner["👤 Native supported Pi OAuth; browser callback via SSH forward"] --> Verify["🔐 Signature / issuer / audience / expiry / nonce / subject / grant"]
-  Verify --> Memory["🧠 Local child memory; no native inference"]
-  Memory -->|"TLS access only"| Access["🛡️ Worker verifies Access JWT and exact owner"]
-  Access --> Pi["☁️ Selected Worker Pi; volatile bearer only"]
-  Pi --> Budget["📏 Persisted actual Responses POST cap 3; retries off; redirect error"]
-  Budget --> Jev["🔧 Canonical Jev; atomic conversation POST allowance 1"]
-  Jev --> Commit["💾 Typed answer consumed; marker and answer committed"]
-  Commit --> Recreate["🔄 Close client; one idle window"]
-  Recreate --> Resupply["🔑 Resupply upgrade: changed boot + prior token absent BEFORE attach; same IDs"]
-  Resupply --> Recall["🗣️ Neutral recall; no values/history reinjected"]
-  Recall --> Proof["🏁 Actual Worker/Jev/recreation receipt"]
+  Agreement["🤝 Three-party resource and finite-scope agreement"] --> Source["🛠️ New operator PR; unchanged deployed Worker"]
+  Source --> Tests["🧪 Derived OAuth + independent-process/crash tests; exact CI"]
+  Tests --> Review["🔍 R and Root exact source/artifact review"]
+  Review -->|finding| Source
+  Review -->|accepted| Gate["🚦 Separate custody/auth/live decisions + current runtime pins"]
+  Gate --> Auth["🔐 Owner login; protected registration"]
+  Auth --> Seed["☁️ Seed invocation; actual Pi→Jev→Pi"]
+  Seed --> Rotate["🔄 Permitted refresh-only; durable save; process restart"]
+  Rotate --> Recall["💾 Real DO recreation; neutral recall"]
+  Recall -->|proved| Done["✅ Finite lifecycle/memory proof ONLY"]
+  Auth -->|UNKNOWN| Stop["🛑 Durable in-doubt; human recovery; no automatic resend"]
+  Seed -->|UNKNOWN| Stop
+  Rotate -->|UNKNOWN| Stop
+  Recall -->|UNKNOWN / no new boot| Stop
 ```
 
-```mermaid
-flowchart TB
-  Agree["🤝 Three-party resource and route agreement"] --> Source["🛠️ Same Draft PR source"]
-  Source --> CI["🧪 Exact-head JWT / wire / workerd tests"]
-  CI --> Review["🔍 Independent R + Root"]
-  Review -->|FAIL| Fix["🩹 Same PR correction"] --> CI
-  Review -->|PASS| Artifact["📦 Accepted separate runtime artifact"]
-  Artifact --> Envs["🔒 Companion envs admission; preserve screen gate"]
-  Envs --> Gate{"🚦 Accepted artifact + owner pins + existing key custody + admitted migration plan + effect GO"}
-  Gate -->|missing| Stop["⛔ No live effects; exact missing condition"]
-  Gate -->|all met| Deploy["☁️ Standard deployment creates binding and applies migration"]
-  Deploy --> Readback["🔎 Actual version / binding / migration readback"]
-  Readback --> OAuth["🔐 Fresh validated local OAuth + Access + remaining budgets"]
-  OAuth --> Live["🧾 Actual bounded Worker proof"]
-  Live -->|UNKNOWN| Halt["🛑 No automatic paid resend; charge unknown"]
-  Live -->|no new instance| NoProof["⚠️ NOT_PROVEN; reconnect insufficient"]
-  Live -->|proved| Done["✅ Independent live acceptance"]
-```
+Keyless Node tests use synthetic private directories and real independent child processes, including SIGKILL after the premark and after a synthetic token response. They do not prove provider refresh, native custody, Worker inference or durable live memory. The existing Ubuntu workerd suite remains the mock-runtime evidence; known native workerd loader failure is not relabeled PASS. Artifacts contain explicit source/derived files only, never custody directories.
 
-Reuse canonical Jev transport/decoder/deadline and existing Pi model transport/SQLite/CI. Add only validated local OAuth composition, volatile selected-proof bearer, supported wire hook, physical-request bound, recreation witness and separate keyless runtime package. Preserve legacy unselected behavior and screen packaging. No new framework, inference proxy, global installation or credential bridge.
+Policy remains roccho-dev/adrs@6e4abcd22dbee397105625b6041ce1a0d4720182. Source/CI results grant no merge, deployment, credential creation or paid-call authority. No ops#523 or Jev quality completion claim.
 
-Required source: exact JOSE/ws lock and derived SDK bytes; required exp/sub/nonce and strict JWT negatives; supported native-fetch injection, no global monkeypatch; HTTP only; Access JWT signature/issuer/audience/exact owner before bearer attachment; no remote refresh/ID tokens, bootstrap, secret logs or persisted WS headers. New instance/expiry fails closed until resupply. Actual auth, deployment, secret writes and inference are outside SOURCE GO. Standard cloudflared local cache is separate from SIWC token custody. Cloudflare owner authentication was separately authorized and independently verified; ChatGPT OAuth and inference have NOT_RUN.
-
-Policy roccho-dev/adrs@6e4abcd22dbee397105625b6041ce1a0d4720182; native /work/repos/ops.git/.worktrees/pi-jev-worker-20261020. No ops#523 or quality completion claim.
-
-Current source and verification identity are recorded in PR608 and its exact-head CI receipt. This document describes the stable contract; it does not grant source, runtime or live acceptance.
-
-Primary basis: [SIWC Terms](https://openai.com/policies/sign-in-with-chatgpt-terms/), [ID-token validation](https://developers.openai.com/siwc/token-sharing-open-source/sign-in), [preview wire limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations), [Cloudflare origin JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/). CF owner login/pin preparation is separate from expiring ChatGPT OAuth, which occurs after runtime deployment/readback.
-
-Operator sequence (only after accepted source and separate effect GO): use the existing protected hostname and dedicated session from envs119; establish the standard SSH local forward1455 to the native Pi callback, then run the native operator in an owner terminal with its stable configured host UUID and existing cloudflared path. Fresh validated OAuth precedes one account-specific models catalog GET; missing configured slug stops for separate review. Native code performs authentication/catalog metadata only. Model inference occurs only inside the Worker.
-
-The helper sends two user prompts, checks the correlated typed Jev result and its consumption, closes the first socket, waits one full bounded idle window, then checks changed boot/prior-token state in the access-resupply response. Same boot means NOT_PROVEN with no second prompt. The receipt distinguishes three pre-send admitted Responses attempts, three completed response IDs/statuses, SDK usage defaults and independently unverified billing. It never sends old values/history on recall or automatically resends UNKNOWN outcomes.
-
-[Companion runtime admission](https://github.com/roccho-org/envs/pull/119) uses only existing Jev custody and the dedicated provider token; no ChatGPT secret binding. Deployment/readback precedes expiring ChatGPT login. Initial omitted migration tag follows [provided Wrangler4.93](https://github.com/cloudflare/workers-sdk/blob/wrangler%404.93.0/packages/wrangler/src/durable.ts) semantics with exactly one create-only SQLite class, not a claim of complete history absence; unknown tags or conflicts stop without deleting data or retrying. [Migration semantics](https://developers.cloudflare.com/durable-objects/reference/durable-object-class-migrations-legacy/).
+Primary basis: [SIWC Terms](https://openai.com/policies/sign-in-with-chatgpt-terms/), [registration/identity/atomic storage](https://developers.openai.com/siwc/token-sharing-open-source/sign-in), [issued-client reauthorization and serialized rotation](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions), [token reference](https://developers.openai.com/siwc/token-sharing-open-source/token-reference), [VM custody guidance](https://developers.openai.com/siwc/token-sharing-open-source/self-hosted-vms). The VM guidance and Terms persistent managed-storage wording do not establish DO credential admission. This design selects owner-native persistence and transient same-user/app Worker access as an explicit interpretation, not provider endorsement or a blanket claim about all remote custody.
