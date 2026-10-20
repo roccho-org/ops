@@ -1,0 +1,92 @@
+{
+  "schema": "root.observation.held-reconfirmation.v1",
+  "disposition": "NOT_RECONFIRMED",
+  "independentIssues": 300,
+  "observationsPerIssue": 2,
+  "averageRescue": false,
+  "knownFailurePasses": [
+    1,
+    2
+  ],
+  "unknownPasses": [],
+  "passSummaries": [
+    {
+      "repId": 1,
+      "baselineCorrect": 220,
+      "candidateCorrect": 233,
+      "b": 16,
+      "c": 3,
+      "u": 7,
+      "bounds": {
+        "B_L": 16,
+        "B_U": 30,
+        "C_L": 3,
+        "C_U": 15,
+        "R_U": 15,
+        "differenceLowerNumerator": 1,
+        "differenceUpperNumerator": 27,
+        "denominator": 323,
+        "differenceLower": 0.0030959752321981426,
+        "differenceUpper": 0.08359133126934984,
+        "regressionUpper": 0.04643962848297214
+      },
+      "regressed": [
+        "held-155",
+        "held-196",
+        "held-289"
+      ],
+      "disposition": "OBSERVED_REGRESSION"
+    },
+    {
+      "repId": 2,
+      "baselineCorrect": 220,
+      "candidateCorrect": 231,
+      "b": 14,
+      "c": 3,
+      "u": 7,
+      "bounds": {
+        "B_L": 14,
+        "B_U": 28,
+        "C_L": 3,
+        "C_U": 15,
+        "R_U": 15,
+        "differenceLowerNumerator": -1,
+        "differenceUpperNumerator": 25,
+        "denominator": 323,
+        "differenceLower": -0.0030959752321981426,
+        "differenceUpper": 0.07739938080495357,
+        "regressionUpper": 0.04643962848297214
+      },
+      "regressed": [
+        "held-101",
+        "held-155",
+        "held-289"
+      ],
+      "disposition": "OBSERVED_REGRESSION"
+    }
+  ],
+  "all900RequestWiresEqualAcrossPasses": true,
+  "choiceChanges": {
+    "bestO": [
+      "held-101",
+      "held-280"
+    ],
+    "scopedO": [
+      "held-058",
+      "held-081",
+      "held-157",
+      "held-177",
+      "held-196",
+      "held-292"
+    ],
+    "sharedE": []
+  },
+  "regressionUnion": [
+    "held-101",
+    "held-155",
+    "held-196",
+    "held-289"
+  ],
+  "modelVersion": "jev-1.13.0",
+  "limit": "Fixed same sample two passes, no independent sample doubling or future-model guarantee. Exact same request/model still yielded different choices."
+}

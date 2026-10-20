@@ -2,7 +2,7 @@
 
 PR613の実118件/2passは**E改善差0**で閉じた（[PR613](https://github.com/roccho-org/ops/pull/613)、exactbase ce906a1d7a656cf5abd31d2462523b9f1abc4285）。Eは両118/118、既知114の完全正答は両79、O FP13/FN22、Goldnull4。旧結果/全708呼出し/未採用を保全する。本PRは次の**O request configuration改善**を主目的とし、旧E改善や元Ops+Apps母集団の成功へすり替えない。
 
-現在は**候補wire/新frame323/一回300抽出/独立Goldを固定し、H pass1を実測済み、pass2は未実行**。pass1は完全正答220→233/既知293、保守HG差下限1/323>0という正gain近似の条件部分を観測したが、既正答Oの破壊3件があり複合受容条件は不成立。候補を修正せず、出力前に固定したpass2を意味FAILで取り消さない。標準client/既存organization JEV_API_KEYを、既存6step境界の限定profileで再利用する。同root/W/RのUser GOを継承し、全員が主張・反証・再提案する。policy ADRS exact0dd39ca41718fafe40e58c6927a2ebb0ea297eee、bare/.worktrees、W solewriter。merge/adoptionは別。
+現在は**未使用実案件300件を固定して2pass実測完了、候補不受容・元Best維持**。完全正答はH1で220→233、H2で220→231（既知293/全300・7null）。H1の正gain下限は成立したがH2では成立せず、両方に既正答Oの破壊3件があり、事前の複合条件/二回再確認はNOT_RECONFIRMED。候補/Gold/primaryを結果後に変更せず、全原結果を固定した。標準client/既存organization JEV_API_KEYを、既存6step境界の限定profileで再利用する。同root/W/RのUser GOを継承し、全員が主張・反証・再提案する。policy ADRS exact0dd39ca41718fafe40e58c6927a2ebb0ea297eee、bare/.worktrees、W solewriter。採用/mergeなし。
 
 ## 候補修正前に固定したmetadata scope
 
@@ -87,6 +87,32 @@ n300でも弱い差/未知/有限population HGの保守性からNOT_ESTABLISHED�
 
 物理usageはbestO/scopedO/sharedEのinput593192/793592/587492、output各9300、total_tokensは900件すべて未提供。運用相当E+O inputは1180684→1381084（+16.97%）であり、実験内E共有による測定回数削減を製品原価改善とは称しない。ここまでの実作用はD118+H1 900=1018、既知input2297176/output31558、total_tokens1018件未知、金額不明。予定pass2は同じ300/900割当で、同じwireが再登場しても独立予定観測であり、failed runの再実行や各phase内の自動再送ではない。
 
+## H pass2・最終閉包
+
+H1の意味FAILでも予定を取り消さず、[run39427992227](https://github.com/roccho-org/ops/actions/runs/39427992227)をsourcead4b0e618ef36d157716f0a544cbe4a72588c368のrequest-only child 0cb17efdb809513b589f9ab31f4b7c2afe0a1029で一回起動。実Ubuntu鍵前528/528とprior prepare成功、900全qualified/modelStable、attempt1 SUCCESS。artifact12267385263/1659410B/SHA256 4ad3b7eb61f266710050eea7aed6791c9f21c489dfcdde90af899d2af291cd1eを別取得し、原5rawと全値再生一致。root/Rも別ZIP/別算術で全個別役値・会計・HGを一致確認した。原版は[pass2 results](../results/observation-pass2-20261020/)、合成は[reconfirmation](../results/observation-reconfirmation-20261020.json)に保持。
+
+| 指標 | H1 | H2 |
+|---|---:|---:|
+| 完全正答 Best→候補/既知293 | 220→233 | 220→231 |
+| E正答/300（両role共通） | 297 | 297 |
+| O正答 Best→候補/既知293 | 223→236 | 223→234 |
+| O FP Best→候補 | 9→12 | 8→11 |
+| O FN Best→候補 | 61→45 | 62→48 |
+| 修復/破壊 | 16/3 | 14/3 |
+| 保守HG差区間（分母323） | [1,27] | [-1,25] |
+| 退行率上限 | 15/323 | 15/323 |
+| disposition | OBSERVED_REGRESSION | OBSERVED_REGRESSION |
+
+H2退行はheld-101/155/289のOで、H1とunionした失敗課題は**101/155/196/289の4件**。両passの900provider requestは完全同一だが、choiceがbestOで2件、scopedOで6件変化し、sharedEは同値だった。model alias/応答IDが同じでも決定性・将来の安定gainを証明しない。300件を600独立例と数えず、良いH1だけを選ばず、平均でH2の区間/退行を救済しない。H1の正gain近似条件部分という成果と、無退行改善/二回正gain再確認が未達という結論を分ける。
+
+実作用は3native run各attempt1、**D118+H1 900+H2 900=1918POST、全qualified**。既知input4271452/output59458、total_tokensは1918件未提供、金額/人手費/利益効果不明。H2の各template token数と運用相当input増16.97%はH1と同値。全割当/7nullを残してANDは**NOT_RECONFIRMED**、候補不採用・元Best維持。通常最終head CI/Ready/索引の閉包はこのsource作成時点では未完。
+
+## 次周の合意境界（未実行）
+
+615を不変閉記録にした後、旧selected300を次Dへ明示退役し、original Bestを比較baseline、E/instructionsと元E/O意味を維持してgeneric O criteria候補1本だけを作る。paired gainの主Dアンカーは機械的にH1原BestO/sharedEを固定する。H2で正しかった既知軸も壊さないunion補助guardは保守的な開発条件として別記し、良い過去runをcaseごとprimaryへ選び直さない。全300と上記union4の失敗を使い、H1の3件だけへ過適合しない。
+
+候補固定までWへreserve本文は非開示。元一回抽出で封印した**reserve23全件**を再乱数/API0の一回censusとして使う案を3者で受容した。次j3/tail1/1600・2×69=138予定POST・両pass AND・全unknown・既知退行0を事前固定し、23を見て修正後に同23を再Hへ使わない。これは300を開発した後の条件付き有限23の差に限られ、元323全体/Apps/将来へ一般化しない。census点区間はsampling誤差だけで、2回でもn23、未達を受容し成功を保証しない。次source/候補/Gold/実作用は現PRの閉包後、新事前契約の3者受容から始める。
+
 ## 3者counterと実証運用
 
 ```mermaid
@@ -99,7 +125,7 @@ flowchart TB
   R <-->|主張・反証・再提案| P
   P --> K["🔒 新H本文は候補固定までWへ非開示"]
   R --> K
-  W --> C["✅ scope/実D118/候補固定・新H model0"]
+  W --> C["✅ D118/候補固定・H2pass1800原結果保持"]
   K --> C
 ```
 
@@ -117,11 +143,15 @@ flowchart TB
   FRAME --> GOLD["✅ root/R独立原稿300→凍結・第三counter→7null保持"]
   GOLD --> SOURCE["✅ 実data/全wire/3者受容・不変closureCI再用"]
   SOURCE --> P1["✅ H1 900全資格・正差下限・❌O退行3"]
-  P1 --> P2["⏳ 同H pass2・成績で取消しない"]
-  P2 --> SCORE["📏 全母数/全usage/独立算術・j2/AND"]
-  SCORE --> END["🗃️ 正/負/unknown全部保持・通常CI/PR/索引"]
+  P1 --> P2["✅ H2 900全資格・❌退行3/正下限未達"]
+  P2 --> SCORE["✅ 全母数/全usage/3者算術・❌AND未達"]
+  SCORE --> END["✅ 全1918原結果・候補不採用/元Best維持"]
   NEG --> END
-  END --> NEXT["🔁 失敗なら次事前契約・freshを捏造しない"]
+  END --> CI["⏳ 最終通常CI・PR/索引/Ready閉包"]
+  CI --> NEXT["⏳ 次PR事前契約・旧300をD/union4保持"]
+  NEXT --> CAND["🔒 O候補1/D guard→候補固定・23本文未開示"]
+  CAND --> RESERVE["⏳ 封印reserve23全件・再乱数/API0"]
+  RESERVE --> FINITE["📏 j3/2pass/有限23だけ・負/unknownも保持"]
 ```
 
-現sliceはH1原結果・正gain部分と退行FAILを固定し、既予定H2の前提となる原raw再生を追加した。effect/runtime/client/workflow/候補/Gold/primaryは直前受容sourceから不変で、通常最終head CI/二者再受容とH2原結果の閉包は残る。旧613負結果とその通常CI/Ready/未mergeを保持する。
+現sliceはH2原結果・合成NOT_RECONFIRMEDと全1918会計まで固定した。effect/runtime/client/workflow/候補/Gold/primaryは直前受容sourceから不変。通常最終head CI/二者最終受容・記録/Readyが残る。旧613負結果とその通常CI/Ready/未mergeを保持する。
