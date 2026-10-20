@@ -1,0 +1,1930 @@
+{
+  "schema": "ops.sys1.real-case-gold-adjudication.v1",
+  "state": "FROZEN_BEFORE_ANY_HELD_MODEL_OUTPUTS",
+  "completedAt": "2026-10-20T12:52:39.497Z",
+  "rootInitialNativeCommit": "fc68a35669eacb90d908c39a5f9572a1537683e1",
+  "counterInitialNativeCommit": "a17481973397888599ebec4fb24b9ba06e4af41c",
+  "initialAgreementCases": 290,
+  "initialDisagreementCases": 10,
+  "EAgreementCases": 300,
+  "resolvedCases": 3,
+  "unresolvedCases": 7,
+  "disagreements": [
+    {
+      "id": "held-026",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": null,
+      "thirdClaim": "yes",
+      "thirdBasis": "Status explicitly declares finalStateProved=false and businessOutcomeProved=false, which can be read as current proof/achievement status, rather than only the future architecture tables.",
+      "thirdCounter": "The surrounding Status also defines normative authority and architectureTarget. If all status booleans merely delimit claims/permissions rather than assert a current proof result, no is coherent; the decisive ambiguity is whether Proved=false reports non-proof now. Do not infer an actual V0 implementation from its link.",
+      "final": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-029",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": "no",
+      "thirdClaim": "no",
+      "thirdBasis": "Authority references and accepted-gap lineage identify governing inputs; requirements, gates and physical evidence remaining required are obligations. No explicit actual execution, check result or present achievement is reported.",
+      "thirdCounter": "latest-writer decision/accepted gap may be read as a current acceptance claim, but the body uses these as authority citations, not an account of having accepted or checked them. Existing resources/runtime words alone do not prove an implementation status.",
+      "final": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-118",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": "no",
+      "thirdClaim": "no",
+      "thirdBasis": "The Normative status booleans delimit implementation/decision/effect authority and conditional blockedUntilAcceptedADRS. The rest is prospective obligations and gates; the text does not state that acceptance was attempted or is currently missing as an observed fact.",
+      "thirdCounter": "blockedUntilAcceptedADRS=true and organizationActiveClaim=false can look like current blocked status. Unlike a sentence reporting ADRS remains unaccepted, these can also be normative invariants. If the original rubric cannot distinguish these readings, null is preferable to forcing agreement.",
+      "final": "no",
+      "basis": "Normative status/blockedUntilAcceptedADRSは条件・権限の規定であり、実際に採択待ちと確認した報告を本文は明示しない。rootは原稿yesを訂正する。"
+    },
+    {
+      "id": "held-126",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": null,
+      "thirdClaim": "no",
+      "thirdBasis": "Fixed input for the first proof binds a commit/blob/hash/row count; the body specifies projection, ownership and minimum proof without saying this input was acquired, counted, tested or confirmed.",
+      "thirdCounter": "rows:2 and an exact blob could be interpreted as a real data inventory, but those literal input constants can equally be part of a declared test contract. External references must not be followed to manufacture the missing observation.",
+      "final": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-131",
+      "axis": "O",
+      "rootInitial": "no",
+      "counterInitial": "yes",
+      "thirdClaim": "yes",
+      "thirdBasis": "The final sentence calls source-layout PR315/318 Pending, reporting their current unfinished status while prohibiting implicit treatment as merged. Completion is not required for an observation.",
+      "thirdCounter": "must not be implicitly considered merged is normative by itself; yes relies on the separate present-status adjective Pending, not on unchecked completion boxes or existing tests.",
+      "final": "yes",
+      "basis": "末尾のPending source layout PR315/318は現在pendingという直接状態主張。rootの見落としを訂正、merged扱い禁止の規範だけを根拠にはしない。"
+    },
+    {
+      "id": "held-142",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": null,
+      "thirdClaim": "yes",
+      "thirdBasis": "Expected publication tree from local clean build identifies a concrete locally built output hash; that provenance attributes an actual build result even though its acceptance and future deployment are still requirements.",
+      "thirdCounter": "Expected could instead mean a target digest without a completed build. The phrase from local clean build supports the actual-result reading; if it is only a hypothetical expected build, no/null remains defensible. Unchecked future CI conditions themselves are not observations.",
+      "final": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-168",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": "no",
+      "thirdClaim": "no",
+      "thirdBasis": "Exact legacy source is an input package/commit/tree inventory; scope and retirement conditions are planned preservation and future gates. No current build/test/execution or achieved/unachieved implementation status is asserted beyond naming inputs.",
+      "thirdCounter": "The specified archive SHA and legacy working tree may be read as an observed source inventory, but a source reference and declared preservation target do not independently assert acquisition or verification. Avoid inferring success from the word reusable.",
+      "final": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-184",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": null,
+      "thirdClaim": "yes",
+      "thirdBasis": "Exact inputs explicitly name a local integrated source head plus an uploaded bundle and overlay files361, reporting a concrete materialized local integration/input inventory, while the later merge remains conditional.",
+      "thirdCounter": "A table of exact intended input revisions alone can be normative. Yes depends on local integrated/uploaded as asserted completed input state, not merely the SHA strings; if these are only names of desired inputs, keep the ambiguity visible.",
+      "final": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-242",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": null,
+      "thirdClaim": "yes",
+      "thirdBasis": "Exact evidence gives a local proof head/tree, and the following paragraph identifies concrete keyboard/selection/Undo/Redo/pointer behaviors in that local proof as preservation targets. This reports a present proof/implementation source state in addition to the architecture contract.",
+      "thirdCounter": "Current-state architecture or source-path tables alone can declare design, so they are not the basis for yes. The local proof and explicitly described behaviors provide the stronger observed-state claim; no external CI success is inferred.",
+      "final": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-288",
+      "axis": "O",
+      "rootInitial": "yes",
+      "counterInitial": "no",
+      "thirdClaim": "yes",
+      "thirdBasis": "The opening states host-open worker/runner behavior was staged in hq94; later it refers to the direct explorer.exe implementation from that staging as a migration fixture. This reports an existing staged implementation, without claiming the future canonical integration complete.",
+      "thirdCounter": "Links and Depends-on lists alone would be no. Yes relies on staged behavior and direct implementation as current-state assertions, not on future Done bullets or the hypothetical first proof.",
+      "final": "yes",
+      "basis": "冒頭のbehavior staged in hq94とdirect explorer implementationは、実在する段階実装の状態報告。将来の統合成功は推測しない。Rは原稿noを訂正する。"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "held-001",
+      "E": "yes",
+      "O": "yes",
+      "basis": "描画の検出要求と、現在repoにprojectionがある事実を併記。"
+    },
+    {
+      "id": "held-002",
+      "E": "yes",
+      "O": "no",
+      "basis": "永続イベントの責務・受入条件であり実行報告なし。"
+    },
+    {
+      "id": "held-003",
+      "E": "yes",
+      "O": "yes",
+      "basis": "配布完成条件とopsでDSH受入済みという現在状況。"
+    },
+    {
+      "id": "held-004",
+      "E": "yes",
+      "O": "no",
+      "basis": "targetRefの設計・完成条件のみ。"
+    },
+    {
+      "id": "held-005",
+      "E": "yes",
+      "O": "no",
+      "basis": "read operationと証拠の要求で実施報告なし。"
+    },
+    {
+      "id": "held-006",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge後CIを確認する要求で結果なし。"
+    },
+    {
+      "id": "held-007",
+      "E": "yes",
+      "O": "yes",
+      "basis": "削除前の要件と、過去コマンド実行・source未回復の現状を記録。"
+    },
+    {
+      "id": "held-008",
+      "E": "yes",
+      "O": "yes",
+      "basis": "望ましいLODと現在のfocus-only挙動の報告。"
+    },
+    {
+      "id": "held-009",
+      "E": "yes",
+      "O": "no",
+      "basis": "adapter境界の要件のみ。"
+    },
+    {
+      "id": "held-010",
+      "E": "yes",
+      "O": "yes",
+      "basis": "単一writer要求と既存idempotencyで同時所有が未証明という現状。"
+    },
+    {
+      "id": "held-011",
+      "E": "yes",
+      "O": "yes",
+      "basis": "継承・再開条件と未merge保留の実状を記録。"
+    },
+    {
+      "id": "held-012",
+      "E": "yes",
+      "O": "no",
+      "basis": "submit後編集計画のプロトコル・条件の定義。"
+    },
+    {
+      "id": "held-013",
+      "E": "yes",
+      "O": "yes",
+      "basis": "复用要求とmerged parser等の既存実装を記述。"
+    },
+    {
+      "id": "held-014",
+      "E": "yes",
+      "O": "yes",
+      "basis": "実装受入条件と既存own分離・合意済み設計の現状。"
+    },
+    {
+      "id": "held-015",
+      "E": "yes",
+      "O": "no",
+      "basis": "accept-only appendの試験要求。"
+    },
+    {
+      "id": "held-016",
+      "E": "yes",
+      "O": "no",
+      "basis": "JSONL readerの要求のみ。"
+    },
+    {
+      "id": "held-017",
+      "E": "yes",
+      "O": "no",
+      "basis": "attach/observe参照保持の要求のみ。"
+    },
+    {
+      "id": "held-018",
+      "E": "yes",
+      "O": "no",
+      "basis": "targetRef生成の完成状態・mapping定義。"
+    },
+    {
+      "id": "held-019",
+      "E": "yes",
+      "O": "yes",
+      "basis": "責務境界とnot planned/unmerged closeの結果。"
+    },
+    {
+      "id": "held-020",
+      "E": "yes",
+      "O": "yes",
+      "basis": "規則と具体的な未実装・blocked mismatch一覧。"
+    },
+    {
+      "id": "held-021",
+      "E": "yes",
+      "O": "no",
+      "basis": "不正入力の拒否要件・試験要求。"
+    },
+    {
+      "id": "held-022",
+      "E": "yes",
+      "O": "yes",
+      "basis": "実run/artifactで観測した失敗とrequired change。"
+    },
+    {
+      "id": "held-023",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge後に要求する状態で現在結果なし。"
+    },
+    {
+      "id": "held-024",
+      "E": "yes",
+      "O": "yes",
+      "basis": "fixture要件と既存completed/active foundationsの状態を記述。"
+    },
+    {
+      "id": "held-025",
+      "E": "yes",
+      "O": "yes",
+      "basis": "read-only ingestion要件と33testsの実証結果。"
+    },
+    {
+      "id": "held-026",
+      "E": "yes",
+      "O": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-027",
+      "E": "yes",
+      "O": "no",
+      "basis": "UIの責務と検査条件の要求のみ。"
+    },
+    {
+      "id": "held-028",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge後の報告完成条件。"
+    },
+    {
+      "id": "held-029",
+      "E": "yes",
+      "O": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-030",
+      "E": "yes",
+      "O": "no",
+      "basis": "negative proofの処遇要求のみ。"
+    },
+    {
+      "id": "held-031",
+      "E": "yes",
+      "O": "yes",
+      "basis": "導入要求と35/36等の先行実測。"
+    },
+    {
+      "id": "held-032",
+      "E": "yes",
+      "O": "no",
+      "basis": "renderer設計と契約要求。"
+    },
+    {
+      "id": "held-033",
+      "E": "yes",
+      "O": "yes",
+      "basis": "統合要件とmerged workspace/approval/redaction契約の現状。"
+    },
+    {
+      "id": "held-034",
+      "E": "yes",
+      "O": "no",
+      "basis": "将来実装PRのfindings要件。"
+    },
+    {
+      "id": "held-035",
+      "E": "yes",
+      "O": "no",
+      "basis": "PR templateを作る要求。"
+    },
+    {
+      "id": "held-036",
+      "E": "yes",
+      "O": "no",
+      "basis": "approval policyの要件。"
+    },
+    {
+      "id": "held-037",
+      "E": "yes",
+      "O": "yes",
+      "basis": "現状調査・公開済み/未証明の観測と図の表現要件。"
+    },
+    {
+      "id": "held-038",
+      "E": "yes",
+      "O": "no",
+      "basis": "SSG refreshの実証要件・設計のみ。"
+    },
+    {
+      "id": "held-039",
+      "E": "yes",
+      "O": "no",
+      "basis": "receipt fixturesの要件。"
+    },
+    {
+      "id": "held-040",
+      "E": "yes",
+      "O": "no",
+      "basis": "edits責務の設計要求。"
+    },
+    {
+      "id": "held-041",
+      "E": "yes",
+      "O": "yes",
+      "basis": "ledger要件とformer wordingの不足・訂正経緯。"
+    },
+    {
+      "id": "held-042",
+      "E": "yes",
+      "O": "no",
+      "basis": "親issueと子issue運用の完成条件。"
+    },
+    {
+      "id": "held-043",
+      "E": "yes",
+      "O": "yes",
+      "basis": "invocation要件とimplementation not startedの現状。"
+    },
+    {
+      "id": "held-044",
+      "E": "yes",
+      "O": "yes",
+      "basis": "責務境界とPR closed unmergedの実処遇。"
+    },
+    {
+      "id": "held-045",
+      "E": "yes",
+      "O": "no",
+      "basis": "Codex adapterの受入要求。"
+    },
+    {
+      "id": "held-046",
+      "E": "yes",
+      "O": "yes",
+      "basis": "全面移行要件と実merge/build/未完接続の結果。"
+    },
+    {
+      "id": "held-047",
+      "E": "yes",
+      "O": "no",
+      "basis": "accept appendの試験要件。"
+    },
+    {
+      "id": "held-048",
+      "E": "yes",
+      "O": "yes",
+      "basis": "local-tool要求と既存merged foundations・unbounded buffersの現状。"
+    },
+    {
+      "id": "held-049",
+      "E": "yes",
+      "O": "no",
+      "basis": "self packet adoptionの要件。"
+    },
+    {
+      "id": "held-050",
+      "E": "yes",
+      "O": "yes",
+      "basis": "artifact要求とappsが現在3能力を配信利用する現状。"
+    },
+    {
+      "id": "held-051",
+      "E": "yes",
+      "O": "no",
+      "basis": "editor vocabularyの責務・検査条件。"
+    },
+    {
+      "id": "held-052",
+      "E": "yes",
+      "O": "yes",
+      "basis": "CI修復条件と例外merge・実失敗の報告。"
+    },
+    {
+      "id": "held-053",
+      "E": "yes",
+      "O": "no",
+      "basis": "Vim command変換の完成条件。"
+    },
+    {
+      "id": "held-054",
+      "E": "no",
+      "O": "no",
+      "basis": "参照URLだけで要求宣言も実状報告もない。"
+    },
+    {
+      "id": "held-055",
+      "E": "yes",
+      "O": "no",
+      "basis": "strict gateの完成条件。"
+    },
+    {
+      "id": "held-056",
+      "E": "yes",
+      "O": "no",
+      "basis": "compiler execution guardの要件。"
+    },
+    {
+      "id": "held-057",
+      "E": "yes",
+      "O": "yes",
+      "basis": "旧path guard要求と現状jpcmpのみ検査の不足。"
+    },
+    {
+      "id": "held-058",
+      "E": "yes",
+      "O": "yes",
+      "basis": "canonical責務・移行要件と並行実装・merged/stagingの現状。"
+    },
+    {
+      "id": "held-059",
+      "E": "yes",
+      "O": "no",
+      "basis": "report/job命名変更の完成条件。"
+    },
+    {
+      "id": "held-060",
+      "E": "yes",
+      "O": "no",
+      "basis": "Codex parser fixtureの要件。"
+    },
+    {
+      "id": "held-061",
+      "E": "yes",
+      "O": "no",
+      "basis": "Herdr payloadの要件。"
+    },
+    {
+      "id": "held-062",
+      "E": "yes",
+      "O": "no",
+      "basis": "Claude payloadの要件。"
+    },
+    {
+      "id": "held-063",
+      "E": "yes",
+      "O": "yes",
+      "basis": "V0完成条件とimplementationStarted=falseという未着手報告。"
+    },
+    {
+      "id": "held-064",
+      "E": "yes",
+      "O": "yes",
+      "basis": "prepared UI完成条件とbaseline完了scope/選択済み境界の報告。"
+    },
+    {
+      "id": "held-065",
+      "E": "yes",
+      "O": "yes",
+      "basis": "profile分離の完成要求と旧観測版・停止状況。"
+    },
+    {
+      "id": "held-066",
+      "E": "yes",
+      "O": "yes",
+      "basis": "実装要求とcurrent blockers3/CI/merge結果。"
+    },
+    {
+      "id": "held-067",
+      "E": "yes",
+      "O": "no",
+      "basis": "handoffの処遇完成条件。"
+    },
+    {
+      "id": "held-068",
+      "E": "yes",
+      "O": "no",
+      "basis": "issue/merge条件チェック要求。"
+    },
+    {
+      "id": "held-069",
+      "E": "yes",
+      "O": "yes",
+      "basis": "計画配置の規則と旧案撤回・未完了の現状。"
+    },
+    {
+      "id": "held-070",
+      "E": "yes",
+      "O": "yes",
+      "basis": "OCI authoring要件と現在base・既存bindingの現状。"
+    },
+    {
+      "id": "held-071",
+      "E": "yes",
+      "O": "yes",
+      "basis": "legacy importの要求と実装未着手status。"
+    },
+    {
+      "id": "held-072",
+      "E": "yes",
+      "O": "yes",
+      "basis": "receipt consumer要件とblocked/current free-form境界。"
+    },
+    {
+      "id": "held-073",
+      "E": "yes",
+      "O": "no",
+      "basis": "instruction row契約の要求。"
+    },
+    {
+      "id": "held-074",
+      "E": "yes",
+      "O": "no",
+      "basis": "edits queue validator接続の要件。"
+    },
+    {
+      "id": "held-075",
+      "E": "yes",
+      "O": "yes",
+      "basis": "negative fixtures要件とhappy-path中心という現状不足。"
+    },
+    {
+      "id": "held-076",
+      "E": "yes",
+      "O": "yes",
+      "basis": "product要件と現在空のrepoという実状。"
+    },
+    {
+      "id": "held-077",
+      "E": "yes",
+      "O": "yes",
+      "basis": "projection要件とcompleted predecessorsに不足するsurfaceの観測。"
+    },
+    {
+      "id": "held-078",
+      "E": "yes",
+      "O": "yes",
+      "basis": "継承条件と未merge/semantic FAILを保持した現状。"
+    },
+    {
+      "id": "held-079",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤作成・not planned closeの事実のみ。"
+    },
+    {
+      "id": "held-080",
+      "E": "yes",
+      "O": "no",
+      "basis": "full path proofの受入条件。"
+    },
+    {
+      "id": "held-081",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Node統一要求と固定host/rootで到達不能だった経緯。"
+    },
+    {
+      "id": "held-082",
+      "E": "yes",
+      "O": "no",
+      "basis": "architecture documentの要件。"
+    },
+    {
+      "id": "held-083",
+      "E": "yes",
+      "O": "no",
+      "basis": "admission outcomeの完成条件。"
+    },
+    {
+      "id": "held-084",
+      "E": "yes",
+      "O": "yes",
+      "basis": "撤去/移行要件とPR58 merged/live NOT_RUNの状況。"
+    },
+    {
+      "id": "held-085",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Pages配備要件と既CI成功source・未実証権限。"
+    },
+    {
+      "id": "held-086",
+      "E": "yes",
+      "O": "yes",
+      "basis": "責務境界とPR閉鎖・merged分離の実状。"
+    },
+    {
+      "id": "held-087",
+      "E": "yes",
+      "O": "no",
+      "basis": "Herdr proofの受入要求。"
+    },
+    {
+      "id": "held-088",
+      "E": "yes",
+      "O": "no",
+      "basis": "現状ではなくrepo mapの設計目標・架空fixture。"
+    },
+    {
+      "id": "held-089",
+      "E": "yes",
+      "O": "yes",
+      "basis": "撤去要件とconsumer不在調査・削除済みchecklist。"
+    },
+    {
+      "id": "held-090",
+      "E": "yes",
+      "O": "no",
+      "basis": "Vim completion baseの安全完成条件。"
+    },
+    {
+      "id": "held-091",
+      "E": "yes",
+      "O": "yes",
+      "basis": "world audit要求とPR112の実証済み限定slice。"
+    },
+    {
+      "id": "held-092",
+      "E": "yes",
+      "O": "yes",
+      "basis": "gesture意味編集要件と36PASS等のbounded観測。"
+    },
+    {
+      "id": "held-093",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Windows対応要求と実build probe失敗の報告。"
+    },
+    {
+      "id": "held-094",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Projects設計要件と重複調査・merged pathの結果。"
+    },
+    {
+      "id": "held-095",
+      "E": "yes",
+      "O": "no",
+      "basis": "self package evidenceの要件。"
+    },
+    {
+      "id": "held-096",
+      "E": "yes",
+      "O": "no",
+      "basis": "self adoption/universe拡張の設計要件。"
+    },
+    {
+      "id": "held-097",
+      "E": "yes",
+      "O": "yes",
+      "basis": "presentation要件とalready-proved extensionの報告。"
+    },
+    {
+      "id": "held-098",
+      "E": "yes",
+      "O": "no",
+      "basis": "queue workerの完成条件。"
+    },
+    {
+      "id": "held-099",
+      "E": "yes",
+      "O": "yes",
+      "basis": "直接入力要求とIME常時on・補完不動作の観測。"
+    },
+    {
+      "id": "held-100",
+      "E": "yes",
+      "O": "no",
+      "basis": "strict gate negative fixturesの要件。"
+    },
+    {
+      "id": "held-101",
+      "E": "yes",
+      "O": "no",
+      "basis": "history projectionの契約と条件定義。"
+    },
+    {
+      "id": "held-102",
+      "E": "yes",
+      "O": "yes",
+      "basis": "snapshot要求と現在CIでsnapshot未保持の状況。"
+    },
+    {
+      "id": "held-103",
+      "E": "yes",
+      "O": "yes",
+      "basis": "REPL実装条件とrepo/外部実証の詳細結果。"
+    },
+    {
+      "id": "held-104",
+      "E": "yes",
+      "O": "no",
+      "basis": "session row契約の要件。"
+    },
+    {
+      "id": "held-105",
+      "E": "yes",
+      "O": "no",
+      "basis": "非TUI agent proofの受入条件。"
+    },
+    {
+      "id": "held-106",
+      "E": "yes",
+      "O": "yes",
+      "basis": "provider contract要求とrefactor後も共有契約の検証が弱い現状。"
+    },
+    {
+      "id": "held-107",
+      "E": "yes",
+      "O": "no",
+      "basis": "Herdr start adapterの要件。"
+    },
+    {
+      "id": "held-108",
+      "E": "yes",
+      "O": "yes",
+      "basis": "direct argv adapter要件とmerged transient portの現状。"
+    },
+    {
+      "id": "held-109",
+      "E": "yes",
+      "O": "no",
+      "basis": "Nix/DSCの設計・能力分担の定義で実施報告なし。"
+    },
+    {
+      "id": "held-110",
+      "E": "yes",
+      "O": "no",
+      "basis": "worker skeletonの受入条件。"
+    },
+    {
+      "id": "held-111",
+      "E": "yes",
+      "O": "no",
+      "basis": "intent record整合の要件。"
+    },
+    {
+      "id": "held-112",
+      "E": "yes",
+      "O": "yes",
+      "basis": "将来のreal closure要求とPhase H/I completed/merged結果。"
+    },
+    {
+      "id": "held-113",
+      "E": "yes",
+      "O": "yes",
+      "basis": "migration要件と既実証/未実証baseline。"
+    },
+    {
+      "id": "held-114",
+      "E": "yes",
+      "O": "no",
+      "basis": "curated/scale/browser proofの要求のみ。"
+    },
+    {
+      "id": "held-115",
+      "E": "yes",
+      "O": "no",
+      "basis": "Vim9 clientの契約・required scenariosで実結果なし。"
+    },
+    {
+      "id": "held-116",
+      "E": "yes",
+      "O": "yes",
+      "basis": "postmerge CI要件とPR38 mergecommit workflow不在。"
+    },
+    {
+      "id": "held-117",
+      "E": "yes",
+      "O": "no",
+      "basis": "mismatch ledger配置の要件。"
+    },
+    {
+      "id": "held-118",
+      "E": "yes",
+      "O": "no",
+      "basis": "Normative status/blockedUntilAcceptedADRSは条件・権限の規定であり、実際に採択待ちと確認した報告を本文は明示しない。rootは原稿yesを訂正する。"
+    },
+    {
+      "id": "held-119",
+      "E": "yes",
+      "O": "yes",
+      "basis": "runtime整理要件とmainの混在・既Tab proofの観測。"
+    },
+    {
+      "id": "held-120",
+      "E": "yes",
+      "O": "no",
+      "basis": "repoMap boundary文書の要件。"
+    },
+    {
+      "id": "held-121",
+      "E": "yes",
+      "O": "no",
+      "basis": "dry-runの設計要求。"
+    },
+    {
+      "id": "held-122",
+      "E": "yes",
+      "O": "yes",
+      "basis": "registry要件とbaseline mismatch・draft candidateの状況。"
+    },
+    {
+      "id": "held-123",
+      "E": "yes",
+      "O": "yes",
+      "basis": "core抽出要件とVim proofが示したUXの報告。"
+    },
+    {
+      "id": "held-124",
+      "E": "yes",
+      "O": "no",
+      "basis": "projection hotreload proofの受入条件。"
+    },
+    {
+      "id": "held-125",
+      "E": "yes",
+      "O": "yes",
+      "basis": "generic local-tool要件と実Windows adapter_unavailable等の観測。"
+    },
+    {
+      "id": "held-126",
+      "E": "yes",
+      "O": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-127",
+      "E": "yes",
+      "O": "yes",
+      "basis": "input明示化要求と現pipelineの暗黙fixture読取の現状。"
+    },
+    {
+      "id": "held-128",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Inspector要件と未実装・未採択の現状。"
+    },
+    {
+      "id": "held-129",
+      "E": "yes",
+      "O": "no",
+      "basis": "mxfile compositionの契約・試験要求。"
+    },
+    {
+      "id": "held-130",
+      "E": "yes",
+      "O": "yes",
+      "basis": "JS移行要件とPython coreが動作する現状。"
+    },
+    {
+      "id": "held-131",
+      "E": "yes",
+      "O": "yes",
+      "basis": "末尾のPending source layout PR315/318は現在pendingという直接状態主張。rootの見落としを訂正、merged扱い禁止の規範だけを根拠にはしない。"
+    },
+    {
+      "id": "held-132",
+      "E": "yes",
+      "O": "yes",
+      "basis": "移行完成条件とUser決定・進行中系列の現状。"
+    },
+    {
+      "id": "held-133",
+      "E": "yes",
+      "O": "no",
+      "basis": "console責務の設計・文書要件。"
+    },
+    {
+      "id": "held-134",
+      "E": "yes",
+      "O": "no",
+      "basis": "package final joinの要求。"
+    },
+    {
+      "id": "held-135",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Codex供給要件と0.125.0 HTTP400等の実測。"
+    },
+    {
+      "id": "held-136",
+      "E": "yes",
+      "O": "yes",
+      "basis": "semantic-map統合要件とaccepted legacy source保全の報告。"
+    },
+    {
+      "id": "held-137",
+      "E": "yes",
+      "O": "no",
+      "basis": "conformance comparatorの設計・架空差分例・受入条件。"
+    },
+    {
+      "id": "held-138",
+      "E": "yes",
+      "O": "yes",
+      "basis": "既存CI A29失敗の報告と原因是正要求。"
+    },
+    {
+      "id": "held-139",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Caddy proof要求とWranglerだけで既実証という現状。"
+    },
+    {
+      "id": "held-140",
+      "E": "yes",
+      "O": "yes",
+      "basis": "TTY選定要求と候補調査・未実証結果。"
+    },
+    {
+      "id": "held-141",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤起票し即closeした経緯のみ。"
+    },
+    {
+      "id": "held-142",
+      "E": "yes",
+      "O": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-143",
+      "E": "yes",
+      "O": "no",
+      "basis": "core-port接続要件・期待fixture counts。"
+    },
+    {
+      "id": "held-144",
+      "E": "yes",
+      "O": "yes",
+      "basis": "継承・再開条件と未merge候補の現状。"
+    },
+    {
+      "id": "held-145",
+      "E": "yes",
+      "O": "yes",
+      "basis": "共通Tool世代の要求とown/native不一致のreadback。"
+    },
+    {
+      "id": "held-146",
+      "E": "yes",
+      "O": "no",
+      "basis": "exact-byte readback後closeという条件とリンク。"
+    },
+    {
+      "id": "held-147",
+      "E": "yes",
+      "O": "yes",
+      "basis": "successor完成条件とCI/source/real未完の詳細観測。"
+    },
+    {
+      "id": "held-148",
+      "E": "yes",
+      "O": "no",
+      "basis": "renderer portの設計・試験要求。"
+    },
+    {
+      "id": "held-149",
+      "E": "yes",
+      "O": "no",
+      "basis": "same-name green証拠取得の要件。"
+    },
+    {
+      "id": "held-150",
+      "E": "yes",
+      "O": "yes",
+      "basis": "serialization修正要求と実GraphViewer duplicate-ID error。"
+    },
+    {
+      "id": "held-151",
+      "E": "yes",
+      "O": "no",
+      "basis": "hardening全子課題の閉包要件。"
+    },
+    {
+      "id": "held-152",
+      "E": "yes",
+      "O": "no",
+      "basis": "package claims/CI/rebuildの完成条件。"
+    },
+    {
+      "id": "held-153",
+      "E": "yes",
+      "O": "no",
+      "basis": "read model境界の設計要件。"
+    },
+    {
+      "id": "held-154",
+      "E": "yes",
+      "O": "no",
+      "basis": "意味をschema adapterに保つ要求。"
+    },
+    {
+      "id": "held-155",
+      "E": "yes",
+      "O": "no",
+      "basis": "queue receipt digest検証要件。"
+    },
+    {
+      "id": "held-156",
+      "E": "yes",
+      "O": "yes",
+      "basis": "publication完成条件とlocal preproofの実測値。"
+    },
+    {
+      "id": "held-157",
+      "E": "yes",
+      "O": "yes",
+      "basis": "audience projection要求とimplementation_started=falseの状況。"
+    },
+    {
+      "id": "held-158",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Windows再install必要とboot/diskpart失敗・試行済み報告。"
+    },
+    {
+      "id": "held-159",
+      "E": "yes",
+      "O": "no",
+      "basis": "merged PR目的達成の再検査要件。"
+    },
+    {
+      "id": "held-160",
+      "E": "yes",
+      "O": "yes",
+      "basis": "toolchain要件とmerged source/CI/artifact実読戻し結果。"
+    },
+    {
+      "id": "held-161",
+      "E": "yes",
+      "O": "yes",
+      "basis": "semantic zoomの設計要求と現static Atlas/CI未達の報告。"
+    },
+    {
+      "id": "held-162",
+      "E": "yes",
+      "O": "no",
+      "basis": "camera adapterの代替設計・受入要件。"
+    },
+    {
+      "id": "held-163",
+      "E": "yes",
+      "O": "no",
+      "basis": "old CI demotionの要件。"
+    },
+    {
+      "id": "held-164",
+      "E": "yes",
+      "O": "no",
+      "basis": "managed worker lifecycleの設計・仮想crash matrix。"
+    },
+    {
+      "id": "held-165",
+      "E": "yes",
+      "O": "no",
+      "basis": "README投影/producer APIの要件。"
+    },
+    {
+      "id": "held-166",
+      "E": "yes",
+      "O": "no",
+      "basis": "timeout/cancelの設計・試験要件。"
+    },
+    {
+      "id": "held-167",
+      "E": "yes",
+      "O": "no",
+      "basis": "UI state-store guardの要件。"
+    },
+    {
+      "id": "held-168",
+      "E": "yes",
+      "O": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-169",
+      "E": "yes",
+      "O": "yes",
+      "basis": "remote E2E要求とmerged実装/未証明pathの現状。"
+    },
+    {
+      "id": "held-170",
+      "E": "yes",
+      "O": "yes",
+      "basis": "real gate設計とcurrent12workflow/selftest-onlyの調査結果。"
+    },
+    {
+      "id": "held-171",
+      "E": "yes",
+      "O": "no",
+      "basis": "queue recordsの契約要件。"
+    },
+    {
+      "id": "held-172",
+      "E": "yes",
+      "O": "no",
+      "basis": "worker実行boundsの要求。"
+    },
+    {
+      "id": "held-173",
+      "E": "yes",
+      "O": "no",
+      "basis": "registry dispatchの要求。"
+    },
+    {
+      "id": "held-174",
+      "E": "yes",
+      "O": "yes",
+      "basis": "policy試験要件とmerged workersafety契約の現状。"
+    },
+    {
+      "id": "held-175",
+      "E": "yes",
+      "O": "yes",
+      "basis": "PTY比較条件と未採択/未測定・既知制約の報告。"
+    },
+    {
+      "id": "held-176",
+      "E": "yes",
+      "O": "no",
+      "basis": "status vocabularyの要件。"
+    },
+    {
+      "id": "held-177",
+      "E": "yes",
+      "O": "yes",
+      "basis": "codequality修正要求と正規化/current timer等の実装現状。"
+    },
+    {
+      "id": "held-178",
+      "E": "yes",
+      "O": "no",
+      "basis": "dry-run proofの要件。"
+    },
+    {
+      "id": "held-179",
+      "E": "yes",
+      "O": "no",
+      "basis": "proposal表示の要件。"
+    },
+    {
+      "id": "held-180",
+      "E": "yes",
+      "O": "no",
+      "basis": "Vim completion契約proofの要件。"
+    },
+    {
+      "id": "held-181",
+      "E": "yes",
+      "O": "no",
+      "basis": "final report schemaの要件。"
+    },
+    {
+      "id": "held-182",
+      "E": "yes",
+      "O": "yes",
+      "basis": "境界規則とUI adoption/CI completed結果。"
+    },
+    {
+      "id": "held-183",
+      "E": "yes",
+      "O": "yes",
+      "basis": "残るfinal join要求とshadow blockers解消の結果。"
+    },
+    {
+      "id": "held-184",
+      "E": "yes",
+      "O": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-185",
+      "E": "yes",
+      "O": "yes",
+      "basis": "描画編集要求と未実装・実CI失敗/成功の記録。"
+    },
+    {
+      "id": "held-186",
+      "E": "yes",
+      "O": "no",
+      "basis": "agent command ownershipの要件。"
+    },
+    {
+      "id": "held-187",
+      "E": "yes",
+      "O": "no",
+      "basis": "ledger listの設計・受入条件。"
+    },
+    {
+      "id": "held-188",
+      "E": "yes",
+      "O": "yes",
+      "basis": "pass意味とselected closure accepted/mergedの結果。"
+    },
+    {
+      "id": "held-189",
+      "E": "yes",
+      "O": "no",
+      "basis": "Codex payload契約要件。"
+    },
+    {
+      "id": "held-190",
+      "E": "yes",
+      "O": "no",
+      "basis": "PR78 merge前確認の要件。"
+    },
+    {
+      "id": "held-191",
+      "E": "yes",
+      "O": "no",
+      "basis": "decision routesの設計・仮想receipt。"
+    },
+    {
+      "id": "held-192",
+      "E": "yes",
+      "O": "no",
+      "basis": "redactionの要件。"
+    },
+    {
+      "id": "held-193",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤起票/即closeの経緯だけ。"
+    },
+    {
+      "id": "held-194",
+      "E": "yes",
+      "O": "no",
+      "basis": "version-fixed invocationの設計・merge条件。"
+    },
+    {
+      "id": "held-195",
+      "E": "yes",
+      "O": "no",
+      "basis": "targetRef bridgeの要件。"
+    },
+    {
+      "id": "held-196",
+      "E": "yes",
+      "O": "no",
+      "basis": "Org secret移行の期待・完成条件。"
+    },
+    {
+      "id": "held-197",
+      "E": "yes",
+      "O": "no",
+      "basis": "actionable findingsの要件。"
+    },
+    {
+      "id": "held-198",
+      "E": "yes",
+      "O": "no",
+      "basis": "target examplesの要件。"
+    },
+    {
+      "id": "held-199",
+      "E": "yes",
+      "O": "yes",
+      "basis": "z-axis UX要求とcurrent canonical gap一覧。"
+    },
+    {
+      "id": "held-200",
+      "E": "yes",
+      "O": "no",
+      "basis": "edits worker退役の要件。"
+    },
+    {
+      "id": "held-201",
+      "E": "yes",
+      "O": "yes",
+      "basis": "DuckDB撤去要件とactive direct consumer不在の調査結果。"
+    },
+    {
+      "id": "held-202",
+      "E": "yes",
+      "O": "yes",
+      "basis": "shadow候補表示要求と直接入力実機PASS/現変換候補不可視の報告。"
+    },
+    {
+      "id": "held-203",
+      "E": "yes",
+      "O": "yes",
+      "basis": "AtlasStage追加要求と既存ports/renderer実装の現状。"
+    },
+    {
+      "id": "held-204",
+      "E": "yes",
+      "O": "no",
+      "basis": "eventからstatus投影する要件。"
+    },
+    {
+      "id": "held-205",
+      "E": "yes",
+      "O": "no",
+      "basis": "adapter output正規化の契約要件。"
+    },
+    {
+      "id": "held-206",
+      "E": "yes",
+      "O": "no",
+      "basis": "targetRef非authorityの要求。"
+    },
+    {
+      "id": "held-207",
+      "E": "yes",
+      "O": "no",
+      "basis": "preview digest検証要求。"
+    },
+    {
+      "id": "held-208",
+      "E": "yes",
+      "O": "no",
+      "basis": "Nix input contractの規則と検査要件。"
+    },
+    {
+      "id": "held-209",
+      "E": "yes",
+      "O": "no",
+      "basis": "Claude logs/attachの受入条件。"
+    },
+    {
+      "id": "held-210",
+      "E": "yes",
+      "O": "yes",
+      "basis": "run view要求と実Windows Claude結果不可視の失敗。"
+    },
+    {
+      "id": "held-211",
+      "E": "yes",
+      "O": "no",
+      "basis": "producer input lifecycleの要件。"
+    },
+    {
+      "id": "held-212",
+      "E": "yes",
+      "O": "yes",
+      "basis": "current claim描画要求と実装364/後続の進捗。"
+    },
+    {
+      "id": "held-213",
+      "E": "yes",
+      "O": "yes",
+      "basis": "roundtrip設計要件とcurrent generator/write-back不足の現状。"
+    },
+    {
+      "id": "held-214",
+      "E": "yes",
+      "O": "no",
+      "basis": "canonical receipt productionの要件。"
+    },
+    {
+      "id": "held-215",
+      "E": "yes",
+      "O": "no",
+      "basis": "run show/readbackの設計・試験条件。"
+    },
+    {
+      "id": "held-216",
+      "E": "yes",
+      "O": "no",
+      "basis": "legacy protocol整理の要件。"
+    },
+    {
+      "id": "held-217",
+      "E": "yes",
+      "O": "no",
+      "basis": "issue/PR処遇の要件。"
+    },
+    {
+      "id": "held-218",
+      "E": "yes",
+      "O": "yes",
+      "basis": "import graph検査要件と現string guard不足の報告。"
+    },
+    {
+      "id": "held-219",
+      "E": "yes",
+      "O": "yes",
+      "basis": "NixOS導入要件とUSB cold boot/SSH等の実測。"
+    },
+    {
+      "id": "held-220",
+      "E": "yes",
+      "O": "yes",
+      "basis": "visual artifact要求と現CIが画像を出さない不足。"
+    },
+    {
+      "id": "held-221",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Decision Room proof要求とexact carry artifactの実記録。"
+    },
+    {
+      "id": "held-222",
+      "E": "yes",
+      "O": "no",
+      "basis": "console readbackの要件。"
+    },
+    {
+      "id": "held-223",
+      "E": "yes",
+      "O": "no",
+      "basis": "world-only recallの契約・前提条件。"
+    },
+    {
+      "id": "held-224",
+      "E": "yes",
+      "O": "no",
+      "basis": "instruction validationの要件。"
+    },
+    {
+      "id": "held-225",
+      "E": "yes",
+      "O": "no",
+      "basis": "org universe拡張の要件。"
+    },
+    {
+      "id": "held-226",
+      "E": "yes",
+      "O": "no",
+      "basis": "README drift integrationの要件。"
+    },
+    {
+      "id": "held-227",
+      "E": "yes",
+      "O": "no",
+      "basis": "self README receiptsの要件。"
+    },
+    {
+      "id": "held-228",
+      "E": "yes",
+      "O": "no",
+      "basis": "issue templateの要件。"
+    },
+    {
+      "id": "held-229",
+      "E": "yes",
+      "O": "no",
+      "basis": "producer provenance verifierの要件。"
+    },
+    {
+      "id": "held-230",
+      "E": "yes",
+      "O": "no",
+      "basis": "edits ownershipの要件。"
+    },
+    {
+      "id": "held-231",
+      "E": "yes",
+      "O": "yes",
+      "basis": "visualization CI要求と以前の削除中心解釈・未完evidenceの経緯。"
+    },
+    {
+      "id": "held-232",
+      "E": "yes",
+      "O": "no",
+      "basis": "packet registry/transportの要件。"
+    },
+    {
+      "id": "held-233",
+      "E": "yes",
+      "O": "yes",
+      "basis": "compiler-worker接続要求とmerged両契約の実接続未証明の現状。"
+    },
+    {
+      "id": "held-234",
+      "E": "yes",
+      "O": "no",
+      "basis": "Claude print adapterの要件。"
+    },
+    {
+      "id": "held-235",
+      "E": "yes",
+      "O": "yes",
+      "basis": "hq fixture要求とadapter存在/fixture不在の現状。"
+    },
+    {
+      "id": "held-236",
+      "E": "yes",
+      "O": "no",
+      "basis": "external projection入力の要件。"
+    },
+    {
+      "id": "held-237",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge後物理不在確認の要件。"
+    },
+    {
+      "id": "held-238",
+      "E": "yes",
+      "O": "yes",
+      "basis": "PR作成方針の判断要求と実repo設定/merged workflows衝突。"
+    },
+    {
+      "id": "held-239",
+      "E": "yes",
+      "O": "yes",
+      "basis": "復帰保証の要求と一時通信復旧・route等の実測。"
+    },
+    {
+      "id": "held-240",
+      "E": "yes",
+      "O": "yes",
+      "basis": "provision要件とUser指摘・追加手続撤回の経緯。"
+    },
+    {
+      "id": "held-241",
+      "E": "yes",
+      "O": "no",
+      "basis": "observed inventory detectorの要件。"
+    },
+    {
+      "id": "held-242",
+      "E": "yes",
+      "O": null,
+      "basis": "現実のStatus/受容・固定source・local build/proofの状態報告と、規範・採用input指定の二読が原定義だけでは解消不能。多数決や候補補足を正解根拠にせずO=nullを全300の母数へ残す。"
+    },
+    {
+      "id": "held-243",
+      "E": "yes",
+      "O": "no",
+      "basis": "approval verifierの契約・仮想receipt例。"
+    },
+    {
+      "id": "held-244",
+      "E": "yes",
+      "O": "no",
+      "basis": "open PR棚卸し要求。"
+    },
+    {
+      "id": "held-245",
+      "E": "yes",
+      "O": "no",
+      "basis": "contract fixture CIの要件。"
+    },
+    {
+      "id": "held-246",
+      "E": "yes",
+      "O": "yes",
+      "basis": "navigation UX要件と未実装・未実証の現状。"
+    },
+    {
+      "id": "held-247",
+      "E": "yes",
+      "O": "no",
+      "basis": "Claude background adapterの要件。"
+    },
+    {
+      "id": "held-248",
+      "E": "yes",
+      "O": "yes",
+      "basis": "decision pipeline要件とmerged149/既存shadow proofの現状。"
+    },
+    {
+      "id": "held-249",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Ollama secret要件とGo PR57進行中の現状。"
+    },
+    {
+      "id": "held-250",
+      "E": "yes",
+      "O": "no",
+      "basis": "workspace path規約の要件。"
+    },
+    {
+      "id": "held-251",
+      "E": "yes",
+      "O": "yes",
+      "basis": "boundary規則とUI103 CI/merge完了の結果。"
+    },
+    {
+      "id": "held-252",
+      "E": "yes",
+      "O": "yes",
+      "basis": "layout将来要件と旧v6/今3pane交差数の実測。"
+    },
+    {
+      "id": "held-253",
+      "E": "yes",
+      "O": "yes",
+      "basis": "UX snapshot要件と現CI生成・stable audit未要求の状況。"
+    },
+    {
+      "id": "held-254",
+      "E": "yes",
+      "O": "yes",
+      "basis": "generic authoring完成形と現JEV専用・複数更新の不足。"
+    },
+    {
+      "id": "held-255",
+      "E": "yes",
+      "O": "yes",
+      "basis": "viewer要件とhosted実証/compiled未完の報告。"
+    },
+    {
+      "id": "held-256",
+      "E": "yes",
+      "O": "no",
+      "basis": "issue-first文書化の要件。"
+    },
+    {
+      "id": "held-257",
+      "E": "yes",
+      "O": "no",
+      "basis": "Linode credential bindingの要件。"
+    },
+    {
+      "id": "held-258",
+      "E": "yes",
+      "O": "no",
+      "basis": "recovery operationsの設計要件。"
+    },
+    {
+      "id": "held-259",
+      "E": "yes",
+      "O": "no",
+      "basis": "external input pathの要件。"
+    },
+    {
+      "id": "held-260",
+      "E": "yes",
+      "O": "no",
+      "basis": "local queue append/read/tailの要件。"
+    },
+    {
+      "id": "held-261",
+      "E": "yes",
+      "O": "yes",
+      "basis": "README materialization要求とselected repo調査結果。"
+    },
+    {
+      "id": "held-262",
+      "E": "yes",
+      "O": "no",
+      "basis": "package final report machineryの要件。"
+    },
+    {
+      "id": "held-263",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Environment set規則とbootstrap reported/未確認の現状。"
+    },
+    {
+      "id": "held-264",
+      "E": "yes",
+      "O": "yes",
+      "basis": "target launcher要件とcurrent open PR/source配置の観測。"
+    },
+    {
+      "id": "held-265",
+      "E": "yes",
+      "O": "yes",
+      "basis": "branch protection要求と実保護disabled readback。"
+    },
+    {
+      "id": "held-266",
+      "E": "yes",
+      "O": "no",
+      "basis": "3PR整合監査要求。"
+    },
+    {
+      "id": "held-267",
+      "E": "yes",
+      "O": "yes",
+      "basis": "責務境界とnot planned/unmerged dispositionの報告。"
+    },
+    {
+      "id": "held-268",
+      "E": "yes",
+      "O": "no",
+      "basis": "selected shadow reportの要件。"
+    },
+    {
+      "id": "held-269",
+      "E": "yes",
+      "O": "yes",
+      "basis": "upstream移行条件とfork echo依存/CtrlSpace衝突の現状。"
+    },
+    {
+      "id": "held-270",
+      "E": "yes",
+      "O": "no",
+      "basis": "idempotencyの要件。"
+    },
+    {
+      "id": "held-271",
+      "E": "yes",
+      "O": "yes",
+      "basis": "同一source三view要件とmap別pathの現状。"
+    },
+    {
+      "id": "held-272",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Atlas統合要件と既repo/preview実装の報告。"
+    },
+    {
+      "id": "held-273",
+      "E": "yes",
+      "O": "no",
+      "basis": "tail readbackの設計・試験要件。"
+    },
+    {
+      "id": "held-274",
+      "E": "yes",
+      "O": "no",
+      "basis": "hq責務文書の要件。"
+    },
+    {
+      "id": "held-275",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Decision Packet要件とlocal proof tests/実browser結果。"
+    },
+    {
+      "id": "held-276",
+      "E": "yes",
+      "O": "no",
+      "basis": "Codex follow-upの要件。"
+    },
+    {
+      "id": "held-277",
+      "E": "yes",
+      "O": "yes",
+      "basis": "authorization transport修正要求とbot actorによるpublication blockの観測。"
+    },
+    {
+      "id": "held-278",
+      "E": "yes",
+      "O": "yes",
+      "basis": "DRY是正要件と重複identityによりstale参照発生の報告。"
+    },
+    {
+      "id": "held-279",
+      "E": "yes",
+      "O": "no",
+      "basis": "provider CI drift integrationの要件。"
+    },
+    {
+      "id": "held-280",
+      "E": "yes",
+      "O": "yes",
+      "basis": "非破壊提案追記の要求とUser依頼済み・既merged依存の現状。"
+    },
+    {
+      "id": "held-281",
+      "E": "yes",
+      "O": "yes",
+      "basis": "render audit要件と既Desktop runtime実証の現状。"
+    },
+    {
+      "id": "held-282",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge-write cutoverの条件・検証要件。"
+    },
+    {
+      "id": "held-283",
+      "E": "yes",
+      "O": "yes",
+      "basis": "performance gate要求と既検査が小fixtureのみという現状。"
+    },
+    {
+      "id": "held-284",
+      "E": "yes",
+      "O": "no",
+      "basis": "purpose viewing入口の要件。"
+    },
+    {
+      "id": "held-285",
+      "E": "yes",
+      "O": "yes",
+      "basis": "対象別Go認証要件とVersaPro未対応/実応答未確認の現状。"
+    },
+    {
+      "id": "held-286",
+      "E": "no",
+      "O": "no",
+      "basis": "issue testだけで要求・報告なし。"
+    },
+    {
+      "id": "held-287",
+      "E": "yes",
+      "O": "yes",
+      "basis": "provider handoff要件とsource/fixture PASS・physical未設定の観測。"
+    },
+    {
+      "id": "held-288",
+      "E": "yes",
+      "O": "yes",
+      "basis": "冒頭のbehavior staged in hq94とdirect explorer implementationは、実在する段階実装の状態報告。将来の統合成功は推測しない。Rは原稿noを訂正する。"
+    },
+    {
+      "id": "held-289",
+      "E": "yes",
+      "O": "no",
+      "basis": "source-shape分類の設計・固定判断・完成条件。"
+    },
+    {
+      "id": "held-290",
+      "E": "yes",
+      "O": "yes",
+      "basis": "pure join要件と4channelの実positive fixture evidence。"
+    },
+    {
+      "id": "held-291",
+      "E": "yes",
+      "O": "yes",
+      "basis": "desired/live ownership境界とqueued未完・source削除済み報告。"
+    },
+    {
+      "id": "held-292",
+      "E": "yes",
+      "O": "yes",
+      "basis": "refactor要件とpre-refactor gatesでblockedの現状。"
+    },
+    {
+      "id": "held-293",
+      "E": "yes",
+      "O": "yes",
+      "basis": "repo退役条件と現役/退役未許可の現状。"
+    },
+    {
+      "id": "held-294",
+      "E": "yes",
+      "O": "no",
+      "basis": "org joinの要件。"
+    },
+    {
+      "id": "held-295",
+      "E": "yes",
+      "O": "no",
+      "basis": "local hotreloadの要件。"
+    },
+    {
+      "id": "held-296",
+      "E": "yes",
+      "O": "yes",
+      "basis": "conditional proof要件とadopted SSG capabilityの現状。"
+    },
+    {
+      "id": "held-297",
+      "E": "yes",
+      "O": "yes",
+      "basis": "presentation pins/readability要求と再描画で位置消失等の現不具合。"
+    },
+    {
+      "id": "held-298",
+      "E": "yes",
+      "O": "no",
+      "basis": "current-fact test規則の文書化要求。"
+    },
+    {
+      "id": "held-299",
+      "E": "yes",
+      "O": "yes",
+      "basis": "carrier利用条件と生成HTML/archive等の実byte情報。"
+    },
+    {
+      "id": "held-300",
+      "E": "yes",
+      "O": "yes",
+      "basis": "NixOS Pi受入条件とOPEN/NOT_PROVENの状況。"
+    }
+  ],
+  "method": "Two full independent body-only initial ratings frozen before cross-reading. Third candidate author independently countered only the ten disagreement bodies without initial labels, links or predictions. All parties accepted conservative resolutions before predictions. All original drafts remain unchanged; common model/design knowledge and Gold fallibility remain.",
+  "primaryUnchanged": true,
+  "candidateUnchanged": true,
+  "modelPosts": 0
+}

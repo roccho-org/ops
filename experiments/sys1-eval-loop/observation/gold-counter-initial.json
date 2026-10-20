@@ -1,0 +1,1809 @@
+{
+  "schema": "ops.sys1.real-case-rater.v1",
+  "viewNativeCommit": "1959840a9b42378f5b9c08418d91610fb05dd45b",
+  "rater": "counterreview",
+  "state": "FROZEN_BEFORE_ANY_MODEL_OUTPUTS_OR_ROOT_LABELS",
+  "annotations": [
+    {
+      "id": "held-001",
+      "E": "yes",
+      "O": "yes",
+      "basis": "semantic invariantとSVG差分の二段検出を求める。現在repoに四projectionがあり、既存semantic diffでは元データ不変しか分からない現状も述べる。"
+    },
+    {
+      "id": "held-002",
+      "E": "yes",
+      "O": "no",
+      "basis": "workerの全分岐をappend-onlyイベントへ保存する責務と完成条件。breaking casesも想定試験で実発生の報告ではない。"
+    },
+    {
+      "id": "held-003",
+      "E": "yes",
+      "O": "yes",
+      "basis": "DSHをfresh Resourceで再現配布する要件。opsでDSHが受入済みである既採択状態を明示する。"
+    },
+    {
+      "id": "held-004",
+      "E": "yes",
+      "O": "no",
+      "basis": "UI選択をtargetRefへ渡す完成状態、配置と責務を定義する。実装や確認済みの報告はない。"
+    },
+    {
+      "id": "held-005",
+      "E": "yes",
+      "O": "no",
+      "basis": "Herdr出力を読みworkerイベントへ保存する要件と受入条件。例示された失敗は想定条件で実行報告ではない。"
+    },
+    {
+      "id": "held-006",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge後CIの確認と証跡記録を要求する。merge後に行うべき確認条件であり、CIを既に確認した結果はない。"
+    },
+    {
+      "id": "held-007",
+      "E": "yes",
+      "O": "yes",
+      "basis": "歴史source確認、完全比較または不在証明と限定削除を要求。既往commandが当該pathを参照し実行後.astroを清掃した経緯を検証対象として報告する。"
+    },
+    {
+      "id": "held-008",
+      "E": "yes",
+      "O": "yes",
+      "basis": "全体contextを消さずLOD詳細を増やす要件。現在はfocus-onlyで他repoが消える実装挙動を明示する。"
+    },
+    {
+      "id": "held-009",
+      "E": "yes",
+      "O": "no",
+      "basis": "target固有処理をcoreへ漏らさないadapter契約と完成条件を要求する。想定breaking casesは実状報告ではない。"
+    },
+    {
+      "id": "held-010",
+      "E": "yes",
+      "O": "yes",
+      "basis": "project-local単一worker claimと安全な回復を要求する。既存のinstruction idempotencyが再読を防ぐが同時所有の安全を証明しない現在の保証範囲を述べる。"
+    },
+    {
+      "id": "held-011",
+      "E": "yes",
+      "O": "yes",
+      "basis": "継承後の再開条件と保持境界を規定する。旧PRが未merge/保留で、Git identityと原履歴を保全した現状を報告する。"
+    },
+    {
+      "id": "held-012",
+      "E": "yes",
+      "O": "no",
+      "basis": "submit後にversion付きtext-edit planを返すprotocolと禁止・完成条件を定義する。append順なども要求挙動で、実施確認の結果ではない。"
+    },
+    {
+      "id": "held-013",
+      "E": "yes",
+      "O": "yes",
+      "basis": "SheetUI再利用でChecklistを構成する要件。JSONL parser等がmerge済みである既存成果を明示する。"
+    },
+    {
+      "id": "held-014",
+      "E": "yes",
+      "O": "yes",
+      "basis": "host共通更新の実装・検証と責務・受入条件を要求する。v6設計が合意済みで、既存ownの分離を維持する現在の起点も述べる。"
+    },
+    {
+      "id": "held-015",
+      "E": "yes",
+      "O": "no",
+      "basis": "acceptの副作用をqueue一行appendだけに限定するproofと試験条件を要求する。チェックは期待で実測結果はない。"
+    },
+    {
+      "id": "held-016",
+      "E": "yes",
+      "O": "no",
+      "basis": "JSONLの安全な逐行readerと行番号付きエラー・順序保持の要件。受入やbreaking casesは想定結果で実状報告はない。"
+    },
+    {
+      "id": "held-017",
+      "E": "yes",
+      "O": "no",
+      "basis": "Herdr attach/observe先を永続イベントへ保存する責務と試験条件を定義する。実行済みの報告ではない。"
+    },
+    {
+      "id": "held-018",
+      "E": "yes",
+      "O": "no",
+      "basis": "repo-map選択からtargetRefを作る対応表、非authority境界と完成条件を要求する。実装確認結果はない。"
+    },
+    {
+      "id": "held-019",
+      "E": "yes",
+      "O": "yes",
+      "basis": "editorはclient/明示submitのみを所有しadmission権限を持たない責務を定義する。Issue not-planned closeとPR32未merge closeを報告する。"
+    },
+    {
+      "id": "held-020",
+      "E": "yes",
+      "O": "yes",
+      "basis": "READMEとの差分を解消・証明・明示保留する条件を要求する。既存PRや未実装gate、欠けたschema等の観測現状を台帳で具体報告する。"
+    },
+    {
+      "id": "held-021",
+      "E": "yes",
+      "O": "no",
+      "basis": "不正instructionを実行前に拒否するfixtureと理由付き検証を要求する。breaking casesは想定で実発生を報告しない。"
+    },
+    {
+      "id": "held-022",
+      "E": "yes",
+      "O": "yes",
+      "basis": "不足obligationsの決定的生成と配布・消費の受入条件を要求する。実run、14/14成功、file欠損によるconsumer非zero等の再実証結果を報告する。"
+    },
+    {
+      "id": "held-023",
+      "E": "yes",
+      "O": "no",
+      "basis": "package inventoryの欠落・孤立・重複等をfinding化する要件。Post-merge stateはAfter mergeの目標で実観測ではない。"
+    },
+    {
+      "id": "held-024",
+      "E": "yes",
+      "O": "yes",
+      "basis": "fixtureをNix出力からdestination実行・receipt・joinまで通す要件。再利用すべき基盤が既にcompletedまたはactiveである状態を明示する。"
+    },
+    {
+      "id": "held-025",
+      "E": "yes",
+      "O": "yes",
+      "basis": "provider-neutral ledgerからCI receiptまでの小経路と厳格受入を要求する。既存local proofが33tests成功し各digest/store pathを得た実績を具体報告する。"
+    },
+    {
+      "id": "held-026",
+      "E": "yes",
+      "O": null,
+      "basis": "部門別Office/Agent運用の目標・責務・受入を詳細定義する。finalStateProved=false等のStatusが現在の未検証報告か、規範的なclaim ceilingの指定かは本文だけで曖昧。実施結果はない。"
+    },
+    {
+      "id": "held-027",
+      "E": "yes",
+      "O": "no",
+      "basis": "UIをtargetRef発行とprojection読取のみに限定する責務、文書と検査条件を要求する。実行や確認済みの報告はない。"
+    },
+    {
+      "id": "held-028",
+      "E": "yes",
+      "O": "no",
+      "basis": "全required repoのactive報告とblocking finding/waiver条件を要求する。After attached PRs mergeの目標で実績報告ではない。"
+    },
+    {
+      "id": "held-029",
+      "E": "yes",
+      "O": "no",
+      "basis": "既存の実行経路に選択資源と引数を接続する要件・承認境界・検証条件を定義している。実行結果の報告はない。"
+    },
+    {
+      "id": "held-030",
+      "E": "yes",
+      "O": "no",
+      "basis": "負例証拠の分類と関連作業後の記録・監査条件を要求している。実施済み結果の具体的報告ではない。"
+    },
+    {
+      "id": "held-031",
+      "E": "yes",
+      "O": "yes",
+      "basis": "CLI配布と利用境界・検証要件があり、既存CPU検証のPASSや計測件数・所要時間を報告している。"
+    },
+    {
+      "id": "held-032",
+      "E": "yes",
+      "O": "no",
+      "basis": "共有レンダラーのAPI・出力・適合性・受入条件を定義している。具体的な実施結果は示していない。"
+    },
+    {
+      "id": "held-033",
+      "E": "yes",
+      "O": "yes",
+      "basis": "安全契約を必須実行順序へ統合する要件があり、前提となる契約がmerge済みであることも報告している。"
+    },
+    {
+      "id": "held-034",
+      "E": "yes",
+      "O": "no",
+      "basis": "パケット欠落等のfinding生成要件と完了条件・証拠要件を定義している。実測結果はない。"
+    },
+    {
+      "id": "held-035",
+      "E": "yes",
+      "O": "no",
+      "basis": "PRテンプレート必須項目と完了条件を要求している。実施済み状態の報告はない。"
+    },
+    {
+      "id": "held-036",
+      "E": "yes",
+      "O": "no",
+      "basis": "危険操作の承認・遮断・記録と受入条件を定義している。実行結果の報告はない。"
+    },
+    {
+      "id": "held-037",
+      "E": "yes",
+      "O": "yes",
+      "basis": "配置図の表現・責務・出口を要求し、公開済みimage、archive済みrepo、実機未確認等の現状調査を明示している。"
+    },
+    {
+      "id": "held-038",
+      "E": "yes",
+      "O": "no",
+      "basis": "リロードなし更新の動作・証明・CI・merge条件を詳細に要求している。報告書の値も生成要件であり実測値ではない。"
+    },
+    {
+      "id": "held-039",
+      "E": "yes",
+      "O": "no",
+      "basis": "receipt正負fixtureの完了状態・merge阻止条件・必要証拠を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-040",
+      "E": "yes",
+      "O": "no",
+      "basis": "local/dev制御面の責務・依存・完了チェックを定義している。実際の完了状態は報告していない。"
+    },
+    {
+      "id": "held-041",
+      "E": "yes",
+      "O": "yes",
+      "basis": "台帳生成の契約・受入条件があり、旧記述event/session rowsが不十分だったという文書上の問題を報告している。"
+    },
+    {
+      "id": "held-042",
+      "E": "yes",
+      "O": "no",
+      "basis": "親子issueの追跡・運用・各作業の完了条件を定めている。表は今後の作業目的であり実施結果ではない。"
+    },
+    {
+      "id": "held-043",
+      "E": "yes",
+      "O": "yes",
+      "basis": "固定入力同一性とRED・merge条件を要求し、現状態を仕様のみで実装未着手と明示している。"
+    },
+    {
+      "id": "held-044",
+      "E": "yes",
+      "O": "yes",
+      "basis": "責務の現在の割当と権限境界を示し、not plannedでclose・PR未merge closeを報告している。"
+    },
+    {
+      "id": "held-045",
+      "E": "yes",
+      "O": "no",
+      "basis": "Codex非対話実行のadapter責務・永続化・受入条件を要求している。実行済み結果はない。"
+    },
+    {
+      "id": "held-046",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Vim移行の完成条件と責務があり、merge済み変更・CI・既検証と共有接続やHuman試用の未完を具体的に報告している。"
+    },
+    {
+      "id": "held-047",
+      "E": "yes",
+      "O": "no",
+      "basis": "候補採用時の一行appendと非実行の証明条件を定義している。実測結果はない。"
+    },
+    {
+      "id": "held-048",
+      "E": "yes",
+      "O": "yes",
+      "basis": "有限tool契約とrunnerの実装・検証要件があり、基盤PRがmerge済みで現runnerのbufferが無制限で不十分だと報告している。"
+    },
+    {
+      "id": "held-049",
+      "E": "yes",
+      "O": "no",
+      "basis": "governance自身のpacket採用の完了状態とmerge条件を要求している。実施済みpacketや検証結果はない。"
+    },
+    {
+      "id": "held-050",
+      "E": "yes",
+      "O": "yes",
+      "basis": "consumer-ready artifactの公開・再現要件があり、appsが現在配信に利用する三能力を明示している。"
+    },
+    {
+      "id": "held-051",
+      "E": "yes",
+      "O": "no",
+      "basis": "編集側コマンド語彙の責務・完了条件・必要checkを定義している。check結果の実報告ではない。"
+    },
+    {
+      "id": "held-052",
+      "E": "yes",
+      "O": "yes",
+      "basis": "CI修復の完了条件があり、例外merge済み事実と二件の失敗ステップ確認・原因未確定を報告している。"
+    },
+    {
+      "id": "held-053",
+      "E": "yes",
+      "O": "no",
+      "basis": "補完から確認済みqueue行までの変換・語彙・完了条件を要求している。実行済み結果はない。"
+    },
+    {
+      "id": "held-054",
+      "E": "no",
+      "O": "no",
+      "basis": "リンクだけであり、本文自体に要求や現状報告はない。リンク先は補完しない。"
+    },
+    {
+      "id": "held-055",
+      "E": "yes",
+      "O": "no",
+      "basis": "blocking findingを失敗させるgateの機能・完了・証拠条件を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-056",
+      "E": "yes",
+      "O": "no",
+      "basis": "compilerへの実行混入を機械的に阻止するguardと受入条件を要求している。実検証結果はない。"
+    },
+    {
+      "id": "held-057",
+      "E": "yes",
+      "O": "yes",
+      "basis": "旧path再出現guardの要件があり、現在一部の不在だけが検査され他は未網羅という現状不足を報告している。"
+    },
+    {
+      "id": "held-058",
+      "E": "yes",
+      "O": "yes",
+      "basis": "canonical所有と移行・受入条件を要求し、既mergeの実装と第二実装の作成・stagingの現在状態を報告している。"
+    },
+    {
+      "id": "held-059",
+      "E": "yes",
+      "O": "no",
+      "basis": "report jobの非authority命名と完了・merge条件を要求している。実施済み変更はない。"
+    },
+    {
+      "id": "held-060",
+      "E": "yes",
+      "O": "no",
+      "basis": "Codex出力parserのfixture・抽出・失敗条件を要求している。実際のparser検証結果はない。"
+    },
+    {
+      "id": "held-061",
+      "E": "yes",
+      "O": "no",
+      "basis": "Herdr操作を型付きpayloadにする契約と受入条件を定義している。実行結果はない。"
+    },
+    {
+      "id": "held-062",
+      "E": "yes",
+      "O": "no",
+      "basis": "Claude操作のpayload項目と受入・merge条件を要求している。実施済み結果はない。"
+    },
+    {
+      "id": "held-063",
+      "E": "yes",
+      "O": "yes",
+      "basis": "M365業務の権限・CRUD・検証と閉包条件を要求し、冒頭でproposal・実装未着手という現状態を明示している。"
+    },
+    {
+      "id": "held-064",
+      "E": "yes",
+      "O": "yes",
+      "basis": "prepared-data UIの要件と受入証拠があり、baselineのnormalization等の範囲は完了済みであると報告している。"
+    },
+    {
+      "id": "held-065",
+      "E": "yes",
+      "O": "yes",
+      "basis": "profile分離と更新・rollbackの完了条件があり、引継ぎ時の版差と更新がOCI交換に結合していた現象を報告している。"
+    },
+    {
+      "id": "held-066",
+      "E": "yes",
+      "O": "yes",
+      "basis": "比較・provenance検知の実装と完了責務を定め、現headのblocker三件・回帰成功・先行merge・live未完を報告している。"
+    },
+    {
+      "id": "held-067",
+      "E": "yes",
+      "O": "no",
+      "basis": "handoff-readyの非authority分類と完了後状態・必要証拠を要求している。実際の完了報告はない。"
+    },
+    {
+      "id": "held-068",
+      "E": "yes",
+      "O": "no",
+      "basis": "issue・merge条件・CI証拠の欠落を検知するgateの要件を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-069",
+      "E": "yes",
+      "O": "yes",
+      "basis": "計画と製品source分離・段階とDoDを要求し、旧案撤回と現時点の監査・実装・CI等の未完を明示している。"
+    },
+    {
+      "id": "held-070",
+      "E": "yes",
+      "O": "yes",
+      "basis": "target別暗号文authoringの契約・検証・作用境界があり、issue作成時に観測したcurrent baseの具体SHAを報告している。"
+    },
+    {
+      "id": "held-071",
+      "E": "yes",
+      "O": "yes",
+      "basis": "legacy URLの限定取込と分類・検証条件を要求し、仕様段階・実装未着手を現状態として明示している。"
+    },
+    {
+      "id": "held-072",
+      "E": "yes",
+      "O": "yes",
+      "basis": "receiptのみを消費する契約・拒否条件・完了条件を定め、consumer issueがblockedである現状態を報告している。"
+    },
+    {
+      "id": "held-073",
+      "E": "yes",
+      "O": "no",
+      "basis": "worker instructionの必須項目と契約・fixture・受入条件を定義している。実施結果はない。"
+    },
+    {
+      "id": "held-074",
+      "E": "yes",
+      "O": "no",
+      "basis": "編集queue行のvalidation・digest・責務と完了条件を要求している。checkの実結果はない。"
+    },
+    {
+      "id": "held-075",
+      "E": "yes",
+      "O": "yes",
+      "basis": "不正入力fixtureと期待動作を要求し、既存checkがhappy path中心で不正・曖昧入力を十分固定していない現状を報告している。"
+    },
+    {
+      "id": "held-076",
+      "E": "yes",
+      "O": "yes",
+      "basis": "製品repoのtree・契約・受入条件を要求し、現在repoが空であることを明示している。"
+    },
+    {
+      "id": "held-077",
+      "E": "yes",
+      "O": "yes",
+      "basis": "run-viewの六操作と検証条件を定義し、完了済み前段が提供する機能と未提供のeditor契約を報告している。"
+    },
+    {
+      "id": "held-078",
+      "E": "yes",
+      "O": "yes",
+      "basis": "保全と再開の責務・条件を要求し、元候補のFAIL・未merge・保留状態を具体identityとともに報告している。"
+    },
+    {
+      "id": "held-079",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤作成とnot plannedでcloseした出来事の報告だけで、要求・目的状態はない。"
+    },
+    {
+      "id": "held-080",
+      "E": "yes",
+      "O": "no",
+      "basis": "最小JSONL実行ループの証明・受入条件を要求している。実際の実行結果はない。"
+    },
+    {
+      "id": "held-081",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Node配信の要件と実ブラウザー確認条件があり、既存固定host/rootではOCI経由到達できずPythonが必要だった状況を報告している。"
+    },
+    {
+      "id": "held-082",
+      "E": "yes",
+      "O": "no",
+      "basis": "architecture文書の内容・図・受入条件を要求している。実施済み結果はない。"
+    },
+    {
+      "id": "held-083",
+      "E": "yes",
+      "O": "no",
+      "basis": "active-only admissionとfinding・完了証拠を要求している。実測結果はない。"
+    },
+    {
+      "id": "held-084",
+      "E": "yes",
+      "O": "yes",
+      "basis": "撤去とOpenTofu移行の要件があり、旧追加PRはmerge済みだがlive plan/apply/drift未実行という現状を報告している。"
+    },
+    {
+      "id": "held-085",
+      "E": "yes",
+      "O": "yes",
+      "basis": "静的calendar配備の条件を定め、固定sourceのCI二件成功とPages実作用の未証明を報告している。"
+    },
+    {
+      "id": "held-086",
+      "E": "yes",
+      "O": "yes",
+      "basis": "編集とsource/projectionの責務境界を示し、not planned close・PR未merge closeとopsでの分離mergeを報告している。"
+    },
+    {
+      "id": "held-087",
+      "E": "yes",
+      "O": "no",
+      "basis": "Herdrのworker経由証明と保存・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-088",
+      "E": "yes",
+      "O": "no",
+      "basis": "repo mapのデータ・camera・LOD・受入条件を定義し、本文自身が現状報告ではなく設計目標だと明示している。"
+    },
+    {
+      "id": "held-089",
+      "E": "yes",
+      "O": "yes",
+      "basis": "未使用module撤去と再導入条件を定め、current consumer未発見・PR上の削除実装済みと未merge等を報告している。"
+    },
+    {
+      "id": "held-090",
+      "E": "yes",
+      "O": "no",
+      "basis": "副作用なしVim補完基盤の分離・build・受入条件を要求している。具体的実施結果はない。"
+    },
+    {
+      "id": "held-091",
+      "E": "yes",
+      "O": "yes",
+      "basis": "必要world全分類の監査・成果物・完了条件を要求し、PR112で証明した機能と未証明範囲を具体的に報告している。"
+    },
+    {
+      "id": "held-092",
+      "E": "yes",
+      "O": "yes",
+      "basis": "gestureからsemantic候補への契約と受入条件があり、限定往復の観測・36PASS・mutation結果と全検証未完を報告している。"
+    },
+    {
+      "id": "held-093",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Windows動作とCIの完了条件を要求し、既存archiveとUnix証拠・Windows build失敗と具体的blockerを報告している。"
+    },
+    {
+      "id": "held-094",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Projects投影契約と権限・完了条件を要求し、直近merge経路の完了範囲、未実装のProject操作、重複検索結果を報告している。"
+    },
+    {
+      "id": "held-095",
+      "E": "yes",
+      "O": "no",
+      "basis": "self packetのpackage/assertion/receipt行の要件・完了状態と証拠を要求している。実生成結果はない。"
+    },
+    {
+      "id": "held-096",
+      "E": "yes",
+      "O": "no",
+      "basis": "self adoptionと後続universe拡張の順序・要件・完了条件を定めている。表も新規PR予定であり実施結果ではない。"
+    },
+    {
+      "id": "held-097",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Vim表示拡張の実装・証明条件を要求し、既にproof済みの拡張をrepoへ入れるという到達済み状態を明示している。"
+    },
+    {
+      "id": "held-098",
+      "E": "yes",
+      "O": "no",
+      "basis": "local queue処理の入出力・idempotency・完了条件を要求している。実動作結果はない。"
+    },
+    {
+      "id": "held-099",
+      "E": "yes",
+      "O": "yes",
+      "basis": "直接入力と後変換の要件があり、現状常時IME合成を経由して補完が機能しない問題を報告している。"
+    },
+    {
+      "id": "held-100",
+      "E": "yes",
+      "O": "no",
+      "basis": "strict gateの負例網羅と必要証拠・merge条件を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-101",
+      "E": "yes",
+      "O": "no",
+      "basis": "accepted-inputの履歴契約・権限・限界・検証条件を定義している。実装済みや実行済みの具体報告はない。"
+    },
+    {
+      "id": "held-102",
+      "E": "yes",
+      "O": "yes",
+      "basis": "canonical snapshotの内容と検査要件があり、現在CIが一部label/rangeを検証するがsnapshotを保存していないと報告している。"
+    },
+    {
+      "id": "held-103",
+      "E": "yes",
+      "O": "yes",
+      "basis": "CLI/REPLのmerge要件があり、現source機能・open PR・外部で実施済みproofと未恒久化を詳細に報告している。"
+    },
+    {
+      "id": "held-104",
+      "E": "yes",
+      "O": "no",
+      "basis": "session indexの項目とresult関係・受入条件を要求している。実装や実行結果はない。"
+    },
+    {
+      "id": "held-105",
+      "E": "yes",
+      "O": "no",
+      "basis": "非対話agentの永続実行証拠と受入条件を要求している。実際のrun結果はない。"
+    },
+    {
+      "id": "held-106",
+      "E": "yes",
+      "O": "yes",
+      "basis": "全source adapterの共通契約検査を要求し、refactorで境界は作られたが既存検査が契約を十分証明しないと報告している。"
+    },
+    {
+      "id": "held-107",
+      "E": "yes",
+      "O": "no",
+      "basis": "Herdr startのadapter実装とdurable refの受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-108",
+      "E": "yes",
+      "O": "yes",
+      "basis": "direct argv実行の詳細契約と実バイナリー証明を要求し、利用するtransient adapter portがmerge済みであることを明示している。"
+    },
+    {
+      "id": "held-109",
+      "E": "yes",
+      "O": "no",
+      "basis": "HTML内もcross-OS設定の目標・設計選択・非目標を述べている。配備や検証済み状態の具体報告はない。"
+    },
+    {
+      "id": "held-110",
+      "E": "yes",
+      "O": "no",
+      "basis": "worker分離の実装・build・責務・merge条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-111",
+      "E": "yes",
+      "O": "no",
+      "basis": "final gateへintent recordを整合させる要件と完了証拠を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-112",
+      "E": "yes",
+      "O": "yes",
+      "basis": "最終selected closureに残る条件があり、H/I完了と各子作業のmerge・closeを具体的に報告している。"
+    },
+    {
+      "id": "held-113",
+      "E": "yes",
+      "O": "yes",
+      "basis": "契約modeling移行の成果物・受入条件を定め、既証明のadapter等と未証明の再帰・admission・実作用を明示している。"
+    },
+    {
+      "id": "held-114",
+      "E": "yes",
+      "O": "no",
+      "basis": "品質fixture・scale・browser・負例の証明条件を要求している。列挙値は合格基準であり実測報告ではない。"
+    },
+    {
+      "id": "held-115",
+      "E": "yes",
+      "O": "no",
+      "basis": "Vim client統合の責務・操作・encoding・受入条件を定義している。実際の実施結果はない。"
+    },
+    {
+      "id": "held-116",
+      "E": "yes",
+      "O": "yes",
+      "basis": "merge後CIの起動・確認条件を要求し、PR38 headは成功したがmerge commitのrunが無かった事実を報告している。"
+    },
+    {
+      "id": "held-117",
+      "E": "yes",
+      "O": "no",
+      "basis": "issue73を差分追跡に限定する完了状態と証拠・merge条件を要求している。実際の清掃結果はない。"
+    },
+    {
+      "id": "held-118",
+      "E": "yes",
+      "O": "no",
+      "basis": "ADRS採択後の投影契約・義務・負例・閉包条件を定義している。実際の投影や採択の結果は報告していない。"
+    },
+    {
+      "id": "held-119",
+      "E": "yes",
+      "O": "yes",
+      "basis": "単一製品identityへの整理と受入条件を要求し、現README・module・command・Python・CIの混在状態を報告している。"
+    },
+    {
+      "id": "held-120",
+      "E": "yes",
+      "O": "no",
+      "basis": "repoMapのread-model責務と文書・検査の完了条件を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-121",
+      "E": "yes",
+      "O": "no",
+      "basis": "dry-runの無作用・plan・拒否条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-122",
+      "E": "yes",
+      "O": "yes",
+      "basis": "registry基盤の機能・受入条件があり、現在候補identityとbaseline不一致・review未完を報告している。"
+    },
+    {
+      "id": "held-123",
+      "E": "yes",
+      "O": "yes",
+      "basis": "portable補完coreへの分離と受入条件を定め、Vim側UXが既にproof済みであることと議論で絞った範囲を報告している。"
+    },
+    {
+      "id": "held-124",
+      "E": "yes",
+      "O": "no",
+      "basis": "projection変更からpreview更新への証明とdigest・境界の条件を要求している。実測結果はない。"
+    },
+    {
+      "id": "held-125",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Herdr generic移行の契約・実証条件を要求し、実機adapter_unavailable・開始ゼロ・環境制約とsource上の分離経路を具体的に報告している。"
+    },
+    {
+      "id": "held-126",
+      "E": "yes",
+      "O": null,
+      "basis": "UI投影の責務・最低証明条件がある。固定入力のcommit/blob/hash/二行という表が採用入力の指定か取得観測の報告か本文だけでは確定しない。"
+    },
+    {
+      "id": "held-127",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Nix明示入力への変更・証拠・受入条件を要求し、現在builderが固定fixtureを直接読む状況を報告している。"
+    },
+    {
+      "id": "held-128",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Proposal詳細表示の要件と受入条件を定義し、要件案が未実装・未採択である現在状態を明示している。"
+    },
+    {
+      "id": "held-129",
+      "E": "yes",
+      "O": "no",
+      "basis": "mxfile合成の入力・出力・保存・負例・完了条件を定義している。実施済み結果はない。"
+    },
+    {
+      "id": "held-130",
+      "E": "yes",
+      "O": "yes",
+      "basis": "JS移行の段階・parity・退役・CI条件を定め、現在canonicalに動くPython coreとproof flowがあると報告している。"
+    },
+    {
+      "id": "held-131",
+      "E": "yes",
+      "O": "yes",
+      "basis": "editable sheetの機能・roundtrip・公開データ境界を要求し、source layout PRがpendingである状態を明示している。"
+    },
+    {
+      "id": "held-132",
+      "E": "yes",
+      "O": "yes",
+      "basis": "repo移行の順序・出口条件があり、固定版在庫、既存consumer参照、進行中系列と合意済み決定を報告している。"
+    },
+    {
+      "id": "held-133",
+      "E": "yes",
+      "O": "no",
+      "basis": "consoleの目的・依存・非authority境界と文書受入条件を定義している。実装や運用結果はない。"
+    },
+    {
+      "id": "held-134",
+      "E": "yes",
+      "O": "no",
+      "basis": "package最終joinの分類・失敗・証拠条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-135",
+      "E": "yes",
+      "O": "yes",
+      "basis": "公式CLI供給と実モデル確認の完成条件があり、source pin・dev不足・HTTP400実失敗・確認したreleaseを報告している。"
+    },
+    {
+      "id": "held-136",
+      "E": "yes",
+      "O": "yes",
+      "basis": "semantic-map統合の配置と保存範囲を要求し、採択済みlegacy実装と保全済みsource package・audit・digestを明示している。"
+    },
+    {
+      "id": "held-137",
+      "E": "yes",
+      "O": "no",
+      "basis": "独立expected/observed比較の入力・意味・receipt・失敗・閉包条件を定義している。例示diffやPASS receiptは型の例で実結果ではない。"
+    },
+    {
+      "id": "held-138",
+      "E": "yes",
+      "O": "yes",
+      "basis": "原因調査と修正または不要規則削除の必要を示し、proposals上の既存CI失敗位置・影響・担当未定を報告している。"
+    },
+    {
+      "id": "held-139",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Caddy経由の同一hot-refresh証明と検証条件を要求し、既mergeのWrangler限定証明と他server未検証の現状を報告している。"
+    },
+    {
+      "id": "held-140",
+      "E": "yes",
+      "O": "yes",
+      "basis": "純TTY端末の選定・実証要件があり、調査済み候補の実装・未確認・公開実行件数と未採択状態を報告している。"
+    },
+    {
+      "id": "held-141",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤作成し直ちにcloseした出来事と親参照の報告だけで要求はない。"
+    },
+    {
+      "id": "held-142",
+      "E": "yes",
+      "O": null,
+      "basis": "public UI閉包とmerge・配備条件がある。local clean build由来とされる期待publication digestが観測結果か採用目標かは本文だけでは確定しない。"
+    },
+    {
+      "id": "held-143",
+      "E": "yes",
+      "O": "no",
+      "basis": "既存parserからruntimeへ接続する経路と各view・拒否・検査条件を要求している。実測結果はない。"
+    },
+    {
+      "id": "held-144",
+      "E": "yes",
+      "O": "yes",
+      "basis": "保全・再開の条件と責務を定め、元PRの未merge・保留と保存identityを報告している。"
+    },
+    {
+      "id": "held-145",
+      "E": "yes",
+      "O": "yes",
+      "basis": "同じTool世代をnativeとOCIで共有する目標があり、現own/nativeが別で期待等式を満たさないreadbackを報告している。"
+    },
+    {
+      "id": "held-146",
+      "E": "yes",
+      "O": "no",
+      "basis": "exact-byte readback後にcloseする条件がある。source/tagとリンクは対象指定で、readback結果の報告ではない。"
+    },
+    {
+      "id": "held-147",
+      "E": "yes",
+      "O": "yes",
+      "basis": "後続cutoverと閉包条件を定め、merge済みsource・実artifact・CI・author失敗と各実作用未完を詳細に報告している。"
+    },
+    {
+      "id": "held-148",
+      "E": "yes",
+      "O": "no",
+      "basis": "renderer portの責務・入出力・拒否・受入条件を定義している。実装・実行結果はない。"
+    },
+    {
+      "id": "held-149",
+      "E": "yes",
+      "O": "no",
+      "basis": "cutover前の同名green証拠の取得・完了・merge条件を要求している。実run結果はない。"
+    },
+    {
+      "id": "held-150",
+      "E": "yes",
+      "O": "yes",
+      "basis": "serialization修正と保存・検証条件を要求し、render auditでduplicate-IDを発見した事実と現XML形を報告している。"
+    },
+    {
+      "id": "held-151",
+      "E": "yes",
+      "O": "no",
+      "basis": "全子作業・post-merge CI・最終commentによる閉包条件を要求している。実際の完了報告はない。"
+    },
+    {
+      "id": "held-152",
+      "E": "yes",
+      "O": "no",
+      "basis": "package claim・receipt・clean checkout・governance引渡しの要件と閉包条件を定義している。実測結果はない。"
+    },
+    {
+      "id": "held-153",
+      "E": "yes",
+      "O": "no",
+      "basis": "repo-mapのstable kind・互換・不変条件・完了チェックを要求している。検証済み結果はない。"
+    },
+    {
+      "id": "held-154",
+      "E": "yes",
+      "O": "no",
+      "basis": "coreのschema独立性とadapter意味所有の要件・受入条件を定義している。検証結果はない。"
+    },
+    {
+      "id": "held-155",
+      "E": "yes",
+      "O": "no",
+      "basis": "queue digest照合と非authority検証の完了条件を要求している。実際の照合結果はない。"
+    },
+    {
+      "id": "held-156",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Web製品の契約・証明・閉包を要求し、現repo未実装とpre-proofの件数・PASS・browser未実行等を報告している。"
+    },
+    {
+      "id": "held-157",
+      "E": "yes",
+      "O": "yes",
+      "basis": "audience安全投影から再現URL/HTMLへの要件と受入条件を定め、status OPEN・実装未着手を明示している。"
+    },
+    {
+      "id": "held-158",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Windows再installが必要という期待があり、boot不能・diskpart不動とUSB起動等を試した結果を報告している。画像やリンク先は補完しない。"
+    },
+    {
+      "id": "held-159",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge品質再検査とgapの追跡・完了条件を要求している。実施済み監査結果はない。"
+    },
+    {
+      "id": "held-160",
+      "E": "yes",
+      "O": "yes",
+      "basis": "toolchainの定義・作用境界とDoDがあり、merge後CI・artifact独立照合と未解決実作用を報告している。"
+    },
+    {
+      "id": "held-161",
+      "E": "yes",
+      "O": "yes",
+      "basis": "semantic zoomへ進める設計目標があり、現UIは静的previewでscroll探索未完、CIは生成証跡成功に限る現状を報告している。"
+    },
+    {
+      "id": "held-162",
+      "E": "yes",
+      "O": "no",
+      "basis": "camera adapterの限定評価と見た目・geometry・受入条件を定義している。回帰例は防止対象であり実測報告ではない。"
+    },
+    {
+      "id": "held-163",
+      "E": "yes",
+      "O": "no",
+      "basis": "旧CIをproducer等へ降格する状態・保存・merge条件を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-164",
+      "E": "yes",
+      "O": "no",
+      "basis": "managed workerのclaim・crash・health・実証・完了条件を定義している。具体的な実行結果はない。"
+    },
+    {
+      "id": "held-165",
+      "E": "yes",
+      "O": "no",
+      "basis": "README採択投影と再利用producerの要件・負例・完了条件を定義している。実検証結果はない。"
+    },
+    {
+      "id": "held-166",
+      "E": "yes",
+      "O": "no",
+      "basis": "timeout/cancelの直接子process保証と証拠順序・受入・負例条件を定義している。実行結果はない。"
+    },
+    {
+      "id": "held-167",
+      "E": "yes",
+      "O": "no",
+      "basis": "UIへのqueue/admission混入を阻止するcheckと許容・拒否条件を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-168",
+      "E": "yes",
+      "O": "no",
+      "basis": "legacy実装の統合範囲・source指定・保存・退役条件を要求している。統合や退役の実施結果はない。"
+    },
+    {
+      "id": "held-169",
+      "E": "yes",
+      "O": "yes",
+      "basis": "二つのremote taskの契約・実証条件を要求し、既mergeのclientとworker、未mergeのdata-driven proof、未証明の垂直経路を報告している。"
+    },
+    {
+      "id": "held-170",
+      "E": "yes",
+      "O": "yes",
+      "basis": "governance gate統合の契約・移行・受入条件を要求し、現在12workflow・全authority false・selftest経路と既存core機能を報告している。"
+    },
+    {
+      "id": "held-171",
+      "E": "yes",
+      "O": "no",
+      "basis": "三種queue recordの項目・validation・混在・完了条件を定義している。実施結果はない。"
+    },
+    {
+      "id": "held-172",
+      "E": "yes",
+      "O": "no",
+      "basis": "adapter前のpolicy・cwd・timeout・blocked記録と受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-173",
+      "E": "yes",
+      "O": "no",
+      "basis": "明示target registryと未知targetのfail-closed・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-174",
+      "E": "yes",
+      "O": "yes",
+      "basis": "common dispatch前の安全性と負例証明を要求し、merge済みworkersafety契約で全runが危険扱いという現契約を明示している。"
+    },
+    {
+      "id": "held-175",
+      "E": "yes",
+      "O": "yes",
+      "basis": "PTY永続化の評価・非採用・検証条件を定め、未採択未実証状態と候補の既知制約・未測定事項を報告している。"
+    },
+    {
+      "id": "held-176",
+      "E": "yes",
+      "O": "no",
+      "basis": "共通status語彙・遷移・fixtureの受入条件を定義している。実施結果はない。"
+    },
+    {
+      "id": "held-177",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Atlas修正と検証の要件があり、現normalizationが空文字を作ることや受容済みaudit・User許可を報告している。"
+    },
+    {
+      "id": "held-178",
+      "E": "yes",
+      "O": "no",
+      "basis": "dry-run artifactの内容・無作用・再生成と受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-179",
+      "E": "yes",
+      "O": "no",
+      "basis": "proposal表示の機能と非authority・禁止操作・受入条件を定義している。実描画結果はない。"
+    },
+    {
+      "id": "held-180",
+      "E": "yes",
+      "O": "no",
+      "basis": "VimとCLIの補完契約同一性を示すfixture・受入条件を要求している。実測結果はない。"
+    },
+    {
+      "id": "held-181",
+      "E": "yes",
+      "O": "no",
+      "basis": "最終reportのschema・各section・証拠・merge条件を要求している。実生成結果はない。"
+    },
+    {
+      "id": "held-182",
+      "E": "yes",
+      "O": "yes",
+      "basis": "UIの証拠producer境界と最終join責務を定め、子PR merge・close・CI成功とselected scope完了を報告している。"
+    },
+    {
+      "id": "held-183",
+      "E": "yes",
+      "O": "yes",
+      "basis": "最終joinへ残る条件とshadow非authority境界があり、blocking rowsの解消・移管と各merge/close完了を報告している。"
+    },
+    {
+      "id": "held-184",
+      "E": "yes",
+      "O": null,
+      "basis": "semantic-map materializeと受入条件がある。local integrated headとoverlay件数・digestが固定入力指定か生成済み観測報告かは本文だけでは確定しない。"
+    },
+    {
+      "id": "held-185",
+      "E": "yes",
+      "O": "yes",
+      "basis": "描画意図の保存・再compile・検証条件を要求し、新機能未実装未検証、既PRのDraft/CI二件失敗を報告している。"
+    },
+    {
+      "id": "held-186",
+      "E": "yes",
+      "O": "no",
+      "basis": "agent commandをrequest intentに限定する責務と受入条件を定義している。実施結果はない。"
+    },
+    {
+      "id": "held-187",
+      "E": "yes",
+      "O": "no",
+      "basis": "read-only listの出力・エラー・禁止作用と検証条件を定義している。実行結果はない。"
+    },
+    {
+      "id": "held-188",
+      "E": "yes",
+      "O": "yes",
+      "basis": "selected scopeと非authority境界・将来拡張条件があり、最終join受容・blocking driftゼロと各merge/close完了を報告している。"
+    },
+    {
+      "id": "held-189",
+      "E": "yes",
+      "O": "no",
+      "basis": "Codex exec/resumeのpayloadと保存・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-190",
+      "E": "yes",
+      "O": "no",
+      "basis": "PR78のmerge可否確認と人の承認・CI・物理削除の完了条件を要求している。確認結果はない。"
+    },
+    {
+      "id": "held-191",
+      "E": "yes",
+      "O": "no",
+      "basis": "認証付きdecision routeの入出力・検証・browser・受入条件を定義している。receiptは例であり実測報告ではない。"
+    },
+    {
+      "id": "held-192",
+      "E": "yes",
+      "O": "no",
+      "basis": "永続logのredactionとfixture・受入条件を要求している。実検証結果はない。"
+    },
+    {
+      "id": "held-193",
+      "E": "no",
+      "O": "yes",
+      "basis": "誤作成と即closeの出来事だけを報告している。要求はない。"
+    },
+    {
+      "id": "held-194",
+      "E": "yes",
+      "O": "no",
+      "basis": "version-fixed invocationとindexの設計・責務・merge条件を定義している。実生成や検証結果はない。"
+    },
+    {
+      "id": "held-195",
+      "E": "yes",
+      "O": "no",
+      "basis": "targetRefの入力・metadata・非authority・完了条件を要求している。実検証結果はない。"
+    },
+    {
+      "id": "held-196",
+      "E": "yes",
+      "O": "no",
+      "basis": "Org Secret投影の期待・権限・実利用・rotation完了条件を定義している。実移行結果はない。"
+    },
+    {
+      "id": "held-197",
+      "E": "yes",
+      "O": "no",
+      "basis": "actionable findingの項目とvalidation・完了条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-198",
+      "E": "yes",
+      "O": "no",
+      "basis": "実行targetの意味をdataとして表す例・fixture・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-199",
+      "E": "yes",
+      "O": "yes",
+      "basis": "z-axis UXと監査・解消・受入条件を定め、現canonicalの一方向生成・分散RenderingIR・未定義UX等の不足を報告している。"
+    },
+    {
+      "id": "held-200",
+      "E": "yes",
+      "O": "no",
+      "basis": "worker責務の移管後境界と旧proof保存・文書・検査条件を要求している。移管や検証の実結果はない。"
+    },
+    {
+      "id": "held-201",
+      "E": "yes",
+      "O": "yes",
+      "basis": "DuckDB slice撤去と再導入条件を定め、現在acceptedな直接consumerがないという確認状態を報告している。"
+    },
+    {
+      "id": "held-202",
+      "E": "yes",
+      "O": "yes",
+      "basis": "キーを奪わない候補表示と試験要件があり、直接入力の実機PASSと現候補がCtrl+Spaceまで見えない動作を報告している。"
+    },
+    {
+      "id": "held-203",
+      "E": "yes",
+      "O": "yes",
+      "basis": "AtlasStage canvas拡張と実URL検証の条件を要求し、現ports宣言と既存SVG・runtime能力の実装状態を示している。"
+    },
+    {
+      "id": "held-204",
+      "E": "yes",
+      "O": "no",
+      "basis": "append-only eventからの状態再構成と受入条件を要求している。実結果はない。"
+    },
+    {
+      "id": "held-205",
+      "E": "yes",
+      "O": "no",
+      "basis": "adapter出力の共通field・error・受入条件を定義している。実出力の報告はない。"
+    },
+    {
+      "id": "held-206",
+      "E": "yes",
+      "O": "no",
+      "basis": "targetRefの出力・proposal境界・検査条件を要求している。実検証結果はない。"
+    },
+    {
+      "id": "held-207",
+      "E": "yes",
+      "O": "no",
+      "basis": "preview digestのreceipt照合・非作用・受入条件を要求している。実照合結果はない。"
+    },
+    {
+      "id": "held-208",
+      "E": "yes",
+      "O": "no",
+      "basis": "Nix package CIの明示入力契約・policy・受入条件を要求している。実check結果はない。"
+    },
+    {
+      "id": "held-209",
+      "E": "yes",
+      "O": "no",
+      "basis": "Claude log/attachの保存と回復先・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-210",
+      "E": "yes",
+      "O": "yes",
+      "basis": "run-viewの製品状態と実証条件を要求し、Windows実runは完了したがHerdrにresult viewがなかった失敗を報告している。"
+    },
+    {
+      "id": "held-211",
+      "E": "yes",
+      "O": "no",
+      "basis": "producer source closureとdigest・拒否・完了条件を定義している。実生成結果はない。"
+    },
+    {
+      "id": "held-212",
+      "E": "yes",
+      "O": "yes",
+      "basis": "currentを達成とせず描く要求と後続actor表示があり、PR364の現在状態箱へ一行ずつ描く実装を示している。"
+    },
+    {
+      "id": "held-213",
+      "E": "yes",
+      "O": "yes",
+      "basis": "editable semantic kernelのモデル・イベント・検証・完了条件を要求し、現SVG/drawio生成はあるが編集write-backと安定契約がない現状を報告している。"
+    },
+    {
+      "id": "held-214",
+      "E": "yes",
+      "O": "no",
+      "basis": "canonical package receiptの項目・matching・負例・完了条件を要求している。実生成結果はない。"
+    },
+    {
+      "id": "held-215",
+      "E": "yes",
+      "O": "no",
+      "basis": "run detailの安全表示・順序・エラー・無作用の受入条件を定義している。実行結果はない。"
+    },
+    {
+      "id": "held-216",
+      "E": "yes",
+      "O": "no",
+      "basis": "旧PRのstatus整理とspec重複回避の完了条件を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-217",
+      "E": "yes",
+      "O": "no",
+      "basis": "既存issue/PRの責務整理・処遇・完了条件を要求している。処遇済み結果の報告ではない。"
+    },
+    {
+      "id": "held-218",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Go import graph境界checkを要求し、現在boundary_check.pyが文字列検査のみで実import graphを解析しない状況を報告している。"
+    },
+    {
+      "id": "held-219",
+      "E": "yes",
+      "O": "yes",
+      "basis": "物理NixOS導入・SSH・復旧の完成条件があり、USB書込照合・実cold boot・SSH成功とSSD導入未実施を具体的に報告している。"
+    },
+    {
+      "id": "held-220",
+      "E": "yes",
+      "O": "yes",
+      "basis": "visual UX artifact生成・検証を要求し、現CIが論理契約を検査するが画像を生成せずgolden命名と証拠が不一致だったと報告している。"
+    },
+    {
+      "id": "held-221",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Decision PacketのHTML proof・検証・閉包条件を要求し、既存source carryのrun/artifact/digestをtransport evidenceとして具体的に報告している。"
+    },
+    {
+      "id": "held-222",
+      "E": "yes",
+      "O": "no",
+      "basis": "console READMEの非blocking観測経路と入力・受入条件を定義している。readback結果はない。"
+    },
+    {
+      "id": "held-223",
+      "E": "yes",
+      "O": "no",
+      "basis": "world-only recallのcontract・matching・rank・LSP・検証条件を要求している。実装や計測の実結果はない。"
+    },
+    {
+      "id": "held-224",
+      "E": "yes",
+      "O": "no",
+      "basis": "dispatch前validationの項目・拒否・受入条件を要求している。実検証結果はない。"
+    },
+    {
+      "id": "held-225",
+      "E": "yes",
+      "O": "no",
+      "basis": "downstream universe拡張の前提・完了状態・必要証拠を要求している。実拡張結果はない。"
+    },
+    {
+      "id": "held-226",
+      "E": "yes",
+      "O": "no",
+      "basis": "README driftの最終report統合とblocking・必要証拠条件を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-227",
+      "E": "yes",
+      "O": "no",
+      "basis": "governance README projection receiptの項目・生成・証拠条件を要求している。実生成結果はない。"
+    },
+    {
+      "id": "held-228",
+      "E": "yes",
+      "O": "no",
+      "basis": "issue templateの目的・範囲・完了・test項目を要求している。実装結果はない。"
+    },
+    {
+      "id": "held-229",
+      "E": "yes",
+      "O": "no",
+      "basis": "producer provenanceの独立検証と拒否・受入条件を定義している。実検証結果はない。"
+    },
+    {
+      "id": "held-230",
+      "E": "yes",
+      "O": "no",
+      "basis": "editsをeditor/queue writerへ限定する責務・文書・CI条件を定義している。実施結果はない。"
+    },
+    {
+      "id": "held-231",
+      "E": "yes",
+      "O": "yes",
+      "basis": "可動HTMLとstateless経路の二段階受入条件を要求し、従来CIが削除中心で誤った対象を保護し過去PRが必要artifactを作らなかった状況を報告している。"
+    },
+    {
+      "id": "held-232",
+      "E": "yes",
+      "O": "no",
+      "basis": "packet source registryのpin・freshness・拒否・完了条件を定義している。実取得結果はない。"
+    },
+    {
+      "id": "held-233",
+      "E": "yes",
+      "O": "yes",
+      "basis": "compilerからworkerへの純粋handoffと実binary証明を要求し、両側はmerge済みだが変換のE2E未証明であると報告している。"
+    },
+    {
+      "id": "held-234",
+      "E": "yes",
+      "O": "no",
+      "basis": "Claude printのadapter実装・永続化・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-235",
+      "E": "yes",
+      "O": "yes",
+      "basis": "hq source fixtureと正規化検証を要求し、adapterは存在するが専用互換fixtureがない現状を報告している。"
+    },
+    {
+      "id": "held-236",
+      "E": "yes",
+      "O": "no",
+      "basis": "ops projection入力・manifest・validationと受入条件を要求している。実描画結果はない。"
+    },
+    {
+      "id": "held-237",
+      "E": "yes",
+      "O": "no",
+      "basis": "merge後の物理不在・参照ゼロ確認とexact commit記録を要求している。確認結果はない。"
+    },
+    {
+      "id": "held-238",
+      "E": "yes",
+      "O": "yes",
+      "basis": "PR作成の統一契約を決める要求があり、現設定と三merge workflowの不整合・author未実行状態を報告している。"
+    },
+    {
+      "id": "held-239",
+      "E": "yes",
+      "O": "yes",
+      "basis": "恒久復帰保証と原因解消の残責務があり、一時route追加・TLS/Git/GH成功・未実施/UNKNOWNを詳細に報告している。"
+    },
+    {
+      "id": "held-240",
+      "E": "yes",
+      "O": "yes",
+      "basis": "provision projectionの公開・比較・完了条件を要求し、追加手続を必須化した判断がUserに偽陽性と指摘された経緯を報告している。"
+    },
+    {
+      "id": "held-241",
+      "E": "yes",
+      "O": "no",
+      "basis": "実repoからpackage inventoryを検出・比較する要件と必要証拠を要求している。実検出結果はない。"
+    },
+    {
+      "id": "held-242",
+      "E": "yes",
+      "O": null,
+      "basis": "editor core・host・serverの責務と詳細な到達条件を規定する。Exact evidenceのlocal proof identityと維持対象が既観測結果か規範入力指定かは本文だけで確定しない。"
+    },
+    {
+      "id": "held-243",
+      "E": "yes",
+      "O": "no",
+      "basis": "approval verifierの入力・純粋join・receipt・負例・閉包条件を定義している。例のVALIDは型例であり実結果ではない。"
+    },
+    {
+      "id": "held-244",
+      "E": "yes",
+      "O": "no",
+      "basis": "open PR棚卸しと記録項目・処遇判定を要求している。実棚卸し結果はない。"
+    },
+    {
+      "id": "held-245",
+      "E": "yes",
+      "O": "no",
+      "basis": "contract fixtureをCI実行する要件と受入条件を要求している。実CI結果はない。"
+    },
+    {
+      "id": "held-246",
+      "E": "yes",
+      "O": "yes",
+      "basis": "横断navigationのUXと受入条件を要求し、提案が未採択・未実装・未実証という現状態を明示している。"
+    },
+    {
+      "id": "held-247",
+      "E": "yes",
+      "O": "no",
+      "basis": "Claude background起動の保存・失敗・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-248",
+      "E": "yes",
+      "O": "yes",
+      "basis": "provider-neutral decision pipelineの成果物・検証条件を定義し、既GitHub adapter proofのPR149がmerge済みと示している。"
+    },
+    {
+      "id": "held-249",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Ollama Cloudのkey・配置・疎通・完了条件を要求し、既存Go認証PRが進行中である状態を報告している。"
+    },
+    {
+      "id": "held-250",
+      "E": "yes",
+      "O": "no",
+      "basis": "local artifact pathの共通慣例と受入条件を要求している。実検証結果はない。"
+    },
+    {
+      "id": "held-251",
+      "E": "yes",
+      "O": "yes",
+      "basis": "UIとgovernanceの責務境界を定め、UI cutoverのmerge・CI成功と完了状態を報告している。"
+    },
+    {
+      "id": "held-252",
+      "E": "yes",
+      "O": "yes",
+      "basis": "将来layout検討の条件・TODOを定め、旧Atlasの実装と現三列・交差数計測を具体的に報告している。"
+    },
+    {
+      "id": "held-253",
+      "E": "yes",
+      "O": "yes",
+      "basis": "UX artifactのcanonical照合を要求し、現CIは生成・検査するがsnapshot auditをまだ要件化していないと報告している。"
+    },
+    {
+      "id": "held-254",
+      "E": "yes",
+      "O": "yes",
+      "basis": "secret名宣言からgeneric暗号化への完成形があり、現Jev専用で追加時に複数箇所更新が必要な状況を報告している。"
+    },
+    {
+      "id": "held-255",
+      "E": "yes",
+      "O": "yes",
+      "basis": "二つのview製品の契約と残完了条件があり、hosted/Editor proof PASS・merge済みとcompiled Viewer未完を報告している。"
+    },
+    {
+      "id": "held-256",
+      "E": "yes",
+      "O": "no",
+      "basis": "issue-first運用・必須項目・例外の文書化を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-257",
+      "E": "yes",
+      "O": "no",
+      "basis": "Linux VM runtimeの契約・token配置・CI確認と完了状態を要求している。実契約や認証結果はない。"
+    },
+    {
+      "id": "held-258",
+      "E": "yes",
+      "O": "no",
+      "basis": "retry/replay/resume/reconcileのidentity・安全・検証条件を定義している。実行結果はない。"
+    },
+    {
+      "id": "held-259",
+      "E": "yes",
+      "O": "no",
+      "basis": "external projection入力とfixture互換・manifest・受入条件を要求している。実描画結果はない。"
+    },
+    {
+      "id": "held-260",
+      "E": "yes",
+      "O": "no",
+      "basis": "local queueのappend/read/tail/dedupeと完了条件を要求している。実操作結果はない。"
+    },
+    {
+      "id": "held-261",
+      "E": "yes",
+      "O": "yes",
+      "basis": "README materialization展開と受入条件を要求し、各repoのproducer/checkの観測有無とADRS完了状態を報告している。"
+    },
+    {
+      "id": "held-262",
+      "E": "yes",
+      "O": "no",
+      "basis": "package inventoryと最終joinの各要件・負例・完了条件を定義している。実行結果はない。"
+    },
+    {
+      "id": "held-263",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Environment readbackの範囲と証拠段階を定め、owner bootstrapの報告済み項目と未独立確認を報告している。"
+    },
+    {
+      "id": "held-264",
+      "E": "yes",
+      "O": "yes",
+      "basis": "限定launcherのsecret境界・検証・完成条件を要求し、作成時のcanonical SHAと他open PRの変更範囲を報告している。"
+    },
+    {
+      "id": "held-265",
+      "E": "yes",
+      "O": "yes",
+      "basis": "branch保護の到達条件を要求し、現checkerの挙動とGitHub protection無効というreadbackを報告している。"
+    },
+    {
+      "id": "held-266",
+      "E": "yes",
+      "O": "no",
+      "basis": "三PRの整合と現surface不在・検査の確認条件を要求している。確認結果はない。"
+    },
+    {
+      "id": "held-267",
+      "E": "yes",
+      "O": "yes",
+      "basis": "外部契約authorityとの責務境界を示し、not planned close・PR未merge closeと旧前提の失効を報告している。"
+    },
+    {
+      "id": "held-268",
+      "E": "yes",
+      "O": "no",
+      "basis": "shadow real-input reportの範囲・digest・非authority・受入条件を要求している。実生成結果はない。"
+    },
+    {
+      "id": "held-269",
+      "E": "yes",
+      "O": "yes",
+      "basis": "upstream移行の条件と暫定境界を定め、forkのecho依存とCtrl+Space意味衝突という現状を報告している。"
+    },
+    {
+      "id": "held-270",
+      "E": "yes",
+      "O": "no",
+      "basis": "duplicate実行抑止とreplay分離・event・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-271",
+      "E": "yes",
+      "O": "yes",
+      "basis": "一つのJSONL三viewの要件があり、現graph/seq共有とmap別入力・低level収束の実装状態を報告している。"
+    },
+    {
+      "id": "held-272",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Atlas read-modelの統合と拒否・受入条件を要求し、現repo所有機能とupload済みpreviewの構成・動作を報告している。"
+    },
+    {
+      "id": "held-273",
+      "E": "yes",
+      "O": "no",
+      "basis": "durable result tailの順序・完全性・停止・非作用・受入条件を定義している。実行結果はない。"
+    },
+    {
+      "id": "held-274",
+      "E": "yes",
+      "O": "no",
+      "basis": "hqとworkerの責務分離・文書・受入条件を定義している。実検証結果はない。"
+    },
+    {
+      "id": "held-275",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Decision Packetの公開検証・投影・閉包条件を要求し、local proofの件数・PASS・digestとprovider統合pendingを報告している。"
+    },
+    {
+      "id": "held-276",
+      "E": "yes",
+      "O": "no",
+      "basis": "Codex continuationの参照・実行・lineage・受入条件を要求している。実行結果はない。"
+    },
+    {
+      "id": "held-277",
+      "E": "yes",
+      "O": "yes",
+      "basis": "owner authorization transportの条件を要求し、helper起動のactorがbotになり現checkでpublicationが阻止された実際のgapを報告している。"
+    },
+    {
+      "id": "held-278",
+      "E": "yes",
+      "O": "yes",
+      "basis": "一元identity投影と検証条件を要求し、現重複定数が既にstale参照を起こした事実を報告している。"
+    },
+    {
+      "id": "held-279",
+      "E": "yes",
+      "O": "no",
+      "basis": "provider CI drift統合とblocking・必要証拠を要求している。実検証結果はない。"
+    },
+    {
+      "id": "held-280",
+      "E": "yes",
+      "O": "yes",
+      "basis": "Editorへの非破壊追記・結合・受入条件を要求し、先行Meltype8のmerge済み状態と今回User依頼の成立を明示している。"
+    },
+    {
+      "id": "held-281",
+      "E": "yes",
+      "O": "yes",
+      "basis": "render auditの固定入力・findings・受入条件を要求し、再利用候補のDesktop runtimeがPR10で既にproof済みであることを明示している。"
+    },
+    {
+      "id": "held-282",
+      "E": "yes",
+      "O": "no",
+      "basis": "exact SHAを実際に強制するwrite境界・accept/reject証拠・閉包条件を定義している。実施結果はない。"
+    },
+    {
+      "id": "held-283",
+      "E": "yes",
+      "O": "yes",
+      "basis": "性能fixtureとbudget検査を要求し、既存検査が小fixture中心で大入力の応答予算を証明しない現状を報告している。"
+    },
+    {
+      "id": "held-284",
+      "E": "yes",
+      "O": "no",
+      "basis": "目的表示の現行入口を一つに定義し退役物に依存しない確認を要求している。確認結果はない。"
+    },
+    {
+      "id": "held-285",
+      "E": "yes",
+      "O": "yes",
+      "basis": "target別Go認証の契約・実利用・検証条件を要求し、現AUTHOR_TARGETSがVersaPro未対応で実暗号文・鍵・応答未確認と報告している。"
+    },
+    {
+      "id": "held-286",
+      "E": "no",
+      "O": "no",
+      "basis": "issue testという語句だけで要求や現実の状態・出来事の報告はない。"
+    },
+    {
+      "id": "held-287",
+      "E": "yes",
+      "O": "yes",
+      "basis": "secret handoffとconsumer利用を分離する完了条件があり、現Public envsの実装・fixture PASSと物理未設定・receipt不在を報告している。"
+    },
+    {
+      "id": "held-288",
+      "E": "yes",
+      "O": "no",
+      "basis": "host-openのhandoff・resolver・integrity・実証条件を要求している。実装や実行の結果はない。"
+    },
+    {
+      "id": "held-289",
+      "E": "yes",
+      "O": "no",
+      "basis": "全sourceの処遇分類・責務・branch・最終条件を定義している。分類済み結果の報告はない。"
+    },
+    {
+      "id": "held-290",
+      "E": "yes",
+      "O": "yes",
+      "basis": "四receiptのpure joinと拒否・受入条件を要求し、現positive proofのPASS・VALID・merge・artifact/digestを報告している。"
+    },
+    {
+      "id": "held-291",
+      "E": "yes",
+      "O": "yes",
+      "basis": "desired targetだけを残す責務・残完了条件があり、旧run未完とPR16上の書換え・削除済み状態を報告している。"
+    },
+    {
+      "id": "held-292",
+      "E": "yes",
+      "O": "yes",
+      "basis": "所有分離refactorの要件・依存・受入条件を定め、現在pre-refactor gatesでblockedの計画状態を明示している。"
+    },
+    {
+      "id": "held-293",
+      "E": "yes",
+      "O": "yes",
+      "basis": "安全な責務移管・退役条件を定め、repoが現役で退役未許可、共通実装継続利用という現在状態を報告している。"
+    },
+    {
+      "id": "held-294",
+      "E": "yes",
+      "O": "no",
+      "basis": "required repoとpacketのjoin・provenance・拒否・完了条件を定義している。実行結果はない。"
+    },
+    {
+      "id": "held-295",
+      "E": "yes",
+      "O": "no",
+      "basis": "localhost projection更新と選択保全・エラー・受入条件を要求している。実動作結果はない。"
+    },
+    {
+      "id": "held-296",
+      "E": "yes",
+      "O": "yes",
+      "basis": "重いproofを関連変更だけに限定するCI要件を定め、SSG hot-refresh能力が採用済みである状態を明示している。"
+    },
+    {
+      "id": "held-297",
+      "E": "yes",
+      "O": "yes",
+      "basis": "sparse pinと関係readabilityの要件があり、現reprojectionで手配置が失われ関係が埋もれる二つのUX失敗を報告している。"
+    },
+    {
+      "id": "held-298",
+      "E": "yes",
+      "O": "no",
+      "basis": "current入出力中心のtest原則と不要guard拒否の文書化を要求している。実施結果はない。"
+    },
+    {
+      "id": "held-299",
+      "E": "yes",
+      "O": "yes",
+      "basis": "carrier復元・digest確認と所有境界を要求し、生成HTML・archive・base64の具体byte数とdigestを報告している。"
+    },
+    {
+      "id": "held-300",
+      "E": "yes",
+      "O": "yes",
+      "basis": "PiのNixOS組込み・認証・履歴・実機検証条件を要求し、現OPEN/NOT_PROVENと明示している。"
+    }
+  ],
+  "completedAt": "2026-10-20T12:47:55.668Z"
+}
