@@ -10,7 +10,7 @@ export function priorInputs(blobs){
 }
 export function validateWindow(startedAt,endedAt,maxMs=3600000){const a=Date.parse(startedAt),b=Date.parse(endedAt);assert.ok(Number.isFinite(a)&&Number.isFinite(b)&&b>=a&&b-a<=maxMs);return {startedAt,endedAt,maxMs};}
 export async function materializeFrame({repositories,prior,knownIssueIds,captures,best,cutoff,startedAt,endedAt}){
- assert.ok(!process.env.JEV_API_KEY);validateWindow(startedAt,endedAt);assert.equal(repositories.length,2);assert.equal(new Set(repositories.map(r=>r.id)).size,2);assert.equal(captures.length,2);const until=Date.parse(cutoff);assert.ok(Number.isFinite(until));
+ assert.ok(!process.env.JEV_API_KEY);validateWindow(startedAt,endedAt);assert.equal(repositories.length,2);assert.equal(new Set(repositories.map(r=>r.id)).size,2);assert.equal(captures.length,2);assert.deepEqual(captures.map(c=>c.repositoryId).sort(),repositories.map(r=>r.id).sort());const until=Date.parse(cutoff);assert.ok(Number.isFinite(until));
  const known=new Set(knownIssueIds),priorBodies=new Set(prior.bodies),seen=new Set(),cases=[],excluded=[],coverage={rawItems:0,pullRequests:0,afterCutoff:0,knownIssue:0,priorExactBody:0,emptyBody:0,oversize:0,eligible:0};
  const templateProof=await scopedTemplates(best);
  for(const cap of captures){const repo=repositories.find(r=>r.id===cap.repositoryId);assert.ok(repo);assert.equal(repo.isPrivate,false);assert.ok(typeof repo.nameWithOwner==='string'&&repo.nameWithOwner);assert.equal(cap.complete,true);assert.equal(cap.exitStatus,0);assert.ok(Array.isArray(cap.pages)&&cap.pages.length>0);let previous=-Infinity;

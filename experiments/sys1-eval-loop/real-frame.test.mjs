@@ -10,7 +10,7 @@ test('complete public traversal keeps whole body, structural exclusions and raw 
  assert.equal(p.status,'OBSERVED_FRAME_AWAITING_NATIVE_RETAIN');assert.equal(p.coverage.rawItems,8);assert.equal(p.cases.length,2);assert.ok(p.cases.every(c=>c.body==='whole retained body'&&c.serializedRequestBytes.length===3));assert.deepEqual(p.descriptiveDuplicates,{exactBodyGroups:1,extraIssueCopies:1,exclusion:false});assert.equal(p.coverage.knownIssue,1);assert.equal(p.coverage.priorExactBody,1);assert.equal(p.coverage.pullRequests,1);
 });
 test('partial pagination, identity duplicates, wrong repository, nonpublic or out-of-window captures are invalid',async()=>{
- for(const change of [x=>x.captures[0].complete=false,x=>x.captures[0].pages[0].push(item(2,'duplicate')),x=>x.captures[0].pages[0][0].repository_url='https://api.github.com/repos/wrong/repo',x=>x.repositories[0].isPrivate=true,x=>x.captures[0].retrievedAt='2026-10-21T00:00:00Z']){const x=structuredClone(input([item(2,'new body')]));change(x);await assert.rejects(()=>materializeFrame(x));}
+ for(const change of [x=>x.captures[1].repositoryId='R1',x=>x.captures[0].complete=false,x=>x.captures[0].pages[0].push(item(2,'duplicate')),x=>x.captures[0].pages[0][0].repository_url='https://api.github.com/repos/wrong/repo',x=>x.repositories[0].isPrivate=true,x=>x.captures[0].retrievedAt='2026-10-21T00:00:00Z']){const x=structuredClone(input([item(2,'new body')]));change(x);await assert.rejects(()=>materializeFrame(x));}
  assert.throws(()=>validateWindow(startedAt,'2026-10-20T11:00:01Z'));assert.doesNotThrow(()=>validateWindow(startedAt,'2026-10-20T11:00:00Z'));
 });
 test('zero eligible issues is an explicit non-sampled empty frame rather than an approximation success',async()=>{
