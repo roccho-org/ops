@@ -1,5 +1,5 @@
 {
-  "schema": "ops.logger-language-neutral.retained-k-supplement/1",
+  "schema": "ops.logger-language-neutral.retained-k-supplement/2",
   "authority": false,
   "purpose": "Retain the exact baseline-observation provenance and the independent causal decision sequence required to re-read the logger Contract history after temporary artifact URLs expire.",
   "canonicalMeaning": {
@@ -55,9 +55,17 @@
     ],
     "repairAllowed": false
   },
+  "causalOrder": [
+    "materiality",
+    "aggregate-rejection",
+    "technical-closure",
+    "admission-source-acceptance",
+    "canonical-effect-readback"
+  ],
   "independentDecisionSequence": [
     {
       "role": "materiality",
+      "dependsOn": [],
       "repository": "roccho-dev/adrs",
       "pullRequest": 655,
       "commentId": 6280208952,
@@ -69,6 +77,7 @@
     },
     {
       "role": "aggregate-rejection",
+      "dependsOn": [6280208952],
       "repository": "roccho-org/ops",
       "pullRequest": 602,
       "commentId": 6283074344,
@@ -79,7 +88,20 @@
       "gitBlob": "0943e6f8ce2a02b8cf8938f4aa08d285ee8d3030"
     },
     {
+      "role": "technical-closure",
+      "dependsOn": [6283074344],
+      "repository": "roccho-org/ops",
+      "pullRequest": 602,
+      "commentId": 6283358664,
+      "sourceUrl": "https://github.com/roccho-org/ops/pull/602#issuecomment-6283358664",
+      "path": "r-v32-comment.md",
+      "bytes": 9488,
+      "sha256": "sha256:56945f7657ae16089fa299dead5dfbd50b462196fc3976cb2c6b056cf71021f4",
+      "gitBlob": "a039df34b8dec20910cb37c3a7e146e63f5daf28"
+    },
+    {
       "role": "admission-source-acceptance",
+      "dependsOn": [6283358664],
       "repository": "roccho-dev/adrs",
       "pullRequest": 655,
       "commentId": 6283469134,
@@ -91,6 +113,7 @@
     },
     {
       "role": "canonical-effect-readback",
+      "dependsOn": [6283469134],
       "repository": "roccho-dev/adrs",
       "pullRequest": 655,
       "commentId": 6283505423,
@@ -99,17 +122,6 @@
       "bytes": 7832,
       "sha256": "sha256:3030ec6da48109a31eed1d47806eb536940ab802c7039e8195829ab2fa80baad",
       "gitBlob": "ac95bcda4009bb5898512b0bd038b4b7b285c5b7"
-    },
-    {
-      "role": "technical-closure",
-      "repository": "roccho-org/ops",
-      "pullRequest": 602,
-      "commentId": 6283358664,
-      "sourceUrl": "https://github.com/roccho-org/ops/pull/602#issuecomment-6283358664",
-      "path": "r-v32-comment.md",
-      "bytes": 9488,
-      "sha256": "sha256:56945f7657ae16089fa299dead5dfbd50b462196fc3976cb2c6b056cf71021f4",
-      "gitBlob": "a039df34b8dec20910cb37c3a7e146e63f5daf28"
     }
   ],
   "coverage": {
@@ -117,9 +129,10 @@
     "fixedFiveProfileMatrix": "COVERED",
     "materialityDecisionOriginal": "COVERED",
     "aggregateRejectionOriginal": "COVERED",
+    "technicalClosureDecisionOriginal": "COVERED",
     "admissionSourceDecisionOriginal": "COVERED",
     "canonicalEffectDecisionOriginal": "COVERED",
-    "technicalClosureDecisionOriginal": "COVERED",
+    "causalDecisionOrder": "COVERED",
     "remaining": 0
   },
   "retentionBoundary": "This supplement retains provenance and decision originals only. It does not itself admit meaning, create a normative Required, merge, Release, deploy, or claim operational adoption."
