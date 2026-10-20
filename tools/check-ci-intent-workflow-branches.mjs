@@ -10,6 +10,7 @@ const JEV_ORG_WORKFLOW = ".github/workflows/jev-issue-comment.yml";
 const SYS1_PROOF_WORKFLOW = ".github/workflows/sys1-improvement-proof.yml";
 const SELF_GRADING_WORKFLOW = ".github/workflows/sys1-self-grading-proof.yml";
 const FEEDBACK_WORKFLOW = ".github/workflows/sys1-feedback-improvement.yml";
+const TARGET_LOOP_WORKFLOW = ".github/workflows/sys1-target-loop.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
   'set -euo pipefail',
@@ -154,6 +155,10 @@ export function analyzeEffectWorkflow(workflow, boundary) {
     }
     if (boundary.path === FEEDBACK_WORKFLOW) {
       assertFeedbackWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === TARGET_LOOP_WORKFLOW) {
+      assertTargetLoopWorkflow(workflow,boundary);
       return {issues,contributingJobs:['evaluate']};
     }
     const jobs = workflow.jobs ?? {};
@@ -375,6 +380,25 @@ export function assertFeedbackWorkflow(w,b) {
     if(n<4)need(!step.if,'feedback mandatory admission skipped');
     if(n!==2&&n!==3)need(!step.env,'feedback extra environment');
   }
+}
+
+// Reuse the exact six-step secret isolation profile; only this new finite
+// series has a distinct entry, timeout and cap. Closed profiles remain exact.
+export function assertTargetLoopWorkflow(w,b) {
+  need(b.maxCalls===1000,'target loop total limit differs');
+  need(same(w.on?.push?.branches??[],['codex/jev-target-loop-20261020'])
+    &&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/target-loop/request.json']), 'target loop entry differs');
+  need(w.concurrency?.group==='sys1-target-loop'&&w.jobs?.evaluate?.['timeout-minutes']===60,'target loop runtime differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode] of [[2,'prepare'],[3,'evaluate'],[4,'score']]) {
+    need(s[n]?.run===`node experiments/sys1-eval-loop/target-loop/loop.mjs ${mode} "$RUNNER_TEMP/target-loop"`,'target loop command differs');
+    s[n].run=`node experiments/sys1-eval-loop/self-grading.mjs ${mode} "$RUNNER_TEMP/self-grading"`;
+  }
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-target-loop-${{ github.run_id }}',path:'${{ runner.temp }}/target-loop','if-no-files-found':'ignore','retention-days':30}),'target loop receipt differs');
+  v.on.push.branches=['codex/jev-self-grading-measurement-20261020'];v.on.push.paths=['experiments/sys1-eval-loop/self-grading-live.json'];
+  v.concurrency.group='sys1-self-grading-proof';v.jobs.evaluate['timeout-minutes']=8;
+  s[5].with={name:'sys1-self-grading-${{ github.run_id }}',path:'${{ runner.temp }}/self-grading','if-no-files-found':'ignore','retention-days':30};
+  assertSelfGradingWorkflow(v,{...b,maxCalls:18});
 }
 
 export function selftest() {
