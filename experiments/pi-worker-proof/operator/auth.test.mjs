@@ -209,3 +209,34 @@ test("owner native OAuth clears inherited callback override BEFORE module evalua
   `],{timeout:5000});
   assert.equal(result.stdout.trim(),"LOOPBACK_LISTENER_READY_AND_CLOSED");
 });
+test("actual owner witness and completion validators refuse incomplete evidence",async()=>{
+  const {proofWitness,completionReceipt}=await import("./owner.mjs");
+  const good={boot:"00000000-0000-4000-8000-000000000608",posts:2,prior:"false"};
+  proofWitness(good,2,"false");
+  for(const change of [{boot:undefined},{boot:""},{boot:"not-a-uuid"},{posts:undefined},{posts:NaN},{posts:1.5},{posts:"2"},{prior:"true"},{prior:undefined}]) {
+    assert.throws(()=>proofWitness({...good,...change},2,"false"));
+  }
+  const complete={role:"assistant",responseId:"synthetic-response",stopReason:"stop",rawStopReason:"completed",model:"gpt-6-luna",usage:{input:1,output:1,totalTokens:2}};
+  assert.equal(completionReceipt([complete],["stop"]).length,1);
+  for(const change of [{responseId:""},{responseId:17},{rawStopReason:"incomplete"},{stopReason:"error"}]) {
+    assert.throws(()=>completionReceipt([{...complete,...change}],["stop"]));
+  }
+});
+
+test("owner turn completion and result collection are bound to the exact conversation",async()=>{
+  const {completedTurn,turnMessages,completionReceipt}=await import("./owner.mjs");
+  const frame=(conversationId,text)=>({type:"conversation.events",conversationId,events:[
+    {type:"run_end",inputs:["same-submission"]},
+    {type:"entry_appended",entry:{id:"same-entry",model:[{role:"assistant",content:[{type:"text",text}]}]}}
+  ]});
+  const foreign=frame("other-conversation","foreign-marker");
+  const matching=frame("selected-conversation","selected-marker");
+  assert.equal(completedTurn(foreign,"selected-conversation","same-submission"),false);
+  assert.equal(turnMessages([foreign],"selected-conversation").length,0);
+  assert.equal(completedTurn(matching,"selected-conversation","same-submission"),true);
+  assert.deepEqual(turnMessages([foreign,matching],"selected-conversation"),matching.events[1].entry.model);
+  assert.throws(()=>completionReceipt([
+    {role:"assistant",responseId:"one",stopReason:"stop",rawStopReason:"completed"},
+    {role:"assistant",responseId:"extra",stopReason:"stop",rawStopReason:"completed"}
+  ],["stop"]));
+});

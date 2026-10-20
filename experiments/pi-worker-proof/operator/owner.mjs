@@ -22,6 +22,27 @@ export async function loadOwnerOAuth() {
   delete process.env.PI_OAUTH_CALLBACK_HOST;
   return import("./dist/oauth.mjs");
 }
+export function proofWitness(witness, posts, prior) {
+  assert.match(witness?.boot ?? "", /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  assert.ok(Number.isInteger(witness.posts));
+  assert.equal(witness.posts, posts);
+  assert.ok(witness.prior === "true" || witness.prior === "false");
+  if (prior !== undefined) assert.equal(witness.prior, prior);
+}
+export function completedTurn(frame, conversationId, submissionId) {
+  return frame.type === "conversation.events" && frame.conversationId === conversationId &&
+    frame.events.some(event => event.type === "run_end" && event.inputs.includes(submissionId));
+}
+export function turnMessages(frames, conversationId) {
+  const entries = new Map();
+  for (const frame of frames) {
+    if (frame.type !== "conversation.events" || frame.conversationId !== conversationId) continue;
+    for (const event of frame.events ?? []) {
+      if (event.type === "message_end" || event.type === "entry_appended") entries.set(event.entry.id, event.entry);
+    }
+  }
+  return [...entries.values()].flatMap(entry => entry.model ?? []);
+}
 async function run() {
 const { values } = parseArgs({ options: {
   url: { type: "string" }, session: { type: "string" }, host: { type: "string" },
@@ -111,7 +132,7 @@ async function connect() {
   let witness;
   ws.on("upgrade", response => { witness = {
     boot: response.headers["pi-proof-boot"], prior: response.headers["pi-proof-prior-token"],
-    posts: Number(response.headers["pi-proof-posts"]),
+    posts: typeof response.headers["pi-proof-posts"] === "string" && /^[0-3]$/.test(response.headers["pi-proof-posts"]) ? Number(response.headers["pi-proof-posts"]) : NaN,
   }; });
   ws.on("message", data => frames.push(JSON.parse(String(data))));
   await new Promise((resolve, reject) => { ws.once("open", resolve); ws.once("error", () => reject(new Error("Owner WebSocket rejected"))); });
@@ -137,13 +158,8 @@ async function connect() {
     async turn(conversationId, content) {
       const start = frames.length;
       const result = await this.command({ type: "prompt.submit", requestId: randomUUID(), conversationId, content });
-      await wait(frame => frame.type === "conversation.events" &&
-        frame.events.some(event => event.type === "run_end" && event.inputs.includes(result.submissionId)));
-      const entries = new Map();
-      for (const frame of frames.slice(start)) for (const event of frame.events ?? []) {
-        if (event.type === "message_end" || event.type === "entry_appended") entries.set(event.entry.id, event.entry);
-      }
-      return [...entries.values()].flatMap(entry => entry.model ?? []);
+      await wait(frame => completedTurn(frame, conversationId, result.submissionId));
+      return turnMessages(frames.slice(start), conversationId);
     },
     close() {
       return new Promise(resolve => { ws.once("close", resolve); ws.close(1000, "finite proof"); });
@@ -157,8 +173,7 @@ function assistant(messages) {
 }
 if (stage === "seed") {
 const first = await connect();
-assert.equal(first.witness.posts, 0, "Fresh dedicated proof session required");
-assert.equal(first.witness.prior, "false");
+proofWitness(first.witness, 0, "false");
 const created = await first.command({ type: "conversation.create", requestId: randomUUID() });
 const marker = randomBytes(24).toString("hex");
 const messages = await first.turn(created.conversationId,
@@ -181,6 +196,7 @@ console.log(JSON.stringify({ scope: "ACTUAL_WORKER_SEED_ONLY", status: "SEEDED",
 } else {
 assert.equal(previousProof.session, values.session);
 const reopened = await connect();
+proofWitness(reopened.witness, 2, "false");
 assert.ok(reopened.witness.boot !== previousProof.boot && reopened.witness.prior === "false",
   "NOT_PROVEN: real DO recreation not observed; no recall prompt sent");
 assert.equal(reopened.witness.posts, 2);
@@ -193,7 +209,7 @@ assert.deepEqual(parsed.assessment, previousProof.assessment);
 const completions = [...previousProof.completions, ...completionReceipt(messages, ["stop"])];
 await reopened.close();
 const receipt = await connect();
-assert.equal(receipt.witness.posts, 3);
+proofWitness(receipt.witness, 3);
 await receipt.close();
 await store.save({ ...store.get(), proof: { ...previousProof, state: "COMPLETE", completions } });
 console.log(JSON.stringify({ scope: "ACTUAL_WORKER_CREDENTIAL_LIFECYCLE_PROOF", session: values.session,
@@ -205,7 +221,7 @@ console.log(JSON.stringify({ scope: "ACTUAL_WORKER_CREDENTIAL_LIFECYCLE_PROOF", 
 }
 });
 }
-function completionReceipt(messages, expected) {
+export function completionReceipt(messages, expected) {
   const completions = messages.filter(message => message.role === "assistant").map(message => ({
     responseId: message.responseId ?? null, model: message.model ?? null, stopReason: message.stopReason,
     rawStopReason: message.rawStopReason, sdkUsage: message.usage ? { input: message.usage.input,
