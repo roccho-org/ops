@@ -326,14 +326,14 @@ test("reconciliation requires every explicit empty root field and preserves the 
   }
   for (const change of [{ posts: 1 }, { posts: "0" }, { boot: "" }, { prior: undefined }])
     assert.throws(() => emptyRootCertificate(automaticRootFrames(), { ...witness, ...change }));
-  assert.throws(() => parseOwnerFrame('not-json-synthetic-private'), error =>
-    error.message === "Invalid owner protocol frame" && !error.message.includes("synthetic-private"));
+  assert.deepEqual(parseOwnerFrame("not-json-synthetic-private"), { type: "invalid.owner.frame" });
+  assert.throws(() => emptyRootCertificate([...automaticRootFrames(), parseOwnerFrame("not-json-synthetic-private")], witness));
 });
 test("real loopback reconciliation receives automatic root frames and sends ZERO client commands", async () => {
   const { reconcileConnection, waitOwnerFrame, closeOwnerSocket, parseOwnerFrame, withOwnerSockets } = await import("./owner.mjs");
   const { WebSocket, WebSocketServer } = await import("ws");
   const { once } = await import("node:events");
-  for (const mode of ["empty", "nonempty", "incomplete"]) {
+  for (const mode of ["empty", "nonempty", "incomplete", "malformed"]) {
     const server = new WebSocketServer({ host: "127.0.0.1", port: 0 });
     await once(server, "listening");
     let sentCommands = 0;
@@ -343,6 +343,7 @@ test("real loopback reconciliation receives automatic root frames and sends ZERO
       if (mode === "nonempty") frames[1].events[0].entries.push({ id: "prior-input" });
       if (mode === "incomplete") frames.splice(2, 1);
       for (const frame of frames) socket.send(JSON.stringify(frame));
+      if (mode === "malformed") socket.send("not-json-synthetic-private");
     });
     const abort = new AbortController();
     try {
@@ -350,7 +351,10 @@ test("real loopback reconciliation receives automatic root frames and sends ZERO
         const frames = [];
         const socket = new WebSocket("ws://127.0.0.1:" + server.address().port);
         sockets.add(socket); socket.on("error", () => {});
-        socket.on("message", data => frames.push(parseOwnerFrame(data)));
+        socket.on("message", data => {
+          const frame = parseOwnerFrame(data); frames.push(frame);
+          if (frame?.type === "invalid.owner.frame") socket.terminate();
+        });
         await once(socket, "open");
         const connection = {
           frames, witness: { boot: "00000000-0000-4000-8000-000000000608", posts: 0, prior: "true" },

@@ -13,7 +13,7 @@ let lastPhase = "VALIDATE";
 let lastHttpStatus;
 function phase(name) { lastPhase = name; lastHttpStatus = undefined; console.log(JSON.stringify({ scope: "OWNER_PHASE_ENTERED", phase: name })); }
 export function parseOwnerFrame(data) {
-  try { return JSON.parse(String(data)); } catch { throw new Error("Invalid owner protocol frame"); }
+  try { return JSON.parse(String(data)); } catch { return { type: "invalid.owner.frame" }; }
 }
 export function proofIdentity(values) {
   const url = new URL(values.url);
@@ -241,8 +241,9 @@ async function connect() {
     response.resume(); ws.terminate();
   });
   ws.on("message", data => {
-    try { frames.push(parseOwnerFrame(data)); }
-    catch { phase("INVALID_WS_FRAME"); ws.terminate(); }
+    const frame = parseOwnerFrame(data);
+    frames.push(frame);
+    if (frame?.type === "invalid.owner.frame") { phase("INVALID_WS_FRAME"); ws.terminate(); }
   });
   await new Promise((resolve, reject) => { ws.once("open", resolve); ws.once("error", () => reject(new Error("Owner WebSocket rejected"))); });
   const wait = predicate => waitOwnerFrame(frames, ws, predicate, abort.signal);
