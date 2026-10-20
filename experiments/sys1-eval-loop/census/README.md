@@ -48,11 +48,11 @@ source30edの一回取得は2026-10-20T17:45:22.085Z～18:20:50.705Z、call01860
 
 実成功replyにあった警告は[GraphQL標準extensions](https://spec.graphql.org/September2025/#sec-Extensions)であり、旧readerのroot data-only制約は潜在的不整合だった。新readerはroot optional map extensionsを選択dataと分けて許容し、dataのfield whitelist/型/日時/identity検査は保つ。extensions原文は私的保持し公開prefixへ投影しない。[GitHubのID二形式](https://docs.github.com/en/graphql/guides/migrating-graphql-global-node-ids)を理由にIDをdecode/自動置換したりmigration headerを加えたりしない。原失敗の直接終端原因はHTTP503であり、後から警告だけの失敗へ書き換えない。回復の実host/三者受容前に新APIを開始せず、本文/provider経路も引き続き別途受容する。
 
-### 計測部品（現在は人工fixtureのみ、実entryは未実装）
+### 計測部品と固定native entry（現在は人工fixtureのみ、実corpus未配置）
 
 `measurement.mjs` は既存reserveの四物理request/厳格資格/会計を、閉じた二contextだけで共有する。旧reserveは23件/92POST・旧schema/全fieldsetを保ち、新censusだけ受容済corpusからM=1..300・4Mを導く。任意schema/上限/endpoint/constructorを入力から選ばせない。標準recorderの実経路をdummy keyとfetch stubで通し、最大1200POST、欠測、モデル変化、既知軸退行と欠測の併存を検査する。人工fixtureは実HTTPやgain証拠ではない。
 
-新projectionは原input/report/eventsと同じcorpus/Gold/固定selectionから毎回再構成する。二回の集計もrep/ID/分母/資格情報を照合するが、これだけではnative来歴やGold不変を証明しない。後続の固定native entryが原sourceのcorpus全値・body/Gold・実D5 fullwire・通常CI・独立受容に結合し、両回の原rawを再投影する必要がある。意味FAILや通常unknownで予定二回目を取消さず、実model driftは技術停止として保持する。現sourceには新効果entry/workflowも実corpusもなく、モデル呼出しは0。
+新projectionは原input/report/eventsと同じcorpus/Gold/固定selectionから毎回再構成する。二回の集計もrep/ID/分母/資格情報を照合するが、これだけではnative来歴やGold不変を証明しない。固定native entryは原sourceのcorpus全値・body/Gold・実D5 fullwireへ結合し、両回の原rawを再投影する。実frame/Gold・通常CI・独立受容は別に必要である。意味FAILや通常unknownで予定二回目を取消さず、実model driftは技術停止として保持する。新workflowは固定branch上のrequest-only childだけを受け、census1/2のnative履歴と実Git親/requestを拘束する。原corpusは実frame全eligible行のid/bodyをそのまま使い、sourceへ残り全属性を保持する既存real-case-corpus.v1/round4/frameSizeMである。第二回では初回provider.sourceのGit値とcorpus/body/Gold/selection全値を比較し、同じ点数だけで同一と見なさない。prepare鍵前に旧実D5全raw/native/selectionを再生し、秘密は標準clientのevaluateだけへ渡す。330分は最大1200×15秒=300分＋鍵前/保持余裕30分というcapで完了保証ではない。実corpus/Goldとrequestは未配置、モデル呼出しは0。
 
 ### 本文materializer（現在は人工fixtureのみ）
 
@@ -101,7 +101,8 @@ flowchart TB
   BODYREVIEW --> FRAME
   FRAME -->|M0| EMPTY[NO_CASES・作用0・後付window拡大なし]
   FRAME -->|M正| GOLD[⏳ 独立Gold凍結/合議null・全wire検証]
-  GOLD --> EFFECT[⏳ 必要CI/三者受容後4Mを二回・全負unknown保持]
+  GOLD --> ENTRY[⏳ 固定entry/6step source受容・実M/全wire/必要CI]
+  ENTRY --> EFFECT[⏳ 4Mを二回・全負unknown保持]
   EFFECT --> END[⏳ 全原版/整数包絡/独立算術/費用/全CI/Ready未merge]
   EMPTY --> END
 ```
