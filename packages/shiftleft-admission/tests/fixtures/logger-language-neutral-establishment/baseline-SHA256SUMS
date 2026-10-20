@@ -1,0 +1,10 @@
+a21ee6b3d9262bd23b5dea34cf72c398bbe9bfa396ebec9de5efb16bd45c82af  ./evaluator.mjs
+1ecdcc85fc40c84c86ae270d59725ce579b0c555f1d33247b19cfab13981f10f  ./finding.json
+8473407a8012c283cc0ec2dfef0943ffe644500941c5a1196db9d311ce8ca2a5  ./metadata.json
+c9e1482ec14437cc28d77db19a8f5abf77eac6f41998066030e1a279effaf260  ./source/apps/flake.nix
+6710ff09959dafee852755dd75c512c4714c0c650e02c2c7dd0d5ba0c332e987  ./source/apps/packages/voice-ui/src/log.mjs
+e24283576f956402443dd0d13c8979e2ce7d47ff2e3ad5f2f61770aeae9c6140  ./source/apps/packages/voice-ui/web/app.mjs
+f942d7916d0e235870466cb1f4a54fe07742006b8755a8fb55ff11709bceff15  ./source/ops/packages/structured-diagnostic/README.md
+a5dce7912aa84ebe22feb22e658006411ac887a6cb917c11197d9ae4cc1df7b4  ./source/ops/packages/structured-diagnostic/adapters/node.mjs
+bfa969704ab2eed1cbcfc0b2edbc836b697784b3b5b6615563cd46f5f1d43548  ./source/ops/packages/structured-diagnostic/contract.json
+c8eadd637131ed4f3a1f2743506dccc3f9b7c994a37a127e4085b400dc781e61  ./source/ops/packages/structured-diagnostic/lib/diagnostic.mjs
