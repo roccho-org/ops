@@ -1,0 +1,357 @@
+{
+  "assigned": 24,
+  "target": {
+    "qualified": 24,
+    "correct": 21,
+    "unknown": 0,
+    "E": {
+      "FP": 2,
+      "FN": 0
+    },
+    "O": {
+      "FP": 2,
+      "FN": 0
+    }
+  },
+  "judge": {
+    "qualified": 24,
+    "correct": 23,
+    "unknown": 0,
+    "E": {
+      "FP": 0,
+      "FN": 0
+    },
+    "O": {
+      "FP": 1,
+      "FN": 0
+    }
+  },
+  "diagnosis": {
+    "qualified": 24,
+    "exact": 23,
+    "unknown": 0,
+    "misses": 1,
+    "falseAlarms": 0,
+    "targetErrors": 3,
+    "targetCorrect": 21
+  },
+  "cases": [
+    {
+      "id": "development-01",
+      "target": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-02",
+      "target": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-03",
+      "target": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "requirement_scope",
+      "actualDiagnosis": "requirement_scope"
+    },
+    {
+      "id": "development-04",
+      "target": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-05",
+      "target": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-06",
+      "target": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-07",
+      "target": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-08",
+      "target": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-09",
+      "target": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "evidence_scope",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-10",
+      "target": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-11",
+      "target": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-12",
+      "target": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-13",
+      "target": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-14",
+      "target": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-15",
+      "target": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-16",
+      "target": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-17",
+      "target": {
+        "E": "no",
+        "O": "no"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-18",
+      "target": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-19",
+      "target": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-20",
+      "target": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-21",
+      "target": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "no"
+      },
+      "expectedDiagnosis": "both_scope",
+      "actualDiagnosis": "both_scope"
+    },
+    {
+      "id": "development-22",
+      "target": {
+        "E": "yes",
+        "O": "no"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "no"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-23",
+      "target": {
+        "E": "no",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "no",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    },
+    {
+      "id": "development-24",
+      "target": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "judge": {
+        "E": "yes",
+        "O": "yes"
+      },
+      "expectedDiagnosis": "no_change",
+      "actualDiagnosis": "no_change"
+    }
+  ],
+  "actualPosts": 72,
+  "attemptEvents": 72,
+  "modelDrift": false,
+  "failureEvents": [],
+  "scope": "PRIVATE ROOT SCORING: do not disclose until both repair candidates are frozen"
+}

@@ -68,6 +68,16 @@ A/B両比較とも同一instructionsなら`IDENTICAL_CONFIGURATION_NO_TREATMENT`
 
 ## 完成状態と閉包
 
+### H224 sourceとD採点の解禁
+
+候補freeze2528後にroot保持commit f88b3612df80f854f640bd7808477ad97e5c5a66のD/H Goldを受領し、`development-gold.json`/`confirmation-gold.json`へnative bytesのまま収録した。3者ともH32全文/Gold根拠を出力前に反証し、変更指摘なし。これはroot著作・8family×4の架空機構集合で、明示scope-markerが多く、実製品代表性/独立第三者Goldを主張しない。修正作者とは知識を分けたが同UIDのOS秘匿ではない。
+
+D独立採点はtarget21/24、body-only judge23/24。実対象誤答3件に対し診断検出2/見逃し1、正答への誤警報0、unknown0。`independent-root-score.json`を原証拠として保持した。旧v1とは集合/課題が違うため、23/24をv1からの性能向上や安定した助言価値と読まない。両候補にはこの正誤を渡さず生成を終えている。
+
+同じnative workflowの次request-only childをconfirmation phaseとして一回受け付ける。native historyは初回Dと今回Hの2件、既存Dのprovider identity/成功を照合する。Goldはprepareでbody/id/familyだけへ投影し、model stepのinputから除く。case index%3でBest/F/N設定順を循環し、各E/O一回とbody-only judge一回、最大224 POST。輸送失敗はそのroleのunknownを全32分母へ保持し再送しない。model driftは以降停止、両比較UNKNOWN、観測済み値はrawOutcomeとして保持する。judge失敗はtarget比較を止めない。
+
+keyless projectionは固定GoldでA/B別比較、judge分類と期待診断の一致、実対象誤答群の検出/見逃し/誤scope/unknown、正答群の誤警報を保存する。H診断は候補修正へ返さず、この一回でHを退役させる。現段階H実行は0で、source/必要CI/3者受容前には起動しない。
+
 ```mermaid
 flowchart TB
   A["🗃️ 新D24/H32とGoldをモデル出力前に固定"] --> B["🔒 judge v2・Best・同一修正器/生成条件を固定"]
