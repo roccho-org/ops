@@ -90,6 +90,7 @@ test('local preparation CLI preserves the full projection and exact optional com
     ['defaults', value, undefined, false, 'REVIEW_INPUT'], ['unreviewed', value, options, false, 'REVIEW_PROJECTION'],
     ['reviewed', value, reviewed, true, 'REQUIRE_EXPLICIT_GO'], ['needs', needs, options, false, 'REVIEW_INPUT'],
     ['reviewed-double', value, reviewed, false, 'REVIEW_PROJECTION', { ...subject, readerDeclaredLive: false }],
+    ['private-cause', value, options, false, 'REVIEW_INPUT', { status: 'HOLD', cause: { private: 'PRIVATE_CAUSE'.repeat(2048) } }],
   ]) {
     const input = join(directory, name + '.json'), output = join(directory, name);
     writeFileSync(input, JSON.stringify({ plan: candidate, subject: suppliedSubject, options: selection }), { flag: 'wx' });
@@ -100,7 +101,8 @@ test('local preparation CLI preserves the full projection and exact optional com
     assert.equal(metadata.postingAuthorized, false);
     assert.equal(metadata.emittable, emittable);
     assert.equal(metadata.nextAction, nextAction);
-    assert.equal(metadata.cause, expected.cause);
+    assert.equal(Object.hasOwn(metadata, 'cause'), false, 'unverified causes stay in the private artifact');
+    assert.equal(execution.stdout.includes(Buffer.from('PRIVATE_CAUSE')), false);
     assert.ok(execution.stdout.length < 2048, 'readiness metadata stays bounded');
     const artifact = readFileSync(join(output, 'projection.json'));
     assert.equal(artifact.toString('utf8'), JSON.stringify(expected) + '\n', 'full artifact bytes stay unchanged');

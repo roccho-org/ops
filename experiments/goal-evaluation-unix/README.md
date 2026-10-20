@@ -163,10 +163,11 @@ review or grant. Failure leaves any partial output for inspection, without clean
 or automatic retry. File modes are requested, not a Windows owner-only ACL guarantee.
 
 The bounded stdout summary includes `nextAction`: `REVIEW_INPUT` means inspect
-the input and any reported `cause`; `REVIEW_PROJECTION` means inspect
+the private input and projection; `REVIEW_PROJECTION` means inspect
 `projection.json` for unmet conditions (not necessarily fidelity alone);
 `REQUIRE_EXPLICIT_GO` means preparation succeeded, but posting still needs a
-separate authorization. These hints do not change admission or resolve missing
+separate authorization. Unverified causes stay in the private projection, outside
+stdout. These hints do not change admission or resolve missing
 observations. They never instruct an automatic retry or post.
 
 ### Reading GitHub results
