@@ -30,7 +30,7 @@ export async function evaluateDevelopment(input,ask,observe=()=>{}){
     if(row.target.length===2)row.diagnosis=deriveDiagnosis(row.judge?.answer.choice??null,Object.fromEntries(row.target.map(t=>[t.role,t.answer.choice])));
     rows.push(row);observe({kind:'row',row});
   }
-  return {schema:'ops.sys1.counterfactual-report.v1',inputDigest:digest(input),terminalReceipt:true,rows};
+  return {schema:'ops.sys1.counterfactual-report.v1',inputDigest:digest(input),terminalReceipt:true,modelDrift:stop,rows};
 }
 export function developmentProjection(input,report){
   assert.equal(report.schema,'ops.sys1.counterfactual-report.v1');assert.equal(report.inputDigest,digest(input));assert.deepEqual(report.rows.map(r=>r.id),input.rows.map(r=>r.id));
@@ -42,7 +42,7 @@ export function developmentProjection(input,report){
   const outputs=report.rows.map(r=>({id:r.id,status:r.target.length===2?'qualified':'unknown',...Object.fromEntries(r.target.map(t=>[t.role,t.answer.choice]))}));
   const advice=report.rows.map(r=>({id:r.id,...r.diagnosis}));
   const targetComplete=outputs.every(r=>r.status==='qualified'),judgeComplete=report.rows.every(r=>r.judge);
-  return {targetComplete,judgeComplete,outputs,advice,repair:targetComplete?repairInputs(input.rows,outputs,advice,input.best):null,
+  return {targetComplete,judgeComplete,modelStable:report.modelDrift===false,outputs,advice,repair:targetComplete&&report.modelDrift===false?repairInputs(input.rows,outputs,advice,input.best):null,
     goldScoring:'private root only until both generated candidates frozen; no correctness supplied here'};
 }
 async function main(){

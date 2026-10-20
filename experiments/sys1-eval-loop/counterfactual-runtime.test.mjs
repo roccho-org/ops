@@ -26,6 +26,11 @@ test('changed model ends further requests, retains all assigned unknowns and obs
   const r=await evaluateDevelopment(i,()=>{n++;throw error;});assert.equal(n,1);assert.equal(r.rows.length,24);
   assert.equal(developmentProjection(i,r).targetComplete,false);
 });
+test('model drift on the final judge cannot permit generation despite complete target answers',async()=>{
+  const i=input();let n=0;const error=Error('changed');error.modelChanged=true;
+  const r=await evaluateDevelopment(i,q=>{if(++n===72)throw error;return ask(q);});const p=developmentProjection(i,r);
+  assert.equal(n,72);assert.equal(p.targetComplete,true);assert.equal(p.judgeComplete,false);assert.equal(p.modelStable,false);assert.equal(p.repair,null);
+});
 test('projection rejects modified requests or invented diagnostic and retains independent classification',async()=>{
   const i=input(),r=await evaluateDevelopment(i,ask),changed=structuredClone(r);
   changed.rows[0].target[0].request.text='other';assert.throws(()=>developmentProjection(i,changed));
