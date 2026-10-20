@@ -1,0 +1,29 @@
+{
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39361251975",
+  "runId": 39361251975,
+  "runAttempt": 1,
+  "event": "push",
+  "actor": "roccho-dev",
+  "head": "53110fe9f5809c57805ba348c330a714b75cb574",
+  "conclusion": "success",
+  "artifact": {
+    "id": 12237371554,
+    "node_id": "MDg6QXJ0aWZhY3QxMjIzNzM3MTU1NA==",
+    "name": "sys1-target-loop-39361251975",
+    "size_in_bytes": 123016,
+    "url": "https://api.github.com/repos/roccho-org/ops/actions/artifacts/12237371554",
+    "archive_download_url": "https://api.github.com/repos/roccho-org/ops/actions/artifacts/12237371554/zip",
+    "expired": false,
+    "digest": "sha256:efca3e614454dce05c30ffe33bcc778bdd53d593d56c3dc003f3aa9cf0a4edb8",
+    "created_at": "2026-10-20T02:52:36Z",
+    "updated_at": "2026-10-20T02:52:36Z",
+    "expires_at": "2026-11-19T02:52:35Z",
+    "workflow_run": {
+      "id": 39361251975,
+      "repository_id": 1275606595,
+      "head_repository_id": 1275606595,
+      "head_branch": "codex/jev-target-loop-20261020",
+      "head_sha": "53110fe9f5809c57805ba348c330a714b75cb574"
+    }
+  }
+}

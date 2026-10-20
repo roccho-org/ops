@@ -136,3 +136,29 @@ Future provider receipts expose only bounded numeric/boolean flags: reported-mod
 Primary-source contract review (2026-10-20): [TypeSafe Choice response documentation](https://docs.typesafe.ai/primitives/choice) specifies a full distribution totaling one and selection of a maximum-probability option; [System One API](https://docs.typesafe.ai/api/system-one) identifies per-question answers and returned model. Thus the checks follow documented properties even though the compatibility client's narrower validator does not enforce sum/argmax. The vendor SDK's [issue15](https://github.com/typesafe-ai/typesafe-sdk-python/issues/15) contains first-hand inconsistency reports and a contributor acknowledging an API problem. Those reports do **not** identify the cause of our failed90th answer; no check is relaxed or probability mass inferred from them.
 
 The official [OpenAPI ChoiceAnswer schema](https://api.typesafe.ai/openapi.json) uses an approximate total rather than specifying exact numerical precision, while also describing selection of a highest-probability option. It supplies no numerical error bound or rounding mechanism. Our1e-5 total tolerance therefore remains a local conservative requirement, not a vendor-guaranteed precision claim. This documentation ambiguity and the missing failed response values are recorded; neither justifies turning the failed diagnostic into a valid answer or changing rejection thresholds after observing results.
+
+## Candidate-1 rejected; candidate-2 development proposal
+
+[Remaining54 run39361251975](https://github.com/roccho-org/ops/actions/runs/39361251975) completed all new54 calls with the prior90/failed diagnosis unchanged. Provider ZIP123016bytes/artifact12237371554 was independently downloaded, digest/size checked and replayed. Full candidate-1 target accuracy is45/48; its evaluator still misses all three remaining wrong targets, with one locked unknown diagnosis. Actual series POSTs304; reservations500. Evidence and deterministic comparison are in `../results/target-validation-completion-20261020/`.
+
+| Development stratum | Best | Candidate-1 | Change |
+|---|---:|---:|---:|
+| Synthetic |34/40|39/40|+5|
+| Public Issue bodies |5/8|6/8|+1|
+| Combined |39/48|45/48|+6|
+
+Seven former wrong cases became correct, **but public-ops-524's O axis broke** (no→yes), so the pre-fixed gate returns `REGRESSION_KEEP_BASELINE`. Aggregate improvement does not override that rejection. Remaining candidate-1 mistakes: specimen HTML O false positive, document-meaning O false positive, completed-human-permission O false negative. E FP0/FN0; O FP2/FN1. H was not opened. Candidate-1 and its complete evidence are immutable; it is not adopted or used as the new Best.
+
+Candidate-2 is another **Gold/Sys2-led** proposal. Its supplement replaces candidate-1's broad status emphasis with explicit priority for the outside use of quoted material and the subject of a reported state/action: an actual implementation status or completed human action differs from definitions of document meaning, permission boundaries or where observations should be recorded. Real quoted logs and functional responsibilities still count. The original Best prefix is unchanged; no ID/Issue lookup is in instructions. Its full48 diagnosis decision table keeps44 accepted no-change,3 rejected misses and1 unknown, with no useful evaluator repair advice claimed. Candidate-2 has not run; next is all D48 ×3=144 after source/CI review. Reservations for that plus one H are500+144+192=836, under1000. No independent confirmation improvement is established.
+
+```mermaid
+flowchart TB
+  A["📏 Candidate1 fullD45/48 versus Best39/48"] --> B{"⚖️ Formerly-correct axis broken?"}
+  B -->|public524 O yes| C["↩️ Reject candidate1 despite +6 total; keep Best and all evidence"]
+  C --> D["🧠 Gold/Sys2 candidate2: applied subject/action versus document-meaning/material scope"]
+  D --> E["👥 Root source counter-review and normal CI"]
+  E --> F["🧪 AllD48 validation144; preserve synthetic/public split and all prior correct axes"]
+  F --> G{"📏 Gain without observed axis regression?"}
+  G -->|no| N["↩️ Keep Best; next finite decision within remaining budget"]
+  G -->|yes| H["🔒 Freeze selected candidate before root H disclosure"]
+```

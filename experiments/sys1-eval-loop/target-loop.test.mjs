@@ -106,3 +106,12 @@ test('granular response flags diagnose invariant failures without model text, he
   const f=responseFlags(data,'jev-1.13.0');assert.equal(f.modelMatches,true);assert.equal(f.answerKeyMatches,true);assert.equal(f.probabilitySum,.97);assert.equal(f.sumMatches,false);assert.equal(f.selectedIsMax,false);assert.ok(!JSON.stringify(f).includes('hidden'));
   assert.equal(responseFlags({model:'other',answers:{}},'jev-1.13.0').modelMatches,false);
 });
+test('actual candidate1 gain cannot hide its regression; candidate2 starts from unchanged Best and observed failures',()=>{
+  const input=read('../results/target-validation-completion-20261020/input.json'),r=read('../results/target-validation-completion-20261020/predictions.json'),m=read('../results/target-validation-completion-20261020/measurement.json');
+  assert.deepEqual(score(input,r,read),m);assert.equal(m.actualPosts,54);assert.equal(m.arms['candidate-1'].correct,45);
+  const b=read('../results/target-completion-20261020/measurement.json'),c=compareDevelopment([b],m);assert.deepEqual(c,read('../results/target-validation-completion-20261020/comparison.json'));
+  assert.equal(c.delta,6);assert.equal(c.outcome,'REGRESSION_KEEP_BASELINE');assert.deepEqual(c.axisRegressed,[{id:'public-ops-524',axis:'O'}]);
+  assert.equal(c.strata.synthetic.candidateCorrect,39);assert.equal(c.strata.publicIssue.candidateCorrect,6);
+  const next=read('candidate-2.json'),d=read('candidate-2-decisions.json');assert.ok(next.instructions.startsWith(read('../candidates/binary-eo-v3.json').instructions));assert.ok(Buffer.byteLength(next.instructions)<6000);
+  assert.notEqual(next.instructions,read('candidate-1.json').instructions);assert.equal(d.rows.length,48);assert.equal(d.rows.filter(r=>r.decision==='reject_missed_error').length,3);assert.equal(d.rows.filter(r=>r.decision==='retain_unknown').length,1);
+});
