@@ -2,7 +2,7 @@
 
 [PR615](https://github.com/roccho-org/ops/pull/615) は実案件300件の二回比較を保持して閉じた。正答は220→233/231だったが、既正答Oの退行が両回にあり採用条件は不成立。H1/H2の退行unionは101/155/196/289。元Bestを維持し、採用・mergeはしない。この300件を今回のDへ退役し、未使用評価とは呼ばない。
 
-D1/D2/D3/D4は不受容の全原版を保持し、ANDのD5は開発guard通過・actual wire固定まで成立した。各sourceの三者受容と必要CI実成功後に一度だけ実行した。現在モデル作用は新O1800、生成役呼出し0。三者の実D5・native fullwire固定確認後に、元reserve23の原版をWへ開示し、4物理requestのH入口を実装した。H測定はまだ0で、新source・必要CI・三者受容前に実行しない。候補固定前はWが23本文・Gold・分布・類型を未読だった境界を保持し、開示後もC2/C4・Gold・順序を変更しない。
+D1/D2/D3/D4は不受容の全原版を保持し、ANDのD5は開発guard通過・actual wire固定まで成立した。各sourceの三者受容と必要CI実成功後に一度だけ実行した。現在モデル作用はD新O1800＋H1実92＝1892、生成役呼出し0。三者の実D5・native fullwire固定確認後に元23原版をWへ開示した。H1は技術全資格、既知正答15→16・退行0だがGoldnull1の最悪下限0で近似条件は未成立。固定H2は未実行で、候補/Gold/orderを変更せず予定を維持する。候補固定前はWが23本文・Gold・分布・類型を未読だった境界を保持する。
 
 ## 最初のD結果（不変の失敗記録）
 
@@ -138,8 +138,9 @@ flowchart TB
   G5 -->|実成立| FREEZE[✅ live600資格・joint220→229/union0・actual両wire固定]
   FREEZE --> RELEASE[✅ 原版/freeze三者読戻し後に元23原版開示・候補不変]
   RELEASE --> HENTRY[✅ 固定4request入口・原版/全184wire鍵なし検査]
-  HENTRY --> HREVIEW[⏳ 新source・必要CI・三者受容]
-  HREVIEW --> H[⏳ 92 POST二回・全raw保持]
+  HENTRY --> HREVIEW[✅ source12e・必要CI575・三者受容]
+  HREVIEW --> HONE[✅ H1実92全資格・joint15→16/退行0・❌ 下限0で未成立]
+  HONE --> H[⏳ 同設定H2実92・意味正負で取消せず全raw保持]
   H --> A{両回の全受入成立?}
   A -->|成立| FIN[⏳ 成立時の主張は有限23二回の差のみ・採用は別判断]
   A -->|退行・負・unknown| NEG[⏳ 負／不明を全件保持・同23で修正再試験禁止]
@@ -159,4 +160,12 @@ flowchart TB
 
 2回目は保存1回目のnative来歴・全raw・project全値を再生する。意味FAILや通常の資格unknownでも予定二回目を取消さず、model drift等の既存技術停止guardは維持する。既知退行と技術unknownは両方残し、既知FAIL、model invalid、資格未完了の順にdispositionを整合させる。旧613/615の原判定は変更しない。
 
-実physical usageは4keyの唯一のreceiptだけを計上する。論理運用相当はBest=E+bestO、AND=E+c2O+c4Oだが、その和は共有Eを重複するので物理総費用にしない。total_tokens欠落や金額不明をinput/output和で埋めず、二call追加資源の設定比較とする。既存170分jobは92×15秒=23分に保持余裕を持ち、秘密境界・raw always保持・再送禁止は同じ。現sourceの通常CI終端と三者受容は未完了である。
+実physical usageは4keyの唯一のreceiptだけを計上する。論理運用相当はBest=E+bestO、AND=E+c2O+c4Oだが、その和は共有Eを重複するので物理総費用にしない。total_tokens欠落や金額不明をinput/output和で埋めず、二call追加資源の設定比較とする。既存170分jobは92×15秒=23分に保持余裕を持ち、秘密境界・raw always保持・再送禁止は同じ。source12eは必要CI575/575・consumer/healthと三者受容が成立した。現結果保持headの通常CIと最終全閉包は別途確認する。
+
+## H1原版保持と固定H2の継続
+
+[run39458683962](https://github.com/roccho-org/ops/actions/runs/39458683962) はsource12e1cbdee8d752f3e2a6071710f56335504752f8、request-only activatione5160d526eeb087e8cc0ba9c8496366dbbb74566、attempt1/技術SUCCESSで全step成功。artifact12281593350/177255B/provider SHA256 1d2250f153bbe78573584c57395574f0a75f09b562195798b0540d8f5dc69c9b を自己ZIPと照合し、原5fileとprovider/readbackを `results/reserve-and-pass1-20261020/` に保持。固定全request/repID/資格/物理論理会計・canonical全値再生が一致した。
+
+92attempt/POST/qualified、技術unknown0、modelStable、両role23論理資格。Goldknown22/null1でBest15→AND16、b1/c0、既知軸退行0。既定primaryはnull全caseの最悪補完を維持し、HG/census Δ[0,2]/23・R_U1/23、下限0で `NOT_ESTABLISHED`。既知一件改善を正gain近似成立へ格上げせず、nullの後付け補完・sharp-bound救済をしない。H2の予定をこの意味結果で取消さず、候補/Gold/orderを変えず、途中結果を新候補助言へ使わない。
+
+H1物理input223365/output2852、total_tokens92件未提供。input内訳bestO51293/c2O63069/c4O58147/sharedE50856、各output713。論理運用相当inputはBest102149/AND172072（+68.45%）で追加計算を伴うが、和をphysicalにしない。PR616累計は実1892/input4773717/output58652、total_tokens1892未知。予定H2 92を実費へ混ぜない。原版保持後に独立再生とcurrent source受容を閉じ、同設定の固定二回目へ進む。モデル再送や新候補処置ではない。
