@@ -54,6 +54,7 @@
     "ci.intent.v1.jsonl"
     ".github/workflows/issue-116-shiftleft-proof.yml"
     ".github/workflows/issue-161-chatpro-local-proof.yml"
+    ".github/workflows/logger-language-neutral-baseline.yml"
     "build/packages.jsonl"
     "build/checks.jsonl"
   ];
