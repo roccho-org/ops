@@ -31,6 +31,7 @@ const diagnosticContractPath = path.join(repoRoot, "packages/structured-diagnost
 const diagnosticContract = JSON.parse(fs.readFileSync(diagnosticContractPath, "utf8"));
 
 const SOURCE_REVISION = "0123456789abcdef0123456789abcdef01234567";
+const CURRENT_DIAGNOSTIC_CONTRACT_BLOB = "8df122c2e3205328a0f922c3397e7246ae1e0e16";
 
 const MEANING = Object.freeze({
   subject: {
@@ -269,7 +270,8 @@ const canonicalMeaning = canonicalJson(MEANING);
 assert.equal(Buffer.byteLength(canonicalMeaning), 2331);
 assert.equal(sha256(Buffer.from(canonicalMeaning, "utf8")), CANDIDATE.meaningSha256);
 assert.equal(gitBlobSha(previousObserverPath), CANDIDATE.target.priorObserver.gitBlob);
-assert.equal(gitBlobSha(diagnosticContractPath), CANDIDATE.target.diagnosticContract.gitBlob);
+assert.equal(gitBlobSha(diagnosticContractPath), CURRENT_DIAGNOSTIC_CONTRACT_BLOB);
+assert.notEqual(CURRENT_DIAGNOSTIC_CONTRACT_BLOB, CANDIDATE.target.diagnosticContract.gitBlob);
 assert.notEqual(gitBlobSha(cliPath), CANDIDATE.target.cli.gitBlob);
 assert.notEqual(gitBlobSha(producerPath), CANDIDATE.target.producer.gitBlob);
 assert.equal(REQUIRED_DIAGNOSTIC_CODE, SOURCE_DIGEST_MISMATCH_DIAGNOSTIC_CODE);
@@ -281,6 +283,7 @@ const implementation = {
   producer: fileIdentity(producerPath, "packages/artifact-assembly/src/assemble.mjs"),
   index: fileIdentity(indexPath, "packages/artifact-assembly/src/index.mjs"),
   consumer: fileIdentity(consumerPath, "packages/shiftleft-admission/adapters/artifact_assembly_candidate.mjs"),
+  diagnosticContract: fileIdentity(diagnosticContractPath, "packages/structured-diagnostic/contract.json"),
   test: fileIdentity(testPath, "packages/shiftleft-admission/tests/artifact-assembly-diagnostic-candidate.mjs"),
 };
 
