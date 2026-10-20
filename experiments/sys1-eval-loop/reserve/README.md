@@ -2,7 +2,15 @@
 
 [PR615](https://github.com/roccho-org/ops/pull/615) は実案件300件の二回比較を保持して閉じた。正答は220→233/231だったが、既正答Oの退行が両回にあり採用条件は不成立。H1/H2の退行unionは101/155/196/289。元Bestを維持し、採用・mergeはしない。この300件を今回のDへ退役し、未使用評価とは呼ばない。
 
-現在はD実行前。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。旧H全rawの再生と新D全300入力サイズを検査し、関連63tests・境界selftest・diff checkが成功。新sourceの独立受容と必要CIは待機中。実D・reserve測定は未実行で、H入口は次slice。新モデル作用0、生成役呼出し0。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
+現在は最初のDが不受容。旧requestの既定値を保つ任意O補足引数、公開Dだけから作った一般O補足、Dの完全正答gain＋両履歴union退行guard、元samplingのreserve識別子再生とD専用native入口を実装した。source4961の三者受容後、必要CI実547/547・fresh consumer・repo-health成功を自読し、一度だけ実行した。モデル作用は新O300、生成役呼出し0。reserve測定は未実行でH入口も未受容。Wは23本文・Gold・分布・類型を未読。私的Goldはroot/Rが独立初稿を凍結し、予測前に合議済みだがWへ未開示。
+
+## 最初のD結果（不変の失敗記録）
+
+[実run39436861326](https://github.com/roccho-org/ops/actions/runs/39436861326) はattempt1/技術SUCCESS、source4961ae1929cb3361f8ce4eeef6fda121f86e5256、request-only activation0334b78d90cdb30da383e19e008f3af9a8ce8fe5。原5fileは `results/reserve-development1-20261020/` に保持。artifact12271616717、1380509bytes、provider SHA256 d9869cdd291273b1f8867aefd7e8ee330c59e2b9862fe5be1d428a8bd9ea68a9 と自己取得ZIPを照合し、canonical全値再生が一致した。原runの再実行・書換えをしない。
+
+実300attempt/POST/qualified、未試行0、技術unknown0、観測model IDは一致。既知Gold293件では機械H1 baseline220→candidate236、修復17/complete退行1（held-289）。補助union軸退行はheld-101 Oとheld-289 Oの2件。H1/H2どちらかの既知正答を保持する条件が不成立なので `DEVELOPMENT_GUARD_FAIL`。Gold O null7はそのまま。workflow SUCCESSを性能受容へ読み替えず、23を開かない。元Best維持・候補不採用。
+
+新O物理300の既知usageはinput873992/output9300、各300call分。total_tokensは300件とも未提供であり、既知総額0ではない。金額・運用効率改善は未証明。次はこの失敗を保持したまま、公開D/元rubricだけに基づく別の一般O処置を三者で反証する。同じ候補を再抽選・再送して救済しない。
 
 ## 主張と反証を行う三者
 
@@ -42,9 +50,10 @@ flowchart TB
   C --> T[✅ complete gain＋両履歴union guardの敵対tests]
   T --> ENTRY[✅ D専用native入口・共有資格/会計/標準writer・実path鍵なしtests]
   ENTRY --> REVIEW[⏳ sourceと必要checkの3者受容]
-  REVIEW --> LIVE[⏳ 新O300一回・H1機械primary・歴史E alias]
+  REVIEW --> LIVE[✅ 新O300一回・H1機械primary・歴史E alias]
   LIVE --> G{Dguard成立?}
-  G -->|不成立・unknown| STOP[❌ 今候補を保持して不受容・23未開示]
+  G -->|不成立・unknown| STOP[❌ D1 joint220→236でもunion2退行・候補不受容・23未開示]
+  STOP --> NEXT[⏳ 公開Dだけで別処置を事前反証・新source受容前は追加モデル0]
   G -->|成立| FREEZE[⏳ 候補fullwire固定・その後だけ23開示]
   FREEZE --> H[⏳ 別受容後69 POST二回・全raw保持]
   H --> A{両回の全受入成立?}
