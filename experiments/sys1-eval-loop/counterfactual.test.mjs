@@ -6,6 +6,18 @@ import fs from 'node:fs';
 const cases=Array.from({length:24},(_,n)=>({id:'d'+n,body:'body '+n,gold:{E:'yes',O:'no',basis:'private'}}));
 const outputs=cases.map(c=>({id:c.id,status:'qualified',E:'yes',O:'no'}));
 const advice=cases.map(c=>({id:c.id,status:'qualified',diagnosis:'no_change',rationale:'not a real typed field'}));
+
+test('native repair candidates replay from unmodified standard API response text',()=>{
+  const read=name=>JSON.parse(fs.readFileSync(new URL('./results/counterfactual-repair-20261020/'+name,import.meta.url)));
+  const saved=read('parsed.json');const best=JSON.parse(read('feedback.request.json').prompt).common.best;
+  for(const arm of ['feedback','no-feedback']){
+    assert.deepEqual(receiveCandidate(read(arm+'.response.json'),best),saved.results[arm]);
+    assert.equal(read(arm+'.receipt.json').standardCliInvocations,1);
+    assert.equal(read(arm+'.receipt.json').status,0);
+  }
+  assert.deepEqual(read('before.json'),read('after.json'));
+  assert.equal(saved.plan.uniqueConfigCount,3);assert.equal(saved.plan.plannedPosts,224);
+});
 test('judge independently receives body only; code derives diagnosis after its immutable answer',()=>{
   const q=judgeRequest('complete body');assert.deepEqual(JSON.parse(q.text),{body:'complete body'});
   assert.deepEqual(Object.keys(q.criteria),['neither','requirements','observations','both']);assert.ok(!JSON.stringify(q).includes('proposed'));

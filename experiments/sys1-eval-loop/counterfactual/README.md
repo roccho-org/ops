@@ -42,7 +42,7 @@ flowchart TB
 
 ## 実行sourceの現在範囲
 
-現在実装するnative workflowはD72だけ。`request.json`未作成なので作用は始まらない。source/必要CI/3者受容後のrequest-only childを、同branch/owner/attempt1/native単一history/親commit/変更pathで照合してから既存org secretを最後のモデルstepだけへ渡す。手転記hash台帳や新credentialは作らない。既存strict client/model/probability検証を維持し、資格拒否はそのroleのunknown、judge失敗を別targetの停止理由にしない。model変更は比較不成立として以降を止める。raw receipts/全24分母を保持し、Goldなしprojectionを再生する。
+実装済みnative workflowはD72だけで、source/必要CI/3者受容後にrequest-only childを一度起動した。同branch/owner/attempt1/native単一history/親commit/変更pathで照合してから既存org secretを最後のモデルstepだけへ渡した。手転記hash台帳や新credentialは作らない。既存strict client/model/probability検証を維持し、資格拒否はそのroleのunknown、judge失敗を別targetの停止理由にしない。model変更は比較不成立として以降を止める。raw receipts/全24分母を保持し、Goldなしprojectionを再生する。
 
 H phaseは候補固定後の別source受容で追加する。caseごとのBest/F/N順を事前循環ローテーションし、各軸を1回ずつ取得。独立judgeはbodyだけから1回、候補修正には返さない。H本文/Goldはその前に開封しない。
 
@@ -53,6 +53,12 @@ H phaseは候補固定後の別source受容で追加する。caseごとのBest/F
 `../results/counterfactual-development-20261020/` にraw5fileとprovider metadataを保持し、`repair-payloads.json` はその実投影からコードで生成したF/N2要求である。修正入力はここで固定し、D正誤を見た選択や手修正を加えない。
 
 `native-repair.mjs` は既存CLIを直接起動して2要求を保存する小さいcaptureである。N→F順を前もって固定し、既存native dev/cwd/Console経路、公開version/catalogと非秘密configfileのstatを前後で照合する。これはその観測metadataが一致した証拠であって、Global config全内容、provider defaultやweightsの不変証明ではない。raw stdout/stderrはnative私的保存、公開には資格確認したdata.textと安全receiptを用いる。標準CLI起動数、API応答成立、provider内部HTTP/usage不明を区別し、timeout/失敗でも盲再送しない。無効armをBestへ代入しない。新しいcredential reader、HTTP proxy、plugin、汎用executorは追加しない。現時点でこのcaptureは未実行、生成はまだ0要求。
+
+## 標準修正2要求と両候補freeze
+
+上のcapture未実行記述はsource24fb時点の準備記録である。そのsourceを3者受容後、標準stateless要求をN→F各一回実行した。両CLI exit0、API data.text成立、観測metadata前後一致。生textへのstrict parserでF2936/N3746 UTF8-byteのinstructionsがvalidとなり、Best全文prefixを維持した。形式救済・再抽選・手修正はしていない。
+
+`../results/counterfactual-repair-20261020/` に両request/response/receipt、前後metadata、機械parser結果とFREEZE.mdを保持する。このGit freezeまではD正誤/GoldもH本文/Goldも未受領。両候補はこれ以降変更しない。完全一致でBest/F/NはK3、Hは224POST計画となる。標準API2要求とprovider内部試行unknownを分離し、金額やusageを0としない。N79093.585ms/F22939.171msはCLI経過時間で速度改善の証拠ではない。
 
 ## H開封前の設定identityと測定計画
 
