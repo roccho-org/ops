@@ -38,6 +38,6 @@ export async function freshScopedProjection(input,report,gold){
  }
  const scored=pairedComparison(gold,rows,input.expectedModel),pair=scored.A;
  let disposition=!pair.complete?'UNKNOWN':pair.axisRegressed.length?'OBSERVED_REGRESSION':pair.delta>0?'FINITE_GAIN':'NO_GAIN_OBSERVED';if(report.modelDrift!==false)disposition='UNKNOWN';
- return {modelStable:report.modelDrift===false,rows:rows.map(r=>({...r,arm:r.arm==='feedback'?'scoped':r.arm})),comparison:{configuration:'original Best + scoped E criteria',stage:input.phase,disposition,eligible:disposition==='FINITE_GAIN',assigned:gold.length,baselineCorrect:scored.arms.best.correct,candidateCorrect:scored.arms.feedback.correct,pair},
+ return {modelStable:report.modelDrift===false,rows:rows.map(r=>({...r,arm:r.arm==='feedback'?'scoped':r.arm})),comparison:{configuration:'original Best + scoped E criteria',stage:input.phase,disposition,eligible:disposition==='FINITE_GAIN',assigned:gold.length,baselineCorrect:scored.arms.best.correct,candidateCorrect:scored.arms.feedback.correct,baselineQualified:scored.arms.best.qualified,candidateQualified:scored.arms.feedback.qualified,pair},
   usageScope:'sum each of BestE/scopedE/sharedO native traces once; sharedO is not an independent arm observation; paired evaluation savings are not deployed inference savings'};
 }
