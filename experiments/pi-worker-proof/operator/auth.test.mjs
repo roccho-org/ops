@@ -536,6 +536,9 @@ test("history model-error classification and typed Jev correlation never expose 
   assert.equal(good.providerHttpCause, "UNAVAILABLE_FROM_MASKED_HISTORY");
   assert.equal(JSON.stringify(good).includes("synthetic-private"), false);
   assert.equal(JSON.stringify(good).includes("0.419"), false);
+  const compacting = frames(); compacting[1].events[0].compactions.push({ id: "synthetic-live" });
+  const live = summarizeHistory(compacting, 1, historyWitness(1));
+  assert.equal(live.pendingObserved, true); assert.equal(live.classification, "LIVE_OR_UNRESOLVED_STATE");
   for (const mutate of [
     m => { m[2].isError = true; }, m => { m[2].toolCallId = "other"; },
     m => { m[1].content[0].name = "another-tool"; }, m => { m[2].toolName = "another-tool"; },
@@ -594,14 +597,14 @@ test("real history loopback sends ZERO commands for root/ambiguity or exactly ON
   const { observeOwnerSocket, withOwnerSockets, waitOwnerFrame, closeOwnerSocket, inspectHistoryConnection } = await import("./owner.mjs");
   const { WebSocket, WebSocketServer } = await import("ws");
   const { once } = await import("node:events");
-  for (const mode of ["root", "child", "multiple", "task", "root-and-child", "private-malformed"]) {
+  for (const mode of ["root", "child", "multiple", "task", "root-and-child", "private-malformed", "child-foreign", "child-badframe", "child-rootupdate", "child-rootresnapshot"]) {
     const server = new WebSocketServer({ host: "127.0.0.1", port: 0 });
     await once(server, "listening");
     const commands = [];
     server.on("headers", headers => headers.push("Pi-Proof-Boot: 00000000-0000-4000-8000-000000000608", "Pi-Proof-Prior-Token: true", "Pi-Proof-Posts: 1"));
     server.on("connection", socket => {
       const children = mode === "multiple" ? [{ id: 9 },{ id: 10 }] : mode === "task" ? [{ id: 9, owner: { conversationId: 1 } }] :
-        ["child","root-and-child"].includes(mode) ? [{ id: 9 }] : [];
+        ["child","root-and-child","child-foreign","child-badframe","child-rootupdate","child-rootresnapshot"].includes(mode) ? [{ id: 9 }] : [];
       const entries = ["root","root-and-child"].includes(mode) ? [{ model: [{ role: "assistant", stopReason: "error", errorMessage: "synthetic-private" }] }] : [];
       for (const frame of historyFrames(children, entries)) socket.send(JSON.stringify(frame));
       if (mode === "private-malformed") socket.send("synthetic-private-malformed");
@@ -611,6 +614,11 @@ test("real history loopback sends ZERO commands for root/ambiguity or exactly ON
         const opened = historyFrames([], [{ model: [{ role: "assistant", stopReason: "error", errorMessage: "synthetic-private" }] }]);
         for (const frame of opened.slice(1,3)) socket.send(JSON.stringify({ ...frame, conversationId: 9 }));
         socket.send(JSON.stringify({ type: "command.result", command: "conversation.open", requestId: command.requestId, ok: true }));
+        if (mode === "child-foreign") socket.send(JSON.stringify({ ...opened[1], conversationId: 777 }));
+        if (mode === "child-badframe") socket.send(JSON.stringify({ type: "conversation.inbox", items: [] }));
+        if (mode === "child-rootupdate") socket.send(JSON.stringify({ type: "conversation.events", conversationId: 1,
+          events: [{ type: "entry_appended", entry: { model: [{ role: "assistant", content: "synthetic-private" }] } }] }));
+        if (mode === "child-rootresnapshot") socket.send(JSON.stringify(opened[1]));
       });
     });
     const abort = new AbortController();
@@ -621,19 +629,28 @@ test("real history loopback sends ZERO commands for root/ambiguity or exactly ON
         await once(socket, "open");
         const wait = predicate => waitOwnerFrame(frames, socket, predicate, abort.signal, 500);
         await wait(frame => frame?.type === "session.snapshot");
-        const report = await inspectHistoryConnection({ frames, witness: trace.witness, wait,
+        const connection = { frames, witness: trace.witness, wait,
           close: () => closeOwnerSocket(socket, abort.signal),
           async command(command) {
             socket.send(JSON.stringify(command));
             const result = await wait(frame => frame?.type === "command.result" && frame.requestId === command.requestId);
             assert.equal(result.ok, true); return result;
-          } });
-        assert.equal(report.inspected, ["root","child"].includes(mode));
-        assert.equal(report.postsAtUpgrade, report.inspected ? 1 : undefined);
-        assert.equal(JSON.stringify(report).includes("synthetic-private"), false);
+          } };
+        if (["child-foreign","child-badframe"].includes(mode)) await assert.rejects(inspectHistoryConnection(connection));
+        else {
+          const report = await inspectHistoryConnection(connection);
+          assert.equal(report.inspected, ["root","child","child-rootupdate"].includes(mode));
+          assert.equal(report.postsAtUpgrade, report.inspected ? 1 : undefined);
+          if (mode === "child-rootupdate") {
+            assert.equal(report.classification, "ACTIVITY_DURING_INSPECTION");
+            assert.equal(report.subsequentEventScope, "ROOT_AND_SELECTED_CONVERSATION");
+          }
+          if (mode === "child-rootresnapshot") assert.equal(report.classification, "ACTIVITY_OR_INVENTORY_CHANGED");
+          assert.equal(JSON.stringify(report).includes("synthetic-private"), false);
+        }
         assert.equal(socket.readyState, WebSocket.CLOSED);
       });
-      assert.equal(commands.length, mode === "child" ? 1 : 0);
+      assert.equal(commands.length, mode === "child" || mode.startsWith("child-") ? 1 : 0);
     } finally {
       for (const socket of server.clients) socket.terminate();
       await new Promise(resolve => server.close(resolve));

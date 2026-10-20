@@ -190,10 +190,10 @@ export function summarizeHistory(frames, id, witness) {
         assessment.type === "noul" && Number.isFinite(assessment.noul) && assessment.noul >= 0 && assessment.noul <= 1;
     } catch { return false; }
   }).length;
-  const otherEvents = frames.filter(frame => frame?.type === "conversation.events" && frame.conversationId === id)
+  const otherEvents = frames.filter(frame => frame?.type === "conversation.events" && [1,id].includes(frame.conversationId))
     .flatMap(frame => frame.events).filter(event => event?.type !== "snapshot").length;
   const pending = ["run","generation"].some(key => Object.hasOwn(snapshot,key)) ||
-    snapshot.inbox.length > 0 || snapshot.tools.length > 0 || snapshot.nestedTools.length > 0 ||
+    snapshot.inbox.length > 0 || snapshot.tools.length > 0 || snapshot.nestedTools.length > 0 || snapshot.compactions.length > 0 ||
     inboxes.some(frame => frame.items.length > 0);
   const errors = assistants.filter(message => ["error","aborted"].includes(message.stopReason)).length;
   const distinctCompletions = new Set(completed.map(message => message.responseId)).size === completed.length;
@@ -205,7 +205,7 @@ export function summarizeHistory(frames, id, witness) {
     userMessageCount: messages.filter(message => message.role === "user").length, assistantCount: assistants.length,
     completedAssistantCount: completed.length, distinctCompletions, errorOrAbortCount: errors,
     askJevCallCount: calls.length, askJevResultCount: results.length, matchedTypedJevResultCount: matchedTyped,
-    pendingObserved: pending, subsequentEventCount: otherEvents,
+    pendingObserved: pending, subsequentEventCount: otherEvents, subsequentEventScope: "ROOT_AND_SELECTED_CONVERSATION",
     providerHttpCause: "UNAVAILABLE_FROM_MASKED_HISTORY" };
 }
 export async function inspectHistoryConnection(connection) {
@@ -217,18 +217,29 @@ export async function inspectHistoryConnection(connection) {
     await connection.close();
     return { classification: selected.classification, inventoryCount: selected.inventoryCount, openedConversationCount: 0, inspected: false };
   }
+  let openingRequestId;
   if (selected.conversationId !== 1) {
-    await connection.command({ type: "conversation.open", requestId: randomUUID(), conversationId: selected.conversationId });
+    openingRequestId = randomUUID();
+    await connection.command({ type: "conversation.open", requestId: openingRequestId, conversationId: selected.conversationId });
     await connection.wait(frame => frame?.type === "conversation.events" && frame.conversationId === selected.conversationId &&
       Array.isArray(frame.events) && frame.events.some(event => event?.type === "snapshot"));
     await connection.wait(frame => frame?.type === "conversation.inbox" && frame.conversationId === selected.conversationId);
   }
   await connection.close();
   // Reject foreign/unknown frames rather than silently filtering them from the inspected snapshot.
-  assert.ok(connection.frames.every(frame => recordObject(frame) &&
-    ["session.snapshot","session.activity","conversation.events","conversation.inbox","presence.typing","command.result"].includes(frame.type) &&
-    (!Object.hasOwn(frame,"conversationId") || [1,selected.conversationId].includes(frame.conversationId))));
-  if (connection.frames.filter(frame => frame.type === "session.snapshot").length !== 1 ||
+  assert.ok(connection.frames.every(frame => {
+    if (!recordObject(frame)) return false;
+    if (["session.snapshot","session.activity"].includes(frame.type)) return true;
+    if (frame.type === "command.result") return openingRequestId !== undefined &&
+      frame.command === "conversation.open" && frame.requestId === openingRequestId && frame.ok === true;
+    if (!Number.isSafeInteger(frame.conversationId) || ![1,selected.conversationId].includes(frame.conversationId)) return false;
+    if (frame.type === "conversation.events") return Array.isArray(frame.events) && frame.events.length > 0 && frame.events.every(recordObject);
+    if (frame.type === "conversation.inbox") return Array.isArray(frame.items);
+    return frame.type === "presence.typing" && Array.isArray(frame.usernames);
+  }));
+  const rootSnapshotCount = connection.frames.filter(frame => frame.type === "conversation.events" && frame.conversationId === 1)
+    .flatMap(frame => frame.events).filter(event => event.type === "snapshot").length;
+  if (rootSnapshotCount !== 1 || connection.frames.filter(frame => frame.type === "session.snapshot").length !== 1 ||
       connection.frames.some(frame => frame.type === "session.activity" &&
         (!recordObject(frame.activity) || !emptyObject(frame.activity.tasks)))) {
     return { classification: "ACTIVITY_OR_INVENTORY_CHANGED", inventoryCount: selected.inventoryCount,
