@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {repairInputs,parseCandidate,pairedComparison,judgeRequest,deriveDiagnosis} from './counterfactual/comparison.mjs';
+import {repairInputs,parseCandidate,pairedComparison,judgeRequest,deriveDiagnosis,REPAIR_PROMPT} from './counterfactual/comparison.mjs';
 import {hasExpectation} from './split.mjs';
 const cases=Array.from({length:24},(_,n)=>({id:'d'+n,body:'body '+n,gold:{E:'yes',O:'no',basis:'private'}}));
 const outputs=cases.map(c=>({id:c.id,status:'qualified',E:'yes',O:'no'}));
@@ -35,6 +35,12 @@ test('candidate parser preserves Best and rejects a second candidate or non-JSON
   assert.throws(()=>parseCandidate('{"instructions":"replacement"}','Best'));
   assert.throws(()=>parseCandidate('{"instructions":"Best","another":"Best"}','Best'));
 });
+test('repair models receive the byte boundary in advance and oversized Best is rejected before execution',()=>{
+  assert.ok(REPAIR_PROMPT.includes('6000 UTF-8 bytes'));
+  assert.throws(()=>repairInputs(cases,outputs,advice,'あ'.repeat(2001)));
+  assert.equal(Buffer.byteLength(parseCandidate(JSON.stringify({instructions:'あ'.repeat(2000)}),'あ').instructions),6000);
+  assert.throws(()=>parseCandidate(JSON.stringify({instructions:'あ'.repeat(2001)}),'あ'));
+});
 const gold=[{id:'a',gold:{E:'yes',O:'no'}},{id:'b',gold:{E:'no',O:'no'}}];
 const row=(id,arm,E,O)=>({id,arm,E,O,status:'qualified',model:'fixed'});
 const good=()=>gold.flatMap(c=>['best','feedback','no-feedback'].map(a=>row(c.id,a,c.gold.E,c.gold.O)));
@@ -48,6 +54,11 @@ test('control transport unknown preserves independently measurable A',()=>{
 test('feedback extra difference cannot hide a formerly-correct control axis broken',()=>{
   const rows=good();rows.find(r=>r.id==='a'&&r.arm==='no-feedback').E='no';rows.find(r=>r.id==='b'&&r.arm==='feedback').O='yes';
   const s=pairedComparison(gold,rows,'fixed');assert.equal(s.B.outcome,'OBSERVED_REGRESSION');assert.deepEqual(s.B.axisRegressed,[{id:'b',axis:'O'}]);
+});
+test('partial axis repair is retained even when the complete case remains wrong',()=>{
+  const rows=good();for(const arm of ['best','no-feedback']){const r=rows.find(r=>r.id==='a'&&r.arm===arm);r.E='no';r.O='yes';}
+  rows.find(r=>r.id==='a'&&r.arm==='feedback').O='yes';
+  const s=pairedComparison(gold,rows,'fixed');assert.deepEqual(s.A.resolved,[]);assert.deepEqual(s.A.axisResolved,[{id:'a',axis:'E'}]);assert.deepEqual(s.B.axisResolved,[{id:'a',axis:'E'}]);
 });
 test('changed model and duplicate identities do not count as qualified paired evidence',()=>{
   const rows=good();rows[0].model='other';assert.equal(pairedComparison(gold,rows,'fixed').A.outcome,'UNKNOWN');
