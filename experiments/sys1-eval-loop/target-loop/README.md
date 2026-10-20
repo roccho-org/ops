@@ -231,6 +231,8 @@ This completes an actual discovery → repair → development rejection/revision
 
 The series used **598 actual POSTs** across every role and retained failure; conservative native reservations are920/1000. Three failed runs (initial discovery, candidate-1 validation and candidate-2 validation) retain their original failure/INCOMPLETE receipts; each later phase completed only unissued work, without resending failed queries. H recorded255980 input tokens,5952 output tokens over192 usage rows and18427.67ms summed request elapsed time (not overall wall time). Provider monetary cost and human effort cost are unavailable/null; success cost or profitability cannot be claimed.
 
+The seven effect runs comprise3 failed evaluator runs and4 successful runs:480 target POSTs (all typed-qualified) plus118 evaluator POSTs, including16 injected controls. Evaluator results include115 valid responses and3 rejected/unknown responses. Native reservations are160+142+144+54+144+84+192=920. Missing usage for the3 failed calls is unknown, not zero; any observed usage subtotal excludes that missing consumption. These counts summarize retained run evidence rather than introducing a separate executor ledger.
+
 ```mermaid
 flowchart TB
   A["🔍 Best on fullD:39/48; evaluator misses actual errors"] --> B["🛠️ Gold/Sys2 repair candidate1:45/48 but axis regression"]
