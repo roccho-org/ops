@@ -469,7 +469,7 @@ export function verifyResultReadback(request, expectedBody, observedValue, trust
     if (!exact(envelope, ['schema', 'requestDigest', 'identity', 'authority', 'result'])
       || envelope.schema !== 'ops.jev.issue-result.v1' || envelope.requestDigest !== request.requestDigest
       || envelope.authority !== false || JSON.stringify(envelope.identity) !== JSON.stringify(request.identity)
-      || (composeResultComment(request, envelope.result) !== expectedBody && resultJSON(envelope) !== expectedBody)) return false;
+      || (composeResultComment(request, envelope.result) !== expectedBody && resultJSON(envelope) !== expectedBody && resultComment(envelope, false) !== expectedBody)) return false;
   } catch { return false; }
   return exact(observed, ['repository', 'issue', 'id', 'author', 'body']) && positive(expectedCommentId) && observed.id === expectedCommentId
     && observed.repository === request.identity.repository && observed.issue === request.identity.issue

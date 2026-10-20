@@ -749,7 +749,15 @@ for (const program of [entry, compatibility]) {
   const envsInput = (over) => issueLiteral({ repository: ENVS, issue: subject({ number: 483, nodeId: 'I_fixtureEnvs483', body: EN }),
     run: { ...originRun, workflowId: 377400122 }, ...over });
   // Positive controls on the granted Ops origin, under the same two-origin config.
-  assert.equal((await admitIssueCommand(issueProvided(issueBody), twoOrigins)).status, 'ADMITTED');
+  const supplied = await admitIssueCommand(issueProvided(issueBody), twoOrigins);
+  assert.equal(supplied.status, 'ADMITTED');
+  const suppliedResult = await runPlan(supplied.prepared, async (_, questions) => ({ model: JEV_MODEL, answers: Object.fromEntries(Object.keys(questions).map(key => [key, { type: 'noul', noul: 0.2 }])) }));
+  const suppliedView = composeResultComment(supplied, suppliedResult);
+  const oldReadable = suppliedView.replace("Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. See the linked request for the questions and conditions.\n\n", '');
+  const saved = { author: 'fixture-poster', body: oldReadable, databaseId: 11 };
+  const oldPrior = deriveIssuePrior(supplied, { claims: ['fixture-poster'], results: [saved] }, 'fixture-poster');
+  assert.equal(oldPrior.state, 'APPENDED'); assert.equal(nextIssueEffect(supplied, oldPrior).effect, 'READBACK_ONLY');
+  assert.equal(verifyResultReadback(supplied, oldReadable, { repository: supplied.identity.repository, issue: supplied.identity.issue, id: 11, author: saved.author, body: oldReadable }, 'fixture-poster', 11), true);
   assert.deepEqual(await admitIssueCommand(issueLiteral({ subject: jaApps }), twoOrigins), issueRefusal(jaApps));
   // The ungranted envs origin: its provided request keeps the legacy refusal, and its CJK literal the legacy passthrough.
   assert.deepEqual(await admitIssueCommand(envsInput({ subject: englishApps, eventBody: issueBody, command: commandOf(issueBody) }), twoOrigins),
