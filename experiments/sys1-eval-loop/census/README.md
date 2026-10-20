@@ -6,7 +6,7 @@
 
 `feasible.mjs` はこの数学部品と全物理資格/モデル安定を分離する。欠測したmodel出力をGold補完で埋めず、技術unknown時の全体boundはnull。別軸Goldがnullでも既知軸の破壊を保持し、可能な退行だけなら観測退行と偽らずrobust受入を拒否する。数学fixtureは人工入力であり、実モデルの準拠や実gain証拠ではない。固定C5/fullwire/共有Eへの結合は後のnative reader責務で、任意設定をこの純粋関数の成功だけで実行許可しない。
 
-## 現在の実データと初回の負結果
+## 二回の実結果と未採用の結論
 
 固定C5・Gold補完式・事前の三repo/UTC日窓/prefix300を変えず、全履歴metadata attempt2を正常終端した。5回の標準gh GraphQLコマンド、3228 Issue pages＋前後visibility2=3230観測response、322718 unique Issueから日窓210/prefix210。内部HTTP試行数はunknownで、コマンド数やpage数を実wire試行数と偽らない。原11files/52,326,302bytesはnative `8bc883c3607aba1b3a02c6e38f4e9d6ab3395301`。旧503原版は不変、DESC/provider-prefix代案は採用しなかった。
 
@@ -18,9 +18,9 @@ corpus/合議の最初のnativeは `cbc49e606b5ff96fcc9e23546506c43fb215364a`。
 
 自然構成はvscode150/nixpkgs50/cli7、Gold E=yes156/no51、O=yes188/no10/null9。repo等重みへ変更せず1 Issue一weightであり、O負例が少ない分布を全開発案件へ一般化しない。両回の全1656標準wireを鍵なしで構築し、stateはbodyだけ、最大serialized bytesはbestO20581/c2O22071/c4O21447/sharedE20530で全24000未満だった。Gold採点はprojectだけ、prepareはGold形式/原版結合検証だけを行い、判定/出典/rep情報はprovider stateへ送らない。
 
-根拠: [実metadata原版](https://github.com/roccho-org/ops/pull/617#issuecomment-6299409804)、[実本文/Gold三者counter](https://github.com/roccho-org/ops/pull/617#issuecomment-6299825483)、[root code-only review](https://github.com/roccho-org/ops/pull/617#pullrequestreview-5589917376)、[R code-only review](https://github.com/roccho-org/ops/pull/617#pullrequestreview-5589886305)。source20dは三者受容と実618/618・consumer/health成功を閉じ、固定 **828 POST×2回=1656** の初回を一度実行した。初回は差0で未成立、二回目と全体の再確認は未完、未採用を維持する。全通常CIの最終exacthead終端・全raw/費用記録・Ready未mergeも残る。
+根拠: [実metadata原版](https://github.com/roccho-org/ops/pull/617#issuecomment-6299409804)、[実本文/Gold三者counter](https://github.com/roccho-org/ops/pull/617#issuecomment-6299825483)、[root code-only review](https://github.com/roccho-org/ops/pull/617#pullrequestreview-5589917376)、[R code-only review](https://github.com/roccho-org/ops/pull/617#pullrequestreview-5589886305)。source20dは三者受容と実618/618・consumer/health成功を閉じ、固定 **828 POST×2回=1656** を予定どおり一回ずつ実行した。初回は差0、二回目は差4/207・退行0だが、両回成立という事前条件はNOT_RECONFIRMED。第二回の正差を消さず、初回を平均や良い回選択で救済せず、元Best維持・候補未採用とする。全通常CIの最終exacthead終端・全raw/費用記録・Ready未mergeも残る。
 
-## 固定初回の実結果（第二回前の保存）
+## 固定初回の実結果（第二回前に原版保存）
 
 [run39488014201](https://github.com/roccho-org/ops/actions/runs/39488014201) はsource20dのrequest-only child0fa7139c、push/attempt1、job118853422304。鍵前Ubuntu全keyless618/618→旧D5/native全raw prepare→標準client828→鍵なしproject→原artifactの全stepを正常終端した。artifact12295085396は782194bytes、GitHub digestと自己ZIP SHA256一致。
 
@@ -28,7 +28,30 @@ corpus/合議の最初のnativeは `cbc49e606b5ff96fcc9e23546506c43fb215364a`。
 
 物理input1,732,081/output25,668、total_tokensは828全件未提供でunknown。回内sharedEは一物理receipt。論理運用相当inputはBest=sharedE388,153+bestO392,086=780,239、AND=sharedE388,153+c2O498,070+c4O453,772=1,339,995。この二値の和はEを二重計上するため物理費用合計に使わず、金額や内部計算費用は不明。差0を追加資源による改善とは称さない。
 
-次はこの原結果保存のcurrent sourceを独立受容し、影響分の鍵なし検証と既存CI同一性根拠を確認して、同じ全207/Gold/C5/全4wireの固定二回目828へ進む。意味未成立を理由に取消・候補変更・良い回選別しない。実model driftだけ既存技術停止。新通常CIは起動し、最終exactheadの必要全checks終端を維持する。
+その原結果保存sourcebfcを三者で独立受容し、新closed raw検証と20d/H1の同bytes closure証拠の限定再用、次job鍵前全keylessを保って固定第二回へ進んだ。bfc全通常CIの先取りはせず、最終exactheadの必要全checks終端を維持する。
+
+## 固定第二回と二回全体の閉包
+
+[run39489099753](https://github.com/roccho-org/ops/actions/runs/39489099753) はsourcebfcのrequest-only childbfef4ce4、history2/push/attempt1、job118857137790。鍵前の現source全keylessと初回provider/native親/request・first.source全7data値/原raw再投影を通してから同設定828を実行し、全steps SUCCESS。artifact12294109752/782534B/provider SHA256と各自の原ZIPが一致した。原5filesと実来歴・W再投影・root独立算術を `../results/census-and-pass2-20261021/` に保持する。
+
+| 固定pass | 物理資格 | 解決済みjoint正答 Best→AND | 修復/破壊 | 全207の共通Gold差包絡 | 全Gold退行包絡 | 事前単回判定 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 828/828 | 172→172 /198 | 0/0 | [0,0]/207 | [0,0]/207 | NOT_ESTABLISHED |
+| 2 | 828/828 | 168→172 /198 | 4/0 | [4,4]/207 | [0,0]/207 | POSITIVE_FIXED_CENSUS_GAIN |
+
+両回ともGold未確定9件を含む207全分母、expected model安定、known/possible退行0。第二回は固定実案件集合で4/207（約1.93 percentage points）の正差が全許容Gold補完で残る、という単回の近似を実測した。一方**両回positiveという事前再確認条件はNOT_RECONFIRMED**。一回の正差を消すことも、二回平均/良い回/独立414caseに置換することもない。候補未採用、元Bestを維持し、この207件は今後のfresh Hから退役させる。
+
+全828送信requestは両回同値だが、native choiceはBestOが068/070/137、C4Oが192、sharedEが057で変わり、C2Oは全同値。model alias/返却modelが同じでも結果は固定されていない。HTTP固有response IDは原rawに保持しておらず、同一や相異を主張しない。二回差を特定prompt要素の因果効果やbackend独立性へ分離証明しない。
+
+本PRの物理会計は全1656 POST/全資格、input3,464,162/output51,336、total_tokens1656件unknown、追加standard generate0、金額/内部計算unknown。各回の論理route inputはBest780,239/AND1,339,995で不変、sharedEの二重加算を避ける。旧616の1984 POST等の負結果/全費用は旧記録のまま別保持し、この新1656だけを全研究費用と称さない。
+
+原reconfirmation.jsonとroot-independent-reconfirmation.jsonに両回判定/全会計/choice差を保持した。残りは最終source独立review、最終exacthead全通常CI、公開記録とReady/open/未mergeの閉包。READMEのCI未完はこのsource作成時点であり、終端はmutable PR本文と同head reviewで記録する。CIを追うだけのdoc commitや測定再送を追加しない。
+
+## 次loopへの反証（未実装・新作用0）
+
+正差4の単回結果と再確認未達を両方保持し、C5が常に無効ともO問題が解決したとも断定しない。207を開発へ退役した後で、元rubric上の引用/テンプレ指示を落とすEと、Oのcomponent/veto/揺らぎのどちらを次処置にするか公開Dだけで三者反証する。boilerplate指示を拾うE proxy改善は、実製品のmissing-expectation検知/E2EやApps改善を直接証明しない。元611補足との差、旧D既正答退行、追加computeを比較し、一候補のactual fullwireを新H本文/Gold前に固定する必要がある。
+
+次未使用cohort案は、取得済みnative8bc metadataの別UTC窓/prefixを新事前契約で限定する方法。これは原観測集合内targetであり新snapshot/全日網羅ではない。現在207だけでなく実取得210のempty/oversize3も既body使用へ残し、metadata-only全322718 IDsをtask本文既使用へ混ぜて自己除外しない。元407＋実body原版等の新prior recipe・窓・上限・補充0・候補/式/分母/費用を、件数/本文/予測で選別する前に固定し再受容する。今の617判定/Goldを救済せず、新契約/source受容前に新API/modelは行わない。
 
 ## 最初の時間窓契約とNO_CASES
 
@@ -72,11 +95,11 @@ source30edの一回取得は2026-10-20T17:45:22.085Z～18:20:50.705Z、call01860
 
 実成功replyにあった警告は[GraphQL標準extensions](https://spec.graphql.org/September2025/#sec-Extensions)であり、旧readerのroot data-only制約は潜在的不整合だった。新readerはroot optional map extensionsを選択dataと分けて許容し、dataのfield whitelist/型/日時/identity検査は保つ。extensions原文は私的保持し公開prefixへ投影しない。[GitHubのID二形式](https://docs.github.com/en/graphql/guides/migrating-graphql-global-node-ids)を理由にIDをdecode/自動置換したりmigration headerを加えたりしない。原失敗の直接終端原因はHTTP503であり、後から警告だけの失敗へ書き換えない。回復の実host/三者受容前に新APIを開始せず、本文/provider経路も引き続き別途受容する。
 
-### 計測部品と固定native entry（実207件・初回828原版保持）
+### 計測部品と固定native entry（実207件・二回1656原版保持）
 
 `measurement.mjs` は既存reserveの四物理request/厳格資格/会計を、閉じた二contextだけで共有する。旧reserveは23件/92POST・旧schema/全fieldsetを保ち、新censusだけ受容済corpusからM=1..300・4Mを導く。任意schema/上限/endpoint/constructorを入力から選ばせない。標準recorderの実経路をdummy keyとfetch stubで通し、最大1200POST、欠測、モデル変化、既知軸退行と欠測の併存を検査する。人工fixtureは実HTTPやgain証拠ではない。
 
-新projectionは原input/report/eventsと同じcorpus/Gold/固定selectionから毎回再構成する。二回の集計もrep/ID/分母/資格情報を照合するが、これだけではnative来歴やGold不変を証明しない。固定native entryは原sourceのcorpus全値・body/Gold・実D5 fullwireへ結合し、両回の原rawを再投影する。実frame/Gold・通常CI・独立受容は別に必要である。意味FAILや通常unknownで予定二回目を取消さず、実model driftは技術停止として保持する。新workflowは固定branch上のrequest-only childだけを受け、census1/2のnative履歴と実Git親/requestを拘束する。原corpusは実frame全eligible行のid/bodyをそのまま使い、sourceへ残り全属性を保持する既存real-case-corpus.v1/round4/frameSizeMである。第二回では初回provider.sourceのGit値とcorpus/body/Gold/selection全値を比較し、同じ点数だけで同一と見なさない。prepare鍵前に旧実D5全raw/native/selectionを再生し、秘密は標準clientのevaluateだけへ渡す。330分は最大1200×15秒=300分＋鍵前/保持余裕30分というcapで完了保証ではない。実corpus/Gold207件を原bytesで配置した。request-only childで初回828を実行済み。次のrequestは固定二回目だけで、同じ初回の再送は許容しない。
+新projectionは原input/report/eventsと同じcorpus/Gold/固定selectionから毎回再構成する。二回の集計もrep/ID/分母/資格情報を照合するが、これだけではnative来歴やGold不変を証明しない。固定native entryは原sourceのcorpus全値・body/Gold・実D5 fullwireへ結合し、両回の原rawを再投影する。実frame/Gold・通常CI・独立受容は別に必要である。意味FAILや通常unknownで予定二回目を取消さず、実model driftは技術停止として保持する。新workflowは固定branch上のrequest-only childだけを受け、census1/2のnative履歴と実Git親/requestを拘束する。原corpusは実frame全eligible行のid/bodyをそのまま使い、sourceへ残り全属性を保持する既存real-case-corpus.v1/round4/frameSizeMである。第二回では初回provider.sourceのGit値とcorpus/body/Gold/selection全値を比較し、同じ点数だけで同一と見なさない。prepare鍵前に旧実D5全raw/native/selectionを再生し、秘密は標準clientのevaluateだけへ渡す。330分は最大1200×15秒=300分＋鍵前/保持余裕30分というcapで完了保証ではない。実corpus/Gold207件を原bytesで配置し、request-only childで各828を実行済み。固定二回目も完了し、同じcohortの再送・候補調整による再Hは行わない。
 
 ### 本文materializer（実取得と独立原版照合を完了）
 
@@ -123,7 +146,9 @@ flowchart TB
   GOLD --> DATA[✅ 原bytes統合・全828wire/両回同一設定]
   DATA --> REVIEW[✅ source20d三者受容・実CI618成功]
   REVIEW --> H1[✅ 初回828全資格・差0・原版/独立算術]
-  H1 --> CLOSED[⏳ 原保存current source再受容・鍵前検証]
-  CLOSED --> H2[⏳ 同設定828・意味FAIL/通常unknownでも継続]
-  H2 --> END[⏳ 整数包絡/二回AND/全費用/最終CI/Ready未merge]
+  H1 --> CLOSED[✅ 原保存bfc受容・鍵前現source全検証]
+  CLOSED --> H2[✅ 同設定828全資格・単回差4/207退行0]
+  H2 --> RESULT[✅ 二回AND NOT_RECONFIRMED・1656全費用/原版]
+  RESULT --> END[⏳ 最終source独立review/全CI/記録/Ready未merge]
+  END --> NEXT[⏳ 207退役D・次仮説/別未使用cohortを事前反証]
 ```

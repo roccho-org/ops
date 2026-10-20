@@ -1,0 +1,18 @@
+{
+  "repository": "roccho-org/ops",
+  "workflowPath": ".github/workflows/sys1-observation-census.yml",
+  "runId": 39489099753,
+  "runAttempt": 1,
+  "head": "bfef4ce40fa5d3385e01599a888fb68ec4cd2a09",
+  "source": "bfc1bdfcd6fe44934991ba3cf73aa8288fc3f99f",
+  "branch": "codex/jev-observation-census-20261021",
+  "event": "push",
+  "actor": "roccho-dev",
+  "conclusion": "success",
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39489099753",
+  "artifactId": 12294109752,
+  "artifactName": "sys1-census-39489099753",
+  "artifactSize": 782534,
+  "providerDigest": "sha256:22ed3ad26dd28c07a35b94fcd838a5f2b147fc0f0c72b7b7e200305acb6a573f",
+  "archiveSha256": "22ed3ad26dd28c07a35b94fcd838a5f2b147fc0f0c72b7b7e200305acb6a573f"
+}

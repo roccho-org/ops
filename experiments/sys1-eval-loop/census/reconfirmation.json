@@ -1,0 +1,207 @@
+{
+  "schema": "ops.sys1.census-and-result.v1",
+  "roundIndex": 4,
+  "caseDenominator": 207,
+  "repetitions": 2,
+  "reconfirmation": {
+    "schema": "ops.sys1.census-and-reconfirmation.v1",
+    "caseDenominator": 207,
+    "repetitions": 2,
+    "accepted": false,
+    "disposition": "NOT_RECONFIRMED",
+    "rule": "both fixed same-case passes independently satisfy all qualification/model/feasible-delta/regression conditions; no averaging, winner selection or doubled case denominator"
+  },
+  "passes": [
+    {
+      "repId": 1,
+      "provider": {
+        "repository": "roccho-org/ops",
+        "workflowPath": ".github/workflows/sys1-observation-census.yml",
+        "runId": 39488014201,
+        "runAttempt": 1,
+        "head": "0fa7139c8b23cfc0c0bca1ed9a1de9314475578a",
+        "source": "20d76d39fae4dfe62e70a2d1140f390d03c4984a",
+        "branch": "codex/jev-observation-census-20261021",
+        "event": "push",
+        "actor": "roccho-dev",
+        "conclusion": "success",
+        "runUrl": "https://github.com/roccho-org/ops/actions/runs/39488014201",
+        "artifactId": 12295085396,
+        "artifactName": "sys1-census-39488014201",
+        "artifactSize": 782194,
+        "providerDigest": "sha256:5d889c14cbe2374e788c80b6dd3dca0467d11a42367ef21f1fd4516c24d3c569",
+        "archiveSha256": "5d889c14cbe2374e788c80b6dd3dca0467d11a42367ef21f1fd4516c24d3c569"
+      },
+      "caseDenominator": 207,
+      "resolved": 198,
+      "unknown": 9,
+      "bestCorrect": 172,
+      "candidateCorrect": 172,
+      "b": 0,
+      "c": 0,
+      "effectCounts": {
+        "assigned": 828,
+        "attempts": 828,
+        "actualPosts": 828,
+        "qualified": 828,
+        "unknown": 0,
+        "unattempted": 0
+      },
+      "bounds": {
+        "differenceLowerNumerator": 0,
+        "differenceUpperNumerator": 0,
+        "regressionLowerNumerator": 0,
+        "regressionUpperNumerator": 0,
+        "denominator": 207
+      },
+      "disposition": "NOT_ESTABLISHED",
+      "accepted": false,
+      "byKey": {
+        "bestO": {
+          "physicalPosts": 207,
+          "inputTokens": 392086,
+          "outputTokens": 6417,
+          "totalTokensKnown": 0,
+          "totalTokensUnknown": 207
+        },
+        "c2O": {
+          "physicalPosts": 207,
+          "inputTokens": 498070,
+          "outputTokens": 6417,
+          "totalTokensKnown": 0,
+          "totalTokensUnknown": 207
+        },
+        "c4O": {
+          "physicalPosts": 207,
+          "inputTokens": 453772,
+          "outputTokens": 6417,
+          "totalTokensKnown": 0,
+          "totalTokensUnknown": 207
+        },
+        "sharedE": {
+          "physicalPosts": 207,
+          "inputTokens": 388153,
+          "outputTokens": 6417,
+          "totalTokensKnown": 0,
+          "totalTokensUnknown": 207
+        }
+      },
+      "logicalInputTokens": {
+        "best": 780239,
+        "and": 1339995
+      }
+    },
+    {
+      "repId": 2,
+      "provider": {
+        "repository": "roccho-org/ops",
+        "workflowPath": ".github/workflows/sys1-observation-census.yml",
+        "runId": 39489099753,
+        "runAttempt": 1,
+        "head": "bfef4ce40fa5d3385e01599a888fb68ec4cd2a09",
+        "source": "bfc1bdfcd6fe44934991ba3cf73aa8288fc3f99f",
+        "branch": "codex/jev-observation-census-20261021",
+        "event": "push",
+        "actor": "roccho-dev",
+        "conclusion": "success",
+        "runUrl": "https://github.com/roccho-org/ops/actions/runs/39489099753",
+        "artifactId": 12294109752,
+        "artifactName": "sys1-census-39489099753",
+        "artifactSize": 782534,
+        "providerDigest": "sha256:22ed3ad26dd28c07a35b94fcd838a5f2b147fc0f0c72b7b7e200305acb6a573f",
+        "archiveSha256": "22ed3ad26dd28c07a35b94fcd838a5f2b147fc0f0c72b7b7e200305acb6a573f"
+      },
+      "caseDenominator": 207,
+      "resolved": 198,
+      "unknown": 9,
+      "bestCorrect": 168,
+      "candidateCorrect": 172,
+      "b": 4,
+      "c": 0,
+      "effectCounts": {
+        "assigned": 828,
+        "attempts": 828,
+        "actualPosts": 828,
+        "qualified": 828,
+        "unknown": 0,
+        "unattempted": 0
+      },
+      "bounds": {
+        "differenceLowerNumerator": 4,
+        "differenceUpperNumerator": 4,
+        "regressionLowerNumerator": 0,
+        "regressionUpperNumerator": 0,
+        "denominator": 207
+      },
+      "disposition": "POSITIVE_FIXED_CENSUS_GAIN",
+      "accepted": true,
+      "byKey": {
+        "bestO": {
+          "physicalPosts": 207,
+          "inputTokens": 392086,
+          "outputTokens": 6417,
+          "totalTokensKnown": 0,
+          "totalTokensUnknown": 207
+        },
+        "c2O": {
+          "physicalPosts": 207,
+          "inputTokens": 498070,
+          "outputTokens": 6417,
+          "totalTokensKnown": 0,
+          "totalTokensUnknown": 207
+        },
+        "c4O": {
+          "physicalPosts": 207,
+          "inputTokens": 453772,
+          "outputTokens": 6417,
+          "totalTokensKnown": 0,
+          "totalTokensUnknown": 207
+        },
+        "sharedE": {
+          "physicalPosts": 207,
+          "inputTokens": 388153,
+          "outputTokens": 6417,
+          "totalTokensKnown": 0,
+          "totalTokensUnknown": 207
+        }
+      },
+      "logicalInputTokens": {
+        "best": 780239,
+        "and": 1339995
+      }
+    }
+  ],
+  "crossPass": {
+    "sameFullRequests": 828,
+    "choiceChanges": {
+      "bestO": [
+        "census-068",
+        "census-070",
+        "census-137"
+      ],
+      "c2O": [],
+      "c4O": [
+        "census-192"
+      ],
+      "sharedE": [
+        "census-057"
+      ]
+    },
+    "uniqueHttpResponseIds": "NOT_RETAINED",
+    "modelBackendIndependence": "NOT_PROVEN"
+  },
+  "actual": {
+    "physicalPosts": 1656,
+    "qualified": 1656,
+    "inputTokens": 3464162,
+    "outputTokens": 51336,
+    "totalTokensKnown": 0,
+    "totalTokensUnknown": 1656
+  },
+  "totalTokens": "UNKNOWN: absent from every provider usage receipt; input/output sums do not fill it",
+  "accounting": "one sharedE physical receipt per case per pass; logical strategy totals each attribute E but their sum double-counts E and is not physical usage; money and internal compute unknown",
+  "limitations": "convenience fixed207 census with9 partially unresolved Gold cases; no random/population/future/E2E/same-cost claim; second positive snapshot is retained, both-pass confirmation fails without averaging or winner selection",
+  "adopted": false,
+  "retiredForFutureHoldout": true,
+  "newStandardGenerateCalls": 0
+}
