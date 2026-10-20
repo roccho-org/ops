@@ -147,7 +147,11 @@ export function compareDevelopment(baselines,candidate) {
         if(known(b.gold)&&x.answer.choice===b.gold[axis]&&y.answer.choice!==b.gold[axis])axisRegressed.push({id:b.id,axis});}}
     if(b.correct===true&&c.correct===false)regressed.push(b.id);if(b.correct===false&&c.correct===true)resolved.push(b.id);}
   const complete=[...baselines,candidate].every(s=>(s.targetStatus??s.status)==='OBSERVATION_COMPLETE'),delta=complete?after.filter(r=>r.correct).length-before.filter(r=>r.correct).length:null;
-  return {scope:'development selection only; not confirmation',assigned:before.length,delta,resolved,regressed,axisRegressed,
+  const strata=Object.fromEntries(['publicIssue','synthetic'].map(name=>{
+    const member=r=>(r.id.startsWith('public-ops-')?'publicIssue':'synthetic')===name,b=before.filter(member),a=after.filter(member);
+    return [name,{assigned:b.length,baselineCorrect:b.filter(r=>r.correct).length,candidateCorrect:a.filter(r=>r.correct).length,
+      delta:complete?a.filter(r=>r.correct).length-b.filter(r=>r.correct).length:null}];}));
+  return {scope:'development selection only; not confirmation',assigned:before.length,delta,resolved,regressed,axisRegressed,strata,
     outcome:!complete?'INCOMPLETE':regressed.length||axisRegressed.length?'REGRESSION_KEEP_BASELINE':delta>0?'DEVELOPMENT_CANDIDATE':'NO_EFFECT_KEEP_BASELINE'};
 }
 export function score(input,report,read=readLocal) {

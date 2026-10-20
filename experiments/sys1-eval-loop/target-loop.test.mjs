@@ -49,6 +49,7 @@ test('validation uses candidate and full D; one confirmation compares 192 target
 test('development comparison exposes broken correct axes across the entire assigned set',async()=>{
   const b=await run(fixture()),v=await run(fixture('validation'),{breakCandidate:true});
   const c=compareDevelopment([b.s],v.s);assert.equal(c.assigned,48);assert.equal(c.outcome,'REGRESSION_KEEP_BASELINE');assert.equal(c.axisRegressed.length,1);
+  assert.equal(c.strata.publicIssue.assigned,8);assert.equal(c.strata.synthetic.assigned,40);
   const missing=structuredClone(v.s);missing.rows.pop();assert.throws(()=>compareDevelopment([b.s],missing));
 });
 test('native admission reserves all roles, rejects refill, reruns and cumulative overflow',()=>{
@@ -81,4 +82,12 @@ test('safe failure diagnostics expose only allowlisted numeric/status fields',()
   const f=failureDetails({name:'JevError',code:'provider_error',message:'secret',headers:{authorization:'secret'}},'provider',429);
   assert.deepEqual(f,{name:'JevError',code:'provider_error',stage:'provider',httpStatus:429});assert.ok(!JSON.stringify(f).includes('secret'));
   assert.deepEqual(failureDetails({name:'secret',code:'secret'},'secret','secret'),{stage:'local',code:'unknown',name:'unknown',httpStatus:null});
+});
+test('retained completion replays actual full-target evidence and every diagnosis decision',()=>{
+  const input=read('../results/target-completion-20261020/input.json'),report=read('../results/target-completion-20261020/predictions.json'),m=read('../results/target-completion-20261020/measurement.json');
+  assert.deepEqual(score(input,report,read),m);assert.equal(m.arms.baseline.correct,39);assert.equal(m.targetStatus,'OBSERVATION_COMPLETE');
+  const c=read('candidate-1.json'),d=read('candidate-1-decisions.json'),b=read('../candidates/binary-eo-v3.json');
+  assert.ok(c.instructions.startsWith(b.instructions));assert.ok(Buffer.byteLength(c.instructions)<6000);assert.equal(d.rows.length,48);assert.equal(d.usefulEvaluatorRepairs,0);
+  assert.deepEqual(Object.fromEntries(['accept_no_change','reject_false_alarm','reject_missed_error','retain_unknown'].map(k=>[k,d.rows.filter(r=>r.decision===k).length])),{accept_no_change:36,reject_false_alarm:2,reject_missed_error:9,retain_unknown:1});
+  for(const r of d.rows){const actual=m.rows.find(a=>a.id===r.caseId);assert.equal(r.actualDiagnosis,actual.evaluator?.answer.choice??null);assert.equal(r.expectedDiagnosis,actual.expectedDiagnosis);}
 });

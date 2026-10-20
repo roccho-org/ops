@@ -97,3 +97,19 @@ flowchart TB
 ```
 
 The completion report separately exposes `assignmentStatus` (did the new142 finish), `targetStatus` (are all48 target labels known) and `status` (full target/evaluator observation, still INCOMPLETE with the locked unknown). Success of the new CI assignment is not a claim that the original experiment completed. New HTTP count and retained run's18 count are separate; observed token/latency totals include retained valid responses with provenance, while unavailable usage for the failed call remains unknown. Future failures emit only allowlisted code/name/stage and numeric HTTP status, never error messages, headers or response bodies. No retry is added.
+
+## Completed target baseline and candidate-1
+
+[Completion39358339344](https://github.com/roccho-org/ops/actions/runs/39358339344), attempt1, finished142 new POSTs without reissuing any original request. Provider artifact12235814905 (119922-byte ZIP) was downloaded, provider digest/size verified and measurement replayed exactly. Actual series calls are18+142=160; conservative reservations302. Initial receipt remains unchanged. Full target baseline is known on48/48, while one actual diagnostic stays unknown.
+
+| Observed target stratum | Correct / assigned | Limits |
+|---|---:|---|
+| Forty synthetic mechanism cases | 34/40 | Repair-author-written development, not independent confirmation |
+| Eight public Issue snapshots | 5/8 | Natural skew; body classification only, not Issue completion |
+| Combined development | 39/48 | E: FP3/FN0; O: FP4/FN3 |
+
+Actual evaluator error detection is **0/9**: every wrong target answer received `no_change`. Among39 correct targets it supplied36 matching diagnoses, two false alarms and the locked unknown. Injected controls are separately2/16 matching; they do not change target39/48 or actual error sensitivity. These are different tasks/sets from PR603, so no cross-PR evaluator-quality gain is claimed.
+
+`candidate-1-decisions.json` retains all48 actual diagnosis decisions:36 accepted no-change observations, nine rejected missed errors, two rejected false alarms, one unknown retained. **Useful evaluator repair advice:0.** Candidate-1 is explicitly **Gold/Sys2-led**. Its instruction supplement preserves the entire Best prefix and adds two general reading operations: ground quoted vocabulary/specimen/role-label material in its outer discourse before treating it as an applied requirement or real event; recognize asserted current negative implementation/verification/permission status even inside a proposal. It preserves real quoted logs/comments and functional responsibility tables to avoid fixing false positives by creating false negatives.
+
+The nine-error-to-rule mapping and rejected false alarms are in `candidate-1.json`; no model-generated rationale is invented. No case ID, Gold label list or Issue-number rule is put in target instructions. This candidate is **not yet validated**. Next is one144-POST full-D48 candidate validation under fixed evaluator v1; compare all48 plus separate synthetic/public strata and formerly correct E/O axes. Nominal current path reserves302+144+192=638; more candidates only if complete-phase budget still permits. Root confirmation remains unseen by the repair author until development selection and candidate freeze. No performance gain or evaluator-caused repair has been demonstrated yet.
