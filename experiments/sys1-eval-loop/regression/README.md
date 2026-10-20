@@ -2,7 +2,11 @@
 
 PR606の閉じた記録（base `43b4b4fbbeaad6c74aec3292894f42ea73056b64`）を変更せず、旧H01Eの退行を開発課題へ移す。目標は、新しい未使用集合でBestより完全正答が増え、Bestの既正答E/O軸を壊さない設定を確認すること。普遍的な偽陽性/偽陰性ゼロや人口への統計的保証は主張しない。Bestは未変更、merge/採用/新認証は対象外。
 
-現在の実装は、旧H32を再生検証し開発Dへ明示降格する純粋機能と修正入力の生成だけ。新モデル作用0、新screen/audit本文・GoldはW未読。旧Hを新しい未見評価と呼ばず、旧Jev呼出しを再送しない。
+現在は、旧H32の開発Dへの明示降格、固定修正入力、strict候補受入、D退行guard/S選定の純粋機能、別directoryの標準生成captureを実装した。新モデル作用0、新screen/audit本文・GoldはW未読。D/S/Aの新モデル実行workflowは次sliceであり、旧Hを未見評価と呼ばず、旧Jev呼出しを再送しない。
+
+標準生成用`native-repair.mjs`は606で実使用した同じ小さいCLI captureを、別private directory `.../jev-regression-repair-20261020/round-1`で一度だけ使う。606 source/原ファイルを変更・上書きせず、同一common/明示model・32body・前後version/catalog/config-stat、N→F各一回、原response/receiptを保存する。配置/構文のread-only確認は生成と別。source/必要check/3者受容までは本体未実行。provider内部試行/usage/hardmaxは非露出のunknown、6000Bは候補受入上限で推論hardmaxでない。stdout/stderrは私的保持し、秘密値やauthfileを読まない。
+
+各armのAPI失敗・timeout・応答欠損は原stdout/stderrとreceiptを残してunknownとし、有効な他armまで失わせない。文字列応答の形式違反はinvalid、どちらもcandidate=nullでBestへ代入しない。collectorはarmごとに分類し、再送/文面救済/再抽選を行わない。前後metadata一致は観測したversion/catalog/config-statだけの一致で、provider内部weightsや完全な設定同一性を証明しない。
 
 ## 実装済みの最小経路
 
@@ -61,3 +65,5 @@ flowchart TB
 輸送不明・資格拒否はunknownで全分母へ残し、成功済み/失敗済みqueryを盲再送しない。role/model別の実数と費用unknownを分け、標準generateの内部provider試行/usageを2HTTPと推測しない。新auth/secretコピー/権限拡大/独自executorは追加しない。Userの継続GOに通算周数の本人確認待ちを追加せず、次roundは次候補/新H/有限phase契約を先に3者で固定し、累計はnative receiptから全開示する。
 
 採用可能性の有限根拠は、固定未使用auditでの完全case改善と観測軸退行0、実行qualified、必要既存check、独立再計算の組。人工集合・Gold著者依存・一組の確率的修正生成から安定性能を証明せず、繰り返した最後の成功だけにp値を付けない。全失敗/screen消費/監査消費を同系列に残す。
+
+改善の近似は不可能ではない。この固定未使用auditで改善/観測退行0を再確認できる。より強い統計近似には対象分布、無作為で独立したsampling単位、Goldと事前受容基準が必要で、この人工cluster集合へ人口p値や95%保証を流用しない。例えばその別設計の仮定を満たす独立300件で退行event0なら片側95%上限は約0.994%だが、本112件の保証ではない。根拠はcounterreview担当が調査した[adaptive holdout](https://arxiv.org/abs/1506.02629)と[NIST exact binomial](https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm)。rootは主張/反証、counterreviewは一次調査、Wは実装/記録を担う。

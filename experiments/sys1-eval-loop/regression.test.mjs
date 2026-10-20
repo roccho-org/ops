@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
-import {loadDevelopment,migrateRetiredConfirmation,repairPayloads,receiveRepairCandidate} from './regression/development.mjs';
+import {loadDevelopment,migrateRetiredConfirmation,repairPayloads,receiveRepairCandidate,collectRepairCandidates} from './regression/development.mjs';
 import {targetRequest} from './feedback-improvement.mjs';
 const read=p=>JSON.parse(fs.readFileSync(new URL('./'+p,import.meta.url)));
 test('retired H32 is development with cached evidence, not a fresh evaluation or model retry',()=>{
@@ -31,4 +31,19 @@ test('new-series parser allows concise full rewriting without weakening JSON or 
   assert.equal(result.status,'valid');assert.ok(!result.candidate.instructions.startsWith(d.best));
   for(const raw of ['{"instructions":""}','{"instructions":"x","extra":1}','prefix {"instructions":"x"}','```json\n{"instructions":"x"}\n```',JSON.stringify({instructions:'x'.repeat(6001)})])assert.equal(receiveRepairCandidate({data:{text:raw}}).status,'invalid');
   for(const axis of ['E','O']){assert.deepEqual(d.feedback.common.taskContract[axis],targetRequest('fixture',d.best,axis).criteria);assert.equal(d.feedback.common.taskContract.axisInstructions[axis],targetRequest('','',axis).instructions);}
+});
+test('a failed or missing API arm remains unknown without replacing or losing its valid peer',()=>{
+  const valid={data:{text:'{"instructions":"General rules"}'}};
+  for(const absent of [null,{}, {data:{text:3}}])assert.equal(receiveRepairCandidate(absent).status,'unknown');
+  for(const failed of [undefined,{receipt:{status:null,signal:'SIGTERM'}},{receipt:{status:1},response:valid},{receipt:{status:0}}]){
+    const got=collectRepairCandidates({'no-feedback':failed,feedback:{receipt:{status:0},response:valid}});
+    assert.equal(got['no-feedback'].status,'unknown');assert.equal(got['no-feedback'].candidate,null);
+    assert.equal(got.feedback.status,'valid');assert.equal(got.feedback.candidate.instructions,'General rules');
+  }
+  const invalid=collectRepairCandidates({'no-feedback':{receipt:{status:0},response:{data:{text:'prose'}}}});
+  assert.equal(invalid['no-feedback'].status,'invalid');assert.equal(invalid['no-feedback'].candidate,null);assert.equal(invalid.feedback.status,'unknown');
+});
+test('retained development and actual two repair inputs exactly replay from the closed evidence',()=>{
+  const d=loadDevelopment();assert.deepEqual(read('results/regression-development-20261020/development.json'),d);
+  assert.deepEqual(read('results/regression-development-20261020/repair-payloads.json'),repairPayloads(d));
 });

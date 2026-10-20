@@ -36,11 +36,19 @@ export function repairPayloads(development){
   return Object.fromEntries([['feedback',development.feedback],['no-feedback',development.noFeedback]].map(([arm,prompt])=>[arm,{model:{...REPAIR_MODEL},prompt:JSON.stringify(prompt)}]));
 }
 export function receiveRepairCandidate(response){
-  assert.equal(typeof response?.data?.text,'string');const rawText=response.data.text;
+  if(typeof response?.data?.text!=='string')return {status:'unknown',candidate:null,rawText:null,reason:'API response text not retained; delivery/result unknown; no resend'};
+  const rawText=response.data.text;
   try{const candidate=JSON.parse(rawText);assert.deepEqual(Object.keys(candidate),['instructions']);
     assert.ok(typeof candidate.instructions==='string'&&candidate.instructions.trim());assert.ok(Buffer.byteLength(candidate.instructions,'utf8')<=6000);
     return {status:'valid',candidate,rawText};
   }catch{return {status:'invalid',candidate:null,rawText,reason:'strict JSON/sole instructions/nonempty/6000 UTF-8 byte contract failed; no repair or redraw'};}
+}
+export function collectRepairCandidates(captures){
+  return Object.fromEntries(['no-feedback','feedback'].map(arm=>{
+    const capture=captures?.[arm];
+    const parsed=capture?.receipt?.status===0?receiveRepairCandidate(capture.response):receiveRepairCandidate(null);
+    return [arm,{...parsed,receipt:capture?.receipt??null}];
+  }));
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   const [dir]=process.argv.slice(2);assert.ok(dir);assert.ok(!process.env.JEV_API_KEY);fs.mkdirSync(dir,{recursive:true});
