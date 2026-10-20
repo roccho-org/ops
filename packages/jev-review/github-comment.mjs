@@ -5,6 +5,44 @@ import { JEV_MODEL } from './core.mjs';
 export const REQUEST_PREFIX = '/jev-evaluate\n';
 export const RESULT_PREFIX = '<!-- ops-jev-result-v1 -->\n';
 const RESULT_BYTE_CAP = 32768;
+const EVIDENCE_OPEN = '<details>\n<summary>Execution evidence</summary>\n\n```json\n';
+const EVIDENCE_CLOSE = '```\n</details>\n';
+const resultJSON = envelope => RESULT_PREFIX + JSON.stringify(envelope) + '\n';
+const code = value => '<code>' + String(value).replace(/[^A-Za-z0-9 .-]/gu,
+  char => '&#' + char.codePointAt(0) + ';') + '</code>';
+
+// Display only the already public, bound result. A model observation is not a verified finding.
+function resultComment(envelope) {
+  const identity = envelope.identity;
+  if (identity.observation !== PROVIDED_COMMAND_OBSERVATION) return resultJSON(envelope);
+  const origin = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(identity.repository)
+    && Number.isSafeInteger(identity.issue) && identity.issue > 0
+    && Number.isSafeInteger(identity.commentId) && identity.commentId > 0
+    ? `[Request and evaluation conditions](https://github.com/${identity.repository}/issues/${identity.issue}#issuecomment-${identity.commentId})`
+    : `Request: ${code(envelope.requestDigest)}`;
+  const rows = envelope.result.cases.flatMap(row => row.result.records.map(record =>
+    `| ${code(row.id)} / ${code(record.rule)} | ${code(record.question)} | ${code(record.status)} | ${code(record.noul ?? 'not observed')} |`));
+  return '### semlint: bounded evaluation\n\n' + origin + '\n\n'
+    + `Evaluated revision: ${code(identity.subject?.revision ?? identity.subjectRevision ?? 'not recorded')}\n\n`
+    + '| Case / check | Axis | Status | Jev value |\n|---|---|---|---|\n' + rows.join('\n') + '\n\n'
+    + 'OBSERVED means a model response was recorded, not that a claim is true or a change is required. '
+    + 'Read the linked question, criteria and source scope before deciding what to change. '
+    + 'Unobserved checks remain unresolved. No automatic approval or modification.\n\n'
+    + EVIDENCE_OPEN + resultJSON(envelope) + EVIDENCE_CLOSE;
+}
+
+// Legacy JSON remains readable. The new display must match its evidence exactly;
+// arbitrary prose, extra markers and modified summaries are not stripped or trusted.
+export function parseResultComment(body) {
+  if (typeof body !== 'string' || Buffer.byteLength(body, 'utf8') > RESULT_BYTE_CAP) return null;
+  try {
+    if (body.startsWith(RESULT_PREFIX)) return JSON.parse(body.slice(RESULT_PREFIX.length));
+    const marker = body.indexOf(RESULT_PREFIX);
+    if (marker < 0 || !body.endsWith(EVIDENCE_CLOSE)) return null;
+    const envelope = JSON.parse(body.slice(marker + RESULT_PREFIX.length, -EVIDENCE_CLOSE.length));
+    return resultComment(envelope) === body ? envelope : null;
+  } catch { return null; }
+}
 const sha = (x) => typeof x === 'string' && /^[a-f0-9]{40}$/.test(x);
 const positive = (x) => Number.isSafeInteger(x) && x > 0;
 const text = (x) => typeof x === 'string' && x.trim().length > 0;
@@ -86,7 +124,10 @@ function finishRequest(prepared, identityOf, subjectAuxiliary = false) {
   // 3072 bytes covers canonical scalar/accounting plus the closed native receipt's enums,
   // SHA256 and counters (including up to three finite usage counters); 1024 covers totals.
   // No response body, arbitrary model string or answers are repeated in the receipt.
-  const maxOutputBytes = Buffer.byteLength(RESULT_PREFIX + JSON.stringify(projection) + '\n', 'utf8') + 1024 + 3072 * prepared.plan.cases.length;
+  const recordCount = prepared.expected.reduce((total, row) => total + row.records.length, 0);
+  const maxOutputBytes = Buffer.byteLength(resultComment(projection), 'utf8')
+    + 1024 + 3072 * prepared.plan.cases.length
+    + (identity.observation === PROVIDED_COMMAND_OBSERVATION ? 256 * recordCount : 0);
   if (maxOutputBytes > RESULT_BYTE_CAP) return reject('RESULT_WOULD_EXCEED_COMMENT_CAP');
   requests.add(request);
   return request;
@@ -385,7 +426,7 @@ export function deriveIssuePrior(request, observationValue, executorLogin) {
   // Only results authored by executorLogin can deliver; anyone else's copies are ignored.
   const matching = obs.results.filter((r) => {
     if (r?.author !== executorLogin) return false;
-    try { return JSON.parse(r.body.slice(RESULT_PREFIX.length)).requestDigest === request.requestDigest; } catch { return false; }
+    return parseResultComment(r.body)?.requestDigest === request.requestDigest;
   });
   if (!matching.length) return ours ? { requestDigest: request.requestDigest, state: 'STARTED' } : null;
   const [r] = matching;
@@ -410,23 +451,23 @@ export function nextIssueEffect(request, prior = null) {
 export function composeResultComment(request, resultValue) {
   if (!requests.has(request)) throw new Error('REQUEST_NOT_ADMITTED');
   const output = validateOwnerResult(request.prepared, resultValue);
-  const body = RESULT_PREFIX + JSON.stringify({ schema: 'ops.jev.issue-result.v1', requestDigest: request.requestDigest,
-    identity: request.identity, authority: false, result: output }) + '\n';
+  const body = resultComment({ schema: 'ops.jev.issue-result.v1', requestDigest: request.requestDigest,
+    identity: request.identity, authority: false, result: output });
   if (Buffer.byteLength(body, 'utf8') > RESULT_BYTE_CAP) throw new Error('RESULT_COMMENT_TOO_LARGE');
   return body;
 }
 
 // Compare exact append evidence, not merely HTTP success or a comment URL.
 export function verifyResultReadback(request, expectedBody, observedValue, trustedResultAuthor, expectedCommentId) {
-  if (!requests.has(request) || typeof expectedBody !== 'string' || !expectedBody.startsWith(RESULT_PREFIX)) return false;
+  if (!requests.has(request) || typeof expectedBody !== 'string') return false;
   let observed;
   try {
     observed = snapshotJson(observedValue);
-    const envelope = JSON.parse(expectedBody.slice(RESULT_PREFIX.length));
+    const envelope = parseResultComment(expectedBody);
     if (!exact(envelope, ['schema', 'requestDigest', 'identity', 'authority', 'result'])
       || envelope.schema !== 'ops.jev.issue-result.v1' || envelope.requestDigest !== request.requestDigest
       || envelope.authority !== false || JSON.stringify(envelope.identity) !== JSON.stringify(request.identity)
-      || composeResultComment(request, envelope.result) !== expectedBody) return false;
+      || (composeResultComment(request, envelope.result) !== expectedBody && resultJSON(envelope) !== expectedBody)) return false;
   } catch { return false; }
   return exact(observed, ['repository', 'issue', 'id', 'author', 'body']) && positive(expectedCommentId) && observed.id === expectedCommentId
     && observed.repository === request.identity.repository && observed.issue === request.identity.issue

@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { RESULT_PREFIX, REQUEST_PREFIX, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
+import { RESULT_PREFIX, REQUEST_PREFIX, parseResultComment, admitIssueCommand, PROVIDED_COMMAND_OBSERVATION, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
 import { semlint } from '../../packages/jev-review/semlint.mjs';
 import { preparePlan, executeOwnerPlan } from '../../packages/jev-review/semlint-entry.mjs';
 import { validateJevBudget, JEV_MODEL } from '../../packages/jev-review/core.mjs';
@@ -1691,7 +1691,7 @@ test('Issue route composition, English: executor literal result -> expectedOrigi
   assert.equal(origin.status, 'BOUND', origin.cause);
   const subject = issueSubjectIdentitySnapshot({ ...(await issueReceipts({ comments: world.posted })), originTarget: ORIGIN, subjectTarget: SUBJECT, expected: origin.expected });
   assert.equal(subject.status, 'VERIFIED', subject.cause);
-  const identity = JSON.parse(world.posted[0].body.slice(RESULT_PREFIX.length)).identity;
+  const identity = parseResultComment(world.posted[0].body).identity;
   assert.deepEqual([subject.snapshot, subject.provenance.originRevision, subjectRevision(subject.snapshot), subject.provenance.origin.requestDigest],
     [subjectIssue(), identity.subjectRevision, identity.subject.revision, origin.origin.planRequestDigest]);
   const value = await kPlan([question('q1'), kq('qK', ['target', 'k1'])], [{ ref: 'target', content: BODY }, K_OBS[1]]);
