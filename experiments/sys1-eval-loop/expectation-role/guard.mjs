@@ -22,3 +22,5 @@ export function expectationRoleDevelopmentGuard(rows,predictions,{qualified,mode
 
 // Identical paired-E mathematics, a separately named treatment/guard scope.
 export function expectationBoundaryDevelopmentGuard(rows,predictions,qualification){return{...expectationRoleDevelopmentGuard(rows,predictions,qualification),scope:'fresh qualified BestE versus single criteria-boundary E, both with fixed first historical O; mechanical first diagnostic; historical607 and fresh E correctness are protected independently'};}
+
+export function expectationExampleDevelopmentGuard(rows,predictions,qualification){return{...expectationRoleDevelopmentGuard(rows,predictions,qualification),scope:'fresh qualified BestE versus single scope-and-examples E, both with fixed first historical O; mechanical first diagnostic; all5753 historical E receipts protect607 and fresh E correctness independently'};}

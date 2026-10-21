@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';import {digest} from '../run.mjs';
 import {verifyQualificationEvents} from '../observation/qualification.mjs';
 import {roleRequest} from './request.mjs';
 import {prepareRoleDevelopment} from './development.mjs';
-import {expectationRoleDevelopmentGuard,expectationBoundaryDevelopmentGuard} from './guard.mjs';
+import {expectationRoleDevelopmentGuard,expectationBoundaryDevelopmentGuard,expectationExampleDevelopmentGuard} from './guard.mjs';
 import {boundaryRequest}from'./boundary-request.mjs';import {prepareBoundaryDevelopment}from'./boundary-input.mjs';
 const ROLE=Object.freeze({inputSchema:'ops.sys1.expectation-role-development.v1',predictionsSchema:'ops.sys1.expectation-role-development-predictions.v1',projectionSchema:'ops.sys1.expectation-role-development-projection.v1',prepare:prepareRoleDevelopment,request:roleRequest,guard:expectationRoleDevelopmentGuard,usageScope:"1252 new physical E requests only; historical O and E receipts are evidence aliases, never new calls; single candidate E is a qualified provider receipt; projection adds no physical call or fabricated provider fields; absent total_tokens and money stay unknown"});
 const BOUNDARY=Object.freeze({inputSchema:'ops.sys1.expectation-boundary-development.v1',predictionsSchema:'ops.sys1.expectation-boundary-development-predictions.v1',projectionSchema:'ops.sys1.expectation-boundary-development-projection.v1',prepare:prepareBoundaryDevelopment,request:boundaryRequest,guard:expectationBoundaryDevelopmentGuard,usageScope:'1252 new physical E requests only; prior E and O are historical evidence aliases; single boundary candidate is its qualified provider receipt; no fabricated probabilities/model/usage; missing total_tokens and money stay unknown'});
+import {exampleRequest}from'./example-request.mjs';import {prepareExampleDevelopment}from'./example-input.mjs';
+const EXAMPLE=Object.freeze({inputSchema:'ops.sys1.expectation-example-development.v1',predictionsSchema:'ops.sys1.expectation-example-development-predictions.v1',projectionSchema:'ops.sys1.expectation-example-development-projection.v1',prepare:prepareExampleDevelopment,request:exampleRequest,guard:expectationExampleDevelopmentGuard,usageScope:'1252 new physical E requests only; all5753 historical E and fixed O are evidence aliases; single scope-and-examples E is its qualified provider receipt; no fabricated probabilities/model/usage; missing total_tokens and money stay unknown'});
 const keys=['bestE','scopedE'],order=i=>[...keys.slice(i%2),...keys.slice(0,i%2)];
 function planned(profile,input){assert.equal(input.schema,profile.inputSchema);assert.equal(input.maxPosts,1252);assert.equal(input.expectedModel,'jev-1.13.0');assert.equal(input.rows.length,626);assert.equal(new Set(input.rows.map(r=>r.id)).size,626);return input.rows.flatMap((r,i)=>order(i).map(k=>r.id+'/'+k));}
 async function evaluatePaired(profile,input,ask,observe){
@@ -25,8 +27,11 @@ async function projectPaired(profile,input,attempt,report,events,data){
  return {schema:profile.projectionSchema,components:predictions,derived:guard.derived,effectCounts,guard,outcome,aliasScope:data.scope,usageScope:profile.usageScope};
 }
 
-// Two fixed internal contexts; callers cannot supply a profile, schema or constructor.
+// Three fixed internal contexts; callers cannot supply a profile, schema or constructor.
 export function evaluateRoleDevelopment(input,ask,observe){return evaluatePaired(ROLE,input,ask,observe);}
 export function projectRoleDevelopment(input,attempt,report,events,data){return projectPaired(ROLE,input,attempt,report,events,data);}
 export function evaluateBoundaryDevelopment(input,ask,observe){return evaluatePaired(BOUNDARY,input,ask,observe);}
 export function projectBoundaryDevelopment(input,attempt,report,events,data){return projectPaired(BOUNDARY,input,attempt,report,events,data);}
+
+export function evaluateExampleDevelopment(input,ask,observe){return evaluatePaired(EXAMPLE,input,ask,observe);}
+export function projectExampleDevelopment(input,attempt,report,events,data){return projectPaired(EXAMPLE,input,attempt,report,events,data);}

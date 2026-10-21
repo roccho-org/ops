@@ -96,3 +96,29 @@ flowchart TB
 ```
 
 歴史ever-correct保護は工学的な採用条件であり、偏りのない性能推定量ではない。D626はwholebody620/同全文GoldE矛盾0という診断を得たが、意味同値やGold無誤謬を証明しない。新Hは便宜的な未使用有限targetでありSRS/相互独立標本とは称さず、実取得後はM Issue ID数とdistinct wholebody数/固定参照の不整合も記述診断として報告する。重複を事後除外/補充/再重み付けする新条件は追加しない。
+
+
+## D3 scopeと合成例の一候補（code-only）
+
+[三者の次処置counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593479772)でliteral全文を出力前固定した。D2 yes/no全criteria/common/元620 E専用suffix/BestE/sharedOをそのまま保ち、candidate instructions末尾へ半角space＋286文字のEXAMPLE_SUPPLEMENTだけを追加する。提出条件と実施記録、IO仕様と観測記録の対、回復依頼の5合成例で、要求を製品変更だけに狭めない。例は本文での役割を示し、語句/丁寧さ/時制/疑問形の規則ではなく、本文中の他の宣言をno例で無効化しない。引用の要求/仕様/責務を残し、要求として使わない語句/架空展示だけを区別する。実caseへラベル/役割hintを付けず、IDや実本文の例外lookupもない。
+
+これはscope＋例＋配置の一bundleで、何が原因かの独立因果や内部理由を証明しない。fewshotの表面cue過適合と長文化のリスクは残り、D上の修正だけで性能を受容せず、成功D原版/実要求固定後の未使用H二回で判断する。長D1役割手順への復帰やケースに応じたruntime分岐はない。標準recorder/資格は非export固定ROLE/BOUNDARY/EXAMPLE三context＋namedwrappersに閉じ、任意schema/max/profile/constructor overrideは受けない。旧二runの全原投影を固定再生し、新dataは全5753物理Eから同607保護を作る。古い604/607/outcomeへ遡及変更しない。
+
+同workflow/branchのdevelopment3/history3一回として、元D1/D2/currentちょうど三つを結合し、全10native実Git親/requestphase/sourceを鍵前に確認する。sourcebatchでは現在phase2/f361 REQUESTを変更しない。新source/必要CI/三者exact受容後だけactivation3 REQUEST-only childへ進む。D3もfresh2E1252、同歴史Oで完全joint正差・607無破壊・freshE退行0・全資格/expectedmodelを別ANDにする。不確定17は全626分母維持、旧firstは診断、aliasを新資格や費用へ数えない。
+
+5556は消費済D1+D2の2504＋新D最大1252＋将来H最大1800という事前最大割当であり実消費ではない。各D350分/H250分は完走保証でなく、追加User予算/認証待ちを作らない。元plan/plan2は原bytes保持、prospective-plan3.jsonへ前向きに記録した。539の中間Ready/全CI完了を新source作成の二重gateにせず、新効果には新source必要CIを確認し、最終current全通常CI/記録/Readyは必ず閉じる。新H窓/priorは事前固定のままで、新H count/body/Goldは引き続き未開封。
+
+```mermaid
+flowchart TB
+  OLD[✅ D1とD2原版/原guard/意味FAILを保持] --> COUNTER[✅ 三者がscope/5合成例/引用の狭まりを反証]
+  COUNTER --> CODE[✅ code-only三固定context/5753から607/旧全field再生]
+  CODE --> CI[⏳ 新source必要CI/三者exact受容]
+  CI --> D3[⏳ activation3 REQUEST-only/history3 一回1252]
+  D3 --> CHECK{全資格/607保護/freshE無退行/正差?}
+  CHECK -->|未達/unknown| KEEP[原版と全費用保持・別仮説counter]
+  KEEP --> COUNTER
+  CHECK -->|成功と実要求freeze| H[⏳ 未使用H/予測前Gold/同3M二回AND]
+  H -->|未達| RETIRE[当H退役/別未使用H契約]
+  RETIRE --> COUNTER
+  H --> FINAL[⏳ 有限集合近似/最終current全CI/記録/Ready]
+```
