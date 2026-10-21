@@ -215,16 +215,114 @@ test('forged, unmarked, foreign, ambiguous or drifted executor results are refus
   assert.equal((await snapshotOf({}, EXPECTED, { repository: 'roccho-org/envs', number: NUMBER })).cause, 'PULL_REQUEST_MISMATCH');
 });
 
-test('the wire question asks for the problem criterion, so an ok-phrased question is not inverted (C2)', async () => {
+test('the wire statement is the plan problem criterion itself, so true=problem without a question about a question (C2, W3)', async () => {
   const value = await goalPlan();
   const out = project(value, await snapshotOf());
   assert.equal(out.status, 'ELIGIBLE');
   const [check] = out.checks, original = value.questions[0].question;
-  assert.equal(check.predicate.question, `Does the problem criterion hold for this target, rather than the ok criterion? Original question: ${original}`);
-  assert.notEqual(check.predicate.question, original);
+  assert.equal(check.predicate.question, rubric().problem, 'one affirmative problem sentence is sent as the statement');
+  assert.equal(check.predicate.question.includes('Original question'), false);
+  assert.equal(check.predicate.question.includes(original), false, 'the ok-phrased plan question stays local');
   assert.deepEqual([check.predicate.true, check.predicate.false], [rubric().problem, rubric().ok]);
   assert.deepEqual(out.mapping[0].notLowered, { unknown: rubric().unknown });
   assert.equal(out.mapping[0].originalQuestion, original);
+});
+
+// Each row names one sentence that a fixed rule must refuse. The rules are a necessary filter only; R reviews meaning
+// (indirection, agreement of statement and criteria) before sealing.
+const REFUSED_STATEMENTS = [
+  ['SENTENCE_COUNT', 'The target retries. The target logs.'],
+  ['SENTENCE_COUNT', 'The target retries'],
+  ['SENTENCE_COUNT', 'Does the target retry?'],
+  ['SENTENCE_COUNT', 'The target retries.\nIt logs.'],
+  ['COORDINATION', 'The target retries and logs.'],
+  ['COORDINATION', 'The target retries or logs.'],
+  ['COORDINATION', 'The target retries but drops the state.'],
+  ['COORDINATION', 'The target retries, logs, drops the state.'],
+  ['CONDITION', 'The target retries unless the job ends.'],
+  ['CONDITION', 'The target retries if the job ends.'],
+  ['CONDITION', 'The target retries except at night.'],
+  ['CONDITION', 'The target retries rather than reading back.'],
+  ['PUNCTUATION', 'The target retries; it logs.'],
+  ['PUNCTUATION', 'The target retries: twice.'],
+  ['PUNCTUATION', 'The target retries/logs.'],
+  ['NEGATION', 'The target does not retry.'],
+  ['NEGATION', "The target doesn't retry."],
+  ['NEGATION', 'The target doesn’t retry.'],
+  ['NEGATION', 'The target has no retry.'],
+  ['NEGATION', 'The target never retries.'],
+  ['NEGATION', 'The target retries without a read-back.'],
+  ['NEGATION', 'The target is free of retries.'],
+  ['NEGATION', 'The target omits the read-back.'],
+  ['NEGATION', 'The target fails to read back.'],
+  ['NEGATION', 'The read-back is missing.'],
+  ['NEGATION', 'The target lacks a read-back.'],
+  ['NEGATION', 'Neither path reads back.'],
+  ['NEGATION', 'The read-back is absent.'],
+  ['NEGATION', 'The target excludes the read-back.'],
+  ['NEGATIVE_PREFIX', 'The read-back is unverified.'],
+  ['NEGATIVE_PREFIX', 'The delivery state is unknown.'],
+  ['NEGATIVE_PREFIX', 'The read-back is incomplete.'],
+  ['NEGATIVE_PREFIX', 'The destination is invalid.'],
+  ['NEGATIVE_PREFIX', 'The record is nonexistent.'],
+  ['NEGATIVE_PREFIX', 'The record is non-compliant.'],
+  ['NEGATIVE_PREFIX', 'None of the attempts read back.'],
+  ['CJK', '二回届く。'],
+  ['CJK', 'The target sends 二回.'],
+  // R's W3 readback bypasses (roccho-org/ops#636): each returned [] on 49fb4ff6.
+  ['NEGATION', 'The target cannot retry.'],
+  ['COORDINATION', 'The target retries & logs.'],
+  ['NON_ASCII', 'The target retries， logs.'],
+  ['COORDINATION', 'The target retries， logs.'],
+  ['NON_ASCII', 'The target retries； it logs.'],
+  ['PUNCTUATION', 'The target retries； it logs.'],
+  ['NON_ASCII', 'The target retries a​nd logs.'],
+  ['NON_ASCII', 'The target does nоt retry.'],
+  ['NON_ASCII', 'The target retries — it logs.'],
+  ['NON_ASCII', 'The target retries\tlater.'],
+];
+const ALLOWED_STATEMENTS = ['The target misses the delivery obligation.', 'The target meets the delivery obligation.',
+  'The target waits 2.5 seconds between attempts.', 'The target names a cache e.g. the delivery store.',
+  'The target records each attempt in a log i.e. the audit table.', 'The target delivers a notification twice.'];
+
+test('W3 fixed statement rules refuse every listed bypass and accept plain affirmative sentences', async () => {
+  const prepare = await import('./prepare.mjs');
+  assert.equal(typeof prepare.statementViolations, 'function');
+  for (const [rule, sentence] of REFUSED_STATEMENTS) assert.ok(prepare.statementViolations(sentence).includes(rule), `${rule}: ${JSON.stringify(sentence)}`);
+  for (const sentence of ALLOWED_STATEMENTS) assert.deepEqual(prepare.statementViolations(sentence), [], sentence);
+});
+
+test('W3 a refused problem or ok sentence is not projected, and the refusal names the field and rules', async () => {
+  for (const field of ['problem', 'ok']) {
+    for (const [rule, sentence] of REFUSED_STATEMENTS.filter(([r]) => r !== 'CJK')) {
+      const value = await goalPlan([question('q1', { criteria: { ...rubric(), [field]: sentence } })]);
+      const out = project(value, await snapshotOf());
+      assert.deepEqual([out.status, out.cause, out.checks.length], ['HOLD', 'NOTHING_PROJECTED', 0], `${field} ${rule}`);
+      assert.equal(out.notProjected[0].reason, 'STATEMENT_REFUSED');
+      assert.ok(out.notProjected[0].violations.some(v => v.field === field && v.rules.includes(rule)), `${field} ${rule}`);
+    }
+  }
+  // One refused question does not drop another that passes; the unknown label never reaches the wire and is not checked.
+  const mixed = project(await goalPlan([question('q1', { criteria: { ...rubric(), problem: 'The target does not retry.' } }),
+    question('q2', { clauseIds: ['g-confirm'], criteria: { ...rubric(), unknown: 'The text does not say.' } })]), await snapshotOf());
+  assert.deepEqual([mixed.status, mixed.checks.map(c => c.id), mixed.notProjected.map(n => n.id)], ['ELIGIBLE', ['q2'], ['q1']]);
+});
+
+test('W3 the PR629 report-acceptance criteria are refused, so that run is not continued under the new rules', async () => {
+  // Exact criterion texts shown by the PR629 bot report (ops issue comment 6310719656).
+  const pr629 = [
+    { problem: 'A specific statement in the supplied target materially conflates a recorded observation or supplied context reference with truth, change authority, actual model use, or evaluation of a caller-local withheld question.',
+      ok: 'Within the supplied target, observations, supplied references and unresolved scope are distinguished without a demonstrated material conflation. This does not independently prove runtime behavior or human comprehension.' },
+    { problem: 'The supplied target demonstrates a specific missing or inconsistent question, criterion, or supplied reference that prevents identifying the evaluated request from the report itself.',
+      ok: 'The report includes the question, both criteria and supplied references needed for identification; retaining full input content at the audit link is allowed. This does not prove reduced human reading effort or future dialogue.' },
+  ];
+  const prepare = await import('./prepare.mjs');
+  for (const c of pr629) {
+    assert.notDeepEqual(prepare.statementViolations(c.problem), []);
+    assert.notDeepEqual(prepare.statementViolations(c.ok), []);
+    const out = project(await goalPlan([question('q1', { criteria: { ...rubric(), ...c } })]), await snapshotOf());
+    assert.deepEqual([out.status, out.notProjected[0].reason], ['HOLD', 'STATEMENT_REFUSED']);
+  }
 });
 
 test('the target comes only from the verified snapshot; a free repository argument is refused (C5)', async () => {
@@ -317,11 +415,14 @@ test('a Japanese Goal stays local as ref and digest; CJK on the wire makes the w
   assert.equal(project(jaQuote, subject).status, 'ELIGIBLE', 'clause quotes stay in the local mapping');
   const english = project(await goalPlan(), subject);
   assert.deepEqual([english.goal.onWire, JSON.parse(english.envelope.slice(english.envelope.indexOf('\n') + 1)).cases[0].input.context.map(c => c.role)], [true, ['goal']]);
-  for (const value of [await goalPlan([question('q1', { question: '一度だけ届くか？' })]),
-    await goalPlan([question('q1', { criteria: { ...rubric(), problem: '二回届く。' } })])]) {
-    const refused = project(value, subject);
-    assert.deepEqual([refused.status, refused.emittable, Object.hasOwn(refused, 'envelope')], ['UNSUPPORTED_CJK', false, false]);
-  }
+  // The plan question no longer reaches the wire (W3): like a clause quote it stays in the local mapping. A CJK problem
+  // sentence is the wire statement itself and is refused before projection.
+  const localQuestion = project(await goalPlan([question('q1', { question: '一度だけ届くか？' })]), subject);
+  assert.equal(localQuestion.status, 'ELIGIBLE', 'the plan question stays in the local mapping');
+  assert.equal(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(localQuestion.envelope), false);
+  const refused = project(await goalPlan([question('q1', { criteria: { ...rubric(), problem: '二回届く。' } })]), subject);
+  assert.deepEqual([refused.status, refused.cause, refused.emittable, Object.hasOwn(refused, 'envelope'), refused.notProjected[0].reason],
+    ['HOLD', 'NOTHING_PROJECTED', false, false, 'STATEMENT_REFUSED']);
   const jaBody = '再送を追加する。';
   const jaSubject = await snapshotOf({ body: jaBody, comments: [resultComment({ ...literal.identity,
     subjectRevision: literal.identity.subjectRevision.replace(sha256(BODY), sha256(jaBody)) })] });
@@ -367,11 +468,17 @@ test('the Plan missing list survives every projection outcome, including the aut
   const withMissing = (questions, quoted = clauses, goal = GOAL) => plan({ goal, observations: [{ ref: 'target', content: BODY }] },
     { propose: async () => ({ clauses: quoted, questions, missing: [signOff] }) });
   const value = await withMissing([question('q1')]);
+  // An unrendered CJK subject body is the remaining UNSUPPORTED_CJK route once the plan question stays local (W3).
+  const jaBody = '再送を追加する。';
+  const jaSubject = await snapshotOf({ body: jaBody, comments: [resultComment({ ...literal.identity,
+    subjectRevision: literal.identity.subjectRevision.replace(sha256(BODY), sha256(jaBody)) })] });
+  const jaPlan = await plan({ goal: GOAL, observations: [{ ref: 'target', content: jaBody }] },
+    { propose: async () => ({ clauses, questions: [question('q1')], missing: [signOff] }) });
   const outcomes = {
     ELIGIBLE: project(value, subject),
     HOLD_SUBJECT: project(value, { status: 'HOLD', cause: 'INPUT_UNKNOWN' }),
     NOTHING_PROJECTED: project(await withMissing([question('q1', { needs: ['destination log'] })]), subject),
-    UNSUPPORTED_CJK: project(await withMissing([question('q1', { question: '一度だけ届くか？' })]), subject),
+    UNSUPPORTED_CJK: project(jaPlan, jaSubject),
   };
   assert.deepEqual(Object.values(outcomes).map(o => [o.status, o.cause ?? null]),
     [['ELIGIBLE', null], ['HOLD', 'INPUT_UNKNOWN'], ['HOLD', 'NOTHING_PROJECTED'], ['UNSUPPORTED_CJK', null]]);
@@ -675,6 +782,26 @@ test('PR state-budget refusal has a separate bound kind, no evaluation authority
 // A plan built on the JA subject text, with the same Goal, clauses, questions, criteria and needs as goalPlan.
 const jaGoalPlan = (questions, goal, quoted) => goalPlan(questions, goal, quoted, {}, JA_BODY);
 const wireInput = out => JSON.parse(out.envelope.slice(out.envelope.indexOf('\n') + 1)).cases[0].input;
+// W3 changed only predicate.question (the plan problem sentence replaces M's wrapper). The byte oracles below were
+// recorded on unmodified M with the wrapper, so they are compared after re-applying exactly that wrapper to each check;
+// any other difference from M still fails. The recorded hashes are not rewritten.
+const M_WRAP = q => `Does the problem criterion hold for this target, rather than the ok criterion? Original question: ${q}`;
+const wrapChecksAsM = (checks, mapping) => {
+  const original = new Map(mapping.map(m => [m.id, m.originalQuestion]));
+  return checks.map(c => ({ ...c, predicate: { ...c.predicate, question: M_WRAP(original.get(c.id)) } }));
+};
+const inputAsM = (input, mapping) => ({ ...input, checks: wrapChecksAsM(input.checks, mapping) });
+const asM = out => {
+  if (!Array.isArray(out.checks) || !out.checks.length) return out;
+  const copy = { ...out, checks: wrapChecksAsM(out.checks, out.mapping) };
+  if (typeof out.envelope === 'string') {
+    const body = JSON.parse(out.envelope.slice(REQUEST_PREFIX.length));
+    body.cases = body.cases.map(c => ({ ...c, input: inputAsM(c.input, out.mapping) }));
+    copy.envelope = REQUEST_PREFIX + JSON.stringify(body);
+    copy.envelopeSha256 = sha256(copy.envelope);
+  }
+  return copy;
+};
 // Core v14 itself, given a model port that never answers: reaching the port means Core admitted the input.
 const coreAccepts = async input => { let asked = 0;
   await semlint(input, async () => { asked++; throw new Error('NOT_ANSWERED'); }).catch(() => {});
@@ -823,11 +950,14 @@ test('an invalid or unneeded rendering holds with every record; CJK elsewhere st
   const plain = wireInput(project(englishValue, englishSubject)), rendered = wireInput(ok);
   assert.deepEqual([await coreAccepts(plain), await coreAccepts({ ...plain, subject: { ...plain.subject, englishAuxiliary: bound } }),
     await coreAccepts({ ...rendered, subject: { ...rendered.subject, englishAuxiliary: null } })], [true, false, false]);
-  // CJK outside the original subject content still makes the case unsupported.
-  for (const other of [await jaGoalPlan([question('q1', { question: '一度だけ届くか？' })]), await jaGoalPlan([question('q1', { criteria: { ...rubric(), problem: '二回届く。' } })])]) {
-    const refused = project(other, subject, { englishAuxiliary: AUX });
-    assert.deepEqual([refused.status, refused.emittable, Object.hasOwn(refused, 'envelope')], ['UNSUPPORTED_CJK', false, false]);
-  }
+  // CJK outside the original subject content never reaches the wire: a CJK plan question stays local (W3), and a CJK
+  // problem sentence, being the wire statement, is refused before projection.
+  const localQuestion = project(await jaGoalPlan([question('q1', { question: '一度だけ届くか？' })]), subject, { englishAuxiliary: AUX });
+  assert.equal(localQuestion.status, 'ELIGIBLE');
+  assert.equal(JSON.stringify(wireInput(localQuestion).checks).includes('一度だけ'), false);
+  const refused = project(await jaGoalPlan([question('q1', { criteria: { ...rubric(), problem: '二回届く。' } })]), subject, { englishAuxiliary: AUX });
+  assert.deepEqual([refused.status, refused.cause, refused.emittable, Object.hasOwn(refused, 'envelope'), refused.notProjected[0].reason],
+    ['HOLD', 'NOTHING_PROJECTED', false, false, 'STATEMENT_REFUSED']);
   // No obligation, then no Core check, conclude before any subject or rendering is inspected; a check still waits for the subject.
   for (const englishAuxiliary of [AUX, null, 'anything']) {
     assert.equal(project(await goalPlan([], GOAL, []), undefined, { englishAuxiliary }).cause, 'NEED_CLARIFICATION');
@@ -982,11 +1112,11 @@ test('plans that need only the subject text keep the bytes recorded on unmodifie
   const noRef = await witnessPlan([wq('q0', [])]), subjectOnly = await witnessPlan([wq('qS', ['target'])]);
   const allNeeds = await witnessPlan([wq('qN', ['target'], { needs: ['destination API record id'] })]);
   for (const options of [{}, { subjectRef: 'target' }]) {
-    const out = projectPlan(noRef, WITNESS_SUBJECT, options);
+    const out = asM(projectPlan(noRef, WITNESS_SUBJECT, options));
     assert.deepEqual([outputSha256(out), out.envelopeSha256], [M_OUTPUTS.noRef.output, M_OUTPUTS.noRef.envelope], JSON.stringify(options));
-    for (const subject of [WITNESS_SUBJECT, undefined]) assert.equal(outputSha256(projectPlan(allNeeds, subject, options)), M_OUTPUTS.allNeeds.output);
+    for (const subject of [WITNESS_SUBJECT, undefined]) assert.equal(outputSha256(asM(projectPlan(allNeeds, subject, options))), M_OUTPUTS.allNeeds.output);
   }
-  const declared = projectPlan(subjectOnly, WITNESS_SUBJECT, { subjectRef: 'target' });
+  const declared = asM(projectPlan(subjectOnly, WITNESS_SUBJECT, { subjectRef: 'target' }));
   assert.deepEqual([outputSha256(declared), declared.envelopeSha256], [M_OUTPUTS.subjectOnly.output, M_OUTPUTS.subjectOnly.envelope]);
   // Migration: without the declaration nothing is known to be carried, so the same plan is withheld (fails closed).
   const undeclared = projectPlan(subjectOnly, undefined);
@@ -1001,7 +1131,7 @@ test('a question requiring an observation the wire does not carry is withheld, n
     ['ELIGIBLE', ['qS'], ['qS'], [withheld('qK', ['target', 'k1'], ['k1'])], []]);
   assert.equal(mixed.envelope.includes(K1), false);
   // A partial projection: only the subject-only check reaches the wire, so its envelope is exactly the subject-only one.
-  assert.equal(mixed.envelopeSha256, M_OUTPUTS.subjectOnly.envelope);
+  assert.equal(asM(mixed).envelopeSha256, M_OUTPUTS.subjectOnly.envelope);
   assert.notEqual(outputSha256(mixed), M_OUTPUTS.mixed.output);
   // All-K concludes Core0 without a subject, so no paid result or command is needed to learn that nothing is carried.
   const allK = await witnessPlan([wq('qK', ['target', 'k1']), wq('qKonly', ['k1'])]);
@@ -1109,7 +1239,7 @@ test('a wire input over the runtime raw budget holds locally instead of looking 
   let id = 4400;
   for (const [name, value, twin, body, run] of cases) {
     assert.equal(twin.status, 'ELIGIBLE', `${name}: the budget-valid twin`);
-    const wire = swapBody(wireInput(twin), body), raw = JSON.stringify(wire);
+    const wire = swapBody(wireInput(twin), body), raw = JSON.stringify(swapBody(inputAsM(wireInput(twin), twin.mapping), body));
     assert.deepEqual([sha256(raw), Buffer.byteLength(raw)], [M_BUDGET[name].raw, M_BUDGET[name].rawBytes], `${name}: the same wire M emitted`);
     // The runtime refuses it before any claim: the existing preflight and the real provided admission.
     assert.equal(withinBudget(wire), false, name);
@@ -1125,7 +1255,7 @@ test('a wire input over the runtime raw budget holds locally instead of looking 
   }
   // The budget-valid control keeps M's bytes and is admitted.
   const control = project(await goalPlan(undefined, GOAL, clauses, {}, SMALL), verifiedBody(SMALL));
-  assert.deepEqual([sha256(JSON.stringify(control)), control.envelopeSha256], [M_BUDGET.control.output, M_BUDGET.control.envelope]);
+  assert.deepEqual([sha256(JSON.stringify(asM(control))), asM(control).envelopeSha256], [M_BUDGET.control.output, M_BUDGET.control.envelope]);
   assert.equal(await preflight(wireInput(control)), 'PREPARED');
   assert.equal((await admitIssueCommand(admissionInput(control.envelope, issue(SMALL, UNEDITED), 4409), SETTINGS)).status, 'ADMITTED');
 });
@@ -1236,8 +1366,8 @@ test('an explicit contextRefs key is accepted; absent, undefined, [] and refs no
     const label = JSON.stringify(extra);
     let eligible;
     assert.doesNotThrow(() => { eligible = project(value, verifiedBody(BODY), extra); }, label);
-    assert.deepEqual([sha256(JSON.stringify(eligible)), eligible.envelopeSha256], [M_CONTEXT.eligible.output, M_CONTEXT.eligible.envelope], label);
-    assert.equal(sha256(JSON.stringify(project(value, undefined, extra))), M_CONTEXT.hold, label);
+    assert.deepEqual([sha256(JSON.stringify(asM(eligible))), asM(eligible).envelopeSha256], [M_CONTEXT.eligible.output, M_CONTEXT.eligible.envelope], label);
+    assert.equal(sha256(JSON.stringify(asM(project(value, undefined, extra)))), M_CONTEXT.hold, label);
   }
   // Every other unknown option still fails as the keyed calls did on M.
   for (const extra of [{ contextRef: [] }, { contextrefs: ['k1'] }]) assert.throws(() => project(value, verifiedBody(BODY), extra), { message: M_CONTEXT.keyedError });
@@ -1377,13 +1507,16 @@ test('PR snapshots, origins, projections, fidelity and admission keep the bytes 
   const refused = await refusedOf(), refusalSubject = await refusalSnapshotOf({ origin: refused });
   const rendered = project(await jaGoalPlan(), refusalSubject, { englishAuxiliary: AUX });
   const live = await snapshotOf({ mode: 'live' }), unreviewed = project(value, live), ids = unreviewed.checks.map(c => c.id);
-  const fid = fidelityFromReview({ approved: APPROVED_REVIEW, reviewReceipt: await reviewOf(reviewJson(fidelityBody(unreviewed.envelopeSha256,
-    Object.fromEntries(ids.map(id => [id, 'FAITHFUL']))))), envelopeSha256: unreviewed.envelopeSha256, checkIds: ids });
+  // The fidelity record and admission are not changed by W3; they are fed M's envelope (asM) to compare with M's bytes.
+  const mSha = asM(unreviewed).envelopeSha256;
+  const fid = fidelityFromReview({ approved: APPROVED_REVIEW, reviewReceipt: await reviewOf(reviewJson(fidelityBody(mSha,
+    Object.fromEntries(ids.map(id => [id, 'FAITHFUL']))))), envelopeSha256: mSha, checkIds: ids });
   const kOut = project(await CONTROL(), verifiedBody(BODY), { contextRefs: ['k1'] });
-  const admitted = await admitIssueCommand(admissionInput(english.envelope, issue(), 4300), SETTINGS);
-  assert.deepEqual([english.status, rendered.status, admitted.status], ['ELIGIBLE', 'ELIGIBLE', 'ADMITTED']);
+  const admitted = await admitIssueCommand(admissionInput(asM(english).envelope, issue(), 4300), SETTINGS);
+  const admittedW3 = await admitIssueCommand(admissionInput(english.envelope, issue(), 4301), SETTINGS);
+  assert.deepEqual([english.status, rendered.status, admitted.status, admittedW3.status], ['ELIGIBLE', 'ELIGIBLE', 'ADMITTED', 'ADMITTED']);
   assert.deepEqual({ executorSnapshot: h(await snapshotOf()), expectedOrigin: h(await originOf()), refusalOrigin: h(refused),
-    refusalSnapshot: h(refusalSubject), english: h(english), rendered: h(rendered), fidelity: h(fid), contextK: h(kOut),
+    refusalSnapshot: h(refusalSubject), english: h(asM(english)), rendered: h(asM(rendered)), fidelity: h(fid), contextK: h(asM(kOut)),
     admitted: h({ status: admitted.status, identity: admitted.identity, requestDigest: admitted.requestDigest, plan: admitted.prepared.plan }) }, {
     executorSnapshot: '67c6dd446781f0a136b53b9f02e4c57cad6e54b11b312b60a685a19092bd51b8',
     expectedOrigin: '363c65ca3287a680dab0c7c512246b809475113009904f85e2f7d272c9f752fe',

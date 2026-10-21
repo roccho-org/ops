@@ -185,9 +185,35 @@ const issueSnapshotValid = s => exact(s, ['status', 'subjectKind', 'originTarget
 const unit = (fields, content) => ({ ...fields, content, sha256: sha256(content),
   evaluationSpan: { startByte: 0, endByte: Buffer.byteLength(content, 'utf8') }, englishAuxiliary: null });
 
-// The wire question always asks whether the problem criterion holds, so true=problem and false=ok cannot invert
-// a question phrased in the ok direction. The plan's own question is quoted, not reworded.
-const problemQuestion = q => `Does the problem criterion hold for this target, rather than the ok criterion? Original question: ${q.question}`;
+// W3 (roccho-dev/adrs#635 comments 6313476031, 6313494258): the wire statement is the plan's own problem criterion,
+// one affirmative sentence where true means a problem. "A statement works as well as a question" (TypeSafe Noul docs),
+// and true=problem holds by the field name, so no question about a question is built. The plan question stays local.
+// The fixed rules below are a necessary filter only: R reviews meaning (indirection, agreement of the statement with
+// the ok criterion) before sealing. The unknown label never reaches the wire and is not checked.
+const ABBREVIATIONS = /\b(?:e\.g\.|i\.e\.|etc\.)/gi;
+const DECIMAL = /(\d)\.(?=\d)/g;
+// Any character outside printable ASCII is refused on the raw text, so zero-width splits, homoglyphs, fullwidth
+// marks and dashes cannot hide a word or a clause. The word and mark rules then run on the NFKC form.
+const NON_ASCII = /[^\x20-\x7E]/;
+const STATEMENT_RULES = [
+  ['COORDINATION', /\b(?:and|or|but)\b|[,&]/i],
+  ['CONDITION', /\b(?:unless|if|except|rather\s+than)\b/i],
+  ['PUNCTUATION', /[;:/]/],
+  ['NEGATION', /\b(?:not|cannot|no|never|without|omits?|omitted|omitting|fail|fails|failed|failing|missing|lacks?|lacked|lacking|neither|nor|absent|exclude|excludes|excluded|excluding)\b|\bfree\s+of\b|n['’]t\b/i],
+  // A fixed list, not every un-/in-/non- word: the list names common negative adjectives and pronouns.
+  ['NEGATIVE_PREFIX', /\b(?:unsupported|unverified|unclear|undefined|unresolved|unmet|unspecified|untested|undocumented|unchecked|unknown|unsafe|unable|unavailable|unreachable|incomplete|incorrect|invalid|inconsistent|insufficient|inaccurate|inadequate|inapplicable|incompatible|none|nothing|nobody|nowhere|nonexistent|non-existent|noncompliant|non-compliant|nonzero|non-zero)\b/i],
+];
+export function statementViolations(sentence) {
+  if (!text(sentence)) return ['SENTENCE_COUNT'];
+  const masked = sentence.normalize('NFKC').replace(ABBREVIATIONS, m => m.replace(/\./g, '')).replace(DECIMAL, '$1');
+  const terminators = masked.match(/[.!?]/g) ?? [];
+  const rules = /[\r\n]/.test(sentence) || terminators.length !== 1 || !masked.trimEnd().endsWith('.') ? ['SENTENCE_COUNT'] : [];
+  for (const [rule, pattern] of STATEMENT_RULES) if (pattern.test(masked)) rules.push(rule);
+  if (NON_ASCII.test(sentence)) rules.push('NON_ASCII');
+  if (CJK.test(sentence)) rules.push('CJK');
+  return rules;
+}
+const statementRefusals = q => ['problem', 'ok'].map(field => ({ field, rules: statementViolations(q.criteria[field]) })).filter(v => v.rules.length);
 
 // Fidelity is R's record about exact envelope bytes, supplied from outside; this code never assigns a verdict. With a
 // subject rendering the record also carries R's renderingVerdict, separate from the check verdicts.
@@ -232,10 +258,12 @@ export function project(planValue, subject, { fidelity, englishAuxiliary, subjec
       notProjected.push({ id: q.id, reason: 'REQUIRED_CONTEXT_NOT_CARRIED', requiredRefs: q.requiredRefs, notCarried: others, clauseIds: q.clauseIds });
       continue;
     }
+    const violations = statementRefusals(q);
+    if (violations.length) { notProjected.push({ id: q.id, reason: 'STATEMENT_REFUSED', violations, clauseIds: q.clauseIds }); continue; }
     if (checks.length === MAX_CHECKS) { notProjected.push({ id: q.id, reason: 'LIMIT', clauseIds: q.clauseIds }); continue; }
     for (const ref of others) if (!contextUnits.includes(ref)) contextUnits.push(ref);
     checks.push({ id: q.id, axis: 'Aligned', concern: `Goal-derived question ${q.id}.`, requiredRoles: others.map(ref => 'observation:' + ref), crossLinks: [],
-      predicate: { question: problemQuestion(q), true: q.criteria.problem, false: q.criteria.ok } });
+      predicate: { question: q.criteria.problem, true: q.criteria.problem, false: q.criteria.ok } });
     const clauses = value.clauses.filter(c => q.clauseIds.includes(c.id));
     // Exceptions and legitimate alternatives are not on the wire; R checks that the criteria text reflects them.
     mapping.push({ id: q.id, originalQuestion: q.question, clauses, offWireQualifiers: clauses.filter(c => c.kind !== 'obligation'),
