@@ -1,4 +1,40 @@
-# 七つの負結果を保持し、次の構造処置へ進む
+# 七負結果を保持し、Eを二つの存在判定へ分解する
+
+## D8 DECOMPOSITION（code-only、まだモデル/H未実測）
+
+候補は本文の仕様/責務/必要・所望条件と、本物の行為/回答/改善要求をnative declaration/request二質問へ分け、**両回答が厳格資格を満たした後だけORでEを派生**する一package。二branchの重複yesは許し、元Eの和を覆う仮説であり、下位Gold/下位精度/内部推論/回答間の独立性は主張しない。片方のFPもORへ入るリスクを歴史617/freshE退行0で反証する。単なる操作/症状/因果から要求を補わず、仕様としてのIO/現在形責務/真正な条件付き提出や回答依頼を形式で落とさない。実case語句/ID例外/新fewshot0、元body/Gold/BestE/sharedOを保持する。
+
+rootがtask decompositionを提案、Wが既native named2questions/1POSTを自読確認、Rがnormalize単独ではmodel/usageを失いmap無し/subset/outofrange/sum不正も通る反例を提示した。Wは旧live/二値choiceへのOR偽装を拒否、rootは原2map資格AND/原postと両choice追跡/1usageを要求。literalの命令形/見出しだけを除外する誤読をrootが反証し、実際の要求を文脈で判定する正文へ精密化。三者が最終v2 declaration1093字/request939字と全options/orderを出力前に別々の期待Coreへ固定し、既batchのoffline実呼出しでnative wire同値を確認した。[root三者counter/原負](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594728802)・[R独立counter/原負](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594728349)。
+
+既judgeNamedChoices/bindJev/Coreを使う固定分岐のみで新transport/executor/credentialを足さない。candidate stateはliteral bodyだけのobject（旧binaryのJSONstringからの実差）、named2原回答/common model/topusageを現在postの受信境界snapshotへ保存し、model/type/choice/confidence/exact2mapのfinite/range/sum/selectedmax・余計keys・SDK normalized全entryを厳格結合する。normalize成功を資格としない。旧binary recorder/SDK/15s/answer shapeと旧七context/raw/plans/guardsは不変。候補の実observation.answerはnamed2 answers/model/usageで、架空のlegacy choiceを作らない。ORは別providerAnswer:false/source両choice/実postで、確率/confidence/model/usageを派生偽造しない。候補Oは測らない。
+
+有効な一方がyesでも他方が欠測/不正なら候補Eはunknown、短絡0。rawpartialはsnapshotへ残し、既に受信したtopusageがあれば不資格postでも一度だけ会計可能とし、枝へ複製しない。新flagsはmodelReported/modelMatches/modelDriftを分け、missing/nonstring/empty modelはstrictUNKNOWN継続、報告された非空の異identifierだけglobalstop。既batchが例外を閉じてmodelChangedを失っても**現在postの原snapshotだけ**から復元し、前postのflags/stage/usageやエラーメッセージを流用しない。旧binaryのraw model不一致時停止は変えないため未報告時の経路非対称を明記し、旧停止を実異version観測とは断定しない。
+
+候補はnative optionsをbound.postへ無変更転送するのでdeadline10000ms/diagnoseRejection:trueが有効、旧binary15000msは不変。二質問/文言/同時判断文脈/stateobject/実deadlineのpackage差で、単一要因の効果や同原価を主張しない。source前固定の実要求と標準batch payload再構成を照合するもので、過去HTTP全bytes捕捉とは称さない。
+
+固定DはBestE626post＋candidate626post＝1252HTTP、原binary回答の割当は1878（Best626＋candidate1252）、派生E追加call0。同じfixed historicalOでfreshBest対derivedORを比較し、全1252資格/expectedmodel・complete joint正差・歴史617破壊0・freshE退行0を独立AND、first診断/O-null17/全626を保持。原12008 qualified E evidenceはbinary11387＋role4由来621、physical12013/旧invalid5は別。各過去原wrapperで全fieldsを再生し、未来617で旧採点を変えない。ever-correctは工学保護で不偏性能推定/到達保証でない。
+
+第八private context/namedwrapper/development8/history8だけを既ループへ追加。鍵前は旧15run＋固定D6job1/実Git親/REQUESTphase/全原版、鍵下exact8field/body/Core/実行identity、投影は原attemptdigest/max1252を結合する。source-onlyは旧D7/sourceE8a REQUEST bytesを保持、現在モデル0。新source必要CI/三者後にREQUEST-only直子を一回だけ起動する。最大11816＝実8764＋次1252＋futureH1800はHTTP有限割当で実費/新User承認gateではない。350min、再送/timeout後resume/窓救済0。中間582946通常CI/Readyを別の前提にしない。
+
+成功D8原版/全guard/実要求freeze三者受容後だけ、固定Oct18/prior862typed2033exact2371refs/prefix300noRefillからHを開く。成功splitEだけ既3M HTTPへ接続（原binary回答4M/pass）、二回とも同body/Gold/Core/selection全値。モデル前にH最終data/source必要CI/三者を一回結合し、body前の余計CIgateを作らない。ordinaryunknown/意味FAILでH2選別せず、nativeconclusion/rawpartition/生modelStableとstopreasonを検証、cancel/timeout/raw欠落の偽装0。共通Gold/nullの両回別々の全資格/model・Δ下限正/任意軸R上限0、平均/2M化/事後dedup/Gold変更0。M0はNO_CASES/model0→別未使用契約を事前固定する。有限Gold条件付の改善近似までで、同系統rater共通偏り/意味的未見/母集団/Apps E2E/同原価は未証明。
+
+~~~mermaid
+flowchart TB
+ N[✅ 七負原版/Gold固定/会計] --> C[✅ 三者分解仮説/全文v2事前固定]
+ C --> RAW[原named2回答/common model/topusage1回]
+ RAW --> Q{両strict資格・SDK全entry結合?}
+ Q -->|NO| U[UNKNOWN/原partial・費用保持/短絡0]
+ Q -->|YES| OR[providerAnswer:false/固定OR/両sourcechoice]
+ OR --> G[⏳ 新source必要CI/三者→別D1252HTTP/1878原回答]
+ G -->|未達/unknown| N
+ G -->|全guardPASS/実要求freeze| H[🔒 H/fresh3M HTTP・4M原回答/二回AND]
+ H -->|未達| RET[当H退役/別仮説・別未使用契約]
+ RET --> N
+ H -->|成立| END[目的最終current全通常CI/会計/記録/Ready未merge]
+~~~
+
+以下はD7原負保持と旧source時点の固定記録。当時のpendingや次未選択を現D8 code-onlyと区別する。
+
 
 ## D7：全二値資格は成立、既知退行で未採用
 
