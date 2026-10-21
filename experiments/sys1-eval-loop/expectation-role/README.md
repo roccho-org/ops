@@ -1,4 +1,36 @@
-# 八負結果を保持し、二質問の意味分割を改訂する
+# 九つの負結果を保持し、次の仮説へ継続する
+
+## D9：旧FN三件を修復したが、fresh6/歴史9退行で未採用
+
+[run39547583152](https://github.com/roccho-org/ops/actions/runs/39547583152)をsource d0ea8162/REQUEST-only activationd736fabb/development9・history9から一回実行した。BestE626＋native named2 partition626＝1252HTTP/原binary回答1878が全資格/modelStable、unknown0。job119049149461の鍵前737/737fail0、prepare、execute/project/uploadはSUCCESSだが意味合格ではない。
+
+joint476→501・修復31/退行6、E583→609・修復32/退行6。freshE退行はcensus-072/146/161/178、expectation-005/027、歴史618保護破壊はcensus-072/093/146/161/178、expectation-004/005/027/028の9件。DEVELOPMENT_GUARD_FAIL/未採用、正差で退行を相殺しない。O-null17/全626、全旧負結果/Goldを維持し、selection/実要求freezeは未発行、未使用H count/body/Gold0。
+
+root/Rは自己provider ZIP/nativehistory9/全1252Core・strict named2原snapshot/map・両資格AND/OR・618/freshguard/usageを独立再算術し、全9projection fieldsがW再生と一致した。原5全26,118,482B＋provider/readback/root原reportをresults/expectation-partition-development9-20261021/へ原bytes保持、新closed1で全fields再現。effect/REQUEST/旧8plans/raw/Gold/SDK/Core/client/batch/YAMLは不変。[root源/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595110063)・[R独立源/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595106648)。保持head現全通常CI成功は先取りせず、実作用d0eaの737成功とSHAを区別する。中間負保持CI/Readyは次sourceの追加gateにせず、目的最終current全CI/記録/会計/Ready未mergeは最後に閉じる。
+
+当回BestE input1,251,054/output19,406、partition input1,146,087/output38,186、合計input2,397,141/output57,592が全1252HTTPで既知。total_tokensは全1252不明、named2のtopusageは一post一回で枝とORへ複製しない。D1..D9累積physicalHTTP11,268/qualifiedHTTP11,263、input既知小計22,926,339/output既知小計399,141・各5post不明、total_tokens全11,268不明、料金/内部計算量は不明。
+
+三者が9本文/各branchを元rubricで読み直しGold維持。旧D8 FNのheld-158/census-023/210は今回修復されたが、保護破壊9件は症状/見出し・観測回避/実施因果・不満/欠落だけを要求へ補う7FPと、真正HTML提出/記入指示の2FNでありtrade-offを隠さない。branchGold/内部原因/単一要因は測っていない。次履歴は14512 qualified E evidence＝native binary12639＋role4derived621＋decompositionderived626＋partitionderived626、physical14517/旧invalid5別。保護618/追加0で、元D9guardを遡及変更しない。ever-correctは工学的保護で不偏性能推定や達成保証でない。
+
+次は原負結果を三者で受容してから別の意味ある仮説を比較し、wholeCore/原入力表現/資格/来歴/有限割当を出力前固定する。今は新処置未選択・未実装、同候補盲再送/閾値/Gold/窓変更で救済しない。実guardPASS/原版/実要求freeze三者後だけ未使用Hを開く。Hの固定有限Gold条件付近似と、同系統候補既知評定者の共通偏り/意味的未見/母集団/Apps E2E/同原価非保証は維持する。
+
+~~~mermaid
+flowchart TB
+ A[✅ D9全文事前固定/737必要CI/三者] --> B[✅ 一回1252HTTP/全1878原回答資格]
+ B --> T[旧FN3修復・新trade-off保持]
+ T --> F[❌ fresh6/歴史9退行/未採用]
+ F --> R[✅ 原5/独立全9投影/Gold/会計保持]
+ R --> HYP[⏳ 別仮説counter/全文事前固定]
+ HYP --> S[最小source/必要CI/三者/別固定D]
+ S -->|未達/unknown| R
+ S -->|全guardPASS/実要求freeze| H[🔒 未使用H/盲検Gold/二回AND]
+ H -->|未達/unknown| RET[当H退役/別仮説・別未使用契約]
+ RET --> HYP
+ H -->|二回成立| Z[目的最終current全CI/会計/記録/Ready未merge]
+~~~
+
+以下はD9実行前source時点までの記録。当時モデル0/pendingと現在のD9負結果を区別する。
+
 
 ## D9 PARTITION（code-only、D9モデル/H未実測）
 

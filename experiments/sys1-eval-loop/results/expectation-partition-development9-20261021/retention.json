@@ -1,0 +1,59 @@
+{
+  "schema": "ops.sys1.expectation-partition-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "d0ea81626ac9f6bc156101e9eb59b5c9cb3e1eed",
+  "activation": "d736fabb03547ef4ce5109f1b21de28e492b9c1e",
+  "phase": "development9",
+  "historyCount": 9,
+  "originalFiles": 5,
+  "originalBytes": 26118482,
+  "actualPhysicalHTTP": 1252,
+  "nativeBinaryBestE": 626,
+  "nativeNamedTwoCandidatePosts": 626,
+  "qualifiedHTTP": 1252,
+  "qualifiedOriginalBinaryAnswers": 1878,
+  "unknown": 0,
+  "modelStable": true,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "W product replay and root/R own provider ZIP/native history9/strict named2 raw qualification/full Core/618guard/one topusage per post are compared independently",
+  "joint": {
+    "baselineCorrect": 476,
+    "candidateCorrect": 501,
+    "repaired": 31,
+    "regressed": 6
+  },
+  "E": {
+    "baselineCorrect": 583,
+    "candidateCorrect": 609,
+    "repaired": 32,
+    "regressed": 6,
+    "historical618Regressed": 9
+  },
+  "usage": {
+    "inputTokens": 2397141,
+    "outputTokens": 57592,
+    "totalTokensUnknownPosts": 1252
+  },
+  "seriesActual": {
+    "physicalHTTP": 11268,
+    "qualifiedHTTP": 11263,
+    "inputTokensKnownSum": 22926339,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 399141,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 11268
+  },
+  "nextEvidence": {
+    "qualifiedE": 14512,
+    "nativeBinary": 12639,
+    "qualifiedRole4Derived": 621,
+    "qualifiedDecompositionDerived": 626,
+    "qualifiedPartitionDerived": 626,
+    "physicalIncludingOldInvalid": 14517,
+    "protected": 618,
+    "addedIds": [],
+    "priorInvalidUnknown": 5
+  },
+  "scope": "Native named2 answers are not a native binary E answer. Both qualify before OR providerAnswer:false. Branch Gold/independence/latent inference/equal cost/isolated cause are unproved; all prior eight negative contexts and guards stay fixed. No held selection or Gold changes; objective final CI/records/Ready is not an intermediate negative gate"
+}
