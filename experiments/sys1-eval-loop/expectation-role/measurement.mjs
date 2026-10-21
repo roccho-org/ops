@@ -23,9 +23,11 @@ import{partitionRequest}from'./partition-request.mjs';import{preparePartitionDev
 const PARTITION=Object.freeze({inputSchema:'ops.sys1.expectation-partition-development.v1',predictionsSchema:'ops.sys1.expectation-partition-development-predictions.v1',projectionSchema:'ops.sys1.expectation-partition-development-projection.v1',prepare:preparePartitionDevelopment,request:partitionRequest,guard:expectationPartitionDevelopmentGuard,usageScope:"1252 HTTP posts only:626 binary BestE and626 native repartitioned named-two-question candidate posts,1878 assigned original binary answers; both strict native answers qualify before OR; one actual top-level usage per post including captured unqualified candidate usage; derived E adds no provider attributes or calls; prior invalid5 and missing tokens/money remain separate"});
 import{linesRequest}from'./lines-request.mjs';import{prepareLinesDevelopment}from'./lines-input.mjs';import{expectationLinesDevelopmentGuard}from'./guard.mjs';
 const LINES=Object.freeze({inputSchema:'ops.sys1.expectation-lines-development.v1',predictionsSchema:'ops.sys1.expectation-lines-development-predictions.v1',projectionSchema:'ops.sys1.expectation-lines-development-projection.v1',prepare:prepareLinesDevelopment,request:linesRequest,guard:expectationLinesDevelopmentGuard,usageScope:"1252 HTTP posts only:626 binary BestE and626 native named2 candidate posts with lossless LF-line-array state,1878 original binary answers assigned; both strict answers before OR; one actual top-level usage per post including captured unqualified usage; encoded lines are not cases or votes; derived E adds no provider attributes or calls; missing tokens/money and prior invalid5 remain separate"});
+import{contrastRequest}from'./contrast-request.mjs';import{prepareContrastDevelopment}from'./contrast-input.mjs';import{expectationContrastDevelopmentGuard}from'./guard.mjs';
+const CONTRAST=Object.freeze({inputSchema:'ops.sys1.expectation-contrast-development.v1',predictionsSchema:'ops.sys1.expectation-contrast-development-predictions.v1',projectionSchema:'ops.sys1.expectation-contrast-development-projection.v1',prepare:prepareContrastDevelopment,request:contrastRequest,guard:expectationContrastDevelopmentGuard,usageScope:"1252 new native binary HTTP posts and1252 original answers only:626 BestE and626 contrastE; all15764 historical qualified E evidence are aliases and prior invalid5 stay separate; candidate is its qualified provider receipt, not derived OR or a branch/O observation; no fabricated probability/confidence/model/usage; missing tokens and money remain unknown"});
 const compoundKey=profile=>profile===LINES?'linesE':profile===PARTITION?'partitionE':'splitE';
 const splitChoice=answer=>{assert.deepEqual(Object.keys(answer.answers).sort(),['declaration','request']);const values=['declaration','request'].map(n=>answer.answers[n].choice);assert.ok(values.every(v=>v==='yes'||v==='no'));return values.includes('yes')?'yes':'no';};
-const role4Choices=['E_ONLY','O_ONLY','BOTH','NEITHER'],choices=(profile,key)=>profile===ROLE4&&key==='role4'?role4Choices:['yes','no'],pairOrder=(profile,i)=>order(i).map(k=>k==='scopedE'?(profile===ROLE4?'role4':profile===ROLE2?'role2':(profile===DECOMPOSITION||profile===PARTITION||profile===LINES)?compoundKey(profile):k):k);
+const role4Choices=['E_ONLY','O_ONLY','BOTH','NEITHER'],choices=(profile,key)=>profile===ROLE4&&key==='role4'?role4Choices:['yes','no'],pairOrder=(profile,i)=>order(i).map(k=>k==='scopedE'?(profile===ROLE4?'role4':profile===ROLE2?'role2':profile===CONTRAST?'contrastE':(profile===DECOMPOSITION||profile===PARTITION||profile===LINES)?compoundKey(profile):k):k);
 const keys=['bestE','scopedE'],order=i=>[...keys.slice(i%2),...keys.slice(0,i%2)];
 function planned(profile,input){assert.equal(input.schema,profile.inputSchema);assert.equal(input.maxPosts,1252);assert.equal(input.expectedModel,'jev-1.13.0');assert.equal(input.rows.length,626);assert.equal(new Set(input.rows.map(r=>r.id)).size,626);return input.rows.flatMap((r,i)=>pairOrder(profile,i).map(k=>r.id+'/'+k));}
 async function evaluatePaired(profile,input,ask,observe){
@@ -49,7 +51,7 @@ async function projectPaired(profile,input,attempt,report,events,data){
  return{...base,role4};
 }
 
-// Ten fixed internal contexts; callers cannot supply a profile, schema or constructor.
+// Eleven fixed internal contexts; callers cannot supply a profile, schema or constructor.
 export function evaluateRoleDevelopment(input,ask,observe){return evaluatePaired(ROLE,input,ask,observe);}
 export function projectRoleDevelopment(input,attempt,report,events,data){return projectPaired(ROLE,input,attempt,report,events,data);}
 export function evaluateBoundaryDevelopment(input,ask,observe){return evaluatePaired(BOUNDARY,input,ask,observe);}
@@ -78,3 +80,6 @@ export function projectPartitionDevelopment(input,attempt,report,events,data){re
 
 export function evaluateLinesDevelopment(input,ask,observe){return evaluatePaired(LINES,input,ask,observe);}
 export function projectLinesDevelopment(input,attempt,report,events,data){return projectPaired(LINES,input,attempt,report,events,data);}
+
+export function evaluateContrastDevelopment(input,ask,observe){return evaluatePaired(CONTRAST,input,ask,observe);}
+export function projectContrastDevelopment(input,attempt,report,events,data){return projectPaired(CONTRAST,input,attempt,report,events,data);}

@@ -1,4 +1,40 @@
-# 十の負結果を保持し、次の仮説へ継続する
+# 十負結果を保持し、固定D3 Coreへ役割の合成対比を加える
+
+## D11 code-only：未実施のcoverage介入を一packageとして固定する
+
+D10の原負保持を[root](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595524998)と[R](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595524958)が原ZIP/Git全bytes/全投影から独立受容。Wも両最新全文をprovider自読した。旧十候補のFAIL/Gold/guard/原plans/rawは不変、新モデル・H count/body/Gold0。
+
+次処置比較ではrootがD9のreport内機能関係の局所role境界是正を提案、Rが元文にもas-specification条件があり論理矛盾/特定一句原因とは断定できないと反証しroot撤回。Wは旧D3基底＋未実施の3合成対比を対案とし、Rの小さい局所案にもrequestFP/HTMLFNの直接改善機構がないとcounter。三者は今回は未実施coverage介入一packageを選ぶが、旧D3の成績を勝者採用する意味ではない。旧D3を現在618保護へ診断すると当時607下の3件ではなく11全FNがあり、3例で十分とは言えない。
+
+原D3 EXAMPLE native binary Coreの885字instructions＋半角space1つ＋固定815字英語対比＝1701字をcandidate contrastEとする。D3のyes/no全criteria・共通instructions・E suffix・286字の既5例・BestE/sharedOを全bytes保持。新3対比は現在形責務vs実施、引用された機能用途vs観測結果、婉曲な改善要求vs結果報告で、末尾ANY reminderは本人の必要行為やHTML/テンプレの真正提出指示も維持する。原case本文/ID/固有句は例に使わず、時制/語句/疑問形/引用形式だけの規則やcase lookupは作らない。no例が他所の宣言を取り消さない。
+
+英語・例・長さ・基底/経路復帰のbundleであり、単一要因の原因証明ではない。11FN全解消/新FP0/品質改善は未保証、表面cue/語彙類似/長文化/適応D過適合のリスクがある。モデルの内部理由は測らない。封印Hの両回・固定Gold条件付き近似以前に改善効果を主張せず、同系列候補既知評定者の共通偏り/意味的未見・母集団・Apps E2E・同原価非保証を残す。
+
+三者はsource前に自己actualD3 qualified Coreからliteralを独立固定し、Best/O・全criteria・885字基底と815字appendを全値照合した。rootのnative SDK直candidate626＋placeholder626、Rの全1252本文入り＋1252placeholderは元Coreに一致、maxBest20805/contrast23539B<24000。原通信全bytes捕捉ではなく標準SDKのoffline再構成である。製品sourceも全626×2 wireを鍵前復元し、超過はINVALID、除外/切詰め/補充/fallback0。
+
+candidateはstateがJSON文字列の元native2択で、既standardRecorder/askJevChoice/provider15s/strict資格をそのまま使う。新physical bestE/contrastE各626＝1252HTTP/1252原回答、候補は実provider choice/model/usageであってproviderAnswer:falseのORではない。named2/4択/branchGold/候補O/latent分類/偽確率は追加しない。旧SDK/client/Core/batch/YAML/secret六stepは変更0、新任意profile/schema/key/executor/transport/credentialなし。新固定CONTRAST descriptorとnamedwrapperは旧十contextsを全field再生のまま共有loopへ加えるだけ。
+
+history11は原D1..10＋current、鍵前18native runs＋固定D6 failed-jobを元Git親/REQUESTphaseと結合。新secret inputは既8fieldだけ、原attempt/max1252/source/execution/全body/Coreを鍵下にも固定する。全15764 qualified E evidence＝13265binary＋621role4derived＋626splitderived＋626partitionderived＋626linesderived、physical15769/旧invalid5別、全618ordered ID保護/追加0。旧610/611等guardへ遡及せず、歴史ever-correct618破壊0とfreshE退行0は独立AND。全1252資格/expectedmodel/complete joint正差、O-null17/全626/first診断も維持する。15764は独立案件ではなく保護達成可能性/不偏性能を証明しない。
+
+最大15572＝既実12520＋新1252＋将来H最大1800HTTP。D11は1252原回答、将来HはBestE/contrastE/sharedOの3MHTTP＝3M原回答/passで、旧named2の1878/4Mと混同しない。topusage一post一回、input/output各5post欠測・total/金額不明は原のまま。新User予算/auth承認gateではない。source-only REQUESTはdevelopment10/source c717原bytesのまま、新source必要CI/三者の最新全文読戻し後だけREQUEST-only直子development11一回。
+
+旧binary missingmodel時停止は変更せず、その停止を実異version報告と断定しない。実成功/原要求freeze三者後だけ固定Oct18/prior862typed2033exact2371refs/prefix300補充0のHを開く。成功contrastのみHへ接続、失敗lines/OR prototypeを公開並設しない。H専用model三値はcapture→catch/loop→資格再生→H2admission全段で同じreported-other述語へ揃え、通常unknown/意味FAILで予定H2を取り消さず、actualdrift/取消/timeout/raw欠落は技術停止。両回samebody/Gold/Core/M、各全資格/model・共通GoldΔ下限正/R任意軸上限0をAND、平均/2M独立化/事後dedup/救済0。body前の余計CIgate/中間負保持Readyを追加せず、目的最終current全CI/記録/会計/Ready未mergeは最後に閉じる。
+
+~~~mermaid
+flowchart TB
+ NEG[✅ 十候補の負原版/Gold/費用保持] --> C[✅ D9境界案とD3coverage対比案を三者counter]
+ C --> F[✅ D3Core＋815字固定/各自己期待nativewire]
+ F --> S[⏳ exactsource/必要CI/三者]
+ S --> D[⏳ 別一回1252 native binary]
+ D -->|未達/unknown| NEG
+ D -->|全guardPASS/原版freeze| H[🔒 未使用H/盲検Gold/二回3M AND]
+ H -->|未達/unknown| RET[当H退役/別仮説・別未使用契約]
+ RET --> C
+ H -->|両回成立| Z[目的最終current全CI/会計/記録/Ready未merge]
+~~~
+
+以下はD10負保持時点までの記録。新候補の実測/必要CI成功を先取りしない。
+
 
 ## D10：行配列でもHTMLの提出指示FNと観測の過剰採用が残った
 
