@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { JEV_MODEL } from '../core.mjs';
 import { semlint } from '../semlint.mjs';
 import { ENTRY_LIMITS, preparePlan, runPlan, executeOwnerPlan, snapshotJson } from '../semlint-entry.mjs';
+import * as commentModule from '../github-comment.mjs';
 import { REQUEST_PREFIX, RESULT_PREFIX, admitIssueComment, nextIssueEffect, composeResultComment, verifyResultReadback, parseResultComment, deriveIssuePrior,
   admitIssueCommand, subjectRevision, validateActionsConfig, selectActionsTarget, selectRunRange } from '../github-comment.mjs';
 
@@ -754,7 +755,7 @@ for (const program of [entry, compatibility]) {
   const suppliedResult = await runPlan(supplied.prepared, async (_, questions) => ({ model: JEV_MODEL, answers: Object.fromEntries(Object.keys(questions).map(key => [key, { type: 'noul', noul: 0.2 }])) }));
   const suppliedView = composeResultComment(supplied, suppliedResult);
   const suppliedEnvelope = parseResultComment(suppliedView);
-  assert.equal(suppliedEnvelope.schema, 'ops.jev.issue-result.v2');
+  assert.equal(suppliedEnvelope.schema, 'ops.jev.issue-result.v3');
   const display = suppliedEnvelope.presentation.cases[0];
   assert.deepEqual(display.checks, supplied.prepared.plan.cases[0].input.checks.map(check => ({ id: check.id,
     question: check.predicate.question, true: check.predicate.true, false: check.predicate.false })));
@@ -762,6 +763,36 @@ for (const program of [entry, compatibility]) {
   const observed = body => ({ repository: supplied.identity.repository, issue: supplied.identity.issue,
     id: 11, author: 'fixture-poster', body });
   assert.equal(verifyResultReadback(supplied, suppliedView, observed(suppliedView), 'fixture-poster', 11), true);
+  // W1 (roccho-dev/adrs#635 F0 seal 6314172215): θ (SEMLINT_THETA, 0.7) with ">", the band 0.30-0.70 with both ends,
+  // and each value's side. The section restates recorded values only: no required action, no verdict on unlisted checks.
+  assert.equal(commentModule.SEMLINT_THETA, 0.7);
+  const thetaSection = suppliedView.slice(suppliedView.indexOf('### Jev value against θ'), suppliedView.indexOf('### Model observations'));
+  assert.ok(thetaSection.startsWith('### Jev value against θ\n\n'));
+  assert.ok(thetaSection.includes('No recorded value is above θ.') && thetaSection.includes('No recorded value is in the uncertain band.'));
+  assert.ok(thetaSection.includes('closer to the ok criterion (false), below the uncertain band'));
+  assert.ok(thetaSection.includes('is not shown to hold or to be acceptable'));
+  assert.equal(/\b(?:must|should|need|needs|required|requires|action|fix|approve|approved|pass|passed|safe)\b/i.test(thetaSection), false);
+  const valueLine = async value => {
+    const r = await runPlan(supplied.prepared, async (_, questions) => ({ model: JEV_MODEL, answers: Object.fromEntries(Object.keys(questions).map(key => [key, { type: 'noul', noul: value }])) }));
+    const view = composeResultComment(supplied, r);
+    assert.equal(verifyResultReadback(supplied, view, observed(view), 'fixture-poster', 11), true, String(value));
+    return view.slice(view.indexOf('### Jev value against θ'), view.indexOf('### Model observations'));
+  };
+  const above = await valueLine(0.71), edge = await valueLine(0.7), low = await valueLine(0.3), below = await valueLine(0.29), mid = await valueLine(0.5);
+  assert.ok(above.includes('closer to the problem criterion (true), above the uncertain band') && !above.includes('No recorded value is above θ.'));
+  assert.ok(above.includes('No recorded value is in the uncertain band.'));
+  for (const s of [edge, low, mid]) assert.ok(s.includes('No recorded value is above θ.') && !s.includes('No recorded value is in the uncertain band.'));
+  assert.ok(edge.includes('closer to the problem criterion (true), in the uncertain band'), '0.7 is in the band, not above θ');
+  assert.ok(low.includes('closer to the ok criterion (false), in the uncertain band'), '0.3 is in the band');
+  assert.ok(mid.includes('closer to neither criterion (0.5), in the uncertain band'));
+  assert.ok(below.includes('below the uncertain band') && below.includes('No recorded value is in the uncertain band.'));
+  // A v2 report (e.g. the PR629 bot comment) stays readable and reads back as v2: the same body without the θ section.
+  const v2Envelope = { ...suppliedEnvelope, schema: 'ops.jev.issue-result.v2' };
+  const v2View = suppliedView.replace(/### Jev value against θ\n[\s\S]*?(?=### Model observations\n)/, '')
+    .replace(JSON.stringify(suppliedEnvelope), JSON.stringify(v2Envelope));
+  assert.deepEqual(parseResultComment(v2View), v2Envelope);
+  assert.equal(composeResultComment(supplied, suppliedResult, 'ops.jev.issue-result.v2'), v2View);
+  assert.throws(() => composeResultComment(supplied, suppliedResult, 'ops.jev.issue-result.v4'), { message: 'RESULT_SCHEMA_UNSUPPORTED' });
   const code = value => '<code>' + String(value).replace(/[^A-Za-z0-9 .-]/gu, char => '&#' + char.codePointAt(0) + ';') + '</code>';
   // A jointly changed display and payload can be parsed, but cannot pass request-bound readback.
   for (const key of ['question', 'true', 'false']) {

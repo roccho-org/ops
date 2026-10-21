@@ -14,6 +14,12 @@ const resultJSON = envelope => RESULT_PREFIX + JSON.stringify(envelope) + '\n';
 const code = value => '<code>' + String(value).replace(/[^A-Za-z0-9 .-]/gu,
   char => '&#' + char.codePointAt(0) + ';') + '</code>';
 
+// θ for the provided report (roccho-dev/adrs#635 F0 seal comment 6314172215): fixed before any result, compared with ">".
+// It equals the lower edge of TypeSafe's "yes above 0.70"; the uncertain band is 0.30 through 0.70, both ends included.
+// R1 (verification/semlint-g1) checks the sealed ledger copy against this one exported numeric literal.
+export const SEMLINT_THETA = 0.7;
+const BAND = { low: 0.3, high: 0.7 };
+const RESULT_V2 = 'ops.jev.issue-result.v2', RESULT_V3 = 'ops.jev.issue-result.v3';
 const RESULT_KEYS = ['schema', 'requestDigest', 'identity', 'authority', 'result'];
 const strings = (value, keys) => exact(value, keys) && keys.every(key => typeof value[key] === 'string');
 function validPresentation(value) {
@@ -25,8 +31,8 @@ function validPresentation(value) {
 }
 function resultEdition(envelope) {
   if (exact(envelope, RESULT_KEYS) && envelope.schema === 'ops.jev.issue-result.v1') return 1;
-  if (exact(envelope, [...RESULT_KEYS, 'presentation']) && envelope.schema === 'ops.jev.issue-result.v2'
-    && envelope.identity?.observation === PROVIDED_COMMAND_OBSERVATION && validPresentation(envelope.presentation)) return 2;
+  if (exact(envelope, [...RESULT_KEYS, 'presentation']) && (envelope.schema === RESULT_V2 || envelope.schema === RESULT_V3)
+    && envelope.identity?.observation === PROVIDED_COMMAND_OBSERVATION && validPresentation(envelope.presentation)) return envelope.schema === RESULT_V2 ? 2 : 3;
   return null;
 }
 function presentationOf(prepared) {
@@ -35,9 +41,10 @@ function presentationOf(prepared) {
       true: check.predicate.true, false: check.predicate.false })),
     context: input.context.map(({ role, ref, revision }) => ({ role, ref, revision })) })) };
 }
-function resultEnvelope(request, result) {
+// New provided results are v3 (the θ section). v2 stays readable and is re-rendered as v2 for its own readback.
+function resultEnvelope(request, result, providedSchema = RESULT_V3) {
   const provided = request.identity.observation === PROVIDED_COMMAND_OBSERVATION;
-  return { schema: provided ? 'ops.jev.issue-result.v2' : 'ops.jev.issue-result.v1',
+  return { schema: provided ? providedSchema : 'ops.jev.issue-result.v1',
     requestDigest: request.requestDigest, identity: request.identity, authority: false, result,
     ...(provided ? { presentation: presentationOf(request.prepared) } : {}) };
 }
@@ -50,15 +57,32 @@ function presentationText(presentation) {
       + 'Supplied context references:\n\n'
       + (row.context.length ? row.context.map(unit => `- ${code(unit.role)}: ${code(unit.ref)} (${code(unit.revision)})`).join('\n') : 'None recorded.')
       + '\n\n').join('')
-    + 'Only checks carried in this request are shown; caller-local withheld questions and needs are not included. The request link retains the full supplied input for audit.\n\n'
-    + '### Model observations\n\n';
+    + 'Only checks carried in this request are shown; caller-local withheld questions and needs are not included. The request link retains the full supplied input for audit.\n\n';
+}
+
+// v3 only: where each recorded Jev value lies against the problem (true) and ok (false) criteria, θ and the band.
+// This is a fixed restatement of the recorded value; it states no required action and no verdict on unlisted checks.
+const closerTo = v => v > 0.5 ? 'the problem criterion (true)' : v < 0.5 ? 'the ok criterion (false)' : 'neither criterion (0.5)';
+const bandOf = v => v > BAND.high ? 'above the uncertain band' : v < BAND.low ? 'below the uncertain band' : 'in the uncertain band';
+function thetaText(envelope) {
+  const rows = envelope.result.cases.flatMap(row => row.result.records.map(record => ({ name: `${code(row.id)} / ${code(record.rule)}`, value: record.noul })));
+  const observed = rows.filter(r => typeof r.value === 'number');
+  const list = (picked, none) => picked.length ? picked.map(r => `- ${r.name}: ${code(r.value)}`).join('\n') : none;
+  return '### Jev value against θ\n\n'
+    + `θ is ${code(SEMLINT_THETA)}, fixed before any result; a value above θ is listed below. The uncertain band is ${code(BAND.low)} through ${code(BAND.high)}, both ends included. `
+    + 'A check that is not listed above θ is not shown to hold or to be acceptable.\n\n'
+    + 'Above θ:\n\n' + list(observed.filter(r => r.value > SEMLINT_THETA), 'No recorded value is above θ.') + '\n\n'
+    + 'In the uncertain band:\n\n' + list(observed.filter(r => r.value >= BAND.low && r.value <= BAND.high), 'No recorded value is in the uncertain band.') + '\n\n'
+    + 'Each recorded value:\n\n'
+    + rows.map(r => typeof r.value === 'number' ? `- ${r.name}: ${code(r.value)}, closer to ${closerTo(r.value)}, ${bandOf(r.value)}`
+      : `- ${r.name}: not observed`).join('\n') + '\n\n';
 }
 
 // Display only the already public, bound result. A model observation is not a verified finding.
 function resultComment(envelope, explain = true) {
   const identity = envelope.identity;
   if (identity.observation !== PROVIDED_COMMAND_OBSERVATION) return resultJSON(envelope);
-  const selfContained = envelope.schema === 'ops.jev.issue-result.v2';
+  const selfContained = envelope.schema === RESULT_V2 || envelope.schema === RESULT_V3;
   const origin = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(identity.repository)
     && Number.isSafeInteger(identity.issue) && identity.issue > 0
     && Number.isSafeInteger(identity.commentId) && identity.commentId > 0
@@ -69,7 +93,8 @@ function resultComment(envelope, explain = true) {
   return '### semlint: bounded evaluation\n\n' + origin + '\n\n'
     + (explain ? selfContained ? INPUT_REPORT_EXPLANATION : REPORT_EXPLANATION : '')
     + `Evaluated revision: ${code(identity.subject?.revision ?? identity.subjectRevision ?? 'not recorded')}\n\n`
-    + (envelope.schema === 'ops.jev.issue-result.v2' ? presentationText(envelope.presentation) : '')
+    + (selfContained ? presentationText(envelope.presentation)
+      + (envelope.schema === RESULT_V3 ? thetaText(envelope) : '') + '### Model observations\n\n' : '')
     + '| Case / check | Axis | Status | Jev value |\n|---|---|---|---|\n' + rows.join('\n') + '\n\n'
     + 'OBSERVED means a model response was recorded, not that a claim is true or a change is required. '
     + (selfContained ? 'Read the questions and criteria above and the supplied source scope before deciding what to change. '
@@ -86,7 +111,7 @@ export function parseResultComment(body) {
     if (body.startsWith(RESULT_PREFIX)) {
       const envelope = JSON.parse(body.slice(RESULT_PREFIX.length));
       // Preserve legacy extraction; N1/readback own its closed-shape validation. New v2 requires its canonical display.
-      return envelope?.schema === 'ops.jev.issue-result.v2' ? null : envelope;
+      return envelope?.schema === RESULT_V2 || envelope?.schema === RESULT_V3 ? null : envelope;
     }
     const marker = body.indexOf(RESULT_PREFIX);
     if (marker < 0 || !body.endsWith(EVIDENCE_CLOSE)) return null;
@@ -512,10 +537,11 @@ export function nextIssueEffect(request, prior = null) {
   return { effect: 'NONE', cause: 'ATTEMPT_REQUIRES_RECONCILIATION' };
 }
 
-export function composeResultComment(request, resultValue) {
+export function composeResultComment(request, resultValue, providedSchema = RESULT_V3) {
   if (!requests.has(request)) throw new Error('REQUEST_NOT_ADMITTED');
+  if (providedSchema !== RESULT_V3 && providedSchema !== RESULT_V2) throw new Error('RESULT_SCHEMA_UNSUPPORTED');
   const output = validateOwnerResult(request.prepared, resultValue);
-  const body = resultComment(resultEnvelope(request, output));
+  const body = resultComment(resultEnvelope(request, output, providedSchema));
   if (Buffer.byteLength(body, 'utf8') > RESULT_BYTE_CAP) throw new Error('RESULT_COMMENT_TOO_LARGE');
   return body;
 }
@@ -531,8 +557,8 @@ export function verifyResultReadback(request, expectedBody, observedValue, trust
     if (edition === null || envelope.requestDigest !== request.requestDigest
       || envelope.authority !== false || JSON.stringify(envelope.identity) !== JSON.stringify(request.identity)) return false;
     validateOwnerResult(request.prepared, envelope.result);
-    if (edition === 2) {
-      if (composeResultComment(request, envelope.result) !== expectedBody) return false;
+    if (edition === 2 || edition === 3) {
+      if (composeResultComment(request, envelope.result, envelope.schema) !== expectedBody) return false;
     } else if (resultJSON(envelope) !== expectedBody && resultComment(envelope) !== expectedBody
       && resultComment(envelope, false) !== expectedBody) return false;
   } catch { return false; }
