@@ -392,18 +392,18 @@ const RUN_HEAD = 'c'.repeat(40), WORKFLOW_PATH = '.github/workflows/jev-issue-co
 const WORKFLOW = (() => {
   let text = repoFile(WORKFLOW_PATH).replaceAll(/(ref:\s*|runtime_source=)[0-9a-f]{40}/g, `$1${SHA}`);
   const historicalMetadata = [
-    ["      ((github.event.comment.body == '/jev-evaluate' &&\n      (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606)) ||", "      (github.event.comment.body == '/jev-evaluate' ||"],
+    ["      ((github.event.comment.body == '/jev-evaluate' &&\n      (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)) ||", "      (github.event.comment.body == '/jev-evaluate' ||"],
     ['# One PR budget claim across a finite ordinal window; no refill.',
       '# One projected Org slot; no Repository/Environment copy.'],
     ['# Historical grants remain; no rerun spending or automatic ordinal following.',
       '# Initial four-call history plus 200 authorized additions; no rerun spending.'],
-    ['# Closed Org origins; PR625 accepts supplied input for one separate finite Goal-specific trial.',
+    ['# Closed Org origins; PR629 literal bootstrap only; no provided request grant.',
       '# Guard binds Org Ops483/envs52/PR511/PR522; runtime is published target-bound source.'],
-    ["      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 625 &&",
+    ["      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 606 &&",
       "      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 522 &&"],
     ["((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) ||",
       "((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) ||"],
-    ['      (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)))',
+    ['      (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)))',
       '      (github.event.issue.number == 511 || github.event.issue.number == 522)))'],
   ];
   for (const [current, historical] of historicalMetadata) {
