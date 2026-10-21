@@ -170,6 +170,32 @@ separate authorization. Unverified causes stay in the private projection, outsid
 stdout. These hints do not change admission or resolve missing
 observations. They never instruct an automatic retry or post.
 
+Before a later review, use the existing artifacts as this input map:
+
+- **Questions and conditions:** in `projection.json`, match `mapping[].id` to
+  `checks[].id`. `mapping[].originalQuestion` keeps the Plan wording;
+  `checks[].predicate` holds the projected question and criteria. Mapping
+  `true` means problem and `false` means ok. Review `offWireQualifiers` and
+  `notLowered.unknown` too: these are retained locally, not separate wire criteria.
+- **Supplied context:** `checks[].requiredRoles` declares dependencies. When
+  present, `mapping[].sharedContextRefs` lists the context shared by all checks;
+  it does not prove support or model use. Inspect the envelope's actual context
+  contents rather than assuming every Plan observation was carried.
+- **Not assessed:** inspect `notProjected` and its reasons/needs,
+  `unprojectedClauses`, `unquotedGoalText` and `missing`. These preserve withheld
+  questions, uncovered clauses/text and unresolved needs; they are not successful
+  evaluation results. The whole Goal is not the model input. When an envelope
+  exists, `goal.onWire` records whether its context includes the Goal text;
+  local coverage records remain local.
+- **Prepared request:** when emittable, `command.txt` contains the exact request.
+  After `/jev-evaluate` and its newline, inspect JSON `cases[].input.subject`,
+  `.context` and `.checks` for what the command supplies. Otherwise inspect
+  `projection.envelope` when present; its absence is not an empty evaluation.
+  This is a prepared request, not an HTTP capture or proof of execution: the
+  runtime can transform it before model submission. `envelopeSha256` hashes the
+  exact command string, including its prefix; do not compare it with a digest
+  defined over `JSON.stringify(body)` or another JSON object.
+
 ### Reading GitHub results
 
 For admitted provided requests, the existing bot posts one human-readable result with its bound JSON evidence folded below it. Literal/no-grant results keep their historical JSON-only format and size admission. `parseResultComment` reads both formats. Callers must still validate the request identity, author, result and exact readback; parsing is not admission. A Jev value or `OBSERVED` status is not a verified finding, approval or repair instruction. The request link supplies the actual questions and scope. Nothing here posts a second summary, recalls a provider, or resumes an automation.
