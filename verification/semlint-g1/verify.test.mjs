@@ -69,8 +69,8 @@ test('constant extraction: exactly one top-level numeric export, otherwise a clo
   assert.deepEqual(extractNumericConstant('export const OTHER = 1;\n', 'SEMLINT_THETA'), { status: 'ABSENT' });
   assert.equal(extractNumericConstant(SRC + 'export const SEMLINT_THETA = 0.6;\n', 'SEMLINT_THETA').status, 'AMBIGUOUS');
   assert.equal(extractNumericConstant(SRC.replace('0.5;', 'Number("0.5");'), 'SEMLINT_THETA').status, 'NOT_NUMERIC_LITERAL');
-  // Reassignment elsewhere makes the literal untrustworthy.
-  assert.equal(extractNumericConstant('export let SEMLINT_THETA = 0.5;\nSEMLINT_THETA = 0.9;\n', 'SEMLINT_THETA').status, 'NOT_NUMERIC_LITERAL');
+  // A mutable binding or a reassignment elsewhere makes the literal untrustworthy.
+  assert.equal(extractNumericConstant('export let SEMLINT_THETA = 0.5;\n', 'SEMLINT_THETA').status, 'NOT_NUMERIC_LITERAL');
   assert.equal(extractNumericConstant(SRC + 'SEMLINT_THETA = 0.9;\n', 'SEMLINT_THETA').status, 'AMBIGUOUS');
 });
 
