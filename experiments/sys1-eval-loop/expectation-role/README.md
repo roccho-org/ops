@@ -1,4 +1,39 @@
-# 十負結果を保持し、固定D3 Coreへ役割の合成対比を加える
+# 十一の負結果を保持し、分類とラベル照合の構造案を反証する
+
+## D11：合成対比追加でもfresh2/歴史10退行で未採用
+
+[run39555236373](https://github.com/roccho-org/ops/actions/runs/39555236373)をsource1d136e71/REQUEST-only activationddd10a59/development11・history11から一回実行した。BestE626＋native binary contrastE626＝1252HTTP/1252原回答は全資格/modelStable、unknown0。原job119073367838の鍵前752/752fail0、prepare/execute/project/uploadはSUCCESSだが意味合格でない。
+
+joint477→500・修復25/退行2、E584→608・修復26/退行2。freshE退行はcensus-072/expectation-027、歴史618保護破壊はheld-158、census-023/072/093/173/210、expectation-004/024/027/028の10件。正差で退行を相殺せずDEVELOPMENT_GUARD_FAIL/未採用、O-null17/全626/元Goldを保持。selection/実要求freeze無し、未使用H count/body/Gold0。
+
+root/Rが自己provider ZIP/nativehistory11/全1252Core・strictbinary資格・全618/freshguard/usageを独立再算術し、全8projection fieldsがW再生と一致。原5全28,787,939B＋provider/readback/root原reportをresults/expectation-contrast-development11-20261021/へ原bytes保持、新closed1で全投影を再現する。effect/REQUEST/全旧plans/raw/Gold/SDK/client/Core/batch/recorder/qualifier/YAML不変。[root source/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595655750)・[R source/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595614822)。現保持head全通常CI成功を先取りせず、実作用source1d13の752成功と区別する。中間負保持CI/Readyを次sourceのgateにせず、目的最終current全CI/会計/記録/Ready未mergeは最後に閉じる。
+
+当回input3,004,786/output38,812が全1252HTTPで既知、total_tokens全1252・金額/内部計算量は不明。candidate原binary回答はprovider receiptそのものでOR/枝usage複製はない。D1..D11累積physicalHTTP13,772/qualifiedHTTP13,767、input既知小計28,440,211/output既知小計495,545・各5post不明、total_tokens全13,772不明を保持する。
+
+三者が原10本文/元E rubricと選択を読戻してGold維持。7FNは自己の必要行為/表示IO・引用された真正指示/機能と利用条件/HTML提出指示の宣言を落とし、3FPは症状・観測回避・欠落だけから未記載要求を補ったもの。3対比で全coverageを得た証拠はなく、英語/長さ/基底/経路bundleの原因分離もできない。旧D3を再採用/救済せず、適応D過適合と同一case反復を記録する。
+
+次履歴17016 qualified E evidence＝14517binary＋621role4derived＋626splitderived＋626partitionderived＋626linesderived、physical17021/invalid5別、全618/追加0。旧D11guardに遡及せず、ever-correct保護を不偏性能や達成保証と呼ばない。
+
+次はrootが分類→ラベル正誤照合を提案し、W/Rが『支持不足/不確かは逆ラベルの真でない』と反証。構造案は、元BestEの当回実yes/noが元E真偽条件に一致するかを別nativebinaryで判定し、両strict資格後だけ維持/反転するderivedEとして精密化した。qualified Noは“不一致というモデルの判断”であり、hidden uncertaintyをコードが検出できる保証や自己正しさ証明ではない。technicalUNKNOWNは反転しない。Wが旧回転順のままではchecker先行不可、baseline欠測時のgapped schedule/未attempt未post/継続を新閉contextで明示し、旧loop/rawを変えないとcounter。両labelの全文wireを実測前固定し、実baseline choiceへ依存を結合する必要がある。
+
+この別構造は三者が支持方向だが、literal/全Core/実装は未固定・未実装。順序/共有/ラベル照合/合成は一packageで、同意bias/誤反転/相関・元意味難度/同原価非保証は残る。Gold/閾値/旧負結果/H窓を変えて救済せず、独立Goldの全guardを次候補にも適用する。実guardPASS/原版/実要求freeze三者後だけ封印Hへ進み、有限固定Gold条件付きの二回AND近似と共通raterbias等の限界を維持する。
+
+~~~mermaid
+flowchart TB
+ A[✅ D11全文固定/752必要CI/三者] --> B[✅ 一回1252nativebinary/全資格]
+ B --> F[❌ fresh2/歴史10退行・未採用]
+ F --> R[✅ 原5/全8投影/Gold/費用保持]
+ R --> C[⏳ 別構造counter/両label全文固定]
+ C --> D[最小閉context/必要CI/別固定D]
+ D -->|未達/unknown| R
+ D -->|全guardPASS/実要求freeze| H[🔒 未使用H/盲検Gold/二回AND]
+ H -->|未達/unknown| RET[当H退役/別仮説・未使用契約]
+ RET --> C
+ H -->|両回成立| Z[目的最終current全CI/記録/Ready未merge]
+~~~
+
+以下はD11 source公開時点までの記録。モデル0/CIpending等は当時の状態である。
+
 
 ## D11 code-only：未実施のcoverage介入を一packageとして固定する
 
