@@ -1,10 +1,42 @@
-# 四候補の負結果を保持し、英語のE存在判定を別処置で検証
+# E判定の五処置の負結果を保持し、構造仮説へ継続
+
+## D5英語再定式化：正差24でもfresh退行8・歴史破壊10で不受容
+
+[development5の一回の実run](https://github.com/roccho-org/ops/actions/runs/39530464600)はsource e86b9b8 / REQUEST-only activation bd28a3f / phase development5・履歴5で実行した。全1252要求が資格とexpected modelを満たしunknown0。fresh complete475→499（修復32/退行8）、E582→607（修復33/退行8）。fresh退行8（census-072/078/080/108/146/153/178、expectation-027）と、原611保護内破壊10（同8＋census-023/093）によりDEVELOPMENT_GUARD_FAIL。正差24で相殺しない。機械first477/E585は別診断、O-null17/全626分母を保持する。
+
+root/Rは各自provider ZIP/native実Git親/REQUEST phase5を取得し、別readerで全1252期待Core/flags/資格/611guard/usageを再計算した。W原bytes/製品再生も一致。原5全22,289,214Bをresults/expectation-declaration-development5-20261021/へ保存。実job118994928968全stepsSUCCESS・鍵前704/704は意味受容ではない。selection/成功要求freezeを発行せず、新H count/body/Goldは未開封。旧4と新D5の原604/607/607/610/611・schema/Core/全projection/outcomeを固定再生し、後の保護で過去失敗を救済しない。
+
+当回物理1252/input2,227,920/output38,812、total_tokens全1252欠測。PR624 D1..D5実消費は6260/input13,420,744/output194,060、total_tokens6260欠測。8060はD5 source時点の最大割当で実消費ではない。歴史8257 E/O aliasや未実施Hを新費用へ加算せず、料金/内部計算量は不明。原qualified Coreと標準clientからpayloadを再構成した照合であって、実HTTP body全bytesを捕捉したとは言わない。旧Best維持・未採用、現head最終通常CI/記録/Readyは別に閉じる。
+
+失敗10本文を元rubricで再読しGold不変。fresh8は観測・不満・実施報告等を要求へ昇格したFP7と、明示された期待条件を落とすFN1。残るUI宣言FNと操作観測FPも保持。英語3fieldsの一体変更は部分修復と破壊を伴い、英語単独/圧縮単独の因果は特定できない。Wは3literalをsource前固定し、root/Rは各自己原Coreから独立期待Core/payloadを固定して照合したという担当の違いを明示する。
+
+次の工学的保護は原9509 Eから617へ（追加held-158、census-117/173/210、expectation-004/028）。W/root/Rの全ordered保護ID一致は次sourceだけの出力前条件で、今回611へ遡及しない。ever-correctは不偏性能推定/到達保証ではない。次は文字列追記だけでなく、E_ONLY/O_ONLY/BOTH/NEITHERの四択role分類→E固定射影という課題構造を反証する。candidateOは診断だけで、D原historicalO/H当回fresh sharedOを置換しない。原4choice/4確率/model/usageを保存し、derivedEへproviderのconfidence/probability/model/usageを捏造しない。混合軸干渉再導入/複雑化リスク、資格形式変更と旧全原版不変を、literalと実sourceで三者反証してから次処置を固定する。新作用/H開示はない。
+
+```mermaid
+flowchart TB
+ OLD[✅ 原4処置FAIL/旧契約固定] --> SRC[✅ D5source/704CI/三者counter]
+ SRC --> RUN[✅ 一回1252/全資格model一致]
+ RUN --> FAIL[❌ 正差24もfresh8/歴史10破壊]
+ FAIL --> RAW[✅ 原5/独立算術/全会計/H封印]
+ RAW --> END[⏳ 最終current全CI/記録/Ready未merge]
+ RAW --> COUNTER[⏳ 三者の構造仮説反証]
+ COUNTER --> SOURCE[⏳ literal/原Core/資格/必要CIを固定]
+ SOURCE --> D[⏳ 別処置の有限一回]
+ D -->|未達/unknown| COUNTER
+ D -->|原guard成功/実要求freeze| H[⏳ 未使用H/予測前Gold/同3M二回AND]
+ H -->|未達| RET[当H退役/別未使用H契約]
+ RET --> COUNTER
+```
+
+Hは観測した862typed/2033exact/2371canonical参照規則と固定Gold上の有限改善近似に限り、意味的未見/Gold無謬/独立標本/母性能/Apps E2E/同原価を保証しない。以下はD5 source時点と旧処置の固定記録であり、当時の未完表示を現状と混同しない。
+
+## D5 source時点の記録
 
 ## D5固定DECLARATION context（code-only）
 
 候補instructionsとyes/no criteriaだけを1118字の英語説明＋114字のyes/noへ一体で全置換する。旧日本語suffix/5例をappendせず、question/key/二択の形・BestE/sharedO・model/client・全本文/Goldは全値保持する。言語/文言/圧縮/役割構成のbundleであり、英語や短文化単独の原因を主張しない。本文へ役割hintやID/語句例外を追加しない。
 
-Wは例の継ぎ足しより全体整合を反証する別案として選択し、完了状態という表現が実施報告をEへ昇格させる穴を指摘した。rootは因果的な観測をIO仕様へ昇格させる穴を反証し、Rはnoが列挙された観測等だけの否定になる穴をANYの完全否定へ是正した。HTML commentsの入力境界、formulas、IOが本文でspecificationとして提示される役割をW/root/Rで精密化し、元の真正な提出/回答/回復/婉曲依頼・現責務を狭めない全文を各自の原Coreから出力前固定した。specificationは公式文書/採用済み/future/must必須という意味ではない。観測結果や回避だけから未記載要求を補わず、引用/例も形式でなく本文の用途で判断する。[root原負保持と次仮説](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593939574)・[R独立反証](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593941852)。
+Wは例の継ぎ足しより全体整合を反証する別案として選択し、完了状態という表現が実施報告をEへ昇格させる穴を指摘した。rootは因果的な観測をIO仕様へ昇格させる穴を反証し、Rはnoが列挙された観測等だけの否定になる穴をANYの完全否定へ是正した。HTML commentsの入力境界、formulas、IOが本文でspecificationとして提示される役割をW/root/Rで精密化し、元の真正な提出/回答/回復/婉曲依頼・現責務を狭めない3literalをWがsource前固定し、root/Rが各自己原Coreから期待全文を独立固定した。specificationは公式文書/採用済み/future/must必須という意味ではない。観測結果や回避だけから未記載要求を補わず、引用/例も形式でなく本文の用途で判断する。[root原負保持と次仮説](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593939574)・[R独立反証](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593941852)。
 
 原8257 Eの全626 case/611正答を保護し、freshBestEと候補E各626=1252を同じfixed historicalOで比較する非同時D診断。全資格/expectedmodel・完全joint正差・歴史611破壊0・freshE退行0を別AND、機械firstは別診断、O-null17を全分母に残す。旧4contextの604/607/607/610・Core/schema/historyScope/guard/outcome/usageScopeは全field再生して不変、611へ遡及しない。ever-correct保護は不偏性能推定/到達可能性保証ではない。
 

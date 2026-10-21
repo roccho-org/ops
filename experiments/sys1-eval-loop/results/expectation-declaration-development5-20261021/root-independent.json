@@ -1,0 +1,2702 @@
+{
+  "schema": "root.declaration-development5-raw-independent.v1",
+  "inputDigest": "dc321e84b91fdd5bbaa59eebdafa2e4a6bd814c2774be2eddc8239d88f036a8f",
+  "execution": {
+    "source": "e86b9b8bef2c062da184bcbb76e436a9d2fa58ee",
+    "activation": "bd28a3f734b0d62a42687cdf337d801584e8a37c",
+    "runUrl": "https://github.com/roccho-org/ops/actions/runs/39530464600"
+  },
+  "effectCounts": {
+    "assigned": 1252,
+    "attempts": 1252,
+    "actualPosts": 1252,
+    "qualified": 1252,
+    "unknown": 0,
+    "unattempted": 0
+  },
+  "guard": {
+    "assigned": 626,
+    "physicalAssigned": 1252,
+    "resolvedJoint": 609,
+    "unresolvedGold": [
+      "held-026",
+      "held-029",
+      "held-126",
+      "held-142",
+      "held-168",
+      "held-184",
+      "held-242",
+      "census-002",
+      "census-004",
+      "census-008",
+      "census-010",
+      "census-028",
+      "census-115",
+      "census-118",
+      "census-138",
+      "census-171",
+      "expectation-001"
+    ],
+    "baselineCorrect": 475,
+    "candidateCorrect": 499,
+    "firstAnchorCorrect": 477,
+    "repaired": [
+      "held-086",
+      "held-158",
+      "census-003",
+      "census-012",
+      "census-018",
+      "census-019",
+      "census-053",
+      "census-057",
+      "census-089",
+      "census-095",
+      "census-117",
+      "census-173",
+      "census-208",
+      "census-210",
+      "expectation-004",
+      "expectation-013",
+      "expectation-014",
+      "expectation-017",
+      "expectation-020",
+      "expectation-028",
+      "expectation-034",
+      "expectation-043",
+      "expectation-044",
+      "expectation-045",
+      "expectation-052",
+      "expectation-056",
+      "expectation-057",
+      "expectation-059",
+      "expectation-070",
+      "expectation-082",
+      "expectation-093",
+      "expectation-116"
+    ],
+    "regressed": [
+      "census-072",
+      "census-078",
+      "census-080",
+      "census-108",
+      "census-146",
+      "census-153",
+      "census-178",
+      "expectation-027"
+    ],
+    "E": {
+      "baselineCorrect": 582,
+      "candidateKnownCorrect": 607,
+      "firstAnchorCorrect": 585,
+      "repaired": [
+        "held-086",
+        "held-158",
+        "census-003",
+        "census-012",
+        "census-018",
+        "census-019",
+        "census-053",
+        "census-057",
+        "census-089",
+        "census-095",
+        "census-117",
+        "census-173",
+        "census-208",
+        "census-210",
+        "expectation-004",
+        "expectation-013",
+        "expectation-014",
+        "expectation-017",
+        "expectation-020",
+        "expectation-028",
+        "expectation-034",
+        "expectation-043",
+        "expectation-044",
+        "expectation-045",
+        "expectation-052",
+        "expectation-056",
+        "expectation-057",
+        "expectation-059",
+        "expectation-070",
+        "expectation-082",
+        "expectation-093",
+        "expectation-096",
+        "expectation-116"
+      ],
+      "regressed": [
+        "census-072",
+        "census-078",
+        "census-080",
+        "census-108",
+        "census-146",
+        "census-153",
+        "census-178",
+        "expectation-027"
+      ]
+    },
+    "derived": [
+      {
+        "id": "held-001",
+        "E": "yes"
+      },
+      {
+        "id": "held-002",
+        "E": "yes"
+      },
+      {
+        "id": "held-003",
+        "E": "yes"
+      },
+      {
+        "id": "held-004",
+        "E": "yes"
+      },
+      {
+        "id": "held-005",
+        "E": "yes"
+      },
+      {
+        "id": "held-006",
+        "E": "yes"
+      },
+      {
+        "id": "held-007",
+        "E": "yes"
+      },
+      {
+        "id": "held-008",
+        "E": "yes"
+      },
+      {
+        "id": "held-009",
+        "E": "yes"
+      },
+      {
+        "id": "held-010",
+        "E": "yes"
+      },
+      {
+        "id": "held-011",
+        "E": "yes"
+      },
+      {
+        "id": "held-012",
+        "E": "yes"
+      },
+      {
+        "id": "held-013",
+        "E": "yes"
+      },
+      {
+        "id": "held-014",
+        "E": "yes"
+      },
+      {
+        "id": "held-015",
+        "E": "yes"
+      },
+      {
+        "id": "held-016",
+        "E": "yes"
+      },
+      {
+        "id": "held-017",
+        "E": "yes"
+      },
+      {
+        "id": "held-018",
+        "E": "yes"
+      },
+      {
+        "id": "held-019",
+        "E": "yes"
+      },
+      {
+        "id": "held-020",
+        "E": "yes"
+      },
+      {
+        "id": "held-021",
+        "E": "yes"
+      },
+      {
+        "id": "held-022",
+        "E": "yes"
+      },
+      {
+        "id": "held-023",
+        "E": "yes"
+      },
+      {
+        "id": "held-024",
+        "E": "yes"
+      },
+      {
+        "id": "held-025",
+        "E": "yes"
+      },
+      {
+        "id": "held-026",
+        "E": "yes"
+      },
+      {
+        "id": "held-027",
+        "E": "yes"
+      },
+      {
+        "id": "held-028",
+        "E": "yes"
+      },
+      {
+        "id": "held-029",
+        "E": "yes"
+      },
+      {
+        "id": "held-030",
+        "E": "yes"
+      },
+      {
+        "id": "held-031",
+        "E": "yes"
+      },
+      {
+        "id": "held-032",
+        "E": "yes"
+      },
+      {
+        "id": "held-033",
+        "E": "yes"
+      },
+      {
+        "id": "held-034",
+        "E": "yes"
+      },
+      {
+        "id": "held-035",
+        "E": "yes"
+      },
+      {
+        "id": "held-036",
+        "E": "yes"
+      },
+      {
+        "id": "held-037",
+        "E": "yes"
+      },
+      {
+        "id": "held-038",
+        "E": "yes"
+      },
+      {
+        "id": "held-039",
+        "E": "yes"
+      },
+      {
+        "id": "held-040",
+        "E": "yes"
+      },
+      {
+        "id": "held-041",
+        "E": "yes"
+      },
+      {
+        "id": "held-042",
+        "E": "yes"
+      },
+      {
+        "id": "held-043",
+        "E": "yes"
+      },
+      {
+        "id": "held-044",
+        "E": "yes"
+      },
+      {
+        "id": "held-045",
+        "E": "yes"
+      },
+      {
+        "id": "held-046",
+        "E": "yes"
+      },
+      {
+        "id": "held-047",
+        "E": "yes"
+      },
+      {
+        "id": "held-048",
+        "E": "yes"
+      },
+      {
+        "id": "held-049",
+        "E": "yes"
+      },
+      {
+        "id": "held-050",
+        "E": "yes"
+      },
+      {
+        "id": "held-051",
+        "E": "yes"
+      },
+      {
+        "id": "held-052",
+        "E": "yes"
+      },
+      {
+        "id": "held-053",
+        "E": "yes"
+      },
+      {
+        "id": "held-054",
+        "E": "no"
+      },
+      {
+        "id": "held-055",
+        "E": "yes"
+      },
+      {
+        "id": "held-056",
+        "E": "yes"
+      },
+      {
+        "id": "held-057",
+        "E": "yes"
+      },
+      {
+        "id": "held-058",
+        "E": "yes"
+      },
+      {
+        "id": "held-059",
+        "E": "yes"
+      },
+      {
+        "id": "held-060",
+        "E": "yes"
+      },
+      {
+        "id": "held-061",
+        "E": "yes"
+      },
+      {
+        "id": "held-062",
+        "E": "yes"
+      },
+      {
+        "id": "held-063",
+        "E": "yes"
+      },
+      {
+        "id": "held-064",
+        "E": "yes"
+      },
+      {
+        "id": "held-065",
+        "E": "yes"
+      },
+      {
+        "id": "held-066",
+        "E": "yes"
+      },
+      {
+        "id": "held-067",
+        "E": "yes"
+      },
+      {
+        "id": "held-068",
+        "E": "yes"
+      },
+      {
+        "id": "held-069",
+        "E": "yes"
+      },
+      {
+        "id": "held-070",
+        "E": "yes"
+      },
+      {
+        "id": "held-071",
+        "E": "yes"
+      },
+      {
+        "id": "held-072",
+        "E": "yes"
+      },
+      {
+        "id": "held-073",
+        "E": "yes"
+      },
+      {
+        "id": "held-074",
+        "E": "yes"
+      },
+      {
+        "id": "held-075",
+        "E": "yes"
+      },
+      {
+        "id": "held-076",
+        "E": "yes"
+      },
+      {
+        "id": "held-077",
+        "E": "yes"
+      },
+      {
+        "id": "held-078",
+        "E": "yes"
+      },
+      {
+        "id": "held-079",
+        "E": "no"
+      },
+      {
+        "id": "held-080",
+        "E": "yes"
+      },
+      {
+        "id": "held-081",
+        "E": "yes"
+      },
+      {
+        "id": "held-082",
+        "E": "yes"
+      },
+      {
+        "id": "held-083",
+        "E": "yes"
+      },
+      {
+        "id": "held-084",
+        "E": "yes"
+      },
+      {
+        "id": "held-085",
+        "E": "yes"
+      },
+      {
+        "id": "held-086",
+        "E": "yes"
+      },
+      {
+        "id": "held-087",
+        "E": "yes"
+      },
+      {
+        "id": "held-088",
+        "E": "yes"
+      },
+      {
+        "id": "held-089",
+        "E": "yes"
+      },
+      {
+        "id": "held-090",
+        "E": "yes"
+      },
+      {
+        "id": "held-091",
+        "E": "yes"
+      },
+      {
+        "id": "held-092",
+        "E": "yes"
+      },
+      {
+        "id": "held-093",
+        "E": "yes"
+      },
+      {
+        "id": "held-094",
+        "E": "yes"
+      },
+      {
+        "id": "held-095",
+        "E": "yes"
+      },
+      {
+        "id": "held-096",
+        "E": "yes"
+      },
+      {
+        "id": "held-097",
+        "E": "yes"
+      },
+      {
+        "id": "held-098",
+        "E": "yes"
+      },
+      {
+        "id": "held-099",
+        "E": "yes"
+      },
+      {
+        "id": "held-100",
+        "E": "yes"
+      },
+      {
+        "id": "held-101",
+        "E": "yes"
+      },
+      {
+        "id": "held-102",
+        "E": "yes"
+      },
+      {
+        "id": "held-103",
+        "E": "yes"
+      },
+      {
+        "id": "held-104",
+        "E": "yes"
+      },
+      {
+        "id": "held-105",
+        "E": "yes"
+      },
+      {
+        "id": "held-106",
+        "E": "yes"
+      },
+      {
+        "id": "held-107",
+        "E": "yes"
+      },
+      {
+        "id": "held-108",
+        "E": "yes"
+      },
+      {
+        "id": "held-109",
+        "E": "yes"
+      },
+      {
+        "id": "held-110",
+        "E": "yes"
+      },
+      {
+        "id": "held-111",
+        "E": "yes"
+      },
+      {
+        "id": "held-112",
+        "E": "yes"
+      },
+      {
+        "id": "held-113",
+        "E": "yes"
+      },
+      {
+        "id": "held-114",
+        "E": "yes"
+      },
+      {
+        "id": "held-115",
+        "E": "yes"
+      },
+      {
+        "id": "held-116",
+        "E": "yes"
+      },
+      {
+        "id": "held-117",
+        "E": "yes"
+      },
+      {
+        "id": "held-118",
+        "E": "yes"
+      },
+      {
+        "id": "held-119",
+        "E": "yes"
+      },
+      {
+        "id": "held-120",
+        "E": "yes"
+      },
+      {
+        "id": "held-121",
+        "E": "yes"
+      },
+      {
+        "id": "held-122",
+        "E": "yes"
+      },
+      {
+        "id": "held-123",
+        "E": "yes"
+      },
+      {
+        "id": "held-124",
+        "E": "yes"
+      },
+      {
+        "id": "held-125",
+        "E": "yes"
+      },
+      {
+        "id": "held-126",
+        "E": "yes"
+      },
+      {
+        "id": "held-127",
+        "E": "yes"
+      },
+      {
+        "id": "held-128",
+        "E": "yes"
+      },
+      {
+        "id": "held-129",
+        "E": "yes"
+      },
+      {
+        "id": "held-130",
+        "E": "yes"
+      },
+      {
+        "id": "held-131",
+        "E": "yes"
+      },
+      {
+        "id": "held-132",
+        "E": "yes"
+      },
+      {
+        "id": "held-133",
+        "E": "yes"
+      },
+      {
+        "id": "held-134",
+        "E": "yes"
+      },
+      {
+        "id": "held-135",
+        "E": "yes"
+      },
+      {
+        "id": "held-136",
+        "E": "yes"
+      },
+      {
+        "id": "held-137",
+        "E": "yes"
+      },
+      {
+        "id": "held-138",
+        "E": "yes"
+      },
+      {
+        "id": "held-139",
+        "E": "yes"
+      },
+      {
+        "id": "held-140",
+        "E": "yes"
+      },
+      {
+        "id": "held-141",
+        "E": "no"
+      },
+      {
+        "id": "held-142",
+        "E": "yes"
+      },
+      {
+        "id": "held-143",
+        "E": "yes"
+      },
+      {
+        "id": "held-144",
+        "E": "yes"
+      },
+      {
+        "id": "held-145",
+        "E": "yes"
+      },
+      {
+        "id": "held-146",
+        "E": "yes"
+      },
+      {
+        "id": "held-147",
+        "E": "yes"
+      },
+      {
+        "id": "held-148",
+        "E": "yes"
+      },
+      {
+        "id": "held-149",
+        "E": "yes"
+      },
+      {
+        "id": "held-150",
+        "E": "yes"
+      },
+      {
+        "id": "held-151",
+        "E": "yes"
+      },
+      {
+        "id": "held-152",
+        "E": "yes"
+      },
+      {
+        "id": "held-153",
+        "E": "yes"
+      },
+      {
+        "id": "held-154",
+        "E": "yes"
+      },
+      {
+        "id": "held-155",
+        "E": "yes"
+      },
+      {
+        "id": "held-156",
+        "E": "yes"
+      },
+      {
+        "id": "held-157",
+        "E": "yes"
+      },
+      {
+        "id": "held-158",
+        "E": "yes"
+      },
+      {
+        "id": "held-159",
+        "E": "yes"
+      },
+      {
+        "id": "held-160",
+        "E": "yes"
+      },
+      {
+        "id": "held-161",
+        "E": "yes"
+      },
+      {
+        "id": "held-162",
+        "E": "yes"
+      },
+      {
+        "id": "held-163",
+        "E": "yes"
+      },
+      {
+        "id": "held-164",
+        "E": "yes"
+      },
+      {
+        "id": "held-165",
+        "E": "yes"
+      },
+      {
+        "id": "held-166",
+        "E": "yes"
+      },
+      {
+        "id": "held-167",
+        "E": "yes"
+      },
+      {
+        "id": "held-168",
+        "E": "yes"
+      },
+      {
+        "id": "held-169",
+        "E": "yes"
+      },
+      {
+        "id": "held-170",
+        "E": "yes"
+      },
+      {
+        "id": "held-171",
+        "E": "yes"
+      },
+      {
+        "id": "held-172",
+        "E": "yes"
+      },
+      {
+        "id": "held-173",
+        "E": "yes"
+      },
+      {
+        "id": "held-174",
+        "E": "yes"
+      },
+      {
+        "id": "held-175",
+        "E": "yes"
+      },
+      {
+        "id": "held-176",
+        "E": "yes"
+      },
+      {
+        "id": "held-177",
+        "E": "yes"
+      },
+      {
+        "id": "held-178",
+        "E": "yes"
+      },
+      {
+        "id": "held-179",
+        "E": "yes"
+      },
+      {
+        "id": "held-180",
+        "E": "yes"
+      },
+      {
+        "id": "held-181",
+        "E": "yes"
+      },
+      {
+        "id": "held-182",
+        "E": "yes"
+      },
+      {
+        "id": "held-183",
+        "E": "yes"
+      },
+      {
+        "id": "held-184",
+        "E": "yes"
+      },
+      {
+        "id": "held-185",
+        "E": "yes"
+      },
+      {
+        "id": "held-186",
+        "E": "yes"
+      },
+      {
+        "id": "held-187",
+        "E": "yes"
+      },
+      {
+        "id": "held-188",
+        "E": "yes"
+      },
+      {
+        "id": "held-189",
+        "E": "yes"
+      },
+      {
+        "id": "held-190",
+        "E": "yes"
+      },
+      {
+        "id": "held-191",
+        "E": "yes"
+      },
+      {
+        "id": "held-192",
+        "E": "yes"
+      },
+      {
+        "id": "held-193",
+        "E": "no"
+      },
+      {
+        "id": "held-194",
+        "E": "yes"
+      },
+      {
+        "id": "held-195",
+        "E": "yes"
+      },
+      {
+        "id": "held-196",
+        "E": "yes"
+      },
+      {
+        "id": "held-197",
+        "E": "yes"
+      },
+      {
+        "id": "held-198",
+        "E": "yes"
+      },
+      {
+        "id": "held-199",
+        "E": "yes"
+      },
+      {
+        "id": "held-200",
+        "E": "yes"
+      },
+      {
+        "id": "held-201",
+        "E": "yes"
+      },
+      {
+        "id": "held-202",
+        "E": "yes"
+      },
+      {
+        "id": "held-203",
+        "E": "yes"
+      },
+      {
+        "id": "held-204",
+        "E": "yes"
+      },
+      {
+        "id": "held-205",
+        "E": "yes"
+      },
+      {
+        "id": "held-206",
+        "E": "yes"
+      },
+      {
+        "id": "held-207",
+        "E": "yes"
+      },
+      {
+        "id": "held-208",
+        "E": "yes"
+      },
+      {
+        "id": "held-209",
+        "E": "yes"
+      },
+      {
+        "id": "held-210",
+        "E": "yes"
+      },
+      {
+        "id": "held-211",
+        "E": "yes"
+      },
+      {
+        "id": "held-212",
+        "E": "yes"
+      },
+      {
+        "id": "held-213",
+        "E": "yes"
+      },
+      {
+        "id": "held-214",
+        "E": "yes"
+      },
+      {
+        "id": "held-215",
+        "E": "yes"
+      },
+      {
+        "id": "held-216",
+        "E": "yes"
+      },
+      {
+        "id": "held-217",
+        "E": "yes"
+      },
+      {
+        "id": "held-218",
+        "E": "yes"
+      },
+      {
+        "id": "held-219",
+        "E": "yes"
+      },
+      {
+        "id": "held-220",
+        "E": "yes"
+      },
+      {
+        "id": "held-221",
+        "E": "yes"
+      },
+      {
+        "id": "held-222",
+        "E": "yes"
+      },
+      {
+        "id": "held-223",
+        "E": "yes"
+      },
+      {
+        "id": "held-224",
+        "E": "yes"
+      },
+      {
+        "id": "held-225",
+        "E": "yes"
+      },
+      {
+        "id": "held-226",
+        "E": "yes"
+      },
+      {
+        "id": "held-227",
+        "E": "yes"
+      },
+      {
+        "id": "held-228",
+        "E": "yes"
+      },
+      {
+        "id": "held-229",
+        "E": "yes"
+      },
+      {
+        "id": "held-230",
+        "E": "yes"
+      },
+      {
+        "id": "held-231",
+        "E": "yes"
+      },
+      {
+        "id": "held-232",
+        "E": "yes"
+      },
+      {
+        "id": "held-233",
+        "E": "yes"
+      },
+      {
+        "id": "held-234",
+        "E": "yes"
+      },
+      {
+        "id": "held-235",
+        "E": "yes"
+      },
+      {
+        "id": "held-236",
+        "E": "yes"
+      },
+      {
+        "id": "held-237",
+        "E": "yes"
+      },
+      {
+        "id": "held-238",
+        "E": "yes"
+      },
+      {
+        "id": "held-239",
+        "E": "yes"
+      },
+      {
+        "id": "held-240",
+        "E": "yes"
+      },
+      {
+        "id": "held-241",
+        "E": "yes"
+      },
+      {
+        "id": "held-242",
+        "E": "yes"
+      },
+      {
+        "id": "held-243",
+        "E": "yes"
+      },
+      {
+        "id": "held-244",
+        "E": "yes"
+      },
+      {
+        "id": "held-245",
+        "E": "yes"
+      },
+      {
+        "id": "held-246",
+        "E": "yes"
+      },
+      {
+        "id": "held-247",
+        "E": "yes"
+      },
+      {
+        "id": "held-248",
+        "E": "yes"
+      },
+      {
+        "id": "held-249",
+        "E": "yes"
+      },
+      {
+        "id": "held-250",
+        "E": "yes"
+      },
+      {
+        "id": "held-251",
+        "E": "yes"
+      },
+      {
+        "id": "held-252",
+        "E": "yes"
+      },
+      {
+        "id": "held-253",
+        "E": "yes"
+      },
+      {
+        "id": "held-254",
+        "E": "yes"
+      },
+      {
+        "id": "held-255",
+        "E": "yes"
+      },
+      {
+        "id": "held-256",
+        "E": "yes"
+      },
+      {
+        "id": "held-257",
+        "E": "yes"
+      },
+      {
+        "id": "held-258",
+        "E": "yes"
+      },
+      {
+        "id": "held-259",
+        "E": "yes"
+      },
+      {
+        "id": "held-260",
+        "E": "yes"
+      },
+      {
+        "id": "held-261",
+        "E": "yes"
+      },
+      {
+        "id": "held-262",
+        "E": "yes"
+      },
+      {
+        "id": "held-263",
+        "E": "yes"
+      },
+      {
+        "id": "held-264",
+        "E": "yes"
+      },
+      {
+        "id": "held-265",
+        "E": "yes"
+      },
+      {
+        "id": "held-266",
+        "E": "yes"
+      },
+      {
+        "id": "held-267",
+        "E": "no"
+      },
+      {
+        "id": "held-268",
+        "E": "yes"
+      },
+      {
+        "id": "held-269",
+        "E": "yes"
+      },
+      {
+        "id": "held-270",
+        "E": "yes"
+      },
+      {
+        "id": "held-271",
+        "E": "yes"
+      },
+      {
+        "id": "held-272",
+        "E": "yes"
+      },
+      {
+        "id": "held-273",
+        "E": "yes"
+      },
+      {
+        "id": "held-274",
+        "E": "yes"
+      },
+      {
+        "id": "held-275",
+        "E": "yes"
+      },
+      {
+        "id": "held-276",
+        "E": "yes"
+      },
+      {
+        "id": "held-277",
+        "E": "yes"
+      },
+      {
+        "id": "held-278",
+        "E": "yes"
+      },
+      {
+        "id": "held-279",
+        "E": "yes"
+      },
+      {
+        "id": "held-280",
+        "E": "yes"
+      },
+      {
+        "id": "held-281",
+        "E": "yes"
+      },
+      {
+        "id": "held-282",
+        "E": "yes"
+      },
+      {
+        "id": "held-283",
+        "E": "yes"
+      },
+      {
+        "id": "held-284",
+        "E": "yes"
+      },
+      {
+        "id": "held-285",
+        "E": "yes"
+      },
+      {
+        "id": "held-286",
+        "E": "no"
+      },
+      {
+        "id": "held-287",
+        "E": "yes"
+      },
+      {
+        "id": "held-288",
+        "E": "yes"
+      },
+      {
+        "id": "held-289",
+        "E": "yes"
+      },
+      {
+        "id": "held-290",
+        "E": "yes"
+      },
+      {
+        "id": "held-291",
+        "E": "yes"
+      },
+      {
+        "id": "held-292",
+        "E": "yes"
+      },
+      {
+        "id": "held-293",
+        "E": "yes"
+      },
+      {
+        "id": "held-294",
+        "E": "yes"
+      },
+      {
+        "id": "held-295",
+        "E": "yes"
+      },
+      {
+        "id": "held-296",
+        "E": "yes"
+      },
+      {
+        "id": "held-297",
+        "E": "yes"
+      },
+      {
+        "id": "held-298",
+        "E": "yes"
+      },
+      {
+        "id": "held-299",
+        "E": "yes"
+      },
+      {
+        "id": "held-300",
+        "E": "yes"
+      },
+      {
+        "id": "census-001",
+        "E": "yes"
+      },
+      {
+        "id": "census-002",
+        "E": "yes"
+      },
+      {
+        "id": "census-003",
+        "E": "yes"
+      },
+      {
+        "id": "census-004",
+        "E": "yes"
+      },
+      {
+        "id": "census-005",
+        "E": "yes"
+      },
+      {
+        "id": "census-006",
+        "E": "yes"
+      },
+      {
+        "id": "census-007",
+        "E": "yes"
+      },
+      {
+        "id": "census-008",
+        "E": "yes"
+      },
+      {
+        "id": "census-009",
+        "E": "yes"
+      },
+      {
+        "id": "census-010",
+        "E": "yes"
+      },
+      {
+        "id": "census-011",
+        "E": "yes"
+      },
+      {
+        "id": "census-012",
+        "E": "yes"
+      },
+      {
+        "id": "census-013",
+        "E": "yes"
+      },
+      {
+        "id": "census-014",
+        "E": "yes"
+      },
+      {
+        "id": "census-015",
+        "E": "yes"
+      },
+      {
+        "id": "census-017",
+        "E": "yes"
+      },
+      {
+        "id": "census-018",
+        "E": "yes"
+      },
+      {
+        "id": "census-019",
+        "E": "yes"
+      },
+      {
+        "id": "census-020",
+        "E": "yes"
+      },
+      {
+        "id": "census-021",
+        "E": "yes"
+      },
+      {
+        "id": "census-022",
+        "E": "yes"
+      },
+      {
+        "id": "census-023",
+        "E": "no"
+      },
+      {
+        "id": "census-024",
+        "E": "no"
+      },
+      {
+        "id": "census-025",
+        "E": "no"
+      },
+      {
+        "id": "census-026",
+        "E": "no"
+      },
+      {
+        "id": "census-027",
+        "E": "yes"
+      },
+      {
+        "id": "census-028",
+        "E": "yes"
+      },
+      {
+        "id": "census-029",
+        "E": "yes"
+      },
+      {
+        "id": "census-030",
+        "E": "no"
+      },
+      {
+        "id": "census-031",
+        "E": "yes"
+      },
+      {
+        "id": "census-032",
+        "E": "yes"
+      },
+      {
+        "id": "census-033",
+        "E": "yes"
+      },
+      {
+        "id": "census-034",
+        "E": "yes"
+      },
+      {
+        "id": "census-035",
+        "E": "yes"
+      },
+      {
+        "id": "census-036",
+        "E": "yes"
+      },
+      {
+        "id": "census-037",
+        "E": "yes"
+      },
+      {
+        "id": "census-038",
+        "E": "yes"
+      },
+      {
+        "id": "census-039",
+        "E": "yes"
+      },
+      {
+        "id": "census-040",
+        "E": "yes"
+      },
+      {
+        "id": "census-041",
+        "E": "yes"
+      },
+      {
+        "id": "census-042",
+        "E": "yes"
+      },
+      {
+        "id": "census-043",
+        "E": "yes"
+      },
+      {
+        "id": "census-044",
+        "E": "yes"
+      },
+      {
+        "id": "census-045",
+        "E": "yes"
+      },
+      {
+        "id": "census-046",
+        "E": "yes"
+      },
+      {
+        "id": "census-047",
+        "E": "yes"
+      },
+      {
+        "id": "census-048",
+        "E": "yes"
+      },
+      {
+        "id": "census-049",
+        "E": "yes"
+      },
+      {
+        "id": "census-050",
+        "E": "yes"
+      },
+      {
+        "id": "census-051",
+        "E": "yes"
+      },
+      {
+        "id": "census-052",
+        "E": "yes"
+      },
+      {
+        "id": "census-053",
+        "E": "yes"
+      },
+      {
+        "id": "census-054",
+        "E": "yes"
+      },
+      {
+        "id": "census-056",
+        "E": "yes"
+      },
+      {
+        "id": "census-057",
+        "E": "yes"
+      },
+      {
+        "id": "census-058",
+        "E": "yes"
+      },
+      {
+        "id": "census-059",
+        "E": "no"
+      },
+      {
+        "id": "census-060",
+        "E": "yes"
+      },
+      {
+        "id": "census-061",
+        "E": "yes"
+      },
+      {
+        "id": "census-062",
+        "E": "yes"
+      },
+      {
+        "id": "census-063",
+        "E": "yes"
+      },
+      {
+        "id": "census-064",
+        "E": "yes"
+      },
+      {
+        "id": "census-065",
+        "E": "yes"
+      },
+      {
+        "id": "census-066",
+        "E": "yes"
+      },
+      {
+        "id": "census-067",
+        "E": "yes"
+      },
+      {
+        "id": "census-068",
+        "E": "yes"
+      },
+      {
+        "id": "census-069",
+        "E": "yes"
+      },
+      {
+        "id": "census-070",
+        "E": "yes"
+      },
+      {
+        "id": "census-071",
+        "E": "yes"
+      },
+      {
+        "id": "census-072",
+        "E": "yes"
+      },
+      {
+        "id": "census-073",
+        "E": "no"
+      },
+      {
+        "id": "census-074",
+        "E": "yes"
+      },
+      {
+        "id": "census-075",
+        "E": "yes"
+      },
+      {
+        "id": "census-076",
+        "E": "yes"
+      },
+      {
+        "id": "census-077",
+        "E": "no"
+      },
+      {
+        "id": "census-078",
+        "E": "no"
+      },
+      {
+        "id": "census-079",
+        "E": "yes"
+      },
+      {
+        "id": "census-080",
+        "E": "yes"
+      },
+      {
+        "id": "census-081",
+        "E": "yes"
+      },
+      {
+        "id": "census-082",
+        "E": "no"
+      },
+      {
+        "id": "census-083",
+        "E": "no"
+      },
+      {
+        "id": "census-084",
+        "E": "no"
+      },
+      {
+        "id": "census-085",
+        "E": "no"
+      },
+      {
+        "id": "census-086",
+        "E": "yes"
+      },
+      {
+        "id": "census-087",
+        "E": "no"
+      },
+      {
+        "id": "census-088",
+        "E": "yes"
+      },
+      {
+        "id": "census-089",
+        "E": "yes"
+      },
+      {
+        "id": "census-090",
+        "E": "yes"
+      },
+      {
+        "id": "census-091",
+        "E": "no"
+      },
+      {
+        "id": "census-093",
+        "E": "yes"
+      },
+      {
+        "id": "census-094",
+        "E": "yes"
+      },
+      {
+        "id": "census-095",
+        "E": "yes"
+      },
+      {
+        "id": "census-096",
+        "E": "yes"
+      },
+      {
+        "id": "census-097",
+        "E": "yes"
+      },
+      {
+        "id": "census-098",
+        "E": "yes"
+      },
+      {
+        "id": "census-099",
+        "E": "yes"
+      },
+      {
+        "id": "census-100",
+        "E": "no"
+      },
+      {
+        "id": "census-101",
+        "E": "yes"
+      },
+      {
+        "id": "census-102",
+        "E": "yes"
+      },
+      {
+        "id": "census-103",
+        "E": "yes"
+      },
+      {
+        "id": "census-104",
+        "E": "no"
+      },
+      {
+        "id": "census-105",
+        "E": "yes"
+      },
+      {
+        "id": "census-106",
+        "E": "yes"
+      },
+      {
+        "id": "census-107",
+        "E": "yes"
+      },
+      {
+        "id": "census-108",
+        "E": "yes"
+      },
+      {
+        "id": "census-109",
+        "E": "yes"
+      },
+      {
+        "id": "census-110",
+        "E": "yes"
+      },
+      {
+        "id": "census-111",
+        "E": "yes"
+      },
+      {
+        "id": "census-112",
+        "E": "yes"
+      },
+      {
+        "id": "census-113",
+        "E": "no"
+      },
+      {
+        "id": "census-114",
+        "E": "yes"
+      },
+      {
+        "id": "census-115",
+        "E": "no"
+      },
+      {
+        "id": "census-116",
+        "E": "yes"
+      },
+      {
+        "id": "census-117",
+        "E": "yes"
+      },
+      {
+        "id": "census-118",
+        "E": "yes"
+      },
+      {
+        "id": "census-119",
+        "E": "yes"
+      },
+      {
+        "id": "census-120",
+        "E": "no"
+      },
+      {
+        "id": "census-121",
+        "E": "yes"
+      },
+      {
+        "id": "census-122",
+        "E": "yes"
+      },
+      {
+        "id": "census-123",
+        "E": "no"
+      },
+      {
+        "id": "census-124",
+        "E": "yes"
+      },
+      {
+        "id": "census-125",
+        "E": "no"
+      },
+      {
+        "id": "census-126",
+        "E": "no"
+      },
+      {
+        "id": "census-127",
+        "E": "no"
+      },
+      {
+        "id": "census-128",
+        "E": "no"
+      },
+      {
+        "id": "census-129",
+        "E": "no"
+      },
+      {
+        "id": "census-130",
+        "E": "yes"
+      },
+      {
+        "id": "census-131",
+        "E": "yes"
+      },
+      {
+        "id": "census-132",
+        "E": "no"
+      },
+      {
+        "id": "census-133",
+        "E": "no"
+      },
+      {
+        "id": "census-134",
+        "E": "yes"
+      },
+      {
+        "id": "census-135",
+        "E": "yes"
+      },
+      {
+        "id": "census-136",
+        "E": "no"
+      },
+      {
+        "id": "census-137",
+        "E": "yes"
+      },
+      {
+        "id": "census-138",
+        "E": "yes"
+      },
+      {
+        "id": "census-139",
+        "E": "no"
+      },
+      {
+        "id": "census-140",
+        "E": "yes"
+      },
+      {
+        "id": "census-141",
+        "E": "yes"
+      },
+      {
+        "id": "census-142",
+        "E": "no"
+      },
+      {
+        "id": "census-143",
+        "E": "no"
+      },
+      {
+        "id": "census-144",
+        "E": "yes"
+      },
+      {
+        "id": "census-145",
+        "E": "yes"
+      },
+      {
+        "id": "census-146",
+        "E": "yes"
+      },
+      {
+        "id": "census-147",
+        "E": "no"
+      },
+      {
+        "id": "census-148",
+        "E": "no"
+      },
+      {
+        "id": "census-149",
+        "E": "no"
+      },
+      {
+        "id": "census-150",
+        "E": "no"
+      },
+      {
+        "id": "census-151",
+        "E": "yes"
+      },
+      {
+        "id": "census-152",
+        "E": "no"
+      },
+      {
+        "id": "census-153",
+        "E": "yes"
+      },
+      {
+        "id": "census-154",
+        "E": "yes"
+      },
+      {
+        "id": "census-155",
+        "E": "no"
+      },
+      {
+        "id": "census-156",
+        "E": "no"
+      },
+      {
+        "id": "census-157",
+        "E": "yes"
+      },
+      {
+        "id": "census-158",
+        "E": "no"
+      },
+      {
+        "id": "census-159",
+        "E": "yes"
+      },
+      {
+        "id": "census-160",
+        "E": "yes"
+      },
+      {
+        "id": "census-161",
+        "E": "no"
+      },
+      {
+        "id": "census-162",
+        "E": "yes"
+      },
+      {
+        "id": "census-163",
+        "E": "no"
+      },
+      {
+        "id": "census-164",
+        "E": "yes"
+      },
+      {
+        "id": "census-165",
+        "E": "yes"
+      },
+      {
+        "id": "census-166",
+        "E": "no"
+      },
+      {
+        "id": "census-167",
+        "E": "no"
+      },
+      {
+        "id": "census-168",
+        "E": "yes"
+      },
+      {
+        "id": "census-169",
+        "E": "yes"
+      },
+      {
+        "id": "census-170",
+        "E": "no"
+      },
+      {
+        "id": "census-171",
+        "E": "yes"
+      },
+      {
+        "id": "census-172",
+        "E": "yes"
+      },
+      {
+        "id": "census-173",
+        "E": "yes"
+      },
+      {
+        "id": "census-174",
+        "E": "yes"
+      },
+      {
+        "id": "census-175",
+        "E": "yes"
+      },
+      {
+        "id": "census-176",
+        "E": "yes"
+      },
+      {
+        "id": "census-177",
+        "E": "yes"
+      },
+      {
+        "id": "census-178",
+        "E": "yes"
+      },
+      {
+        "id": "census-179",
+        "E": "yes"
+      },
+      {
+        "id": "census-180",
+        "E": "yes"
+      },
+      {
+        "id": "census-181",
+        "E": "yes"
+      },
+      {
+        "id": "census-182",
+        "E": "no"
+      },
+      {
+        "id": "census-183",
+        "E": "yes"
+      },
+      {
+        "id": "census-184",
+        "E": "yes"
+      },
+      {
+        "id": "census-185",
+        "E": "yes"
+      },
+      {
+        "id": "census-186",
+        "E": "yes"
+      },
+      {
+        "id": "census-187",
+        "E": "yes"
+      },
+      {
+        "id": "census-188",
+        "E": "yes"
+      },
+      {
+        "id": "census-189",
+        "E": "no"
+      },
+      {
+        "id": "census-190",
+        "E": "yes"
+      },
+      {
+        "id": "census-191",
+        "E": "yes"
+      },
+      {
+        "id": "census-192",
+        "E": "yes"
+      },
+      {
+        "id": "census-193",
+        "E": "yes"
+      },
+      {
+        "id": "census-194",
+        "E": "yes"
+      },
+      {
+        "id": "census-195",
+        "E": "yes"
+      },
+      {
+        "id": "census-196",
+        "E": "yes"
+      },
+      {
+        "id": "census-197",
+        "E": "yes"
+      },
+      {
+        "id": "census-198",
+        "E": "yes"
+      },
+      {
+        "id": "census-199",
+        "E": "no"
+      },
+      {
+        "id": "census-200",
+        "E": "yes"
+      },
+      {
+        "id": "census-201",
+        "E": "no"
+      },
+      {
+        "id": "census-202",
+        "E": "no"
+      },
+      {
+        "id": "census-203",
+        "E": "yes"
+      },
+      {
+        "id": "census-204",
+        "E": "no"
+      },
+      {
+        "id": "census-205",
+        "E": "yes"
+      },
+      {
+        "id": "census-206",
+        "E": "yes"
+      },
+      {
+        "id": "census-207",
+        "E": "yes"
+      },
+      {
+        "id": "census-208",
+        "E": "yes"
+      },
+      {
+        "id": "census-209",
+        "E": "yes"
+      },
+      {
+        "id": "census-210",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-001",
+        "E": "no"
+      },
+      {
+        "id": "expectation-002",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-003",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-004",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-005",
+        "E": "no"
+      },
+      {
+        "id": "expectation-006",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-008",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-009",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-010",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-011",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-012",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-013",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-014",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-015",
+        "E": "no"
+      },
+      {
+        "id": "expectation-016",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-017",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-018",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-019",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-020",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-021",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-022",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-023",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-024",
+        "E": "no"
+      },
+      {
+        "id": "expectation-025",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-026",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-027",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-028",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-029",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-030",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-032",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-033",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-034",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-035",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-036",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-037",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-038",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-039",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-040",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-041",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-042",
+        "E": "no"
+      },
+      {
+        "id": "expectation-043",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-044",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-045",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-046",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-047",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-048",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-049",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-050",
+        "E": "no"
+      },
+      {
+        "id": "expectation-051",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-052",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-053",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-054",
+        "E": "no"
+      },
+      {
+        "id": "expectation-055",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-056",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-057",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-058",
+        "E": "no"
+      },
+      {
+        "id": "expectation-059",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-060",
+        "E": "no"
+      },
+      {
+        "id": "expectation-061",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-062",
+        "E": "no"
+      },
+      {
+        "id": "expectation-063",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-064",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-065",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-066",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-067",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-068",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-069",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-070",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-071",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-072",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-073",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-074",
+        "E": "no"
+      },
+      {
+        "id": "expectation-075",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-076",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-077",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-078",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-079",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-080",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-081",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-082",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-083",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-084",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-085",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-086",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-087",
+        "E": "no"
+      },
+      {
+        "id": "expectation-088",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-089",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-090",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-091",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-092",
+        "E": "no"
+      },
+      {
+        "id": "expectation-093",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-094",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-095",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-096",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-097",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-098",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-099",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-100",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-101",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-102",
+        "E": "no"
+      },
+      {
+        "id": "expectation-103",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-105",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-106",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-107",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-108",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-109",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-110",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-111",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-112",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-113",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-114",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-115",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-116",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-117",
+        "E": "yes"
+      },
+      {
+        "id": "expectation-118",
+        "E": "no"
+      },
+      {
+        "id": "expectation-119",
+        "E": "no"
+      },
+      {
+        "id": "expectation-120",
+        "E": "no"
+      },
+      {
+        "id": "expectation-121",
+        "E": "no"
+      },
+      {
+        "id": "expectation-122",
+        "E": "yes"
+      }
+    ],
+    "unionERegressed": [
+      "census-023",
+      "census-072",
+      "census-078",
+      "census-080",
+      "census-093",
+      "census-108",
+      "census-146",
+      "census-153",
+      "census-178",
+      "expectation-027"
+    ],
+    "unknownProtectedE": [],
+    "unknownCandidate": [],
+    "positiveKnownJointGain": true,
+    "noKnownUnionERegression": false,
+    "noKnownFreshERegression": false,
+    "qualificationComplete": true,
+    "modelStable": true,
+    "eligible": false
+  },
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "usage": {
+    "bestE": {
+      "input_tokens": {
+        "known": 626,
+        "subtotal": 1251054,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 626,
+        "subtotal": 19406,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 626
+      }
+    },
+    "scopedE": {
+      "input_tokens": {
+        "known": 626,
+        "subtotal": 976866,
+        "unknownPhysicalPosts": 0
+      },
+      "output_tokens": {
+        "known": 626,
+        "subtotal": 19406,
+        "unknownPhysicalPosts": 0
+      },
+      "total_tokens": {
+        "known": 0,
+        "subtotal": 0,
+        "unknownPhysicalPosts": 626
+      }
+    }
+  },
+  "limits": "Fresh paired E with historical O is D only, never contemporary H or money/internal-compute evidence. Single candidate is its own provider response; historical failures are not rescued. Original external native run/source admission is mandatory."
+}
