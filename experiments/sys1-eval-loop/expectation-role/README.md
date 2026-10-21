@@ -1,4 +1,36 @@
-# 三候補の負結果を保持し、候補EのO向け対比削除を別処置で検証
+# E判定の四候補の負結果を保持し、別仮説へ継続
+
+## D4 O向け対比削除：正差22でもfresh退行2・歴史破壊5で不受容
+
+[development4の一回の実run](https://github.com/roccho-org/ops/actions/runs/39527554272)はsource dd98d10 / REQUEST-only activation a5d8631 / phase development4・履歴4で実行した。全1252要求が資格とexpected modelを満たしunknown0。fresh complete476→498（修復24/退行2）、E583→606（修復25/退行2）。freshE退行census-034/090と、原610保護内の破壊5（census-023/034/090/093、expectation-020）によりDEVELOPMENT_GUARD_FAIL。正差22で相殺せず、機械first477/E585は別診断、O-null17を全626分母に残す。
+
+root/Rは各自provider ZIP/native実Git親/REQUEST phase4を取得し、別readerで全1252 Core/flags/資格/610guard/usageを検証した。W原bytes/製品再生も一致。原5全26,229,134Bをresults/expectation-focus-development4-20261021/へ保持。実job全stepsSUCCESSと鍵前696/696は意味受容ではない。selection/成功要求freezeを発行せず、新Hの件数/本文/Goldを開かなかった。旧D1/D2/D3の原604/607/607と今回610を固定したまま全projectionを再生し、後の保護やGoldへ遡及変更しない。
+
+当回物理1252/input2,793,198/output38,812、total_tokens全1252欠測。PR624のD1+D2+D3+D4実消費は5008/input11,192,824/output155,248、total_tokens5008欠測。6808はD4 source時点の最大割当で実費用ではない。歴史7005 E/O aliasや未実施Hを新費用へ数えず、料金/内部計算量は不明。原qualified Coreを標準clientから再構成したpayload照合であって、実HTTP body全bytes捕捉とは言わない。旧Best維持・未採用、現head最終全通常CI/記録/Readyは別に閉じる。
+
+全5失敗本文を再読した。UIの入力目的宣言、next stepsの真正対応指示、婉曲な表示改善提案、HTMLコメントの提出条件を落とす一方、操作と観測/回避だけの報告を要求と数える誤りが残る。元Gold/本文は変更しない。O対比削除によるheld-086修復も保持するが、混合軸干渉の単独原因は証明しない。次の工学的保護は原8257 Eから611へ（追加expectation-014）、これは次sourceだけの出力前契約で今回610へ遡及しない。
+
+次仮説は候補Eのinstructionsとyes/noを短い英語の役割/存在判定へ一体再定式化する案。英語/圧縮/文言/構成のbundleで因果分離はなく、4choice資格変更や日本語例の追加継ぎ足しは混ぜない。元ANYの責務/IO/条件付き提出/真正依頼を狭めず、観測だけから未記載仕様を補わない。exact全文は三者反証して出力前に固定し、必要CI/三者受容前の新作用はない。
+
+```mermaid
+flowchart TB
+ OLD[✅ 原D1/D2/D3負結果固定] --> CODE[✅ D4source/696CI/三者counter]
+ CODE --> RUN[✅ 一回1252/全資格model一致]
+ RUN --> FAIL[❌ 正差22もfresh2/歴史5破壊]
+ FAIL --> RAW[✅ 原5/独立再算術/全会計/H封印]
+ RAW --> END[⏳ 最終current全CI/記録/Ready未merge]
+ RAW --> COUNTER[⏳ 三者反証/別の意味ある仮説]
+ COUNTER --> SRC[⏳ wholeCore/source/必要CI/三者受容]
+ SRC --> D[⏳ 別処置の有限一回]
+ D -->|未達/unknown| COUNTER
+ D -->|guard成功/実要求freeze| H[⏳ 未使用H/予測前Gold/同3M二回AND]
+ H -->|未達| RET[当H退役/別未使用H契約]
+ RET --> COUNTER
+```
+
+H未使用とは862typed/2033exactbody/2371canonical参照規則で確認可能な観測範囲で、意味・全引用・学習の未見を保証しない。同系統かつ候補既知評定者の盲検Goldは共通偏りを消さず、固定有限集合/Gold条件での近似だけ。joint b/cとany-axis退行Rは別定義である。以下はD4 source時点と旧候補の固定記録であり、当時の未完表示を現状と混同しない。
+
+## D4 source時点の記録
 
 ## D4固定FOCUS context（code-only、実作用前）
 

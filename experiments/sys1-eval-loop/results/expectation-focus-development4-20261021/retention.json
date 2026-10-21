@@ -1,0 +1,21 @@
+{
+  "schema": "ops.sys1.expectation-focus-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "dd98d10bdb54151e4c45dccdb922ca013509b15f",
+  "activation": "a5d8631ad5ed0213f3b52df2719f65e9076d080a",
+  "phase": "development4",
+  "historyCount": 4,
+  "originalFiles": 5,
+  "originalBytes": 26229134,
+  "actualPhysical": 1252,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "root/R independently acquired own native provider ZIP and original Git parent/phase4; full1252 expected Core/events/qualification/610 guard/usage agree with W replay",
+  "seriesActual": {
+    "physicalPosts": 5008,
+    "inputTokens": 11192824,
+    "outputTokens": 155248,
+    "totalTokensUnknownPosts": 5008
+  },
+  "next": "distinct source-fixed hypothesis only; protected610 and old604/607/607 outcomes remain fixed; all original body and Gold unchanged"
+}
