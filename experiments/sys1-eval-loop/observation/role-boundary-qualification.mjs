@@ -27,7 +27,7 @@ export function assertRoleBoundaryNativeAnswer(answer,flags){
 // calculations of branch flags do not turn this response into a legacy live answer.
 function verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,isRoleBoundary){
  // No raw response has returned at local/provider failure; a borrowed snapshot cannot supply usage or identity.
- for(const e of events.filter(e=>e.kind==='failure'&&['local','provider'].includes(e.stage))){assert.equal(events.some(f=>f.kind==='response-flags'&&f.id===e.id),false);if(e.stage==='local')assert.equal(posts.includes(e.id),false);}
+ for(const e of events.filter(e=>e.kind==='failure'&&['local','provider'].includes(e.stage))){assert.equal(events.some(f=>f.kind==='response-flags'&&f.id===e.id),false);if(e.stage==='local')assert.equal(posts.includes(e.id),false);else assert.equal(posts.includes(e.id),true);}
 
  for(const e of events.filter(e=>e.kind==='failure'&&['response-model','response-answers','response-probabilities','typed-contract'].includes(e.stage))){const p=events.findIndex(f=>f.kind==='post'&&f.id===e.id),f=events.findIndex(f=>f.kind==='response-flags'&&f.id===e.id),x=events.indexOf(e),u=events.findIndex(f=>f.kind==='qualification-unknown'&&f.id===e.id);assert.ok(p>=0&&p<f&&f<x&&x<u);}
  const binary=events.filter(e=>e.id&&!isRoleBoundary(e.id)),binaryFlags=binary.filter(e=>e.kind==='response-flags');
