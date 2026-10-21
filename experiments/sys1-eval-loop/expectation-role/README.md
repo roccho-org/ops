@@ -1,4 +1,43 @@
-# 八つの負結果を保持し、次の仮説へ継続する
+# 八負結果を保持し、二質問の意味分割を改訂する
+
+## D9 PARTITION（code-only、D9モデル/H未実測）
+
+候補は既native named2のまま、declarationを本文が仕様として宣言する責務/能力/機能IO/許容/受入条件、requestを必要・所望state/actionと真正な行為/回答/改善/回復/提出依頼へ再分割する。自分自身の必要行為は他者への命令を要しない。仕様はformal/future/must/採用済みを要せず、再現や報告中の宣言を実測結果で消さない。一方で実施操作→観測結果/症状/因果から未記載仕様や願いを補わず、heading/recipient/疑問符/命令形式だけでは要求にならない。元Eの和を覆う仮説であり、branchの重複yes可・下位Gold/下位精度/内部推論/独立性/改善保証はない。
+
+rootはD8 request中心が自己必要行為を狭めた仮説を提案し、宣言側UI仕様FNを扱えないと自己反証した。3述語に分離するroot案へWは、既request FPを直接抑えない/ORのFP増幅/全枝strictANDのunknown機会/原回答数増を反証しroot撤回。Wの二再分割をR/rootが元ANYと架空coverageで反証し、能力仕様と観測因果、自己必要と症状推測を文脈で分ける全文v1を固定した。request FPの役割精密化も含むため、2文面/options/意味分割が一packageであり1枝単独・内部原因の証明ではない。need/request混在、再現命令の用途曖昧さ、same-post干渉、長文化、片FPがORへ入るリスクを残す。原case語句/ID/新例/役割hint0。[root原負/三者反証](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595037667)・[R原負/独立反証](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595039190)。
+
+三者は製品source前に宣言1159字/request1268字と全options/orderを各自の原Coreへ独立固定した。Rは自分の期待封筒でinstruction/instructionsを混同した誤りをoffline stubで検出し、誤v1保持→正規v2へ訂正しただけでliteral/製品は変更0。既judgeNamedChoicesの実offlinepoststubでnative wire/type/criteria/instructions/object state/2question order/10000ms/diagnoseRejection:trueを全値確認し、root/Rの正規期待だけを次source照合に用いる。
+
+原2names declaration/request、state={body}のみ、native10s/options無変更forward、strict原2資格AND→固定OR、commonmodel/topusage1回、旧binary15s/BestE/sharedO全Core/SDK/client/batch/YAMLは不変。新physicalkey partitionEを第九の閉contextへ結合し、原D8 splitE schema/usage/617guardを新618へ遡及しない。受信snapshotとSDK normalized全entry、unknown原fieldlistとの集合全一致、当postだけのstage/status/model/usageを検査する。同じprivate named2資格coreを固定splitE/partitionE wrappersで共有し、任意profile/key/schema/endpoint/executor/credentialを公開しない。両回答strict資格後だけEを派生しproviderAnswer:false/両sourcechoice/実postを保持、片yes＋otherunknownはunknown、短絡0。派生確率/confidence/model/usage/候補Oを作らない。
+
+新compoundの未報告/型不正/空modelはUNKNOWN継続、非空で異なる実報告identifierだけglobalstop。旧binaryの未報告停止を変えず実異versionと断定しない。全資格とno reported driftは別条件。将来Hは成功候補に限り現在post rawmodel/postIdから三値を全physical経路へ結合し、capture→catch/loopstop→資格再投影→H2admissionで同一reported-other述語を使う専用contextとする。旧binary verifierの!modelMatchesだけを新Hへ流用しない。この将来設計を現D8/旧rawの改変理由にしない。
+
+鍵前は旧16run＋固定D6job1/実Git親REQUESTphase/全旧原版、鍵下exact8field/body/全Core/execution、原attemptdigest/max1252を閉じる。development9/history9は原D1..8＋currentだけ、D6failure専用例外と他success来歴は不変。source-only REQUESTはD8/source8c61原bytesを保持し、新source必要CI/三者受容後だけrequest-only直子を一回実行する。中間負保持headのReady/CIを余分なgateとせず、目的最終current全通常CI/記録/Ready未mergeは維持する。
+
+固定DはfreshBest626＋compound626＝1252HTTP/原binary回答1878で、同fixed historicalOによりfreshBest対derivedORを比較する。全資格/expectedmodel・completejoint正差・全歴史618破壊0・freshE退行0を別AND、mechanicalfirstは診断/O-null17/全626保持。13260 qualified E evidence＝12013binary＋621role4由来＋626decomposition由来、physical13265/invalid5別、全旧8contextで原fieldsを再生する。618ever-correctは工学的保護で不偏性能推定や実現可能性保証ではない。
+
+有限最大13068＝既実10016＋次D1252＋futureH1800HTTP、料金/内部計算量/新User予算認証gateではない。旧plan1..8原形維持、350min・既六step・再送/timeoutresume0。新compoundの受信済usageは不資格postでも一度だけ会計し、post未到達と実post欠測を別保持、unknownを0にしない。source前W独立期待→全626×2標準payload1252＋同数placeholderは全一致/maxBest20805/partition21354B<24000/Gold-free、HTTP全bytes実捕捉とは称さない。
+
+成功D9全guard/原native/raw/実要求freeze三者受容後だけ、未開封の固定Oct18/prior862typed2033exact2371refs/prefix300/noRefillからHを開く。成功partitionEだけ既3M HTTP（原回答4M/pass）へ接続し、native bodyview→予測盲検相互未読初稿native→裁定null保持→H最終data/Core/source必要CI/三者をモデル前に一回結合する。body前の余分CIgateは加えない。ordinaryunknown/意味FAILは予定H2非取消、reporteddriftや取消/timeout/原版欠落は技術停止として保持、knownreg表示に後driftを隠さない。二回とも同body/Gold/Core/M、別々に全資格/model・共通Gold Δ下限正/任意軸R上限0をANDし、平均/2M独立化/窓変更/Gold変更/事後除外0。M0はNO_CASES/model0から別未使用契約を事前固定。有限固定Gold条件付近似までで、母集団/Apps E2E/同原価/同系統rater偏り解消/独立human真理を主張しない。
+
+~~~mermaid
+flowchart TB
+ A[✅ D8負原版/Gold/費用保持] --> R[✅ root3枝案をW反証/撤回]
+ R --> L[✅ W二再分割をR/root反証/全文v1事前固定]
+ L --> C[原named2/一HTTP/一usage]
+ C --> Q{両strict資格と全entry結合?}
+ Q -->|NO| U[UNKNOWN/partial保持/短絡0]
+ Q -->|YES| E[providerAnswer:false/固定OR/両sourcechoice]
+ E --> S[⏳ 現source必要CI/三者→D9一回1252HTTP]
+ S -->|未達/unknown| A
+ S -->|全guardPASS/実要求freeze三者| H[🔒 未使用H/盲検Gold/同3M二回AND]
+ H -->|未達/unknown| RET[当H退役/別仮説/別未使用契約]
+ RET --> L
+ H -->|二回成立| Z[目的最終current全CI/記録/Ready未merge]
+~~~
+
+以下はD8負保持時点までの記録。次D9未実測と旧D8モデル0の過去記述を混同しない。
+
 
 ## D8：二質問の全資格は成立、fresh2/歴史5退行で未採用
 

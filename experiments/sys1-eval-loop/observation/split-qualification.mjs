@@ -25,8 +25,8 @@ export function assertSplitNativeAnswer(answer,flags){
 }
 // Fixed compound context only. Each named branch is a real native answer;
 // calculations of branch flags do not turn this response into a legacy live answer.
-export function verifySplitQualificationEvents(report,events,attempts,posts,answers,failures){
- const isSplit=id=>id.endsWith('/splitE'),binary=events.filter(e=>e.id&&!isSplit(e.id)),binaryFlags=binary.filter(e=>e.kind==='response-flags');
+function verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,isSplit){
+ const binary=events.filter(e=>e.id&&!isSplit(e.id)),binaryFlags=binary.filter(e=>e.kind==='response-flags');
  verifyQualificationEvents({modelDrift:binaryFlags.some(f=>!f.modelMatches)},binary,attempts.filter(id=>!isSplit(id)),posts.filter(id=>!isSplit(id)),answers.filter(id=>!isSplit(id)),failures.filter(id=>!isSplit(id)));
  const flags=events.filter(e=>e.kind==='response-flags'&&isSplit(e.id)),errors=events.filter(e=>e.kind==='failure'&&isSplit(e.id)),index=(kind,id)=>events.findIndex(e=>e.kind===kind&&e.id===id);
  assert.equal(new Set(flags.map(f=>f.id)).size,flags.length);assert.ok(flags.every(f=>posts.includes(f.id)));assert.equal(new Set(errors.map(f=>f.id)).size,errors.length);assert.deepEqual(errors.map(e=>e.id).sort(),failures.filter(isSplit).sort());
@@ -35,3 +35,7 @@ export function verifySplitQualificationEvents(report,events,attempts,posts,answ
  for(const id of failures.filter(isSplit)){const error=errors.find(e=>e.id===id);assert.ok(error&&attempts.includes(id));assert.ok(['local','provider','response-model','response-answers','response-probabilities','typed-contract'].includes(error.stage));assert.ok(index('failure',id)<index('qualification-unknown',id));}
  const drift=events.filter(e=>e.kind==='response-flags'&&(isSplit(e.id)?e.modelDrift:!e.modelMatches));assert.equal(report.modelDrift,drift.length>0);assert.ok(drift.length<=1);if(drift.length){assert.equal(attempts.at(-1),drift[0].id);assert.ok(failures.includes(drift[0].id));assert.equal(events.find(e=>e.kind==='failure'&&e.id===drift[0].id)?.stage,'response-model');}
 }
+
+// Two fixed native named2 contexts only; no caller-supplied key or predicate.
+export function verifySplitQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/splitE'));}
+export function verifyPartitionQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/partitionE'));}
