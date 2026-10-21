@@ -104,3 +104,13 @@ flowchart TB
 ```
 
 Primary current references: [Go contract/endpoints](https://opencode.ai/v2/docs/console/go/), [native Pi provider](https://opencode.ai/v2/docs/console/harnesses/pi/), [inference API](https://opencode.ai/v2/docs/console/api/inference/). Genuine coding-agent traffic, own UA and stable conversation headers are required; a generic memory challenge is not relabeled. Keyless native/workerd tests do not establish live entitlement or quality. No browser-chat UX or unattended operational budget claim is added.
+
+## Explicit PAYG correction after the retained Go refusal
+
+The selected workspace has existing positive standard credits and an active key; Go entitlement was never established. Actual Go admission1 returned403; its precise provider cause remains UNKNOWN. Official Pi distinguishes `opencode` PAYG from `opencode-go` subscription workspaces, both using the same existing key. The frozen SDK already provides `opencode/gpt-6-luna` Responses/tools. This explicit correction uses current standard base `https://opencode.ai/inference/openai/v1`; it does not retry another endpoint automatically.
+
+`--stage opencode-credit-recover --continue` stays before all local credential operations. It requires posts1/prior-owner=false, reads automatic root/inventory, opens only the unique actual existing conversation and verifies the settled one-user/one-system/one-error history with the own attempt1/HTTP403 envelope, no completed response, Jev, pending work, edits or unrelated activity. No create/fork/reset occurs. The existing prompt command updates only the stored agent model through public configure before submitting new input; transcript and ProviderDoc remain. All owner/physical-fetch/privacy gates remain.
+
+The distinct `--opencode-credit` package produces `pi-opencode-credit-runtime-SHA`, scope KEY_BOUND_SELECTED_OWNER_OPENCODE_CREDIT_RUNTIME, provider opencode, limit4, recovery_start_offset1 and the SAME proof session. Historical admission1 remains consumed; new successful seed2/3 and recreated neutral recall4 require three fresh distinct response IDs, actual typed Jev consumption and equal outbound routing identity. Old Go3/cold strict0 and completed OAuth5 routes remain separate. The immutable key delivery receipt's historical opencode-go.pi-worker name is not an entitlement claim; no key move/reauthoring is needed.
+
+This is one explicitly reserved manual invocation with no competing operator, not durable crash-safe retry orchestration. Any crash/failure is UNKNOWN, with no automatic resend, rearm, refund or new session. Source/CI mocks do not prove actual entitlement or completed inference.

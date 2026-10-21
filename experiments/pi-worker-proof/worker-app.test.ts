@@ -1033,3 +1033,87 @@ it.skipIf(!openCodeFixture || !openCodeErrors)(
     await closeSocket(reopened.socket);
   },
 );
+
+const creditFixture = (env as unknown as {PI_PROOF_AUTH_MODE?:string}).PI_PROOF_AUTH_MODE === "opencode";
+it.skipIf(!creditFixture)("selected-opencode-credit preserves failed Go history, configures PAYG only on owner prompt and recalls after real recreation", async () => {
+  const binding = env as unknown as {PI_PROOF_AUTH_MODE:string;PI_PROOF_PROVIDER:string};
+  const session="owner-jev-opencode-proof-20261021";
+  const {headers:oauthHeaders,jwk}=await transientOwnerFixture();
+  const headers={"Cf-Access-Jwt-Assertion":oauthHeaders["Cf-Access-Jwt-Assertion"]};
+  const requests:{url:string;session:string;body:any}[]=[];let jev=0;
+  const caseId="credit-case-731bf";
+  vi.stubGlobal("fetch",async(input:RequestInfo|URL,init?:RequestInit)=>{
+    if(String(input)==="https://fixture.cloudflareaccess.com/cdn-cgi/access/certs")
+      return Response.json({keys:[{...jwk,kid:"session-fixture",alg:"RS256"}]});
+    const request=new Request(input,init);expect(request.redirect).toBe("manual");
+    if(request.url==="https://api.typesafe.ai/v1/systemone"){jev++;return Response.json({model:"jev-latest",answers:{assessment:{type:"noul",noul:0.84123}}});}
+    const routing=request.headers.get("x-opencode-session");expect(routing).toBeTruthy();
+    expect(request.headers.get("user-agent")).toMatch(/^pi /);
+    const body=await request.json() as any;requests.push({url:request.url,session:routing!,body});
+    if(requests.length===1){
+      expect(request.url).toBe("https://opencode.ai/inference/go/openai/v1/responses");
+      return Response.json({error:{message:"fixture-private-denied"}},{status:403});
+    }
+    expect(request.url).toBe("https://opencode.ai/inference/openai/v1/responses");
+    expect(body.tools).toBeInstanceOf(Array);expect(body.input.some((x:any)=>x.type==="additional_tools")).toBe(false);
+    if(requests.length===2)return jevToolStream(1,"credit");
+    const value=JSON.stringify({caseId,finding:"Empty input dereferences undefined",assessment:{type:"noul",noul:0.84123}});
+    return new Response((await responseStream(value).text()).replaceAll("fixture-response","credit-response-"+requests.length),
+      {headers:{"content-type":"text/event-stream"}});
+  });
+  const docs=async(id:number)=>runInDurableObject(env.SESSIONS.getByName(session),async(_instance,state)=>{
+    const storage=await openDurableObjectSqliteStorage(state.storage);
+    const value=async(kind:string)=>{
+      const record=await storage.findDocument({kind,scope:{kind:"conversation",conversationId:id as typeof ROOT_CONVERSATION_ID}},"current",BACKGROUND_CONTEXT);
+      expect(record).toBeDefined();return (await storage.document(record!.id,"current",BACKGROUND_CONTEXT))!.value;
+    };
+    return {agent:await value("pi.agent"),provider:await value("pi.provider")};
+  });
+  // Actual old selected Session creates/configures Go and commits its failed admission.
+  binding.PI_PROOF_AUTH_MODE="opencode-go";binding.PI_PROOF_PROVIDER="opencode-go";
+  let id:number;let oldDocs:any;let failedEntries:any;
+  try{
+    const old=await connect(session,1,headers);await old.create("credit-old-create");id=old.conversationId;
+    old.submit("credit-old-denied","Review the original JavaScript empty-array case with ask_jev.");
+    await submissionStatus(session,"credit-old-denied","unanswered",id);
+    expect(JSON.parse(turnFailure(old.messages,id).errorMessage)).toMatchObject({attempt:1,httpStatus:403,outcome:"HTTP"});
+    await closeSocket(old.socket);
+    oldDocs=await docs(id);expect(oldDocs.agent.model).toEqual({provider:"opencode-go",modelId:"gpt-6-luna"});
+    await evictDurableObject(env.SESSIONS.getByName(session));
+  }finally{binding.PI_PROOF_AUTH_MODE="opencode";binding.PI_PROOF_PROVIDER="opencode";}
+  const denied=await exports.default.fetch("https://example.com/api/sessions/"+session,{headers:{Upgrade:"websocket"}});
+  expect(denied.status).toBe(403);expect(await denied.json()).toEqual({error:"Owner authorization required"});
+  await runInDurableObject(env.SESSIONS.getByName(session),async instance=>{await instance.alarm();});
+  expect(requests).toHaveLength(1);expect(jev).toBe(0);expect(await docs(id!)).toEqual(oldDocs);
+  const recovery=await connect(session,id!,headers);
+  expect(recovery.response.headers.get("Pi-Proof-Posts")).toBe("1");
+  expect(recovery.response.headers.get("Pi-Proof-Prior-Owner")).toBe("false");
+  const boot=recovery.response.headers.get("Pi-Proof-Boot");
+  const snapshot=(recovery.messages as any[]).filter(f=>f.type==="conversation.events"&&f.conversationId===id)
+    .flatMap(f=>f.events).find(e=>e.type==="snapshot");
+  failedEntries=structuredClone(snapshot.entries);
+  expect(failedEntries.map((e:any)=>e.model[0].role)).toEqual(["user","system","assistant"]);
+  expect(await docs(id!)).toEqual(oldDocs); // Opening alone must not reconfigure or send.
+  recovery.submit("credit-recovery","Review code test "+caseId+": function first(items) { return items[0].value; }. Call ask_jev.");
+  await submissionStatus(session,"credit-recovery","done",id!);
+  expect(requests).toHaveLength(3);expect(jev).toBe(1);
+  const after=await docs(id!);expect(after.agent).toEqual({...oldDocs.agent,model:{provider:"opencode",modelId:"gpt-6-luna"}});
+  expect(after.provider).toEqual(oldDocs.provider);
+  await closeSocket(recovery.socket);await evictDurableObject(env.SESSIONS.getByName(session));
+  const recall=await connect(session,id!,headers);
+  expect(recall.response.headers.get("Pi-Proof-Boot")).not.toBe(boot);
+  expect(recall.response.headers.get("Pi-Proof-Prior-Owner")).toBe("false");
+  expect(recall.response.headers.get("Pi-Proof-Posts")).toBe("3");
+  const nextSnapshot=(recall.messages as any[]).filter(f=>f.type==="conversation.events"&&f.conversationId===id)
+    .flatMap(f=>f.events).find(e=>e.type==="snapshot");
+  expect(nextSnapshot.entries.slice(0,3)).toEqual(failedEntries);
+  recall.submit("credit-recall","Summarize the previous completed code review findings and exact Jev assessment; return the original JSON.");
+  await submissionStatus(session,"credit-recall","done",id!);
+  expect(requests).toHaveLength(4);expect(jev).toBe(1);expect(new Set(requests.map(r=>r.session)).size).toBe(1);
+  const lastUser=requests[3].body.input.filter((x:any)=>x.role==="user").at(-1);
+  expect(JSON.stringify(lastUser)).not.toContain(caseId);expect(JSON.stringify(lastUser)).not.toContain("0.84123");
+  recall.submit("credit-refuse-fifth","Do not admit this fifth model request.");
+  await submissionStatus(session,"credit-refuse-fifth","unanswered",id!);
+  expect(requests).toHaveLength(4);expect(jev).toBe(1);
+  await closeSocket(recall.socket);
+});

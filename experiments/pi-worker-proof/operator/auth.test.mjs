@@ -954,3 +954,77 @@ test("OpenCode proof branches without custody/OAuth, correlates coding results a
   assert.throws(()=>openCodeWireReceipts([{...valid,piProofWire:{...valid.piProofWire,ownUserAgent:false}}],[3]));
   assert.throws(()=>openCodeWireReceipts([{...valid,piProofWire:{...valid.piProofWire,attempt:2}}],[3]));
 });
+
+function creditFailureFrames() {
+  const frames=transportCorrectionFrames();
+  const snap=frames.find(f=>f.type==="conversation.events"&&f.conversationId===9).events[0];
+  snap.entries=snap.entries.slice(0,3);
+  snap.entries[2].model[0].errorMessage=JSON.stringify({scope:"PI_PROOF_PROVIDER_FAILURE",version:1,attempt:1,httpStatus:403,outcome:"HTTP"});
+  return frames;
+}
+test("PAYG recovery accepts only the actual settled single403 history, no reset or guessed ID",async()=>{
+  const {creditSnapshotAllowed,prepareCreditConversation,runOpenCodeProof,proofIdentity}=await import("./owner.mjs");
+  const witness={...historyWitness(1),prior:"false"};
+  assert.equal(creditSnapshotAllowed(creditFailureFrames(),9,witness).errorOrAbortCount,1);
+  for(const change of [
+    f=>{f.find(x=>x.type==="conversation.events"&&x.conversationId===9).events[0].entries.push({kind:"pi.unknown",model:[]});},
+    f=>{f.find(x=>x.type==="conversation.events"&&x.conversationId===9).events[0].entries[0].edits=[];},
+    f=>{f.find(x=>x.type==="conversation.events"&&x.conversationId===9).events[0].entries[2].model[0].content=[{type:"toolCall",id:"unexpected",name:"ask_jev"}];},
+    f=>{f.find(x=>x.type==="conversation.events"&&x.conversationId===9).events[0].compactions.push({id:"pending"});},
+    f=>{f.find(x=>x.type==="conversation.events"&&x.conversationId===9).events[0].run={};},
+    f=>{f.push({type:"conversation.events",conversationId:1,events:[{type:"run_start"}]});},
+    f=>{f.find(x=>x.type==="conversation.events"&&x.conversationId===9).events[0].entries[2].model[0].errorMessage=JSON.stringify({scope:"PI_PROOF_PROVIDER_FAILURE",version:1,attempt:2,httpStatus:403,outcome:"HTTP"});},
+    f=>{f.find(x=>x.type==="conversation.events"&&x.conversationId===9).events[0].entries[2].model[0].errorMessage="HTTP403";},
+  ]){const frames=creditFailureFrames();change(frames);assert.throws(()=>creditSnapshotAllowed(frames,9,witness));}
+  for(const posts of [0,2,3,4])assert.throws(()=>creditSnapshotAllowed(creditFailureFrames(),9,{...witness,posts}));
+  const {WebSocket,WebSocketServer}=await import("ws");const {once}=await import("node:events");
+  const {observeOwnerSocket,withOwnerSockets,waitOwnerFrame,closeOwnerSocket}=await import("./owner.mjs");
+  const server=new WebSocketServer({host:"127.0.0.1",port:0});await once(server,"listening");const commands=[];
+  server.on("headers",h=>h.push("Pi-Proof-Boot: "+witness.boot,"Pi-Proof-Prior-Owner: false","Pi-Proof-Posts: 1"));
+  server.on("connection",socket=>{
+    for(const f of historyFrames([{id:9}]))socket.send(JSON.stringify(f));
+    socket.on("message",data=>{
+      const c=JSON.parse(String(data));commands.push(c);
+      for(const f of creditFailureFrames().slice(3))socket.send(JSON.stringify(f));
+      socket.send(JSON.stringify({type:"command.result",command:"conversation.open",requestId:c.requestId,ok:true}));
+    });
+  });
+  try{
+    const abort=new AbortController();await withOwnerSockets(abort.signal,async sockets=>{
+      const frames=[],socket=new WebSocket("ws://127.0.0.1:"+server.address().port);sockets.add(socket);
+      const trace=observeOwnerSocket(socket,frames,()=>{},"pi-proof-prior-owner");await once(socket,"open");
+      const wait=predicate=>waitOwnerFrame(frames,socket,predicate,abort.signal,500);
+      const connection={frames,witness:trace.witness,wait,close:()=>closeOwnerSocket(socket,abort.signal),
+        async command(c){socket.send(JSON.stringify(c));return wait(f=>f.type==="command.result"&&f.requestId===c.requestId);}};
+      assert.equal(await prepareCreditConversation(connection),9);await connection.close();
+    });
+    assert.deepEqual(commands.map(c=>[c.type,c.conversationId]),[["conversation.open",9]]);
+  }finally{for(const socket of server.clients)socket.terminate();await new Promise(r=>server.close(r));}
+  const values={stage:"opencode-credit-recover",url:"https://pi.roccho.workers.dev/",
+    session:"owner-jev-opencode-proof-20261021",continue:true,cloudflared:"unused"};
+  proofIdentity(values);
+  let connects=0,idle=0,expected;const sent=[];
+  const assistant=(attempt,stopReason,content)=>({role:"assistant",stopReason,rawStopReason:"completed",model:"gpt-6-luna",
+    responseId:"credit-"+attempt,content,piProofWire:{schema:"pi.opencode.wire.v1",attempt,sessionSha256:"a".repeat(64),ownUserAgent:true}});
+  await runOpenCodeProof(values,{accessToken:()=>"fixture",idle:async()=>{idle++;},connect:async()=>{
+    const index=connects++,frames=index===0?historyFrames([{id:9}]):[];
+    return {frames,witness:{...witness,boot:index===0?witness.boot:"00000000-0000-4000-8000-000000000609",posts:[1,3,4][index]},
+      wait:async predicate=>{const frame=frames.find(predicate);assert.ok(frame);return frame;},close:async()=>{},
+      command:async c=>{sent.push(c);assert.equal(c.type,"conversation.open");assert.equal(c.conversationId,9);
+        if(index===0){frames.push(...creditFailureFrames().slice(3));frames.push({type:"command.result",command:"conversation.open",requestId:c.requestId,ok:true});}
+        return {ok:true};},
+      turn:async(id,prompt)=>{
+        assert.equal(id,9);
+        if(index===0){
+          const caseId=/test case ([0-9a-f]{48})/.exec(prompt)[1];
+          expected={caseId,finding:"Empty input dereferences undefined",assessment:{type:"noul",noul:0.721}};
+          return [assistant(2,"toolUse",[{type:"toolCall",id:"credit-tool",name:"ask_jev",arguments:{}}]),
+            {role:"toolResult",toolName:"ask_jev",toolCallId:"credit-tool",isError:false,content:[{type:"text",text:JSON.stringify(expected.assessment)}]},
+            assistant(3,"stop",[{type:"text",text:JSON.stringify(expected)}])];
+        }
+        for(const value of [expected.caseId,expected.finding,"0.721"])assert.ok(!prompt.includes(value));
+        return [assistant(4,"stop",[{type:"text",text:JSON.stringify(expected)}])];
+      }};
+  }});
+  assert.equal(connects,3);assert.equal(idle,1);assert.deepEqual(sent.map(c=>c.type),["conversation.open","conversation.open"]);
+});
