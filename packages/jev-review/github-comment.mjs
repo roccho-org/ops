@@ -6,29 +6,73 @@ export const REQUEST_PREFIX = '/jev-evaluate\n';
 export const RESULT_PREFIX = '<!-- ops-jev-result-v1 -->\n';
 const RESULT_BYTE_CAP = 32768;
 const REPORT_EXPLANATION = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. See the linked request for the questions and conditions.\n\n";
+const INPUT_REPORT_EXPLANATION = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. Questions and criteria appear below; the linked request retains the full supplied input for audit.\n\n";
 const EVIDENCE_OPEN = '<details>\n<summary>Execution evidence</summary>\n\n```json\n';
 const EVIDENCE_CLOSE = '```\n</details>\n';
 const resultJSON = envelope => RESULT_PREFIX + JSON.stringify(envelope) + '\n';
 const code = value => '<code>' + String(value).replace(/[^A-Za-z0-9 .-]/gu,
   char => '&#' + char.codePointAt(0) + ';') + '</code>';
 
+const RESULT_KEYS = ['schema', 'requestDigest', 'identity', 'authority', 'result'];
+const strings = (value, keys) => exact(value, keys) && keys.every(key => typeof value[key] === 'string');
+function validPresentation(value) {
+  return exact(value, ['cases']) && Array.isArray(value.cases) && value.cases.length > 0
+    && value.cases.every(row => exact(row, ['id', 'checks', 'context']) && typeof row.id === 'string'
+      && Array.isArray(row.checks) && row.checks.length > 0
+      && row.checks.every(check => strings(check, ['id', 'question', 'true', 'false']))
+      && Array.isArray(row.context) && row.context.every(unit => strings(unit, ['role', 'ref', 'revision'])));
+}
+function resultEdition(envelope) {
+  if (exact(envelope, RESULT_KEYS) && envelope.schema === 'ops.jev.issue-result.v1') return 1;
+  if (exact(envelope, [...RESULT_KEYS, 'presentation']) && envelope.schema === 'ops.jev.issue-result.v2'
+    && envelope.identity?.observation === PROVIDED_COMMAND_OBSERVATION && validPresentation(envelope.presentation)) return 2;
+  return null;
+}
+function presentationOf(prepared) {
+  return { cases: prepared.plan.cases.map(({ id, input }) => ({ id,
+    checks: input.checks.map(check => ({ id: check.id, question: check.predicate.question,
+      true: check.predicate.true, false: check.predicate.false })),
+    context: input.context.map(({ role, ref, revision }) => ({ role, ref, revision })) })) };
+}
+function resultEnvelope(request, result) {
+  const provided = request.identity.observation === PROVIDED_COMMAND_OBSERVATION;
+  return { schema: provided ? 'ops.jev.issue-result.v2' : 'ops.jev.issue-result.v1',
+    requestDigest: request.requestDigest, identity: request.identity, authority: false, result,
+    ...(provided ? { presentation: presentationOf(request.prepared) } : {}) };
+}
+function presentationText(presentation) {
+  return '### Questions and supplied context\n\n'
+    + 'These are the supplied questions and criteria, not verified findings. Context references show supplied material, not support or actual model use.\n\n'
+    + presentation.cases.map(row => row.checks.map(check =>
+      `#### ${code(row.id)} / ${code(check.id)}\n\nQuestion: ${code(check.question)}\n\n`
+      + `Problem criterion (true): ${code(check.true)}\n\nOk criterion (false): ${code(check.false)}\n\n`).join('')
+      + 'Supplied context references:\n\n'
+      + (row.context.length ? row.context.map(unit => `- ${code(unit.role)}: ${code(unit.ref)} (${code(unit.revision)})`).join('\n') : 'None recorded.')
+      + '\n\n').join('')
+    + 'Only checks carried in this request are shown; caller-local withheld questions and needs are not included. The request link retains the full supplied input for audit.\n\n'
+    + '### Model observations\n\n';
+}
+
 // Display only the already public, bound result. A model observation is not a verified finding.
 function resultComment(envelope, explain = true) {
   const identity = envelope.identity;
   if (identity.observation !== PROVIDED_COMMAND_OBSERVATION) return resultJSON(envelope);
+  const selfContained = envelope.schema === 'ops.jev.issue-result.v2';
   const origin = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(identity.repository)
     && Number.isSafeInteger(identity.issue) && identity.issue > 0
     && Number.isSafeInteger(identity.commentId) && identity.commentId > 0
-    ? `[Request and evaluation conditions](https://github.com/${identity.repository}/issues/${identity.issue}#issuecomment-${identity.commentId})`
+    ? `[${selfContained ? 'Full supplied input (audit)' : 'Request and evaluation conditions'}](https://github.com/${identity.repository}/issues/${identity.issue}#issuecomment-${identity.commentId})`
     : `Request: ${code(envelope.requestDigest)}`;
   const rows = envelope.result.cases.flatMap(row => row.result.records.map(record =>
     `| ${code(row.id)} / ${code(record.rule)} | ${code(record.question)} | ${code(record.status)} | ${code(record.noul ?? 'not observed')} |`));
   return '### semlint: bounded evaluation\n\n' + origin + '\n\n'
-    + (explain ? REPORT_EXPLANATION : '')
+    + (explain ? selfContained ? INPUT_REPORT_EXPLANATION : REPORT_EXPLANATION : '')
     + `Evaluated revision: ${code(identity.subject?.revision ?? identity.subjectRevision ?? 'not recorded')}\n\n`
+    + (envelope.schema === 'ops.jev.issue-result.v2' ? presentationText(envelope.presentation) : '')
     + '| Case / check | Axis | Status | Jev value |\n|---|---|---|---|\n' + rows.join('\n') + '\n\n'
     + 'OBSERVED means a model response was recorded, not that a claim is true or a change is required. '
-    + 'Read the linked question, criteria and source scope before deciding what to change. '
+    + (selfContained ? 'Read the questions and criteria above and the supplied source scope before deciding what to change. '
+      : 'Read the linked question, criteria and source scope before deciding what to change. ')
     + 'Unobserved checks remain unresolved. No automatic approval or modification.\n\n'
     + EVIDENCE_OPEN + resultJSON(envelope) + EVIDENCE_CLOSE;
 }
@@ -38,11 +82,17 @@ function resultComment(envelope, explain = true) {
 export function parseResultComment(body) {
   if (typeof body !== 'string' || Buffer.byteLength(body, 'utf8') > RESULT_BYTE_CAP) return null;
   try {
-    if (body.startsWith(RESULT_PREFIX)) return JSON.parse(body.slice(RESULT_PREFIX.length));
+    if (body.startsWith(RESULT_PREFIX)) {
+      const envelope = JSON.parse(body.slice(RESULT_PREFIX.length));
+      // Preserve legacy extraction; N1/readback own its closed-shape validation. New v2 requires its canonical display.
+      return envelope?.schema === 'ops.jev.issue-result.v2' ? null : envelope;
+    }
     const marker = body.indexOf(RESULT_PREFIX);
     if (marker < 0 || !body.endsWith(EVIDENCE_CLOSE)) return null;
     const envelope = JSON.parse(body.slice(marker + RESULT_PREFIX.length, -EVIDENCE_CLOSE.length));
-    return resultComment(envelope) === body || resultComment(envelope, false) === body ? envelope : null;
+    const edition = resultEdition(envelope);
+    if (edition === null) return null;
+    return resultComment(envelope) === body || edition === 1 && resultComment(envelope, false) === body ? envelope : null;
   } catch { return null; }
 }
 const sha = (x) => typeof x === 'string' && /^[a-f0-9]{40}$/.test(x);
@@ -115,14 +165,13 @@ function finishRequest(prepared, identityOf, subjectAuxiliary = false) {
   const request = Object.freeze({ status: 'ADMITTED', identity, requestDigest: digest(identity), prepared, authority: false });
   // Known repeated record/identity strings plus a conservative scalar/accounting reserve per case.
   // This is size admission only, not a synthetic result or execution receipt.
-  const projection = { schema: 'ops.jev.issue-result.v1', requestDigest: request.requestDigest, identity,
-    authority: false, result: { schema: 'ops.semlint.real-result.v3', model: JEV_MODEL, planDigest: prepared.planDigest,
+  const projection = resultEnvelope(request, { schema: 'ops.semlint.real-result.v3', model: JEV_MODEL, planDigest: prepared.planDigest,
       cases: prepared.expected.map((x) => ({ id: x.id, result: { schema: x.resultSchema,
         inputDigest: x.inputDigest, questionDigest: x.questionDigest, records: x.records.map((r) => ({ ...r, noul: null })),
         counts: {}, accounting: {}, claimCeiling: 'BOUNDED_EVIDENCE_NOT_SEMANTIC_TRUTH_OR_AUTHORITY',
         ...(x.projection ? { projection: x.projection } : {}) }, provider: {},
         elapsedMs: Number.MAX_VALUE })), // longest finite clock rendering; size only, not a measurement
-      accounting: {}, claimCeiling: 'BOUNDED_EVIDENCE_NOT_SEMANTIC_TRUTH_OR_AUTHORITY' } };
+      accounting: {}, claimCeiling: 'BOUNDED_EVIDENCE_NOT_SEMANTIC_TRUTH_OR_AUTHORITY' });
   // 3072 bytes covers canonical scalar/accounting plus the closed native receipt's enums,
   // SHA256 and counters (including up to three finite usage counters); 1024 covers totals.
   // No response body, arbitrary model string or answers are repeated in the receipt.
@@ -453,8 +502,7 @@ export function nextIssueEffect(request, prior = null) {
 export function composeResultComment(request, resultValue) {
   if (!requests.has(request)) throw new Error('REQUEST_NOT_ADMITTED');
   const output = validateOwnerResult(request.prepared, resultValue);
-  const body = resultComment({ schema: 'ops.jev.issue-result.v1', requestDigest: request.requestDigest,
-    identity: request.identity, authority: false, result: output });
+  const body = resultComment(resultEnvelope(request, output));
   if (Buffer.byteLength(body, 'utf8') > RESULT_BYTE_CAP) throw new Error('RESULT_COMMENT_TOO_LARGE');
   return body;
 }
@@ -466,10 +514,14 @@ export function verifyResultReadback(request, expectedBody, observedValue, trust
   try {
     observed = snapshotJson(observedValue);
     const envelope = parseResultComment(expectedBody);
-    if (!exact(envelope, ['schema', 'requestDigest', 'identity', 'authority', 'result'])
-      || envelope.schema !== 'ops.jev.issue-result.v1' || envelope.requestDigest !== request.requestDigest
-      || envelope.authority !== false || JSON.stringify(envelope.identity) !== JSON.stringify(request.identity)
-      || (composeResultComment(request, envelope.result) !== expectedBody && resultJSON(envelope) !== expectedBody && resultComment(envelope, false) !== expectedBody)) return false;
+    const edition = resultEdition(envelope);
+    if (edition === null || envelope.requestDigest !== request.requestDigest
+      || envelope.authority !== false || JSON.stringify(envelope.identity) !== JSON.stringify(request.identity)) return false;
+    validateOwnerResult(request.prepared, envelope.result);
+    if (edition === 2) {
+      if (composeResultComment(request, envelope.result) !== expectedBody) return false;
+    } else if (resultJSON(envelope) !== expectedBody && resultComment(envelope) !== expectedBody
+      && resultComment(envelope, false) !== expectedBody) return false;
   } catch { return false; }
   return exact(observed, ['repository', 'issue', 'id', 'author', 'body']) && positive(expectedCommentId) && observed.id === expectedCommentId
     && observed.repository === request.identity.repository && observed.issue === request.identity.issue

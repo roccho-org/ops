@@ -753,7 +753,41 @@ for (const program of [entry, compatibility]) {
   assert.equal(supplied.status, 'ADMITTED');
   const suppliedResult = await runPlan(supplied.prepared, async (_, questions) => ({ model: JEV_MODEL, answers: Object.fromEntries(Object.keys(questions).map(key => [key, { type: 'noul', noul: 0.2 }])) }));
   const suppliedView = composeResultComment(supplied, suppliedResult);
-  const oldReadable = suppliedView.replace("Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. See the linked request for the questions and conditions.\n\n", '');
+  const suppliedEnvelope = parseResultComment(suppliedView);
+  assert.equal(suppliedEnvelope.schema, 'ops.jev.issue-result.v2');
+  const display = suppliedEnvelope.presentation.cases[0];
+  assert.deepEqual(display.checks, supplied.prepared.plan.cases[0].input.checks.map(check => ({ id: check.id,
+    question: check.predicate.question, true: check.predicate.true, false: check.predicate.false })));
+  assert.deepEqual(display.context, supplied.prepared.plan.cases[0].input.context.map(({ role, ref, revision }) => ({ role, ref, revision })));
+  const observed = body => ({ repository: supplied.identity.repository, issue: supplied.identity.issue,
+    id: 11, author: 'fixture-poster', body });
+  assert.equal(verifyResultReadback(supplied, suppliedView, observed(suppliedView), 'fixture-poster', 11), true);
+  const code = value => '<code>' + String(value).replace(/[^A-Za-z0-9 .-]/gu, char => '&#' + char.codePointAt(0) + ';') + '</code>';
+  // A jointly changed display and payload can be parsed, but cannot pass request-bound readback.
+  for (const key of ['question', 'true', 'false']) {
+    const changed = copy(suppliedEnvelope), original = display.checks[0][key], replacement = original + ' altered';
+    changed.presentation.cases[0].checks[0][key] = replacement;
+    const changedBody = suppliedView.replace(code(original), code(replacement))
+      .replace(JSON.stringify(suppliedEnvelope), JSON.stringify(changed));
+    assert.deepEqual(parseResultComment(changedBody), changed);
+    assert.equal(verifyResultReadback(supplied, changedBody, observed(changedBody), 'fixture-poster', 11), false);
+  }
+  for (const changed of [{ ...suppliedEnvelope, extra: true }, { ...suppliedEnvelope, presentation: { cases: [] } }]) {
+    assert.equal(parseResultComment(suppliedView.replace(JSON.stringify(suppliedEnvelope), JSON.stringify(changed))), null);
+  }
+  const { presentation, ...legacyFields } = suppliedEnvelope;
+  const legacyEnvelope = { ...legacyFields, schema: 'ops.jev.issue-result.v1' };
+  const explanation = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. See the linked request for the questions and conditions.\n\n";
+  const inputExplanation = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. Questions and criteria appear below; the linked request retains the full supplied input for audit.\n\n";
+  const legacyReadable = suppliedView.replace(/### Questions and supplied context\n[\s\S]*?### Model observations\n\n/, '')
+    .replace(inputExplanation, explanation).replace('[Full supplied input (audit)]', '[Request and evaluation conditions]')
+    .replace('Read the questions and criteria above and the supplied source scope before deciding what to change. ', 'Read the linked question, criteria and source scope before deciding what to change. ')
+    .replace(JSON.stringify(suppliedEnvelope), JSON.stringify(legacyEnvelope));
+  const oldReadable = legacyReadable.replace(explanation, '');
+  for (const body of [legacyReadable, oldReadable, RESULT_PREFIX + JSON.stringify(legacyEnvelope) + '\n']) {
+    assert.deepEqual(parseResultComment(body), legacyEnvelope);
+    assert.equal(verifyResultReadback(supplied, body, observed(body), 'fixture-poster', 11), true);
+  }
   const saved = { author: 'fixture-poster', body: oldReadable, databaseId: 11 };
   const oldPrior = deriveIssuePrior(supplied, { claims: ['fixture-poster'], results: [saved] }, 'fixture-poster');
   assert.equal(oldPrior.state, 'APPENDED'); assert.equal(nextIssueEffect(supplied, oldPrior).effect, 'READBACK_ONLY');
