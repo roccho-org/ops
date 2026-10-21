@@ -111,10 +111,13 @@ export type ProofEnvironment = {
   PI_ACCESS_OWNER_HASH?: string;
 };
 
+type AttemptTrace = { attempt: number | null; httpStatus: number | null; outcome: "NOT_SENT" | "HTTP" | "TRANSPORT" };
+
 /** Finite owner proof only. Credentials live in this instance, never storage. */
 export class TransientWorkerProof {
   readonly bootId = crypto.randomUUID();
   #access?: { token: string; expires: number };
+  readonly #terminalTraces = new WeakMap<object, AttemptTrace>();
   readonly storage: DurableObjectStorage;
   constructor(storage: DurableObjectStorage) { this.storage = storage; }
 
@@ -144,26 +147,46 @@ export class TransientWorkerProof {
     return this.#access!.token;
   }
 
-  readonly fetch: typeof fetch = async (input, init) => {
+  // The per-stream closure is never a shared "latest outcome".
+  async #request(input: RequestInfo | URL, init?: RequestInit, trace?: AttemptTrace) {
     this.#bearer();
     const request = new Request(input, init);
     if (request.url !== "https://api.openai.com/v1/responses" || request.method !== "POST") {
       throw new Error("Proof transport rejected");
     }
-    await this.storage.transaction(async tx => {
+    const attempt = await this.storage.transaction(async tx => {
       const count = await tx.get<number>("pi.proof.responses.posts") ?? 0;
-      if (count >= 3) throw new Error("Proof physical request budget consumed");
+      if (count >= 4) throw new Error("Proof physical request budget consumed");
       await tx.put("pi.proof.responses.posts", count + 1);
+      return count + 1;
     });
+    if (trace) trace.attempt = attempt;
     // Count before send: an UNKNOWN result is never refunded.
-    return globalThis.fetch(request, { redirect: "error" });
-  };
+    try {
+      const response = await globalThis.fetch(request, { redirect: "error" });
+      if (trace) { trace.httpStatus = response.status; trace.outcome = "HTTP"; }
+      return response;
+    } catch {
+      if (trace) trace.outcome = "TRANSPORT";
+      throw new Error("Proof transport failed");
+    }
+  }
+
+  readonly fetch: typeof fetch = (input, init) => this.#request(input, init);
+
+  failureMetadata(message: object): string {
+    const trace = this.#terminalTraces.get(message);
+    return JSON.stringify({ scope: "PI_PROOF_PROVIDER_FAILURE", version: 1,
+      attempt: trace?.attempt ?? null, httpStatus: trace?.httpStatus ?? null,
+      outcome: trace?.outcome ?? "UNKNOWN" });
+  }
 
   models() {
     const models = createModels({ authContext: { env: async () => undefined, fileExists: async () => false } });
     const base: Provider = openaiProvider();
-    const options = <T,>(input: T) => ({
-      ...input, maxRetries: 0, timeoutMs: 20_000, transport: "sse" as const, fetch: this.fetch,
+    const options = <T,>(input: T, trace: AttemptTrace) => ({
+      ...input, maxRetries: 0, timeoutMs: 20_000, transport: "sse" as const,
+      fetch: (input: RequestInfo | URL, init?: RequestInit) => this.#request(input, init, trace),
       onProviderStreamEvent: (raw: unknown) => {
         const event = raw as { type?: string; response?: { status?: string; id?: string } };
         if (event.type === "response.incomplete" || (event.type === "response.completed" &&
@@ -186,12 +209,26 @@ export class TransientWorkerProof {
         return payload;
       },
     });
+    const associate = <T extends { result(): Promise<object> }>(stream: T, trace: AttemptTrace): T => {
+      // Register before returning to Models.lazyStream/Harness. Their terminal object
+      // is forwarded by identity. No detached rejection may expose SDK diagnostics.
+      void stream.result().then(message => {
+        if (message !== null && typeof message === "object") this.#terminalTraces.set(message, { ...trace });
+      }).catch(() => { /* association absent => UNKNOWN */ });
+      return stream;
+    };
     models.setProvider({
       ...base,
       auth: { apiKey: { name: "Transient validated ChatGPT OAuth access", resolve: async () =>
         ({ auth: { apiKey: this.#bearer() }, source: "owner-transient-oauth" }) } },
-      stream: (model, context, config) => base.stream(model, context, options(config)),
-      streamSimple: (model, context, config) => base.streamSimple(model, context, options(config)),
+      stream: (model, context, config) => {
+        const trace: AttemptTrace = { attempt: null, httpStatus: null, outcome: "NOT_SENT" };
+        return associate(base.stream(model, context, options(config, trace)), trace);
+      },
+      streamSimple: (model, context, config) => {
+        const trace: AttemptTrace = { attempt: null, httpStatus: null, outcome: "NOT_SENT" };
+        return associate(base.streamSimple(model, context, options(config, trace)), trace);
+      },
     });
     return models;
   }

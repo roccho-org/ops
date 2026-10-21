@@ -2,7 +2,7 @@ name: Pi Worker proof (mock inference, OAuth screen)
 
 on:
   push:
-    branches: [poc/pi-worker-oauth-20261017, codex/pi-jev-worker-20261020, proposals]
+    branches: [poc/pi-worker-oauth-20261017, codex/pi-jev-worker-20261020, codex/pi-owner-lifecycle-20261021, proposals]
     paths:
       - experiments/pi-worker-proof/**
       - .github/workflows/pi-worker-proof.yml
@@ -72,8 +72,13 @@ jobs:
           set -euo pipefail
           pnpm install --frozen-lockfile --ignore-scripts
           node build.mjs "$GITHUB_WORKSPACE/upstream"
-          node --test auth.test.mjs 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/auth-validation.log"
+          node --check owner.mjs
+          node --test auth.test.mjs custody.test.mjs 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/auth-validation.log"
           cp package.json pnpm-lock.yaml dist/oauth.original.js dist/oauth.verified.js "$RUNNER_TEMP/pi-worker-proof/"
+          for source in auth.mjs auth.test.mjs custody.mjs custody.test.mjs owner.mjs build.mjs; do
+            cp "$source" "$RUNNER_TEMP/pi-worker-proof/operator-$source"
+          done
+          cp dist/oauth.mjs "$RUNNER_TEMP/pi-worker-proof/operator-oauth.mjs"
           git diff --exit-code -- package.json pnpm-lock.yaml
       - name: Apply the bounded runtime integration
         id: overlay

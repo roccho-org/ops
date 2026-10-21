@@ -36,3 +36,16 @@ export async function verifyAccessOwner(token, config, keys) {
     return true;
   } catch { throw new Error("Worker owner validation failed"); }
 }
+
+/** Refresh has no new authorization nonce. Compare verified account and registered client. */
+export async function verifyRefreshedIdentity(token, clientId, expected, keys = openaiKeys) {
+  try {
+    const { payload } = await jwtVerify(token, keys, {
+      issuer, audience: clientId, algorithms: ["RS256"], requiredClaims: ["exp", "iat", "sub"],
+    });
+    if (!expected?.subject || payload.sub !== expected.subject ||
+        (Array.isArray(payload.aud) && payload.aud.length > 1 && payload.azp !== clientId) ||
+        (payload.azp !== undefined && payload.azp !== clientId)) throw new Error();
+    return { subject: payload.sub };
+  } catch { throw new Error("ChatGPT refresh identity validation failed"); }
+}
