@@ -192,20 +192,24 @@ const unit = (fields, content) => ({ ...fields, content, sha256: sha256(content)
 // the ok criterion) before sealing. The unknown label never reaches the wire and is not checked.
 const ABBREVIATIONS = /\b(?:e\.g\.|i\.e\.|etc\.)/gi;
 const DECIMAL = /(\d)\.(?=\d)/g;
+// Any character outside printable ASCII is refused on the raw text, so zero-width splits, homoglyphs, fullwidth
+// marks and dashes cannot hide a word or a clause. The word and mark rules then run on the NFKC form.
+const NON_ASCII = /[^\x20-\x7E]/;
 const STATEMENT_RULES = [
-  ['COORDINATION', /\b(?:and|or|but)\b|,/i],
+  ['COORDINATION', /\b(?:and|or|but)\b|[,&]/i],
   ['CONDITION', /\b(?:unless|if|except|rather\s+than)\b/i],
   ['PUNCTUATION', /[;:/]/],
-  ['NEGATION', /\b(?:not|no|never|without|omits?|omitted|omitting|fail|fails|failed|failing|missing|lacks?|lacked|lacking|neither|nor|absent|exclude|excludes|excluded|excluding)\b|\bfree\s+of\b|n['’]t\b/i],
+  ['NEGATION', /\b(?:not|cannot|no|never|without|omits?|omitted|omitting|fail|fails|failed|failing|missing|lacks?|lacked|lacking|neither|nor|absent|exclude|excludes|excluded|excluding)\b|\bfree\s+of\b|n['’]t\b/i],
   // A fixed list, not every un-/in-/non- word: the list names common negative adjectives and pronouns.
   ['NEGATIVE_PREFIX', /\b(?:unsupported|unverified|unclear|undefined|unresolved|unmet|unspecified|untested|undocumented|unchecked|unknown|unsafe|unable|unavailable|unreachable|incomplete|incorrect|invalid|inconsistent|insufficient|inaccurate|inadequate|inapplicable|incompatible|none|nothing|nobody|nowhere|nonexistent|non-existent|noncompliant|non-compliant|nonzero|non-zero)\b/i],
 ];
 export function statementViolations(sentence) {
   if (!text(sentence)) return ['SENTENCE_COUNT'];
-  const masked = sentence.replace(ABBREVIATIONS, m => m.replace(/\./g, '')).replace(DECIMAL, '$1');
+  const masked = sentence.normalize('NFKC').replace(ABBREVIATIONS, m => m.replace(/\./g, '')).replace(DECIMAL, '$1');
   const terminators = masked.match(/[.!?]/g) ?? [];
   const rules = /[\r\n]/.test(sentence) || terminators.length !== 1 || !masked.trimEnd().endsWith('.') ? ['SENTENCE_COUNT'] : [];
   for (const [rule, pattern] of STATEMENT_RULES) if (pattern.test(masked)) rules.push(rule);
+  if (NON_ASCII.test(sentence)) rules.push('NON_ASCII');
   if (CJK.test(sentence)) rules.push('CJK');
   return rules;
 }
