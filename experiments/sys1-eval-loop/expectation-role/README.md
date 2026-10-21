@@ -1,4 +1,39 @@
-# 十一の負結果を保持し、分類とラベル照合の構造案を反証する
+# 十一の負結果を保持し、依存ラベル照合の固定入口を検証する
+
+## D12：元E基準の引用と依存checker（code-only）
+
+[D11負保持と三者counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595854426)から、fresh BestEの実yes/noが元E真偽条件に一致するかを別native binary checkerで判定する一候補を選んだ。最初の英語定義案は元BestEとの定義・言語差を同時に含むというroot/R反証で未採用とし、元BestEのinstructions598字とyes/no91字を無編集JSON referenceとして囲んだ。外側metaと末尾は、引用された直接E判定でなく提示ラベルの正誤を回答するtaskだと明示する。checker instructions1578字/正誤criteria335字、両label全文wireを三者がsource前に固定した。元O説明混在、二種類のyes/noの混同、同意bias、誤反転、同一backendの相関は残る。
+
+新verification固定contextだけが各caseのBestE→checker依存順を使う。qualified BestEの実choiceだけをJSON文字列stateのproposedEへ渡し、本文は原bodyのまま、confidence/Gold/O/ID/旧履歴を入れない。checker yesなら維持、noなら反転するが、両nativebinary資格が必要。Noは“不一致というモデル判断”であり、説明不足や技術UNKNOWNを反転せず、hidden uncertaintyの検出や自己正しさ証明を主張しない。独立Gold・618歴史保護・freshE退行0・完全joint正差・全1252資格/expectedmodelは別ANDのまま。
+
+BestE通常欠測時はcheckerをattempt/postせずdependency-skip（baseline-unqualifiedとdependsOn）を原eventsへ残し、derived Eはunknown、次caseへ継続する。checkerだけ欠けてもEを補完しない。旧binary modelChanged停止では残tailをmodel-stop未attemptとして区別する。これは実異version報告の証明でなく旧binary停止規則であり、旧11loop/SDK/recorder/qualifierは変更しない。新projectorは各attempt/post/資格/skip/rowの依存順を原記録から再構成し、旧prefixloopを流用しない。skipは新loopのobserveのみで、標準recorder自体の変更ではない。
+
+原checkerは“Eラベルの正誤”のprovider回答でありnative Eではない。verifiedEはproviderAnswer:falseで両元post/choicesと実proposedEへ結合し、確率/model/usageを作らない。BestEはbaseline兼componentとして一回だけ送信・計上する。最大1252HTTP＝626BestE＋626checkerで、baseline欠測なら実postは減るが全626分母・assigned1252を保持し、attempt/post/qualified/unknown/unattemptedを別記する。新履歴へ加えるならnative BestEとboth-qualified derived verifiedEを区分し、checker原答をnativeBinaryEへ足さない。
+
+鍵前に旧全17016 qualified E（14517binary/621role4/各626split・partition・lines）/physical17021/invalid5/618orderedを元contextで再生し、19native runsと固定D6 failed-job、実Git親/REQUEST phaseを検査する。鍵下inputは固定8field、元全body/Best/4templates/expectedmodel/executionを結合する。BestE/sharedOとchecker両labelの全実wireは24k未満、stateは既標準binaryのJSON文字列。新transport/auth/executor、任意profile/override、追加再試行はない。
+
+prospective-plan12の16824は実消費13772＋新D最大1252＋将来H最大1800の有限割当で、実費や追加User予算gateではない。既13772postのinput/output各5欠測・total全欠測を保持する。source-onlyではREQUESTのdevelopment11/1d13を変更しない。新source必要CI/三者exact受容後のみ直子REQUEST-only activation12を一回行う。中間負保持headのReadyを追加前提にせず、目的最終current全通常CI/会計/三者記録/Ready未mergeを最後に閉じる。
+
+Hはまだcount/body/Gold0、成功D12原版と実要求freeze三者受容後だけ既事前Oct18窓/priorへ進む。H eligibilityはBestE/sharedO/checkerYes/checkerNoの4wire、実割当は最大3MHTTP/3M原binary回答（E/正誤/O）である。同body/Gold/Mと両条件template/policyは両回固定するが、当回baseline choiceによりchecker実stateはrep間で異なり得るため実payload全同値とは呼ばず、各choiceへ結合する。ordinaryunknown/意味FAILでも予定H2を取消さず、missingmodelと実othermodelを区別するH専用capture→資格→H2 admissionは別sourceで検証する。両回全資格と共通Gold Δ下限>0/任意軸R上限0が必要で、D反復選択・ever-correct保護は不偏推定や一般品質保証ではない。
+
+~~~mermaid
+flowchart TB
+ A[✅ D11原負/元Gold/全費用を保持] --> C[✅ 三者反証: 不支持と不一致を分離/元E全文引用]
+ C --> B[code-only: 固定626 BestE→条件checker]
+ B --> Q{BestE strict資格?}
+ Q -->|通常unknown| S[checker未attempt/skip原記録/derived unknown→次case]
+ Q -->|yes/no| K[実labelを固定checker branchへ結合]
+ K --> V{checker strict資格?}
+ V -->|unknown| U[反転せずderived unknown]
+ V -->|qualified yes/no| E[providerAnswer:false verifiedE/両post追跡/費用一回]
+ E --> G[⏳ 必要CI/三者exact→一回D12/全guard]
+ G -->|FAIL/unknown| N[原版保持・別仮説counter/未採用]
+ G -->|全PASSと実要求freeze| H[🔒 未開封H/同条件policy/二回AND]
+ H -->|未達| N
+ H -->|両回成立| Z[目的最終current全CI/記録/Ready未merge]
+~~~
+
+以下D11節の未固定・未実装という記述は負保持時点の記録であり、上のD12 code-only実装と区別する。
 
 ## D11：合成対比追加でもfresh2/歴史10退行で未採用
 

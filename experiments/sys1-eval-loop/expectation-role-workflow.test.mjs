@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {assertExpectationRoleWorkflow} from '../../tools/check-ci-intent-workflow-branches.mjs';import {BRANCH,REQUEST} from './expectation-role/admission.mjs';
-const d=String.fromCharCode(36),command=mode=>'node experiments/sys1-eval-loop/expectation-role/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-role"',boundary={secretScope:'organization',secretName:'JEV_API_KEY',allowedEvents:['push'],maxCalls:15572};
+const d=String.fromCharCode(36),command=mode=>'node experiments/sys1-eval-loop/expectation-role/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-role"',boundary={secretScope:'organization',secretName:'JEV_API_KEY',allowedEvents:['push'],maxCalls:16824};
 function fixture(){return {on:{push:{branches:[BRANCH],paths:[REQUEST]}},permissions:{actions:'read',contents:'read'},concurrency:{group:'sys1-expectation-role','cancel-in-progress':false},jobs:{evaluate:{if:"github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1",'runs-on':'ubuntu-24.04','timeout-minutes':350,steps:[
  {uses:'actions/checkout@11d5960a326750d5838078e36cf38b85af677262',with:{'persist-credentials':false,'fetch-depth':0}},
  {run:'node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs'},
