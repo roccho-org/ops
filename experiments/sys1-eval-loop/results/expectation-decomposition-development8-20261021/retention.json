@@ -1,0 +1,60 @@
+{
+  "schema": "ops.sys1.expectation-decomposition-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "8c61479afbf9ec1bf80f93cebd69c6a5a4e7dd98",
+  "activation": "1ff582705cec909dfde42ca5d2d7f0ef66d0f4fe",
+  "phase": "development8",
+  "historyCount": 8,
+  "originalFiles": 5,
+  "originalBytes": 25324605,
+  "actualPhysicalHTTP": 1252,
+  "nativeBinaryBestE": 626,
+  "nativeNamedTwoCandidatePosts": 626,
+  "qualifiedHTTP": 1252,
+  "qualifiedOriginalBinaryAnswers": 1878,
+  "unknown": 0,
+  "modelStable": true,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "W product replay and root/R own provider ZIP/native history8/strict named2 raw qualification/full Core/617guard/one topusage per post are compared independently",
+  "joint": {
+    "baselineCorrect": 476,
+    "candidateCorrect": 505,
+    "repaired": 31,
+    "regressed": 2
+  },
+  "E": {
+    "baselineCorrect": 583,
+    "candidateCorrect": 613,
+    "repaired": 32,
+    "regressed": 2,
+    "historical617Regressed": 5
+  },
+  "usage": {
+    "inputTokens": 2349565,
+    "outputTokens": 57592,
+    "totalTokensUnknownPosts": 1252
+  },
+  "seriesActual": {
+    "physicalHTTP": 10016,
+    "qualifiedHTTP": 10011,
+    "inputTokensKnownSum": 20529198,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 341549,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 10016
+  },
+  "nextEvidence": {
+    "qualifiedE": 13260,
+    "nativeBinary": 12013,
+    "qualifiedRole4Derived": 621,
+    "qualifiedDecompositionDerived": 626,
+    "physicalIncludingOldInvalid": 13265,
+    "protected": 618,
+    "addedIds": [
+      "expectation-024"
+    ],
+    "priorInvalidUnknown": 5
+  },
+  "scope": "Native named2 answers are not a native binary E answer. Both qualify before OR providerAnswer:false. Branch Gold/independence/latent inference/equal cost/isolated cause are unproved; all prior negative contexts and guards stay fixed. No held selection or Gold changes; objective final CI/records/Ready is not an intermediate negative gate"
+}
