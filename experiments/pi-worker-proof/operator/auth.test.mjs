@@ -890,3 +890,67 @@ test("real transport-correction loopback opens only the previously saved invento
     } finally {for(const socket of server.clients)socket.terminate();await new Promise(resolve=>server.close(resolve));}
   }
 });
+
+test("OpenCode proof branches without custody/OAuth, correlates coding results and checks actual wire identity across reconnect", async () => {
+  const { proofIdentity, runOpenCodeProof, openCodeWireReceipts } = await import("./owner.mjs");
+  const values = { stage: "opencode", url: "https://pi.roccho.workers.dev/",
+    session: "owner-jev-opencode-proof-20261021", continue: true, cloudflared: "unused" };
+  proofIdentity(values);
+  for (const changed of [{ url: "https://foreign.invalid/" }, { session: "owner-jev-proof-20261020" },
+    { continue: false }, { "recover-transport-once": true }])
+    assert.throws(() => proofIdentity({ ...values, ...changed }));
+  for (const mode of ["valid", "different-header", "same-boot"]) {
+    let connects = 0, idle = 0, expected, observedPrompt;
+    const commands = [];
+    const wire = (attempt, digest = "a".repeat(64)) => ({ schema: "pi.opencode.wire.v1",
+      sessionSha256: digest, ownUserAgent: true, attempt });
+    const assistant = (attempt, stopReason, content, digest) => ({ role: "assistant",
+      stopReason, rawStopReason: "completed", responseId: "opencode-fixture-" + attempt,
+      model: "gpt-6-luna", content, piProofWire: wire(attempt,digest) });
+    const dependencies = {
+      accessToken: () => "fixture-owner-cookie",
+      idle: async () => { idle++; },
+      connect: async options => {
+        assert.deepEqual(Object.keys(options.headers), ["Cookie"]);
+        assert.equal(options.priorHeader, "pi-proof-prior-owner");
+        assert.equal(options.session, values.session);
+        const index = connects++;
+        return {
+          witness: { boot: index === 0 || mode === "same-boot" ? "00000000-0000-4000-8000-000000000001" :
+            "00000000-0000-4000-8000-000000000002", prior: "false", posts: [0,2,3][index] },
+          close: async () => {},
+          command: async command => { commands.push(command); return { conversationId: 8 }; },
+          turn: async (id, prompt) => {
+            assert.equal(id,8);
+            if (index === 0) {
+              const caseId = /test case ([0-9a-f]{48})/.exec(prompt)?.[1];
+              assert.ok(caseId); assert.match(prompt,/function first/);
+              expected = { caseId, finding: "Empty array dereferences undefined", assessment: { type: "noul", noul: 0.8123 } };
+              return [
+                assistant(1,"toolUse",[{type:"toolCall",id:"code-call",name:"ask_jev",arguments:{}}]),
+                { role:"toolResult", toolName:"ask_jev",toolCallId:"code-call",isError:false,
+                  content:[{type:"text",text:JSON.stringify(expected.assessment)}] },
+                assistant(2,"stop",[{type:"text",text:JSON.stringify(expected)}]),
+              ];
+            }
+            observedPrompt=prompt;
+            assert.ok(!prompt.includes(expected.caseId));assert.ok(!prompt.includes("0.8123"));
+            assert.ok(!prompt.includes(expected.finding));assert.match(prompt,/previous code review/);
+            return [assistant(3,"stop",[{type:"text",text:JSON.stringify(expected)}],
+              mode === "different-header" ? "b".repeat(64) : undefined)];
+          },
+        };
+      },
+    };
+    if (mode === "valid") { await runOpenCodeProof(values,dependencies); assert.equal(connects,3); }
+    else await assert.rejects(runOpenCodeProof(values,dependencies));
+    assert.equal(idle,1);
+    assert.equal(commands[0].type,"conversation.create");
+    if(mode!=="same-boot") { assert.equal(commands[1].type,"conversation.open");assert.equal(commands[1].conversationId,8);assert.ok(observedPrompt); }
+  }
+  const valid = {role:"assistant",stopReason:"stop",rawStopReason:"completed",responseId:"one",
+    piProofWire:{schema:"pi.opencode.wire.v1",attempt:3,ownUserAgent:true,sessionSha256:"a".repeat(64)}};
+  assert.throws(()=>openCodeWireReceipts([{...valid,piProofWire:undefined}],[3]));
+  assert.throws(()=>openCodeWireReceipts([{...valid,piProofWire:{...valid.piProofWire,ownUserAgent:false}}],[3]));
+  assert.throws(()=>openCodeWireReceipts([{...valid,piProofWire:{...valid.piProofWire,attempt:2}}],[3]));
+});
