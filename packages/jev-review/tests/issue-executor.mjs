@@ -2175,7 +2175,10 @@ await check('provided-human-view-legacy-reconciliation-and-safe-text', async () 
   assert.equal(view.includes('@fixture'), false); assert.equal(view.includes('<b>'), false);
   assert.equal(view.includes('`'), false); assert.ok(view.includes('&#124;')); assert.ok(view.includes('&#233;'));
   const envelope = parseResultComment(body);
-  assert.equal(envelope.schema, 'ops.jev.issue-result.v2');
+  assert.equal(envelope.schema, 'ops.jev.issue-result.v3');
+  // The executor posts the W1 θ section (roccho-dev/adrs#635 F0 seal 6314172215) before the observation table.
+  assert.ok(view.indexOf('### Jev value against θ') > view.indexOf('### Questions and supplied context')
+    && view.indexOf('### Jev value against θ') < view.indexOf('### Model observations'));
   assert.equal(envelope.result.cases[0].result.records[0].rule, payload.cases[0].input.checks[0].id);
   assert.deepEqual(envelope.presentation.cases[0].checks[0], { id: payload.cases[0].input.checks[0].id,
     ...payload.cases[0].input.checks[0].predicate });
