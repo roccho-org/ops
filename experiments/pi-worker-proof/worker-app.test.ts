@@ -945,7 +945,8 @@ it.skipIf(!openCodeFixture || openCodeErrors)(
         { headers: { "content-type": "text/event-stream" } });
     });
     const missing = await exports.default.fetch("https://example.com/api/sessions/" + session, { headers: { Upgrade: "websocket" } });
-    expect(missing.status).toBe(403); expect(requests).toHaveLength(0); expect(jevPosts).toBe(0);
+    expect(missing.status).toBe(403); expect(await missing.json()).toEqual({ error: "Owner authorization required" });
+    expect(requests).toHaveLength(0); expect(jevPosts).toBe(0);
     await runInDurableObject(env.SESSIONS.getByName(session), async instance => { await instance.alarm(); });
     expect(requests).toHaveLength(0);
     const first = await connect(session, 1, headers);
@@ -964,7 +965,7 @@ it.skipIf(!openCodeFixture || openCodeErrors)(
     await evictDurableObject(env.SESSIONS.getByName(session));
     const rejected = await exports.default.fetch("https://example.com/api/sessions/" + session,
       { headers: { Upgrade: "websocket", "Cf-Access-Jwt-Assertion": "invalid-owner" } });
-    expect(rejected.status).toBe(403);
+    expect(rejected.status).toBe(403); expect(await rejected.json()).toEqual({ error: "Owner authorization required" });
     expect(requests).toHaveLength(2); expect(jevPosts).toBe(1);
     const second = await connect(session, first.conversationId, headers);
     expect(second.response.headers.get("Pi-Proof-Boot")).not.toBe(boot);
@@ -1019,7 +1020,7 @@ it.skipIf(!openCodeFixture || !openCodeErrors)(
     expect(jevPosts).toBe(0);
     await evictDurableObject(env.SESSIONS.getByName(session));
     const denied = await exports.default.fetch("https://example.com/api/sessions/" + session, { headers: { Upgrade: "websocket" } });
-    expect(denied.status).toBe(403);
+    expect(denied.status).toBe(403); expect(await denied.json()).toEqual({ error: "Owner authorization required" });
     await runInDurableObject(env.SESSIONS.getByName(session), async instance => { await instance.alarm(); });
     expect(modelPosts).toBe(1); expect(jevPosts).toBe(0);
     const reopened = await connect(session, client.conversationId, headers);
