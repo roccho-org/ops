@@ -1,4 +1,34 @@
-# E判定の二候補の負結果を保持する
+# E判定の三候補の負結果と継続する仮説検証
+
+## D3 scope・合成例候補：正差23でもfresh退行1・歴史破壊3で不受容
+
+[development3の一回の実run](https://github.com/roccho-org/ops/actions/runs/39523800207)はsource3610f16 / REQUEST-only activation ff235faf / phase development3・履歴3で実行した。全1252要求が資格とexpected modelを満たし、unknown0。fresh complete476→499（修復24/退行1）、E583→607（修復25/退行1）だった。しかしfreshE退行census-090、原607保護内の破壊held-086/census-023/census-090によりDEVELOPMENT_GUARD_FAIL。3件ともGoldE=yesをnoへ落としたもので、正差23で相殺しない。機械first477/E585は別診断、O-null17も全626分母に残す。
+
+root/Rは各自provider ZIPとnative実Git親/REQUEST phase3を取得し、独立readerで全1252 Core/flags/資格/全guard/usageを再生した。Wの原5全27,224,473Bと製品再生も一致し、results/expectation-example-development3-20261021/へ原bytesを保持する。実job鍵前688/688と全step成功は意味受容ではない。selection/成功要求freezeを発行せず、新Hの件数/本文/Goldは未開封。D1原604・D2/D3原607やGoldを遡及変更せず、旧2候補も全field固定で再生する。
+
+当回物理1252/input2,905,878/output38,812、total_tokens全1252欠測。PR624のD1+D2+D3実消費は3756/input8,399,626/output116,436、total_tokens3756欠測。5556はD3 source時点の最大割当であって実消費ではない。歴史5753 E/O aliasや未実施Hを新費用へ数えず、料金/内部計算量は不明。旧Best維持・未採用。現headの全通常CI/記録/Readyは別に閉じる。
+
+次処置を設計する際の歴史保護は、当回1252の新正答も加えた原7005 Eから610へ拡張する（追加expectation-017/043/044）。これは次sourceの出力前契約であり、D3の607へ遡及しない。ever-correct保護は工学的採択条件で、不偏性能推定や達成可能性を保証しない。次仮説は候補instructionsのO向け対比blockを許容条件の対比例ごと一連続削除する案で、body全体/非推測・E前半/ANY・原suffix・286字例・criteria・Best/Oを保持する。干渉原因は未証明で、英語例追加等を混ぜず、exact source/必要CI/三者受容前の実作用はしない。
+
+```mermaid
+flowchart TB
+  OLD[✅ D1/D2負原版と旧契約固定] --> SRC[✅ D3 source/必要688CI/三者counter]
+  SRC --> RUN[✅ 一回1252・全資格/model一致]
+  RUN --> FAIL[❌ 正差23もfresh1/歴史3破壊]
+  FAIL --> RAW[✅ 原5・別reader検算・会計/H封印]
+  RAW --> CLOSE[⏳ 最終current全CI/記録/Ready未merge]
+  RAW --> COUNTER[⏳ 三者反証・別の意味ある処置]
+  COUNTER --> SOURCE[⏳ wholeCore固定/必要CI/三者受容]
+  SOURCE --> D[⏳ 有限一回の別D実測]
+  D -->|未達/unknown| COUNTER
+  D -->|原guard成功と実要求固定| H[⏳ 未使用H/予測前Gold/同3M二回AND]
+  H -->|未達| RETIRE[当H退役・別未使用H契約]
+  RETIRE --> COUNTER
+```
+
+以下はD3 source時点と旧候補の固定記録であり、当時の未完表示を現在と混同しない。
+
+## D3 source時点の記録
 
 ## D2境界候補：正差17だがfresh退行1・歴史破壊7で不受容
 
