@@ -1,3 +1,33 @@
+# D17: compact S/R instructions — sourceのみ
+
+D16原負保持58064d602a0a27957703d777384dc4bd33f3f66dを三者正式全文で閉じた。全16原FAIL/Gold/費用を保持し、H count/body/Gold/model0。今回の処置は **二つのinstruction文字列だけ**。S1695→919、R1823→1109へ短い全文存在契約を置き、D16四criteria全値/質問名順/yes-noキー/body-only state/native named2/10s diagnose/strictAND後OR/原B/Oを保持。旧2合成例の削除・文言・長さ・配置の一packageで、新構造、意味同値・同能力、短さ単独因果の実証ではない。
+
+主張と反証：[三者設計全文](https://github.com/roccho-org/ops/pull/624#issuecomment-6315819083)。rootの全体短縮案をRが四criteria exactへ限定し、Wは一問union再統合案をD7/D11との同系性/意味誤り機構の弱さから保留。Rは旧HTML comments/tables/formulas/templates冒頭とinput/output mappingの保持を反証し採用。S全種、R真正要求/本人goal/need、混在取消0、引用の用途、未記入でも真正提出template、形式非十分、観測から未記載仕様/願い補完禁止を残す。real/actuallyは採用/実装済/正式ラベルの追加要件でなく本文の提示役割。語用曖昧さ、混在真陽性喪失、ORのFP増幅、短くする優位は未解消。
+
+- 全三者が自分のactualD16原B/SR CoreとD16 inputに保持されたhistorical qualified O template（D16新O実POST0）から独立wx。全3756標準SDKoffline payloadを比較しMAX B20805/roleCompactE22005/O20856<24000。全4truth/三template/order/会計を照合。新実model/API0。
+- 新閉context development17/roleCompactE/schema ops.sys1.expectation-role-compact-development.v1、原10projection shapeを維持。roleBoundaryNativeは共通SR受信境界snapshot形の名前で、旧質問同一性を示さない。currentrequest/source/keyを別に全値結合。旧askRoleBoundary本体/SDK/B原flagsは維持し、固定新schema/key dispatchとprivate qualifier固定wrapperだけ追加。B rawidentifierを新保存済とは称さず、SRだけrawmodel/modelPresent/type/2maps/topusage保存。
+- B/SRのmissing/nonstring/empty/otherは旧legacy globalstopを維持しactual reportedother観測とは区別。普通map/transportUNKNOWNなら相手の予定割当を続行、両strict前にORなし/片yes+unknownもwholeUNKNOWN。local no post/flags、provider currentpost/no flags、response post<flags<failure<unknown。借用flags/postdrop/部分資格shortcut/旧capture流用0。
+- Dは1252HTTP＝B626+SR626、原binary回答1878＝B626+S/R1252。下位S/RはfullEでなくbranch Goldもない。未来E履歴はBとwholeOR-derivedEのみ、派生に確率/model/usage捏造0。元24521 qualifiedE/native18273/physical23281invalid12/保護622を固定、旧全16を再投影し、現在の保護条件を緩和しない。
+- prospective max23084＝既実20032+別D最大1252+将来H最大1800、実費/新Userbudgetgateではない。series旧5入力出力欠測/全total欠測はそのまま。Hはwinning後のみ3MHTTP/4M原binary/3eligibilitywire、固定二schedule各AND。SDK15s B/native10s SR/state表現は元D16と同じ、同原価/モデル誤り独立性を主張0。
+
+旧16nativehistoryと24run+固定D6/D14原failurejobsだけをbeforecredentialで検証。任意failure/timeout/cancel/unknownonlyを許す一般化0。新作用は公開exact三者/当source必要CIを先に終え、REQUEST-only directchild一回のみ。今回source-only REQUEST16/985aを保持。中間negativeCI/Readyを新gateにせず、目的最終current全通常CI/記録/Ready未mergeを残す。
+
+~~~mermaid
+flowchart TB
+ A["✅ 16原FAIL保持・全3者literal/wx"] --> B["🛠️ 公開source/必要CI/三者exact"]
+ B --> C["⏳ 一回REQUEST-only D17"]
+ C --> X["BとSR独立ordinal予定/普通unknownでも他方継続"]
+ X --> P["原B + 両strict S/R→wholeOR E"]
+ X --> U["unknown/legacy modelstop原理由保持"]
+ P --> G{"全626/全資格/正joint差/新退行0/保護622?"}
+ U --> G
+ G -->|FAIL/UNKNOWN| N["📦 原版費用保持→別仮説"]
+ G -->|PASS| H["🔒 要求freeze後のみ未使用H/別allpath三値source"]
+ H --> Z["⏳ 両H成立→目的最終CI/記録/Ready未merge"]
+~~~
+
+以下はD16負保持までの全文履歴。
+
 # D16: four role criteria — 原負結果
 
 実run [39596558898](https://github.com/roccho-org/ops/actions/runs/39596558898)、source985ab92e498935e4b7afd6bd2ccaf2f060396e02 / REQUEST-only activation4dbcd017bc2482284baf886cc84487c8f7b4e3be。必要CI796・consumer実import/cleanunshare3true/health・三者exact全文受容後の一回実測。原5全30,233,053bytesとprovider/readback/root独立reportを保存。native SUCCESSだが **DEVELOPMENT_GUARD_FAIL・未採用**、H count/body/Gold/model0。

@@ -45,3 +45,6 @@ export function verifyRoleBoundaryQualificationEvents(report,events,attempts,pos
 
 // Separate fixed schema/key uses the identical native S/R boundary; old exports and bodies unchanged.
 export function verifyRoleCriteriaQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/roleCriteriaE'));}
+
+// Fixed compact-request schema uses the same SR boundary and stage contract.
+export function verifyRoleCompactQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/roleCompactE'));}

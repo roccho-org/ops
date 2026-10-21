@@ -1,0 +1,88 @@
+{
+  "schema": "ops.sys1.expectation-role-compact-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#issuecomment-6315819083",
+  "previousPlan": "All original sixteen plans/Core/guards/raw/Gold unchanged; D16 nativeSUCCESS/allqualified but semanticFAIL, no held opening",
+  "candidate": "Keep all four D16 criteria exactly; replace only two SR instruction string values with compact whole-body role contracts. Wording, length, placement and deletion of the two old synthetic illustrations form one package, not a new structure or isolated shortening mechanism proof. D16 candidate E626 equality does not prove instruction dominance or that criteria never matter.",
+  "literal": "All3 source-before wx: compact S919/R1109 instructions, four D16 criteria exact, old two synthetic illustrations removed. Native3756 wire MAX20805/22005/20856, all <24000. Only two instruction values differ from D16, no realcase phrases.",
+  "development": {
+    "phase": "development17",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "originalAnswerMaximum": 1878,
+    "originalBinaryEAnswers": 626,
+    "originalRoleAnswers": 1252,
+    "physicalComposition": "626 original BestE binary posts at15s JSONstring body and626 named2 SR posts at10s diagnoseRejectiontrue objectstate body; each compound usage once, roles not E",
+    "priorQualifiedEEvidence": 24521,
+    "priorNativeE": 18273,
+    "priorNativeSingleE": 17647,
+    "priorNativeCompoundPresenceE": 626,
+    "priorQualifiedRole4EProjections": 621,
+    "priorQualifiedNamed2EProjections": 1878,
+    "priorQualifiedVerificationEProjections": 626,
+    "priorQualifiedInverseAbsenceEProjections": 626,
+    "priorQualifiedMajorityEProjections": 626,
+    "priorQualifiedERole4EProjections": 619,
+    "priorInvalidPhysical": 12,
+    "protectedE": 622,
+    "primary": "fresh qualified BestE versus both-qualified wholeSR OR-derived E; same fixed historical O and first diagnostic",
+    "acceptance": "all1252 physical qualifiedexpected AND completejointgain>0 AND historical622 E destruction0 AND fresh E regression0; all626/O-null17 preserved; baselineunknown not promoted to repair",
+    "admission": "history17 exact D1..16 pluscurrent;24native runs+only fixedD6/D14 failurejobs/actualGitparents/REQUEST; old16 fullprojection retained before credentials; arbitraryfailure/cancel/timedout/unknownonly rejected",
+    "timeoutMinutes": 350,
+    "priorQualifiedRoleBoundaryWholeOREProjections": 1252
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "roleCompactE",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 350,
+    "admission": "Only actualD17 allguardPASS/native originals/all3fullrequestfreeze before H count/body/Gold. Winning architecture only:3MHTTP/4M native binary answers,2M B/O plus2Mlowerroles; no B label input to candidate.",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion",
+    "technicalCapRevision": "Prospective350 per pass before unopened H, all old250 plans unchanged.3MHTTP/4M originalbinaryanswers perpass/twopasses; B/O15s andSR10s diagnose. No retry/resume/after-timeout extension; cap does not guarantee completion.",
+    "originalAnswersPerCase": 4,
+    "originalAnswerRoles": {
+      "bestE": "native binary E",
+      "roleCompactE": "native lower specification/request binary pair, strict both before wholeOR-derivedE; not two nativeE labels",
+      "sharedO": "native binary O"
+    },
+    "eligibilityWireKeys": [
+      "bestE",
+      "roleCompactE",
+      "sharedO"
+    ],
+    "policyIdentity": "Same wholebody/Gold/M/allB/SR/O Core andpayload across reps. H1 D17ordinal B/SR rotation, H2 reverseonly B/SR eachcase, Olastboth. Eachfixedschedule individuallyAND, no result/latency order selection, time/order/randomness inseparable. FailedD12conditionalchecker/D14fourclass units not mechanically reused."
+  },
+  "seriesMaximum": 23084,
+  "accounting": "Consumed20032 actual HTTP including invalid12;D17 max1252+futureH1800=23084,not actualcost/newUserbudgetgate. D1252HTTP1878 originalbinaryanswers,H3MHTTP4M;only B+wholeOR E evidence,lowerroles not standaloneE. Actual rawusage once;missing tokens/moneyunknown.",
+  "entry": "Same branch/workflow/350min sixstep;source-only D16/985a REQUEST unchanged. Activation17REQUEST-only directacceptedsource once after necessaryCI/all3exact;intermediate negativeCI/Ready not gate,objective finalcurrentallCI/records/Ready remains.",
+  "status": "CODE_ONLY_NO_D17_MODEL_OR_H_COUNT",
+  "continuation": "all sixteen negative raw/costs retained;compact twoinstruction package after mutualcounter, not same-treatmentblindresend or Gold/Hrescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting.",
+  "recorder": "Original askRoleBoundary private body/B/SDK/oldpaths unchanged, newfixed17schema/key dispatch only. Same roleBoundaryNative SRsnapshot shape;request/source/key bind independently. Oldqualificationfunctionbody/exports unchanged with newfixedwrapper appended; no public genericprofile/transport/executor.",
+  "projection": "Both wholecompound strict before OR-derivedE providerAnswerfalse/sourceChoices/currentpost; technicalunknown plusvalidyes still UNKNOWN. No fabricated E probability/confidence/model/usage. S/R roles mayoverlap but are lower predicates/diagnostics and not standaloneEhistory; originalE Gold only.",
+  "modelProtocol": "D B and new fixed native SR compound both preserve legacy missing/nonstring/empty/other model-stop. Raw model/modelPresent are retained; this stop is not proof of actually reported-other. PN special missing-model-continue is not copied. Ordinary map or transport UNKNOWN still executes the other independent scheduled assignment; no previous-post flags/usage reuse. Model-stop binds the current post snapshot and trace. Winning H all B/SR/O three-state capture, loop, qualifier replay and H2 admission require a separate prospective source. Original B flags/return remain unchanged and do not newly capture raw Bmodel identifier; new rawmodel/modelPresent only SR. WinningH allpathcapture/loop/qualification/H2 same3state predicate is別source.",
+  "schedule": "Independent caseordinal B/SR rotation, ordinary unknown attempts other, current legacy modelstop ends tail. Candidate request never sees B output/Gold/O/ID/history.",
+  "stageIntegrity": "Every local failure has no post/flags; provider failure has currentpost and no flags; response-model/answers/probabilities/typed-contract require post<flags<failure<qualification-unknown. Both stale borrowedflags and providerpostdrop rejected, currentpost usage reset, no raw repair."
+}
