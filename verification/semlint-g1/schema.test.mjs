@@ -71,6 +71,27 @@ test('theta: value in [0,1], official band 0.30-0.70, file fixed to the W1 displ
   assert.notDeepEqual(validateTheta({ ...theta, constant: 'theta' }), []);
 });
 
+// Defect C (W review of 9a4445c4): free-text IDs and links could carry sealed content.
+test('C: lane and blind IDs are short closed tokens, not free text', () => {
+  assert.deepEqual(validateSeal({ ...seal, laneId: 'l-no-jev' }), []);
+  assert.notDeepEqual(validateSeal({ ...seal, laneId: 'The report omits the criterion for case 3' }), []);
+  assert.notDeepEqual(validateSeal({ ...seal, laneId: 'a'.repeat(33) }), []);
+  assert.notDeepEqual(validateSeal({ ...seal, laneId: 'L1' }), []);
+  assert.notDeepEqual(validateJudgment({ ...judgment, blindId: 'lane with the bot wording' }), []);
+  assert.notDeepEqual(validateBurden({ ...burden, laneId: 'free text lane' }), []);
+});
+
+test('C: burden evidence is a GitHub issue, comment, PR or run link only', () => {
+  assert.deepEqual(validateBurden({ ...burden, evidence: 'https://github.com/roccho-org/ops/issues/581#issuecomment-123' }), []);
+  assert.deepEqual(validateBurden({ ...burden, evidence: 'https://github.com/roccho-org/ops/actions/runs/39583670713' }), []);
+  assert.notDeepEqual(validateBurden({ ...burden, evidence: 'https://example.com/?text=the%20sealed%20lane' }), []);
+  assert.notDeepEqual(validateBurden({ ...burden, evidence: 'https://github.com/roccho-org/ops/issues/581?q=sealed-text' }), []);
+});
+
+test('theta: the constant name is the W1 promise SEMLINT_THETA', () => {
+  assert.notDeepEqual(validateTheta({ ...theta, constant: 'OTHER_THETA' }), []);
+});
+
 test('ledger: one JSON object per line, each validated, errors carry the line number', () => {
   const ok = parseLedger([JSON.stringify(seal), JSON.stringify(judgment)].join('\n') + '\n');
   assert.equal(ok.errors.length, 0);
