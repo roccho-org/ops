@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: roccho-org/ops
-          ref: 89b360d4d96efea80af33cb64fbb8ef55b90143a
+          ref: f42134df8075481fd1775bfac69cf53bd246c162
           persist-credentials: false
 
       - name: Install fixed toolchain provisioner
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          runtime_source=89b360d4d96efea80af33cb64fbb8ef55b90143a
+          runtime_source=f42134df8075481fd1775bfac69cf53bd246c162
           test "$(git rev-parse HEAD)" = "$runtime_source"
           out="$(nix build --no-link --print-out-paths .#jev-review)"
           line="$(grep '^exec ' "$out/bin/jev-review")"
