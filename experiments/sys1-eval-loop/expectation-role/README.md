@@ -1,3 +1,32 @@
+# D15: native specification/request role-boundary OR — 原負結果
+
+実run [39589645629](https://github.com/roccho-org/ops/actions/runs/39589645629)、固定source ddefa43bf268317dbabf51b0eb4823cc545dca9e / REQUEST-only activation9ff9b1b1a9281d6c24913e56eeaba90258853515。一回実測の原5全28,459,926bytes、provider/readback/root独立reportを保存。必要CI787・consumer実import/cleanunshare3true/healthと三者exact全文受容を先に完了し、一回作用した。native jobはSUCCESSだが **DEVELOPMENT_GUARD_FAIL・未採用**、H count/body/Gold/model0。
+
+- 1252HTTP割当/attempt/post/qualified、unknown0/modelStable。B626 native E＋SR626 postsの原specification/request1252役割回答＝1878原binary回答。S/R単独はfull Eではなく、全2回答strict後のみwhole OR E(providerAnswer:false)。原probability/model/usageを派生Eへ捏造しない。
+- joint476→506、paired修復32/退行2。E583→614、修復33/退行2。fresh退行census072/108、history622破壊8＝held267,census023/072/093/108/143,expectation060/118。gainが正でも全guard AND不成立。全8本文/元Goldを三者が読み、凍結Goldは変更しない。
+- usage入力2,529,853 /出力57,592、全1252実postで各一回既知、total_tokensは1252全不明、金額不明。D1..D15実18780HTTP/資格18768、既知入力38,618,456/出力699,694（各5post欠測）、total18780不明。役割回答枠1878をHTTP課金数へ混ぜない。
+- 次prospective E履歴23269＝native E17647(single17021＋compound P626)＋旧role4derived621＋split/partition/lines/verification/!N/majority各626＋whole C4derived619＋今回whole SR ORderived626。physical22029/invalid12別、保護622/追加[]。今回B626とwhole OR626のみを追加し、S/R下位noはEnoと同義でないため単独snapshot加算0。現D15guard22017/622を遡及変更しない。
+
+境界検証：原job459156Bの鍵前787全試験名/順序はsourceCIと完全一致、execute/project exit2なし。原全10projection/strict2/rawmap→typed binding/usage/model/ordinal割当をW再生・root/R独立算術が一致。新closedは保存した原5から全10fields/guard/1878対1252/派生provenanceを再検証する。sourceの二つのstage穴（借用flags、providerpost欠落）は公開前のcounterで新D15のみ是正済、今回原版へ補正/再送なし。
+
+意味反証：責務境界・quoted UI目的・真正提出template・適用設定宣言のFNと、症状/回避観測からの要求/仕様補完FPが併存する。v5 packageで曖昧な語用境界が解消した証拠はない。want/need/Normally/時制/heading/quote/従属節の形式lookupを足さず、Gold/本文/閾値は固定したまま別仮説を三者で比較する。下位S/RにGold分類精度や独立性を主張しない。
+
+原負保持閉包後も目的は継続する。中間negative headの通常CI/Ready待ちを次仮説の新gateにしない。次の候補はliteral/期待Coreを事前固定し、必要sourceCI/三者exact後に別一回D。実D全guard成功と要求freezeが揃うまで未使用Hを開かない。winning H sourceは旧D modelmissingstopを変更せず別途全B/candidate/O三状態capture→loop→qualification→H2nativeを閉じる。H1/H2各AND、普通unknownで予定H2非取消、actualother停止、M0/model0、固定prefix300/no-refill/350技術cap、共通Gold・有限集合条件付き近似という限界は維持する。最終current全通常CI・記録・Ready未mergeは目的全体の最後に閉じる。
+
+~~~mermaid
+flowchart TB
+ A["✅ source/必要CI/三者exact"] --> B["✅ REQUEST-only一回D15/1252HTTP"]
+ B --> C["🔴 正差30でもfresh2/history8退行・FAIL"]
+ C --> D["✅ 原5・usage・型付きE保持/Gold固定"]
+ D --> E["🛠️ 三者反証・次literal事前固定→source/必要CI"]
+ E --> F{"別一回D全guard成立?"}
+ F -->|未達| D
+ F -->|成立| H["🔒 要求freeze後のみ未使用H/各回AND"]
+ H --> Z["⏳ 目的最終current全CI/記録/Ready未merge"]
+~~~
+
+以下はD15 source時点までの記録を全文保持。当時の作用未実施等は歴史記録である。
+
 # D15 固定SR役割境界：source-only、実モデル/Hは未実施
 
 D14原否定保持の三者formalを全文読戻し後、既named2構造を再用する別処置を用意した。新固定physical roleBoundaryEはspecification1695字/request1823字の2 native binary answersを既batch1POSTで問い、**両方の原回答がstrictqualifiedの場合だけOR-derivedE**。S/Rは元Eの下位述語で、S=no/R=noを単独Enoと読まず、役割diagnosticを将来E履歴へ足さない。wholeORとoriginal BのみがE evidenceとなる。
