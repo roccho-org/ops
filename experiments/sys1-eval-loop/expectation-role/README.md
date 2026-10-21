@@ -1,4 +1,37 @@
-# E判定の四候補の負結果を保持し、別仮説へ継続
+# 四候補の負結果を保持し、英語のE存在判定を別処置で検証
+
+## D5固定DECLARATION context（code-only）
+
+候補instructionsとyes/no criteriaだけを1118字の英語説明＋114字のyes/noへ一体で全置換する。旧日本語suffix/5例をappendせず、question/key/二択の形・BestE/sharedO・model/client・全本文/Goldは全値保持する。言語/文言/圧縮/役割構成のbundleであり、英語や短文化単独の原因を主張しない。本文へ役割hintやID/語句例外を追加しない。
+
+Wは例の継ぎ足しより全体整合を反証する別案として選択し、完了状態という表現が実施報告をEへ昇格させる穴を指摘した。rootは因果的な観測をIO仕様へ昇格させる穴を反証し、Rはnoが列挙された観測等だけの否定になる穴をANYの完全否定へ是正した。HTML commentsの入力境界、formulas、IOが本文でspecificationとして提示される役割をW/root/Rで精密化し、元の真正な提出/回答/回復/婉曲依頼・現責務を狭めない全文を各自の原Coreから出力前固定した。specificationは公式文書/採用済み/future/must必須という意味ではない。観測結果や回避だけから未記載要求を補わず、引用/例も形式でなく本文の用途で判断する。[root原負保持と次仮説](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593939574)・[R独立反証](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593941852)。
+
+原8257 Eの全626 case/611正答を保護し、freshBestEと候補E各626=1252を同じfixed historicalOで比較する非同時D診断。全資格/expectedmodel・完全joint正差・歴史611破壊0・freshE退行0を別AND、機械firstは別診断、O-null17を全分母に残す。旧4contextの604/607/607/610・Core/schema/historyScope/guard/outcome/usageScopeは全field再生して不変、611へ遡及しない。ever-correct保護は不偏性能推定/到達可能性保証ではない。
+
+既workflow/350分/sixstep/secret/clientへ閉development5のみ追加、原4run＋currentのhistory exact5・全12native API/実Git親/source/REQUESTphaseと原8257資格を鍵前結合する。secret下はexact8field/fullbody/Core/template/execution、投影で原attempt digest/max1252を再照合。任意profile/schema/max/endpoint/constructorは公開しない。source-onlyは旧phase4/dd98 REQUESTを一字も変更せず、新source必要CI/公開exact三者受容後のactivation5だけがrequestを変更し一回起動する。意味FAILは原来歴を保った別処置を取消さず、原技術不成立は拒否する。
+
+prospective-plan5の最大8060=消費済5008+新最大1252+将来H最大1800と実会計は別で、追加User予算/認証待ちのgateを設けない。旧4plans/旧raw/Goldは原文保持。未使用Hは既Oct18窓/prior/noRefill/同3M二回ANDを変えず、実D5guard成功/原版/実要求freeze受容前のcount/body/Goldは0。Hcap250→350は別held sourceで開封前改訂して受容し、旧plan通り成功したとは言わない。
+
+```mermaid
+flowchart TB
+ OLD[✅ 原4候補FAIL/会計/原5/三者受容] --> W[✅ W完了報告/式/IO役割のcounter]
+ W --> ROOT[✅ root短English bundle/個別原因未証明]
+ ROOT --> R[✅ R ANY完全否定/HTML/非形式判定]
+ R --> CORE[✅ 各自原Coreから全文事前固定]
+ CORE --> CODE[✅ 第5閉contextのcode-only]
+ CODE --> CI[⏳ 現source必要CI/公開exact三者受容]
+ CI --> D[⏳ history5/REQUEST-only 一回1252]
+ D -->|未達/unknown| NEG[原負結果保存/三者原因反証]
+ NEG --> HYP[別の意味ある仮説をsource化]
+ HYP --> CI
+ D -->|原guard成功/実要求freeze| H[⏳ 未使用H/予測前Gold/二回AND]
+ H -->|未達| RET[当H退役/別未使用H契約]
+ RET --> HYP
+ H --> END[⏳ 最終exact全CI/記録/Ready未merge]
+```
+
+以下はD4負保持と旧sourceの固定記録。新D5 source/必要CI/実gain/新H/最終current全CIは未完。
+
 
 ## D4 O向け対比削除：正差22でもfresh退行2・歴史破壊5で不受容
 
