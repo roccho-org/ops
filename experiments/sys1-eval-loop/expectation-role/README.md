@@ -1,3 +1,39 @@
+# D15 固定SR役割境界：source-only、実モデル/Hは未実施
+
+D14原否定保持の三者formalを全文読戻し後、既named2構造を再用する別処置を用意した。新固定physical roleBoundaryEはspecification1695字/request1823字の2 native binary answersを既batch1POSTで問い、**両方の原回答がstrictqualifiedの場合だけOR-derivedE**。S/Rは元Eの下位述語で、S=no/R=noを単独Enoと読まず、役割diagnosticを将来E履歴へ足さない。wholeORとoriginal BのみがE evidenceとなる。
+
+v5全文・3requests/templates・ORtruth4・model/型/会計をW/root/Rが製品source前に別wx固定し、各全3756SDK offlinewire一致、MAX B20805/SR22551/O20856B<24000を確認した。原BestE/O Coreと本文は不変。SRはliteral bodyだけのobjectstate、固定namedorder specification/request、native batch10s/diagnoseRejection:true optionsを無変更forward。元B/OはJSONstringstate15sのまま。新transport/executor/profile/auth/例外lookupはない。
+
+仕様・責務・一般能力・表示IO・許容制約は、本文が関係を契約/仕様として提示するかを問う。実施設定・計算見積・過去/現在/反復挙動の記録だけから契約を補わず、報告文書中の真正仕様を一律排除もしない。Rは真正実行/回答/提出/改善要求又は主体の明示goal/need。提出済み/完全記入を前提にせず、template/HTML実指示も数える。症状の条件説明だけからgoalを補完しないが、報告/従属節/want/need/時制/見出しを否定規則にしない。D14の語用曖昧さは解消保証なし、旧Gold/nullを変更しない。
+
+rootのpositive役割案がD9/D10と同型というW/R反証を受け、新構造主張を撤回。W一問binaryunion案は形式介入として残すが意味誤り11への直接機構が弱く、R3class案はnegative質量分散/不資格リスクを自己反証して比較順位を下げた。今回は正負対称境界＋出力/状態/native複問/期限が一package。OR-FP増幅・長文化・混在真正宣言喪失・2map不資格は実測リスク、独立枝/単一原因/等原価/将来完走/下位精度を主張しない。同じ二つの別領域合成対比だけで実case句/ID例は追加しない。
+
+新SR受信境界はcommon rawmodel/modelPresent/topusageと各原type/choice/confidence/exact2map・answerkeys/fieldsをnormalize前に保存、whole raw strict→typed全entry一致に結合。primitive/array/余剰/欠落も原形UNKNOWN、sum.99等を補正しない。新response-stage失敗はpost<flags<failure<unknownを要求。Syes+Runknownと逆はいずれもwholeEunknown/native原枠2不明、validyesによるshortcut無し。usageは各HTTP一回、未知を0にしない。
+
+D B/SRはlegacy missing/nonstring/empty/other modelstopを継承し、実reported-other証明と区別する。旧B本体/flags/return形は変えず、rawidentifierを新捕捉したのはSRだけ。普通map/transportunknownは他方予定割当を継続、modelstopはtail未attempt。新H全経路3state capture→loop→資格replay→H2nativeは別winning sourceだけで閉じる。post毎capture/reset、前回flags/usage流用無し。
+
+入力exact8field、626全bodyと3wireを鍵前固定。原14は全projection/全fieldを旧contextで再生。22017 qualifiedE/622protected/physical20777/invalid12をprospective固定し、D14guard620へ遡及しない。D14原7invalidもunknownEvidenceへ旧5と別保持。native履歴は22原run＋固定D6/D14job各1、D6/D14のnativeFAILUREは固定run/source/activation/REQUEST/原資格・既知FAIL/9stepを全ANDで結合し、任意failure/cancel/timeout/unknown-onlyを許可しない。
+
+D15一回最大1252HTTP=626B+626SR、原binary answers1878=626E+1252lower-role。有限20580=既実17528+新1252+futureH1800、実費/新User承認gateではない。将来Hは3MHTTP/4Mbinary原答/3eligibilitywiresで、D14C4の3M原答やD12checker条件依存を流用しない。実winningD/要求freeze後のみH、同case/Gold/payload、H1 ordinal B/SR回転/H2各caseB/SR反転、O末尾の各repAND。順序/時刻/揺れの単独因果や全順序頑健性は未証明。
+
+採否は全1252qualifiedexpected/modelstable・完全jointgain>0・622history破壊0・freshE退行0のAND。全626/O-null17/first診断は不変。source-onlyでは現REQUEST development14/sourceb826を変更せず、作用は新source必要CI＋三者exact受容後の直子REQUEST-only一回のみ。中間negativeheadCI/Readyは追加gateにしない。目的最終current全通常CI/会計/記録/Ready未mergeは別途閉じる。
+
+~~~mermaid
+flowchart TB
+ A["✅ D14原否定保存・三者反証"] --> B["✅ v5独立wx/原14再生/模擬反証"]
+ B --> C["⏳ 新source必要CI＋三者exact"]
+ C --> D["⏳ REQUEST-only D15一回"]
+ D --> E["B/SR固定回転・両原map資格→wholeOR"]
+ E --> F{"全資格＋完全gain＋退行0?"}
+ F -->|FAIL/UNKNOWN| G["原版費用保持→次仮説"]
+ F -->|PASS| H["🔒 実要求freeze後だけ未使用H採取"]
+ H --> I["Gold/最終Hsource/二回AND→目的最終CI/Ready"]
+~~~
+
+H count/body/Gold/model0。現source技術検証は新モデルの改善効果を証明しない。
+
+以下はD14負保持時点までの全記録。次literal未固定等は当時の状態である。
+
 # D14 原版保持：技術不完全と既知退行で不合格、Hは未開封
 
 S/R四択→E射影のD14は **DEVELOPMENT_GUARD_FAIL**。全1252 HTTPを一回だけ実施し、B626とC4 619がqualified、C4 7件はUNKNOWN。modelStableで停止なし。原Gold/旧14処置の結果/原planを維持し、再送・map補正・周辺和救済・候補採用は行わない。
