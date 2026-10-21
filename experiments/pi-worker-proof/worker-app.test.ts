@@ -323,7 +323,7 @@ describe("Worker Pi -> canonical Jev client -> SQLite proof (all remote replies 
       if (String(input) === "https://api.typesafe.ai/v1/systemone") {
         jevPosts++;
         expect(new Headers(init?.headers).get("authorization")).toBe("Bearer fixture-jev-not-real");
-        expect(init?.redirect).toBe("error");
+        expect(init?.redirect).toBe("manual");
         expect(body).toMatchObject({ model: "jev-latest", questions: { assessment: { type: "noul" } } });
         return Response.json({ model: "jev-latest", answers: { assessment: { type: "noul", noul: 0.734125 } } });
       }
@@ -509,7 +509,7 @@ describe("finite transient proof transport — keyless mocks only", () => {
         return Response.json({ keys: [{ ...jwk, kid: "fixture", alg: "RS256" }] });
       }
       expect(input.url).toBe("https://api.openai.com/v1/responses");
-      expect(init?.redirect).toBe("error");
+      expect(init?.redirect).toBe("manual");
       const body = await input.json() as Record<string, unknown>;
       expect(body.store).toBe(false);
       expect(body.stream).toBe(true);
@@ -554,11 +554,13 @@ describe("finite transient proof transport — keyless mocks only", () => {
         body: JSON.stringify({ store: false, stream: true, input: [{ type: "additional_tools" }] }) });
       await proof.fetch("https://api.openai.com/v1/responses", { method: "POST",
         body: JSON.stringify({ store: false, stream: true, input: [{ type: "additional_tools" }] }) });
+      await proof.fetch("https://api.openai.com/v1/responses", { method: "POST",
+        body: JSON.stringify({ store: false, stream: true, input: [{ type: "additional_tools" }] }) });
       await expect(proof.fetch("https://api.openai.com/v1/responses", { method: "POST" })).rejects.toThrow("budget consumed");
-      expect(await proof.counts()).toBe(4);
+      expect(await proof.counts()).toBe(5);
       expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
     });
-    expect(posts).toBe(4);
+    expect(posts).toBe(5);
     for (const [name, events] of [
       ["incomplete", [{ type: "response.incomplete", response: { id: "bad", status: "incomplete", output: [] } }]],
       ["missing-status", [{ type: "response.completed", response: { id: "bad", output: [] } }]],
@@ -621,7 +623,7 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
       }
       expect(input).toBeInstanceOf(Request);
       const request = input as Request;
-      expect(init?.redirect).toBe("error");
+      expect(init?.redirect).toBe("manual");
       const body = await request.json() as Record<string, unknown>;
       expect(body.store).toBe(false);
       expect(body.stream).toBe(true);
@@ -629,9 +631,14 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
       expect(JSON.stringify(body)).toContain('"type":"additional_tools"');
       bodies.push(body);
       if (bodies.length === 1) return Response.json({ error: { message: "fixture-historical-failure" } }, { status: 401 });
-      if (bodies.length === 2) return jevToolStream(1, "transient-session");
+      if (bodies.length === 2) {
+        // Real workerd validation reproduces the deployed unsupported option without egress.
+        new Request(request, { redirect: "error" });
+        throw new Error("Unsupported option unexpectedly accepted");
+      }
+      if (bodies.length === 3) return jevToolStream(1, "transient-session");
       expect(JSON.stringify(body)).toContain("0.41729");
-      if (bodies.length === 3) return responseStream("fixture-volatile-consumed");
+      if (bodies.length === 4) return responseStream("fixture-volatile-consumed");
       expect(JSON.stringify(body)).toContain(marker);
       return responseStream("fixture-volatile-recalled");
     });
@@ -666,6 +673,10 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
     await submissionStatus(session, "transient-historical", "unanswered", first.conversationId);
     expect(bodies).toHaveLength(1);
     expect(posts).toBe(0);
+    first.submit("transient-second-failure", "A second failed input.");
+    await submissionStatus(session, "transient-second-failure", "unanswered", first.conversationId);
+    const secondFailure = turnFailure(first.messages, first.conversationId);
+    expect(JSON.parse(secondFailure.errorMessage)).toMatchObject({ attempt: 2, httpStatus: null, outcome: "TRANSPORT" });
     first.submit("transient-first", "Remember " + marker + " and ask Jev once.");
     await submissionStatus(session, "transient-first", "done", first.conversationId);
     await vi.waitFor(() => expect(JSON.stringify(first.messages)).toContain("fixture-volatile-consumed"), wait);
@@ -676,20 +687,20 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
       headers: { Upgrade: "websocket", "Cf-Access-Jwt-Assertion": headers["Cf-Access-Jwt-Assertion"] },
     });
     expect(missing.status).toBe(403);
-    expect(bodies).toHaveLength(3);
+    expect(bodies).toHaveLength(4);
     expect(posts).toBe(1);
     await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
-      expect(await state.storage.get("pi.proof.responses.posts")).toBe(3);
+      expect(await state.storage.get("pi.proof.responses.posts")).toBe(4);
       expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
     });
     const second = await connect(session, first.conversationId, headers);
     expect(second.response.headers.get("Pi-Proof-Boot")).not.toBe(boot);
     expect(second.response.headers.get("Pi-Proof-Prior-Token")).toBe("false");
-    expect(second.response.headers.get("Pi-Proof-Posts")).toBe("3");
+    expect(second.response.headers.get("Pi-Proof-Posts")).toBe("4");
     second.submit("transient-second", "Recall the marker and assessment from our earlier exchange.");
     await submissionStatus(session, "transient-second", "done", first.conversationId);
     await vi.waitFor(() => expect(JSON.stringify(second.messages)).toContain("fixture-volatile-recalled"), wait);
-    expect(bodies).toHaveLength(4);
+    expect(bodies).toHaveLength(5);
     expect(posts).toBe(1);
     expect(await saved(session)).toBeUndefined();
     await closeSocket(second.socket);
@@ -805,4 +816,97 @@ it("associates each lazy-stream terminal object with its own HTTP attempt, not l
     });
     expect(await proof.counts()).toBe(2);
   });
+});
+
+it("validates actual workerd redirect options and native manual fetch against the no-egress backstop", async () => {
+  const url = "https://fixture.invalid/native-option";
+  expect(() => new Request(url, { method: "POST", body: "fixture", redirect: "error" })).toThrow(TypeError);
+  expect(new Request(url, { method: "POST", body: "fixture", redirect: "manual" }).redirect).toBe("manual");
+  await expect(nativeFetch(url, { method: "POST", body: "fixture", redirect: "error" })).rejects.toThrow(TypeError);
+  const response = await nativeFetch(url, { method: "POST", body: "fixture", redirect: "manual" });
+  expect(response.status).toBe(401);
+  expect(await response.text()).toBe("MOCK_ONLY: native outbound denied");
+});
+
+it("manual redirect wrappers reject synthetic307/308 once using native Request option validation", async () => {
+  const { TransientWorkerProof } = await import("../src/worker-oauth.ts");
+  const { headers, jwk } = await transientOwnerFixture();
+  for (const status of [307, 308]) {
+    let modelCalls = 0, jevCalls = 0;
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "https://fixture.cloudflareaccess.com/cdn-cgi/access/certs")
+        return Response.json({ keys: [{ ...jwk, kid: "session-fixture", alg: "RS256" }] });
+      // Unlike earlier replacement fixtures, this executes real workerd init validation.
+      const request = new Request(input, init);
+      expect(request.redirect).toBe("manual");
+      if (request.url === "https://api.openai.com/v1/responses") modelCalls++;
+      else { expect(request.url).toBe("https://api.typesafe.ai/v1/systemone"); jevCalls++; }
+      return new Response("fixture-private-redirect-body", { status,
+        headers: { location: "https://fixture.invalid/must-not-follow", "set-cookie": "fixture-private" } });
+    });
+    await runInDurableObject(env.SESSIONS.getByName("manual-redirect-" + status), async (_instance, state) => {
+      const proof = new TransientWorkerProof(state.storage);
+      await proof.attach(new Request("https://example.com", { headers }), {
+        PI_ACCESS_ISSUER: "https://fixture.cloudflareaccess.com", PI_ACCESS_AUDIENCE: "fixture-app",
+        PI_ACCESS_OWNER_HASH: [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("fixture-owner")))]
+          .map(x => x.toString(16).padStart(2, "0")).join(""),
+      });
+      const models = proof.models();
+      const result = await models.completeSimple(models.getModel("openai", "gpt-6-luna")!, {
+        messages: [{ role: "user", content: "fixture", timestamp: Date.now() }],
+      });
+      expect(result.stopReason).toBe("error");
+      expect(JSON.parse(proof.failureMetadata(result))).toMatchObject({ attempt: 1, httpStatus: status, outcome: "HTTP" });
+      expect(JSON.stringify(result)).not.toContain("fixture-private");
+      expect(await proof.counts()).toBe(1);
+    });
+    let admissions = 0;
+    const attempt = { consumed: false };
+    const tool = bindJevProof("fixture-not-real")!;
+    const result = await tool.execute({ state: "fixture", question: "fixture" }, {
+      conversationId: 1, commit: async (callback: any) => {
+        admissions++; return callback({ doc: async () => attempt });
+      },
+    } as any, { abortSignal: undefined } as any);
+    expect(result).toMatchObject({ isError: true });
+    expect(JSON.stringify(result)).not.toContain("fixture-private");
+    expect(attempt.consumed).toBe(true);
+    expect(admissions).toBe(1);
+    expect(modelCalls).toBe(1);
+    expect(jevCalls).toBe(1);
+  }
+});
+
+it("derives actual failed Session entry schema for same-minute and clock-change histories", async () => {
+  for (const changed of [false, true]) {
+    const session = "clock-history-" + changed;
+    try {
+      vi.setSystemTime(new Date("2026-10-21T01:00:10.000Z"));
+      await seed(session, fixture());
+      vi.stubGlobal("fetch", async () => Response.json({ error: { message: "fixture-error" } }, { status: 401 }));
+      const first = await connect(session);
+      await first.create("clock-create");
+      first.submit("clock-first", "fixture first");
+      await submissionStatus(session, "clock-first", "unanswered", first.conversationId);
+      if (changed) vi.setSystemTime(new Date("2026-10-21T01:01:10.000Z"));
+      first.submit("clock-second", "fixture second");
+      await submissionStatus(session, "clock-second", "unanswered", first.conversationId);
+      await closeSocket(first.socket);
+      const reopened = await connect(session, first.conversationId);
+      const snapshot = (reopened.messages as any[]).filter(frame => frame.type === "conversation.events" &&
+        frame.conversationId === first.conversationId).flatMap(frame => frame.events).find(event => event.type === "snapshot");
+      const expected = changed ? ["user","system","assistant","user","system","assistant"] :
+        ["user","system","assistant","user","assistant"];
+      expect(snapshot.entries.map((entry: any) => entry.model[0].role)).toEqual(expected);
+      expect(snapshot.entries.map((entry: any) => entry.kind)).toEqual(expected.map(role => "pi." + role));
+      expect(snapshot.entries.every((entry: any) => entry.model.length === 1 && entry.head === undefined && entry.edits === undefined)).toBe(true);
+      if (changed) {
+        const delta = snapshot.entries[4].model[0];
+        expect(delta.content).toBe("");
+        expect(Object.keys(delta.sections)).toEqual(["clock"]);
+        expect(delta).not.toHaveProperty("toolsAdded"); expect(delta).not.toHaveProperty("toolsRemoved");
+      }
+      await closeSocket(reopened.socket);
+    } finally { vi.useRealTimers(); }
+  }
 });
