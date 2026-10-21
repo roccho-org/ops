@@ -1028,3 +1028,20 @@ test("PAYG recovery accepts only the actual settled single403 history, no reset 
   }});
   assert.equal(connects,3);assert.equal(idle,1);assert.deepEqual(sent.map(c=>c.type),["conversation.open","conversation.open"]);
 });
+
+test("actual PAYG CLI dispatch reaches API branch before UID/home/profile/OAuth, with external commands blocked",async()=>{
+  const {execFile}=await import("node:child_process");const {promisify}=await import("node:util");
+  const shim=`import cp from "node:child_process";import {syncBuiltinESMExports} from "node:module";
+    process.stderr.isTTY=true;process.getuid=()=>9999;
+    cp.execFileSync=()=>{throw new Error("KEYLESS_EXTERNAL_COMMAND_BLOCKED");};syncBuiltinESMExports();`;
+  await assert.rejects(promisify(execFile)(process.execPath,["--import","data:text/javascript,"+encodeURIComponent(shim),
+    new URL("./owner.mjs",import.meta.url).pathname,"--url","https://pi.roccho.workers.dev/",
+    "--session","owner-jev-opencode-proof-20261021","--cloudflared","fixture-must-not-execute",
+    "--stage","opencode-credit-recover","--continue"],{timeout:5000}),error=>{
+      assert.equal(error.code,1);
+      assert.match(error.stdout,/"phase":"CF_CACHE"/);
+      assert.match(error.stderr,/STOPPED_NOT_PROVEN/);
+      assert.ok(!error.stderr.includes("KEYLESS_EXTERNAL_COMMAND_BLOCKED"));
+      return true;
+    });
+});

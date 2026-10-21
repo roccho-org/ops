@@ -645,7 +645,7 @@ proofIdentity(values);
 if (!process.stderr.isTTY || !values.url || !values.session || (!["opencode","opencode-credit-recover"].includes(values.stage) && !values.host) || !values.cloudflared) {
   throw new Error("Owner interactive terminal and url/session/host/cloudflared arguments required");
 }
-if (values.stage === "opencode") { await runOpenCodeProof(values); return; }
+if (["opencode","opencode-credit-recover"].includes(values.stage)) { await runOpenCodeProof(values); return; }
 if (process.getuid() !== 1001 || homedir() !== "/home/dev") throw new Error("Wrong native owner context");
 const { lstat } = await import("node:fs/promises");
 const home = await lstat(homedir());
