@@ -1,4 +1,36 @@
-# E判定の五処置の負結果を保持し、構造仮説へ継続
+# 五つの負結果を保持し、四択役割分類からのE射影を検証
+
+## D6 ROLE4（code-only）
+
+候補はnativeのE_ONLY/O_ONLY/BOTH/NEITHER四択で、E_ONLY/BOTHをE=yesへ、それ以外をE=noへ機械射影する。D5のE1118字とyes/no114字は全文保持し、Oの存在定義と四つの真理値条件を加えた2198字instructionsを固定。BestE/sharedO・本文/Gold・model/client・question keyは全値保持。候補Oは診断だけで、primaryの歴史Oや将来の当回sharedOを代用しない。言語だけの効果やE-only binaryモデルの改善ではなく、E/O負荷と文面も伴う構造packageであり、混合軸干渉や四択の複雑化がEを壊す可能性を残す。
+
+Wは五処置の負結果を受け単純な追記/短縮の盲再送を避け、root/Rは観測onlyへの明示的な出力先を持つ四択構造を反証して支持した。Rは確認表/HTMLの形式だけでOにする穴を指摘し、実際の行為・現状を報告する用途へ限定してv1を保存しv2へ事前固定した。Wは四確率のsum/max/selectedだけでは非選択二値の相殺swapを見逃す反例を提示し、root/Rも独立validatorで確認した。実受信時のrole4Native snapshotとSDK typed map全entryを照合する。双方同時偽造は既存native原版/bytes照合の境界であり、独自hash gateを追加しない。[root負保持と構造counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594130357)・[R独立counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594132982)。
+
+標準recorder/SDK/transport/secretを再用し、exact4roleだけ原confidence/probabilitiesとresponse-flagsの4field snapshotを保持する。invalid原型は補正せずunknown/failureとして残し、qualified時だけ4keys/range/sum/selectedmax・flags・typed/snapshotの全entryを結合する。旧binary return/event形・旧五投影の全fieldは不変で全原版再生する。原9509binary Eから617caseを保護、freshBestE626+native role4 626=1252physical（E/O射影0call）。derivedE/OにはproviderAnswer:falseとrun/case/key/post/sourceChoiceのみを結び、provider確率/confidence/model/usageを捏造・複製しない。原mapは原answerに一回保持、候補Oは診断枝。独立した二定義は意味誤りやGoldの独立性を保証しない。
+
+fresh617保護とfreshE退行0、全1252資格/model、完全joint正差を別AND。固定historicalOとの非同時D診断で、O-null17も全626へ保持する。GoldO-nullはrole4原資格/E射影を不明化しない。ever-correct保護は工学目標で、不偏性能推定や達成可能性保証ではない。新history6/native13/8field secret-safe input/attemptdigest1252を閉固定し任意profileを公開しない。source-onlyで旧D5 REQUESTを変更しない。最大9312=消費6260+新1252+将来H1800、実会計と別、追加User予算/認証待ちは無い。原D1..D5のschema/guards/plans/raw/Goldは不変、617を遡及しない。未開封Hのprospective capは旧250から同job350へ明示改訂し、unknownとなる時間を延ばす技術変更として扱う。品質/15秒/3M/二回/再送禁止は不変、完走保証や事後延長は無い。
+
+```mermaid
+flowchart TB
+ NEG[✅ 五処置FAIL/原版/三者反証] --> FIX[✅ v2全文事前固定/四択構造]
+ FIX --> CODE[✅ named第六context/既loop共有]
+ CODE --> CI[⏳ exactsource必要CI/三者受容]
+ CI --> RAW[⏳ D6 原4class+実4map]
+ RAW --> QUAL[資格/受信snapshotと全entry照合]
+ QUAL --> E[providerAnswer:false E射影]
+ QUAL --> O[候補Oは診断枝だけ]
+ E --> COMP[固定歴史OでfreshBestとの比較]
+ COMP -->|FAIL/unknown| SAVE[原負結果保存/三者原因反証]
+ SAVE --> HYP[別の意味ある処置をsource化]
+ HYP --> CI
+ COMP -->|全guardPASS/実要求freeze| H[⏳ 未使用H/予測前Gold/当回sharedO/二回AND]
+ H -->|未達| RET[当H退役/別未使用H契約]
+ RET --> HYP
+ H --> END[⏳ 最終current全CI/記録/Ready未merge]
+```
+
+D6実作用/新H count/body/Goldは0。以下はD5負保持と旧sourceの固定記録。
+
 
 ## D5英語再定式化：正差24でもfresh退行8・歴史破壊10で不受容
 

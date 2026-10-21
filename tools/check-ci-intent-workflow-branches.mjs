@@ -529,7 +529,7 @@ export function assertExpectationWorkflow(w,b){
   s[5].with={name:'sys1-reserve-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/reserve','if-no-files-found':'ignore','retention-days':30};assertReserveWorkflow(v,{...b,maxCalls:1984});
 }
 export function assertExpectationRoleWorkflow(w,b){
-  need(b.maxCalls===8060,'role fixed series bound differs');
+  need(b.maxCalls===9312,'role fixed series bound differs');
   need(same(w.on?.push?.branches??[],['codex/jev-expectation-role-20261021'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/expectation-role/request.json']),'role entry differs');
   need(w.concurrency?.group==='sys1-expectation-role'&&w.jobs?.evaluate?.['timeout-minutes']===350,'role development deadline differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;

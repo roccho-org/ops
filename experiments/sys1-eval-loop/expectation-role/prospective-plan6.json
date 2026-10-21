@@ -1,0 +1,58 @@
+{
+  "schema": "ops.sys1.expectation-role4-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594130357",
+  "previousPlan": "All five original binary treatment plans/raw/guards remain byte-for-byte unchanged; no617 retrospective scoring",
+  "candidate": "One structural package: original D5 E1118/yes-no114 are included verbatim; add context-bound independent O definition and four truth criteria E_ONLY/O_ONLY/BOTH/NEITHER. Preserve body, Gold, BestE/sharedO/model/client/questionkey. Native role4 E_ONLY/BOTH -> Eyes; O_ONLY/NEITHER -> Eno. Derived O diagnostic only, never primary sharedO. No Japanese append, new examples, real-body hints or ID exceptions. E/O workload, O wording and classification structure are not causally isolated; four-class mixed-axis interference may worsen E.",
+  "development": {
+    "phase": "development6",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "physicalComposition": "626 binary BestE +626 native four-class role4 responses; E/O projection adds0",
+    "priorBinaryE": 9509,
+    "protectedE": 617,
+    "primary": "fresh qualified BestE versus E projected from qualified role4, both with same fixed first historical O; mechanical first diagnostic only; candidateO diagnostic only",
+    "acceptance": "all1252 qualification and expectedmodel AND complete known joint gain>0 AND historical617 E correctness destruction0 AND fresh E regression0; all17 O-null remain assigned and do not invalidate native role4 E qualification",
+    "admission": "exact D1..D5 plus current D6 history6;13 native API/Gitparent/REQUESTphase bindings; prior semantic FAIL noncanceling but technical invalidity rejected",
+    "timeoutMinutes": 350
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "role4",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 350,
+    "admission": "Only actualD6 guardPASS/native original5 and standard-client fullrequest reconstruction freeze accepted by all three before H count/body/Gold. Future fixed successful role4 held context only; no failed H prototype publication.",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion",
+    "technicalCapRevision": "Before unopened H: prospective250->350 minutes for same fixed job; old plans remain250, quality/15s/3M/two/no retry unchanged. Later timeout UNKNOWN point, not mere behavior-neutral alignment or completion guarantee; no posthoc extension/resume."
+  },
+  "seriesMaximum": 9312,
+  "accounting": "Consumed D1..5 actual6260 + D6maximum1252 + future Hmaximum1800. Finite resource assignment, not new User budget gate. Historical9509 binary E are evidence aliases. Future role4 E projection must remain distinguished from original binary provider answers.",
+  "entry": "Same branch/workflow/350-minute sixstep. Source-only keeps original D5/e86 REQUEST bytes. Activation6 changes REQUEST only to development6/acceptedsource once.",
+  "status": "CODE_ONLY_NO_D6_MODEL_OR_H_COUNT; current exactsource/necessaryCI/threeparty acceptance before D6",
+  "continuation": "all negative originals and costs retained; distinct source-fixed hypothesis after counter only; no same treatment blind resend, historical Gold revision or same-H rescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting.",
+  "recorder": "Same standard SDK/client/transport/executor. For exact four role keys only, retain actual typed confidence/probabilities and response-flags role4Native snapshot {type,choice,confidence,probabilities}; qualified map4 keys/range/sum/selectedmax and aggregate flags plus snapshot fullentry deepEqual. Invalid values retained as failure/unknown, never repaired. Old binary response/events remain unchanged. Both snapshot and typed forgery handled by existing native original custody, not another hash gate.",
+  "projection": "Native four-class choice/map/model/usage kept once. Derived E/O carry providerAnswer:false, runUrl/caseId/key/postId/sourceChoice, no fabricated probabilities/confidence/model/usage. CandidateO only diagnostic. Independent E/O flags mean separate predicates, not independent model errors or independent truth."
+}
