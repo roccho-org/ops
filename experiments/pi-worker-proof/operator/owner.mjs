@@ -320,11 +320,15 @@ export function transportSnapshotAllowed(frames, id, witness) {
   // Frozen prompt rendering adds one baseline and may add a clock delta at the next minute.
   assert.ok(JSON.stringify(roles) === JSON.stringify(["user","system","assistant","user","assistant"]) ||
     JSON.stringify(roles) === JSON.stringify(["user","system","assistant","user","system","assistant"]));
+  const baselineClock = snapshot.entries[1].model[0].sections?.clock;
+  assert.equal(typeof baselineClock, "string");
+  assert.match(baselineClock, /^Current time: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\.$/);
   if (roles.length === 6) {
     const delta = snapshot.entries[4].model[0];
     assert.equal(delta.content, "");
     assert.ok(Object.keys(delta).every(key => ["role","content","sections","timestamp"].includes(key)));
     assert.ok(recordObject(delta.sections) && Object.keys(delta.sections).join(",") === "clock");
+    assert.notEqual(delta.sections.clock, baselineClock);
     assert.match(delta.sections.clock, /^Current time: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\.$/);
   }
   const latest = snapshot.entries.at(-1).model[0];

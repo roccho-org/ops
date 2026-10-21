@@ -804,6 +804,10 @@ test("transport snapshot accepts only source-shaped failed entries and the same 
     f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[4].model[0].toolsAdded = []; },
     f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[4].model[0].toolsRemoved = []; },
     f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[4].model[0].sections.clock = null; },
+    f => { const entries=f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries;
+      entries[4].model[0].sections.clock=entries[1].model[0].sections.clock; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[1].model[0].sections.clock=undefined; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[1].model[0].sections.clock=42; },
     f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries.at(-1).model[0].errorMessage = "synthetic-private-transport"; },
     f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries.at(-1).model[0].errorMessage = JSON.stringify({
       scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: 1, httpStatus: null, outcome: "TRANSPORT" }); },
