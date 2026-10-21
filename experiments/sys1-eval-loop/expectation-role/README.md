@@ -1,4 +1,43 @@
-# 九つの負結果を保持し、次の仮説へ継続する
+# 九負結果を保持し、同じ二質問へ本文を損失なく行配列で渡す
+
+## D10 LINES（code-only、D10モデル/H未実測）
+
+候補の意味質問/選択肢/native順序はD9のまま、candidate state.bodyだけを文字列からoriginalBody.split(LF)の順序付き文字列配列へ変える。一codeunit LF(U+000A)区切りのみで、trim/normalize/filter/番号/意味label/役割hint/抽出/HTMLrenderを加えない。CRは前要素に残し、leading/trailing/consecutive LFの空要素とempty body=['']を保持、join(LF)が原UTF16 codeunitsと完全一致する。行は新case/票/独立標本ではなく、元626caseを同じ重みで採点する。
+
+WがD9のHTML提出指示FN等から表現変更案を提案し、root/Rは「以前もJSON文字列にHTML全体がliteralで入っている」「機序未証明」「FPを直接解決しない」「fragmentation/token/wire増」を反証、W受容。rootの単一predicate再定式化案にはRがD1..5/D7との差分が弱いと反証しroot撤回。三者は効果が未証明の弱い仮説であっても、D9質問を一切変えないstate-only比較として限定する。内部attention改善/不可視HTML修復/一般性能を主張しない。[root原負/三者counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595262154)・[R独立原負/counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595262246)。
+
+三者は製品source前に自己actualD9 Coreから新stateだけを独立固定し、既SDK offlinepoststubで全1261candidate要求（626本文＋626placeholder＋端例）等を確認した。Wの全626×2 payload1252＋同数placeholderも全値一致、maxBest20805/lines21681B<24000/Gold-free。端例は空/末尾/連続LF/CRLF/孤立CR/HTML/code/table/Unicode結合文字/U+2028/NUL/孤立surrogateを含む。原通信全bytes実捕捉ではなく、標準SDKによる再構成である。
+
+LINES_QUESTIONSは元PARTITION_QUESTIONSをそのままimportし、declaration1159字/request1268字、options/model/orderは全bytes不変。原2names declaration/request、native10s/diagnoseRejection:true、strict原2資格AND後のみOR、one model/one topusage per post、旧binary15s/BestE/sharedO/Core/SDK/client/batch/YAMLは不変。新physical linesE/schemaだけでstate配列を認め、旧splitE/partitionEのstringstate資格を緩めない。新受信前検査はcurrentpost idをinput.rowsの原bodyへ結合し、state.bodyがそのsplit(LF)全値であることを要求、空array/nonstring/別body/非canonical分割を拒否する。これは新sourceの固定分岐で任意schema/profile/key/endpoint/executor/credentialは追加しない。
+
+local初回16mode検査が、共有askSplitに旧stringassertが残り新candidateがpost前UNKNOWNになる不足を検出。新lines固定contextだけ原body分割へ結合し旧pathを維持、失敗した16modeだけ再検証PASS。試験builderのbacktick構文誤りも製品を生成する前に修正した。経路検査は品質実証ではなく、旧九原wrapperの全fields再生/new7/workflow1＝17実行、native17runs＋固定D6job/実Git親phase、exact8field/全Core/原attemptdigest/max1252を別結合する。
+
+14512 qualified E evidence＝12639binary＋621role4derived＋626decompositionderived＋626partitionderived、physical14517/invalid5別、保護618/追加0を原rawから固定。618は過去ever-correctの工学保護であり、14512は独立案件数でも不偏推定でもない。Dの反復選択/過適合/偶然を排除せず、現在D9guardを将来条件で採点し直さない。freshBest対same compound strictOR＋fixed historicalO、全1252資格/expectedmodel・completejoint正差・歴史618破壊0・freshE退行0を別ANDし、first診断/O-null17/全626を保持する。
+
+新raw named2/splitNative/SDK全entry結合と9th derived linesEは既strictcoreを固定wrapperだけで共有する。片yes＋他unknownはwholeEunknown/短絡0、派生ORはproviderAnswer:false/原postと両choiceのみで確率/confidence/model/usage/Oを作らない。受信した不資格postのtopusageも一度だけ、post前失敗/実post欠測/未割当を区別する。compound未報告modelはUNKNOWN継続、報告された非空otherだけ停止、旧binary未報告停止を実異versionと断定しない。knownFAIL表示に後driftを隠さず原flags/modelStableを使う。
+
+development10/history10は原D1..9＋currentだけ。鍵前17native runs＋固定D6job1と全原版、鍵下8field原body/Core/execution、project原attempt/全資格を検証。source-only REQUESTはD9/source d0ea原bytes維持、現source必要CI/三者受容後だけREQUEST-only直子を一回実測。最大14320＝既実11268＋新D1252＋futureH1800HTTPで、原binary回答1878/将来4M/passをHTTPに加算せず、新User予算/auth gateではない。旧九plan/raw/Gold不変、350min/既六step/再送resume0。全payloadが鍵前に完全復元/<24000を満たさなければINVALID、超過case事後除外/補充/別表現fallback0。
+
+全guardPASS/原native/raw/実要求freeze三者受容後だけ、固定Oct18/prior862typed2033exact2371refs/prefix300無補充からHを開く。成功linesEだけをfresh3M HTTP/原4M answersの二回へ接続。bodyview/相互未読predictionblind初稿native/裁定null保持→最終data/Core/source必要CI/三者を初回モデル前に一回結合し、body前の余計CIgateを加えない。H専用model三値capture/loopstop/資格再生/H2admissionを同predicateで連結、ordinaryunknown/semanticFAILでH2取消0、actualreporteddrift/取消/timeout/raw欠落は技術停止。両回samebody/Gold/Core/M、別々の全資格/model・共通Gold Δ下限正/R任意軸上限0をAND、平均/2M独立化/事後dedup/窓Gold変更0。M0はNO_CASES/model0→別未使用契約を事前固定する。
+
+改善効果の近似は封印Hの二回条件と固定有限Goldの射程でのみ主張する。同系列候補既知rater共通偏り、意味的未見、母集団/Apps E2E/独立human真理/同原価は未保証。中間負保持CI/Readyを次source追加gateにせず、目的最終current全通常CI/証拠/会計/記録/Ready未mergeを最後に閉じる。
+
+~~~mermaid
+flowchart TB
+ N[✅ D9原負/Gold/費用保持] --> C[✅ state-only案を三者反証/弱い機序とリスク保持]
+ C --> F[✅ 全question不変/原UTF16join/全wire24k事前]
+ F --> S[⏳ source必要CI/三者]
+ S --> D[⏳ D10一回1252HTTP/1878原回答]
+ D -->|未達/unknown| R[原版保持/別仮説counter]
+ R --> C
+ D -->|全guardPASS/実要求freeze| H[🔒 未使用H/予測前Gold/同3M二回AND]
+ H -->|未達/unknown| RET[当H退役/別未使用契約/別仮説]
+ RET --> C
+ H -->|成立| Z[目的最終全CI/会計/記録/Ready未merge]
+~~~
+
+以下はD9負保持時点までの記録。現D10未実測と旧時点のモデル0/pendingを区別する。
+
 
 ## D9：旧FN三件を修復したが、fresh6/歴史9退行で未採用
 

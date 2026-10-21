@@ -36,6 +36,8 @@ function verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,
  const drift=events.filter(e=>e.kind==='response-flags'&&(isSplit(e.id)?e.modelDrift:!e.modelMatches));assert.equal(report.modelDrift,drift.length>0);assert.ok(drift.length<=1);if(drift.length){assert.equal(attempts.at(-1),drift[0].id);assert.ok(failures.includes(drift[0].id));assert.equal(events.find(e=>e.kind==='failure'&&e.id===drift[0].id)?.stage,'response-model');}
 }
 
-// Two fixed native named2 contexts only; no caller-supplied key or predicate.
+// Three fixed native named2 contexts only; no caller-supplied key or predicate.
 export function verifySplitQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/splitE'));}
 export function verifyPartitionQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/partitionE'));}
+
+export function verifyLinesQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/linesE'));}

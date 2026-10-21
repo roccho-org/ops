@@ -1,0 +1,6 @@
+import assert from'node:assert/strict';import{PARTITION_QUESTIONS,partitionRequest}from'./partition-request.mjs';import{wireTemplate}from'../regression/scoped-request.mjs';import{judgeNamedChoices}from'../../../packages/jev/src/batch.mjs';
+export const LINES_QUESTIONS=PARTITION_QUESTIONS;
+const state=body=>{assert.equal(typeof body,'string');const lines=body.split('\n');assert.ok(lines.length>=1&&lines.every(s=>typeof s==='string'));assert.equal(lines.join('\n'),body);return{body:lines};};
+export function linesRequest(body,best,key){if(key==='bestE'||key==='sharedO')return partitionRequest(body,best,key);assert.equal(key,'linesE');return{state:state(body),questions:structuredClone(LINES_QUESTIONS)};}
+export function linesTemplatesFromOriginal(base){return{bestE:structuredClone(base.bestE),linesE:{...structuredClone(base.partitionE),state:state('fixed body for request identity only')},sharedO:structuredClone(base.sharedO)};}
+export async function linesWireTemplate(body,best,key){if(key!=='linesE')return wireTemplate(linesRequest(body,best,key));let wire;await judgeNamedChoices({request:linesRequest(body,best,key),provider:{available:true,post:async payload=>{wire=payload;return{model:'jev-1.13.0',answers:Object.fromEntries(['declaration','request'].map(n=>[n,{type:'choice',choice:'yes',confidence:.8,probabilities:{yes:.8,no:.2}}]))};}}});return wire;}

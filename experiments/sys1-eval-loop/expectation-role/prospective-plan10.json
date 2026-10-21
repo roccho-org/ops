@@ -1,0 +1,67 @@
+{
+  "schema": "ops.sys1.expectation-lines-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595262154",
+  "previousPlan": "Original nine plans/Core/guards/raw/Gold unchanged, D9 negative original replies kept",
+  "candidate": "State-representation-only hypothesis: same D9 native2 question text/options/order, but candidate state.body is originalBody.split(LF) ordered string array. Exact UTF16 join roundtrip, all lines including empty/CR/trailing elements, no numbers/rolehints/selection/normalization/rendering. Prior string already contains HTML/code literally; no invisibility-repair or internal-attention claim. Fragmentation/token/wire growth and persistent FP risk; no improvement guarantee.",
+  "development": {
+    "phase": "development10",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "originalAnswerMaximum": 1878,
+    "physicalComposition": "626 original binary BestE posts plus626 native named-two-question candidate posts; one top-level usage per HTTP post, derived OR adds zero calls",
+    "priorQualifiedEEvidence": 14512,
+    "priorBinaryE": 12639,
+    "priorQualifiedRole4EProjections": 621,
+    "priorInvalidRole4": 5,
+    "protectedE": 618,
+    "primary": "fresh qualified BestE versus same D9 predicates strict-AND OR with only candidate lossless LF-line-array state, same fixed historical O; first anchor diagnostic",
+    "acceptance": "all1252 qualified/expectedmodel AND complete jointgain>0 AND historical618 E destruction0 AND fresh E regression0; O-null17/all626 retained; partial unknown not promoted",
+    "admission": "history10 original D1..D9 plus current; original successes and fixed D6failure exception unchanged;17 prior run metadata plus fixed D6jobs API/actual Gitparent/REQUESTphase; all14512 E replayed under original contexts",
+    "timeoutMinutes": 350,
+    "priorQualifiedDecompositionEProjections": 626,
+    "priorQualifiedPartitionEProjections": 626
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "linesE",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 350,
+    "admission": "Only actualD10 allguardPASS/native originals and all actual native request reconstruction freeze threeparty before H count/body/Gold; only successful context connected.",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion",
+    "technicalCapRevision": "Prospective350 per pass before unopened H; old250 plans remain unchanged. Same fixed3M HTTP/two/no retry, baseline/sharedO15s and native compound10s. No completion guarantee or after-timeout extension.",
+    "originalAnswersPerCase": 4
+  },
+  "seriesMaximum": 14320,
+  "accounting": "Actual11268 includes invalid5; newD10maximum1252 plus futureHmaximum1800=14320 HTTP.1878 assigned original answers and futureH4M/pass are not extra posts. Lossless line elements never cases/votes/independent observations. Actual topusage once including captured unqualified usage, missing/unknown money retained, no new User budget/auth gate.",
+  "entry": "Same branch/workflow/350minute sixstep. Source-only retains D9/source d0ea REQUEST bytes, activation10 REQUEST-only development10/acceptedsource once. No intermediate negativehead Ready/CI gate; newsource necessaryCI/threeparty then one D; objective final current allCI/records/Ready unchanged.",
+  "status": "CODE_ONLY_NO_D10_MODEL_OR_H_COUNT",
+  "continuation": "all negative originals and costs retained; distinct source-fixed hypothesis after counter only; no same treatment blind resend, historical Gold revision or same-H rescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting.",
+  "recorder": "Same standard native named2 10000ms/diagnoseRejection:true through bindJev/Core. Private strict core shared only by fixed splitE/partitionE/linesE wrappers, no arbitrary profile/key/schema/callback/transport. Current raw model/2maps/typed allentry and one topusage per post; old binary and all old state paths unchanged.",
+  "projection": "Actual compound observation is named original answers/commonmodel/usage once, not legacy live choice. Separate derived E providerAnswer:false references the physical post and both qualified source choices, without invented probability/confidence/model/usage. A valid partial branch never becomes whole E.",
+  "modelProtocol": "Fixed native compound modelReported/modelMatches/modelDrift are separate. Missing/nonstring/empty model is strictUNKNOWN and continues; an actual reported nonempty unexpected identifier stops globally. Old binary raw mismatch stop behavior is unchanged, so old missing-model stop is not claimed to prove a different model version. Recovered drift/stage/usage refer only to the current captured post.",
+  "literal": "All D9 declaration1159/request1268/options/names/order/model are unchanged by import. Candidate state only body:originalBody.split(one LF codeunit), join(one LF)===originalBody exactly; empty body=[empty string], emptyarray/nonstring entries invalid. Entire actual payload<24000 prior to credentials, no truncation/exclusion/refill/fallback."
+}
