@@ -1,3 +1,34 @@
+# D18: 日本語 native S/R 全文対訳 — sourceのみ
+
+D17原負保持5abd770c1614a56f2ec93c648407af04f998d72eを三者正式全文で閉じた。全17原FAIL/Gold/費用を保持し、H count/body/Gold/model0。今回の処置はD16完全契約の二instructions＋四criteria全てを日本語へ意味対訳する一package。直前D17比では長い契約と元2合成例の復帰も含み、言語単独因果/同義同能力・新構造・Gold日本語だから改善という保証はない。原bodyの翻訳/要約/切詰め0、原B/O・名前順・yes/noキー・objectstate/body・native named2/strictAND後wholeOR/15s B・10s SR diagnoseを保持する。
+
+[公開最終六欄と三者反証](https://github.com/roccho-org/ops/pull/624#issuecomment-6317153595)：root全文対訳、R ANYpositive/negative二分三択、W分解/union同post多数決を比較した。R案はnegative票分散によるFP/.99不資格・mixedFN、W案は同post相関/OR二重票/正B破壊を自己反証し、原理否定せず保留、候補混合0。JPも訳語/語順/長さ/異言語干渉/意味範囲ずれ/共通評価者偏りが残る。Rの条件付き指示/byitself/時制中立、Wのcaption非画面限定/I主体保持を採用。Wのhadto追加提案は別draft混同で原D16 postponedをroot/Rが示し撤回、元『延期した』を保持。v3はS/R同caption訳へ整合し、実case句/ID/例外・新例を追加しない。
+
+三者は自己actualD17原B/SR Coreとinputに保持されたhistorical qualified O template（D17新O実post0）、元D16完全英語契約から独立wx。六欄/全requests/3templates/order/4truth/会計を照合、proseprotocolは全文の意味を比較しbyte同一と偽らない。3756標準SDKoffline payload/MAX B20805/JP23039/O20856<24000。超過case除外/切詰めを行わない。S520/R574文字、全四criteriaも対訳済みで元bytes exactではない。実network/model0。
+
+- 新development18/roleJapaneseE固定schema。旧17全Core/raw/plans/guards/Gold/SDK/YAML/REQUEST17/0f44保持。原askRoleBoundary methodbodyを変えず新閉schema/key dispatchだけ追加、旧qualifier全prefix/既exportbodyを維持してprivate固定wrapper追加。同roleBoundaryNative snapshotは共通SR境界形の名称で、旧prompt同一性ではない。現在request/source/keyを別に全値結合。汎用profile/executor/新transport/authなし。
+- 原B flags/returnは維持しrawidentifier新捕捉とは称さず、SRだけ原model/modelPresent/type/full2maps/topusageをnormalize前に捕捉。両legacy missing/nonstring/empty/other globalstopはactualreportedother証明と区別。ordinarymap/transportUNKNOWNは他方予定続行、片yes+unknownもwholeUNKNOWN、shortcut/fallback0。local no post/flags、provider currentpost/no flags、response post<flags<failure<unknown、stale capture/usage借用0。
+- prior25773qualifiedE/native18899/physical24533invalid12/622保護を固定、全17原版再投影と25native run＋固定D6/D14原failedjobだけを鍵前拘束。任意failure/cancel/timedout/unknownonlyへの一般化0。新inputは全626body/全3templates/cap/sourceをsecret境界で比較する。
+- D1252HTTP＝B626+SR626、原binary1878＝B626+下位S/R1252。両strict後だけwholeOR-derivedE/providerAnswer:false、派生prob/model/usage捏造0。下位S/RはfullEや別E履歴でなく診断、将来EはB+wholeORのみ。各実HTTPの原usage一回、欠測/金額不明を0補完しない。
+- finite max24336＝既実21284HTTP+新D最大1252+将来H最大1800、実費/新Userbudgetgateではない。旧5input/output欠測/全total欠測を保持。H3MHTTP/4M原binary/3eligibilitywiresは別単位。全D expected資格/completejoint正差/freshE退行0/history622破壊0 AND以外にH開封しない。
+
+公開exact三者・必要sourceCI受容後にREQUEST-only directchild一回D18。今回source-onlyはREQUESTdevelopment17/source0f44を保持。中間negative CI/Readyは新gateにせず、原負なら保持し別仮説へ。winning Hは別全経路model三値capture→loop→qual→H2/native/keylessGold結合を先に固定し、同M/Gold/null/wholebody/Coreを両rep拘束。ordinaryUNKNOWNで予定H2非取消/actualOTHER停止、M0/model0/no-refill300/各350min/二回各AND。共通Gold有限集合近似を一般性能・人間真理・全引用/意味未見へ拡大しない。目的最終current全通常CI/記録/Ready未mergeは最後に閉じる。
+
+~~~mermaid
+flowchart TB
+ A["✅ D17原FAIL/全3者反証/JPv3六欄wx"] --> B["🛠️ 公開source/必要CI/三者exact"]
+ B --> C["⬜ 一回REQUEST-only D18"]
+ C --> Q["原B + 両strict nativeS/R→wholeOR E"]
+ C --> U["ordinaryUNKNOWN他方続行/legacy modelstop原版"]
+ Q --> G{"全626資格/正joint差/新退行0/622保護?"}
+ U --> G
+ G -->|未達| N["📦 原版費用保持→別仮説"]
+ G -->|成立| H["🔒 要求freeze後のみ未使用H/別source"]
+ H --> Z["⬜ 各H成立→目的最終CI/記録/Ready未merge"]
+~~~
+
+以下はD17負保持までの全文履歴。
+
 # D17: compact S/R instructions — 原負結果
 
 実run [39603669464](https://github.com/roccho-org/ops/actions/runs/39603669464)、source0f44760f61ddcc34255b3686f9982fbfd486b183 / REQUEST-only activation9adfff77ad52ec95930a9413a9298a8cfa7eebb3。必要CI805/freshconsumer/healthと最新三者正式全文を先に受容し、一回実測した。原5全27,430,793bytes/provider/readback/root独立reportを無編集保持。native SUCCESSだが **DEVELOPMENT_GUARD_FAIL・未採用**、H count/body/Gold/model0。

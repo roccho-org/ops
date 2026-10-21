@@ -48,3 +48,6 @@ export function verifyRoleCriteriaQualificationEvents(report,events,attempts,pos
 
 // Fixed compact-request schema uses the same SR boundary and stage contract.
 export function verifyRoleCompactQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/roleCompactE'));}
+
+// Fixed Japanese-request schema shares the unchanged native SR boundary and stages.
+export function verifyRoleJapaneseQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/roleJapaneseE'));}
