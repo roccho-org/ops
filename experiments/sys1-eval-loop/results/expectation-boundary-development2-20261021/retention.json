@@ -1,0 +1,21 @@
+{
+  "schema": "ops.sys1.expectation-boundary-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "f3618bb933999ddfe292dd03ea50a753b0e9f7c5",
+  "activation": "d2eeec62f5e749afac92394b30a63dc46a9b5227",
+  "phase": "development2",
+  "historyCount": 2,
+  "originalFiles": 5,
+  "originalBytes": 25683706,
+  "actualPhysical": 1252,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "root/R independently acquired own native provider ZIP; all1252 expected Core/events/qualification/607 guard/usage match; W actual original bytes and product replay agree",
+  "seriesActual": {
+    "physicalPosts": 2504,
+    "inputTokens": 5493748,
+    "outputTokens": 77624,
+    "totalTokensUnknownPosts": 2504
+  },
+  "next": "distinct hypothesis only after source/threeparty/necessaryCI; no same boundary blind retry, no retrospective change to607 or old604"
+}

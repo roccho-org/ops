@@ -1,4 +1,32 @@
-# E専用の役割判定手順を別の一候補として検証する
+# E判定の二候補の負結果を保持する
+
+## D2境界候補：正差17だがfresh退行1・歴史破壊7で不受容
+
+[development2の一回の実run](https://github.com/roccho-org/ops/actions/runs/39520431305)はsource f3618bb9 / REQUEST-only activation d2eeec62 / phase development2・履歴2で実行した。全1252要求が資格/expected modelを満たし、unknown0だった。fresh complete475→492（修復18/退行1）、E582→600（修復19/退行1）。しかしfreshE退行census-093と、原607保護内の破壊7（census-003/012/053/093、expectation-020/045/070）によりDEVELOPMENT_GUARD_FAIL。正差17でどちらも相殺しない。機械first477/E585は別診断、O-null17を全626分母に残す。
+
+root/Rは各自provider ZIP/native実Git親/REQUEST phase2と原5を取得し、別readerで全1252 Core/flags/資格/全guard/usageが一致した。原5全25,683,706Bをresults/expectation-boundary-development2-20261021/へ保持する。実jobの鍵前680/680と全step成功は意味改善の受容ではない。selection/成功要求freezeは発行せず、新Hの件数/本文/Goldを開かなかった。旧D1の原604・schema・Core・原5・FAILは全field不変で再生する。607を弱めたり原Goldを変更したりしない。
+
+当回物理1252/input2,734,980/output38,812、total_tokens全1252欠測。PR624のD1+D2実消費は2504/input5,493,748/output77,624、total_tokens2504欠測。4304は事前最大割当であり消費ではない。歴史4501原E/O aliasや未実施Hを新費用へ数えず、料金/内部計算量は不明。旧Best維持・未採用、現headの全通常CI/記録/Readyは別に閉じる。
+
+```mermaid
+flowchart TB
+  D1[✅ D1負原版/604固定] --> S[✅ 別D2境界source/必要680CI/三者counter]
+  S --> D2[✅ 一回1252・全資格/model一致]
+  D2 --> FAIL[❌ 正差17もfresh1/607内7破壊]
+  FAIL --> RAW[✅ 原5/独立別検算/会計・H未開封]
+  RAW --> CLOSE[⏳ 最終current全CI/記録/Ready未merge]
+  RAW --> COUNTER[⏳ 原文と誤判定を三者反証・別の実変更仮説]
+  COUNTER --> SOURCE[⏳ 出力前固定source/必要CI/三者受容]
+  SOURCE --> D[⏳ 別処置を有限一回実測]
+  D -->|未達/unknown| COUNTER
+  D -->|原guard通過と実要求固定| H[⏳ 未使用H/予測前Gold/同3M二回AND]
+  H -->|未達| RETIRE[当H退役/別未使用H契約]
+  RETIRE --> COUNTER
+```
+
+以下はD1結果とD2 source時点の固定契約であり、当時の未完表示を現状と混同しない。次候補のsource/作用はまだなく、同候補盲再送/Gold変更/同H再試験で救済しない。
+
+## D1役割候補と旧sourceの記録
 
 ## 実D結果：正差6、fresh退行15・歴史破壊18で不受容
 
@@ -41,7 +69,7 @@ flowchart TB
 
 同GOで別仮説をsource/必要CI/三者受容後だけ実施する。新User予算/認証/merge承認を追加せず、負結果/実費用を全て残す。
 
-## 次の一候補：D2 criteria境界（code-only）
+## D2 source f361時点の事前契約（当時code-only、実結果は冒頭）
 
 [三者の出力前counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593193516)に従い、原620のE専用suffixへ戻し、yes/no基準へ短い境界対を半角space一つで追加する。本文の機能/IO宣言を説明・表示・再現記録という置き場所で捨てず、観測記録から未記載の仕様を補わない。元ANYの責務/対応指示/提出依頼/引用/回復要求は削らず、「本来」「不満」を独立predicateにしない。復帰＋短criteria対の一候補bundleで、配置/短文化の単独因果は主張しない。case/見出し/語句lookupもない。
 
