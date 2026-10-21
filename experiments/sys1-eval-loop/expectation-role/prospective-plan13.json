@@ -1,0 +1,81 @@
+{
+  "schema": "ops.sys1.expectation-majority-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596536198",
+  "previousPlan": "All original twelve plans/Core/guards/raw/Gold unchanged; D12 known negative retained",
+  "candidate": "Baseline-blind presence/absence named2 questions share verbatim D5 E-only1118/criteria114; N is exact polarity inversion under that common reference, not identical wording to original BestE. All strict B/P/N before fixed majority(B,P,!N). Same-post correlated PN agree with double weight; contradiction uses qualified B as a fixed operating policy, not a correctness or independence proof. Definition/language/polarity/nativejointstate/ensemble package, old D5 and D12 failures unchanged.",
+  "development": {
+    "phase": "development13",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "originalAnswerMaximum": 1878,
+    "physicalComposition": "626 BestE native E posts plus626 independent-of-baseline native named presence/absence compound posts,1878 assigned binary answers; B ordinaryunknown does not skip planned PN unless model-stop",
+    "priorQualifiedEEvidence": 18268,
+    "priorBinaryE": 15143,
+    "priorQualifiedRole4EProjections": 621,
+    "priorInvalidRole4": 5,
+    "protectedE": 618,
+    "primary": "fresh qualified BestE versus derived fixed majority(B,P,!N), same fixed historical O; first anchor diagnostic",
+    "acceptance": "all1252 qualified/expectedmodel AND complete jointgain>0 AND historical618 E destruction0 AND fresh E regression0; O-null17/all626 retained; no missing promotion",
+    "admission": "history13 exact original D1..D12 plus current; oldsuccesses/fixedD6failure unchanged;20 prior native runs plus fixed D6jobs API/actualGitparent/REQUESTphase; all18268 E replayed under original contexts",
+    "timeoutMinutes": 350,
+    "priorQualifiedDecompositionEProjections": 626,
+    "priorQualifiedPartitionEProjections": 626,
+    "priorQualifiedLinesEProjections": 626,
+    "priorQualifiedVerificationEProjections": 626
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "majorityE",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 350,
+    "admission": "Only actualD13 allguardPASS/native originals and all3 actual request templates freeze threeparty before H count/body/Gold; winning architecture only. At maximum3M HTTP/4M original binary answer slots per pass (B presence, P presence, N absence, shared O). PN independent of baseline label; ordinary baselineunknown does not cancel PN/O unless fixed globalstop.",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion",
+    "technicalCapRevision": "Prospective350 per pass before unopened H, old250 plans unchanged. Same3M HTTP/4M nativeanswer slots,twopasses/no retry/provider15s Best/O and nativebatch10s PN. No completion guarantee or after-timeout extension.",
+    "originalAnswersPerCase": 4,
+    "originalAnswerRoles": {
+      "bestE": "native original BestE presence",
+      "majorityE": "native two named presence(P)/absence(N) answers in one post; common model/usage once",
+      "sharedO": "native O"
+    },
+    "eligibilityWireKeys": [
+      "bestE",
+      "majorityE",
+      "sharedO"
+    ],
+    "policyIdentity": "Same wholebody/Gold/M, common D5 E-only reference, both PN question Core and B/O fixed in both reps; fixed majority allstrict policy, no baseline label in candidate input. D12 conditional-checker-only comment6310628091 is not mechanically reused for independent PN architecture."
+  },
+  "seriesMaximum": 18076,
+  "accounting": "Consumed15024 actual HTTP includes invalid5; newD13 maximum1252 plus futureH maximum1800=18076. D1878 assigned binary answer slots (B626,P626,N626), H4M raw answer slots/3M HTTP per pass. Common compound usage once and shared Best once; P nativeE, rawN absence not nativeE, !N and majority E derived without fabricated probabilities/model/usage. Actualposts/qualified/unknown/unattempted and absenttokens/money separate; no newUserbudget/authgate.",
+  "entry": "Same branch/workflow/350minute sixstep. Source-only D12/17f5 REQUEST retained; activation13 REQUEST-only development13/acceptedsource once. Intermediate negativeheadReady/CI not extra gates; current newsource necessaryCI/threeparty before oneD, objective finalcurrent allCI/records/Ready unchanged.",
+  "status": "CODE_ONLY_NO_D13_MODEL_OR_H_COUNT",
+  "continuation": "all negative originals and costs retained; distinct source-fixed hypothesis after counter only; no same treatment blind resend, historical Gold revision or same-H rescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting.",
+  "recorder": "Old standard binary/old named2 paths/SDK/qualification unchanged; new fixed presence-absence schema/key dispatch uses existing judgeNamedChoices/boundprovider, rawcurrentpost snapshot/strict2 maps and unchanged10s options forwarded. No new transport/executor/profile/auth.",
+  "projection": "P is native E presence, N native absence, !N E derived. Keep qualified P and !N snapshots for future protection even when baselineordinaryunknown makes majorityunknown. Final majority requires B/P/N strict; no shortcut or technical-unknown baseline fallback, PN semanticcontradiction uses qualifiedB fixedvote. All future qualified P,!N,majority protect separately, not finalonly. Derived objects source rawchoices/postIds without invented providerfields.",
+  "modelProtocol": "D preserves B legacy binary missing/nonstring/empty-model stop, which does not prove reported other-version. FixedPN currentpost rawnonempty reportedother alone globalstops, missing/nonstring/empty model strictcompoundUNKNOWN continues; partial onevalid branch never qualifies wholecompound. Reset capture/postId/stage/usage perpost, rawmodel/snapshot controls stop not SDKnormalized error. Future winning H closes all physical paths three-state capture/loop/qualification/H2admission separately.",
+  "literal": "P verbatim actualD5 E-only instructions1118/criteria114; N2063 quotes that identical shareddefinition and swaps its two criteria114, no examples/IDs/casewords/baselinechoice orconfidence. New PN state object bodyonly/names presence+absence orderfixed, response names/maps setequal, same native options10s/diagnoseRejectiontrue.",
+  "schedule": "Fixed paired independent physical assignment with rotation by case ordinal, both posted on ordinaryunknown of the other unless model-stop. Wholecompound strict required; PN agreement cannot omit baselinequalification. No D12 dependency-skip contract reused."
+}

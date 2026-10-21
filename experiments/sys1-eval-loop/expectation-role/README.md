@@ -1,3 +1,49 @@
+# D13：基準ラベルを提示しない存在・不在判定と固定多数決（code-only）
+
+D12の原負保持を[root](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596536198)と[R](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596494434)が自己ZIP/Git全bytes/全投影から受容し、Wも両最新全文をprovider自読した。旧十二処置のFAIL・原Gold・plans/rawを救済せず、未使用H count/body/Gold0のまま別の固定構造処置を実装した。現段階はcode-onlyで、新source必要CI/三者exactと一回実D13の意味合格は別である。
+
+比較ではrootの複数positive＋観測only-veto案にRが「観測onlyはE不在の必要条件でなく、矛盾時veto優先の論理根拠もない」と反証し撤回。Rの存在P/不在N・矛盾UNKNOWN案にはrootが「整合時E=Pで、Nによる修復機構がなく全known条件も厳しい」と反証した。三者はbaselineを入力しない固定named2のP/!Nと、同じfresh BestE Bの固定majority(B,P,!N)を選んだ。PNが同じEへ合意すればそのE、反極性が矛盾すれば資格済Bがtie-breakする。同じ命題を同じ応答で問うPNの二重重みであり、独立3票・真偽解決・誤り率保証とは呼ばない。共通誤答で正しいBを反転し得る。
+
+P/N共通truth-referenceは実D5 scopedEのE-only英文1118字/yes-no114字。Pは全bytesそのまま、Nは同一definitionのJSON引用と末尾absence taskを持つ2063字、criteriaは厳密逆転である。元BestEと同文・意味同値の証明を主張せず、元O説明を複製しないcoverage仮説として選ぶ。D5の旧成績を勝者採用せず、そのFAILも保持する。定義・言語・極性・同post文脈・ensembleは一packageで、原因分離や改善は未証明。新例/実case句/ID/branchGoldを追加しない。
+
+BとPNは独立の割当で、case ordinalによる元の回転順を固定する。candidateはstate objectのbodyだけを持ち、Bのchoice/confidence・Gold/O/ID/履歴を見ない。B通常欠測でも予定PNを実施し、PNだけが資格済ならP/!Nを保持するがmajorityはUNKNOWN。PN同意時もBを省略せず、B/P/N全strict資格が必要。片branch invalidを昇格せず、technicalUNKNOWNをBで補完せず、short-circuit0。旧D12のB欠測→checker skipという依存契約を流用しない。
+
+固定majority contextのみが既judgeNamedChoices/既providerを使う。named presence/absenceの原type/choice/confidence/各exact2map/common model/topusageを受信境界で保存し、normalize後の両typed answerへ全entryを結合する。余剰keys/fields、欠落/不正map、非object branchも原形を保持してUNKNOWN、response順は集合一致で判定する。current postのcapture/usageを毎回resetし、timeout/HTTP/JSON失敗へ前post原値を流用しない。response段階のfailureには同post boundary flagsが必要で、未到達provider/local失敗にflagsを作らない。旧binary/旧named2経路・資格・SDK/Core/batch/YAML/transport/authは不変、新汎用profile/executorはない。
+
+DのBは旧binary missing/nonstring/empty model停止を維持し、それを実異version観測とは呼ばない。新PNはcurrent rawの非空文字列otherだけglobalstop、未報告/型不正/空はstrictUNKNOWNで次割当へ継続する。other＋不正mapも原modelから停止し、表示FAILやnormalized errorから推測しない。将来勝ちHの全経路三値capture→loop→資格再生→H2 admissionは別sourceで閉じる。
+
+最大1252HTTP＝626BestE＋626PN、原binary回答割当1878＝B/P/N各626。Pはnative E存在、Nはnative E不在でありnative E存在へ足さない。!NとmajorityはproviderAnswer:false、原post/choicesを追跡し偽確率/model/usageを付けない。qualified PNのP/!N、全strict majorityを将来履歴へ別snapshotとして保持し、最終値だけを残さない。compound共通usageと共有Bはそれぞれ一回だけ計上する。新projection10fieldsは物理postと原answer数を区別する。
+
+鍵前に旧全18268 qualified E＝15143 native binary E＋621role4-derived＋各626split/partition/lines/verification-derivedを元contextで再生し、physical18273/invalid5/618orderedを保持する。checker原正誤626をnative Eへ加算しない。history13は原D1..12＋current、20原native runs＋固定D6 failed-jobをGit親/REQUEST phaseへ結合する。secret inputは既8field、原全body/Best/全templates/expectedmodel/executionを固定する。全1252資格/expectedmodel、618保護破壊0、freshE退行0、完全joint正差、O-null17/全626は独立ANDのまま。
+
+三者はsource前に各自己原D5/D12 Coreから全literal/質問順/3wireをwx固定し、標準SDKのoffline wireと照合した。Wは製品sourceから本文入り1878＋placeholder1878＝3756 wireを自己期待へ全値照合し、全wire24k未満を検査した。これは実HTTP全bytes捕捉ではない。新PNは既native batchの10s/diagnoseRejection:true optionsを無変更転送し、B/sharedOは標準15s/JSON文字列stateのまま。超過や資格失敗の事後除外/切詰め/補充/再送はない。
+
+prospective-plan13の18076は既実消費15024＋D13最大1252＋futureH最大1800の有限割当で実費や追加User予算gateではない。既5postのinput/output欠測・total全欠測を保持する。source-onlyではREQUESTのdevelopment12/17f5を変更せず、新source必要CI/三者exact後だけ直子REQUEST-only activation13を一回実施する。中間負保持CI/Readyを追加gateにせず、目的最終current全通常CI/原会計/三者記録/Ready未mergeは最後に閉じる。
+
+実D13全guardPASS/原版と実要求freeze三者受容までHは封印する。勝ちarchitectureのHはfresh B/PN/sharedOの3M HTTP・4M原binary回答枠、eligibilityは3wire、同body/Gold/M・全Core・固定policyを両回保持する。候補がBを入力しないため実payloadも同値に結合できる。D12 conditional-checker専用[prospective記録](https://github.com/roccho-org/ops/pull/624#issuecomment-6310628091)を機械適用しない。ordinaryUNKNOWN/意味FAILでも予定H2非取消、actualdrift/raw不整合/timeoutは別であり、両回全資格/共通Gold Δ下限>0・任意軸R上限0が必要。反復D選択・ever-correct保護は不偏推定でなく、封印Hも同系統候補既知評定者の共通偏りを除かない有限固定Gold条件付き近似に限る。
+
+~~~mermaid
+flowchart TB
+ A[✅ D12原負/全費用/元Gold保持] --> C[✅ 3者counter/P-N全文と8truth事前固定]
+ C --> CI[⏳ 公開exact/必要CI/3者受容]
+ CI --> ACT[⏳ REQUEST-only D13一回]
+ ACT --> B[固定回転割当: Bとbaseline-blind PN]
+ B --> Q{B/P/N全strict資格?}
+ Q -->|yes| M[固定majority B P !N/原post追跡/derived E]
+ Q -->|通常unknown| U[majority UNKNOWN/資格済PNのPと!Nは保持]
+ B -->|model-stop| T[原理由/残tail未attempt]
+ M --> G[全626guard/618保護/freshE0/完全joint正差/全資格]
+ U --> G
+ T --> G
+ B --> O[原P/N mapと共通usageは1HTTP分だけ保持]
+ G -->|FAIL/unknown| R[原版/全型/会計保持・未採用→別仮説]
+ G -->|全PASS/実要求freeze| H[🔒 未使用H/勝ちcontext/二回AND]
+ H -->|未達| R
+ H -->|両回成立| Z[目的最終current全CI/記録/Ready未merge]
+~~~
+
+以下はD12負保持時点までの記録で、次案未選択等は当時の状態である。
+
 # 十二の原負結果を保持し、次の構造処置を反証する
 
 ## D12：依存ラベル照合は共同正答を減らし未採用
