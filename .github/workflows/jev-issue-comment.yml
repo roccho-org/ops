@@ -1,6 +1,6 @@
 name: Jev Issue comment evaluation
 
-# Closed Org origins; PR629 literal bootstrap only; no provided request grant.
+# Closed Org origins; PR629 frozen provided phase, at most one actual provider call.
 # One PR budget claim across a finite ordinal window; no refill.
 # Historical grants remain; no rerun spending or automatic ordinal following.
 on:
@@ -25,7 +25,7 @@ jobs:
       ((github.event.comment.body == '/jev-evaluate' &&
       (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)) ||
       (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&
-      github.event.issue.number == 606 &&
+      github.event.issue.number == 629 &&
       startsWith(github.event.comment.body, fromJSON('"/jev-evaluate\n"')))) &&
       ((github.event.issue.pull_request == null &&
       ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) ||
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: roccho-org/ops
-          ref: a161a3c88ac08fe81e723943510a85c551ff22f6
+          ref: 773c45ace1d7f3939ec4d5eaf11891f9ea1b1319
           persist-credentials: false
 
       - name: Install fixed toolchain provisioner
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          runtime_source=a161a3c88ac08fe81e723943510a85c551ff22f6
+          runtime_source=773c45ace1d7f3939ec4d5eaf11891f9ea1b1319
           test "$(git rev-parse HEAD)" = "$runtime_source"
           out="$(nix build --no-link --print-out-paths .#jev-review)"
           line="$(grep '^exec ' "$out/bin/jev-review")"
