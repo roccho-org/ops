@@ -865,11 +865,21 @@ for (const program of [entry, compatibility]) {
   assert.doesNotThrow(() => { two = validateActionsConfig(withNew()); }, 'two Issue targets with different numbers in one repository');
   assert.deepEqual(two.targets.filter(t => t.repository === OPS && Object.hasOwn(t, 'issue')).map(t => t.issue), [573, NEW]);
   const original573 = base.targets.find(t => t.issue === 573);
-  assert.deepEqual(two.targets.find(t => t.issue === 573), original573, '573 unchanged');
+  // validateActionsConfig returns null-prototype snapshots, so the comparison is on the serialized bytes.
+  assert.equal(JSON.stringify(two.targets.find(t => t.issue === 573)), JSON.stringify(original573), '573 unchanged');
   assert.equal(two.subjectScope, base.subjectScope);
   const duplicate = withNew();
   duplicate.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: NEW });
   assert.throws(() => validateActionsConfig(duplicate), /INVALID_ACTIONS_CONFIG/, 'the same Issue number twice stays refused');
+  // A second plain Issue origin (no subject) in one repository stays refused: it could run through a legacy range.
+  const plain = JSON.parse(JSON.stringify(base));
+  plain.targets.push({ repository: 'roccho-org/envs', repositoryId: '1391871347', issue: 53 });
+  assert.throws(() => validateActionsConfig(plain), /INVALID_ACTIONS_CONFIG/, 'a second plain Issue origin in envs');
+  const plainOps = withNew();
+  plainOps.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: 10000 });
+  assert.doesNotThrow(() => validateActionsConfig(plainOps), 'one plain Issue origin in ops beside subject-bearing ones');
+  plainOps.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: 10001 });
+  assert.throws(() => validateActionsConfig(plainOps), /INVALID_ACTIONS_CONFIG/, 'a second plain Issue origin in ops');
   const run = { repository: OPS, workflowId: 377399991, path: WF, number: 375, attempt: 1, id: 1 };
   const mine = selectRunRange(two, run, { kind: 'issue', number: NEW });
   assert.deepEqual([mine.range.first, mine.range.last, mine.callsPerRun, mine.range.budgetClaimCommentId], [375, 414, 1, 1]);
