@@ -23,14 +23,14 @@ export function safeOwnerErrorCode(error) {
     "DEPTH_ZERO_SELF_SIGNED_CERT","ERR_HTTP_INVALID_HEADER_VALUE","ERR_INVALID_CHAR","ERR_INVALID_URL"];
   return codes.includes(error?.code) ? error.code : error?.code === undefined ? "UNKNOWN" : "OTHER";
 }
-export function observeOwnerSocket(socket, frames, invalidFrame = () => {}) {
+export function observeOwnerSocket(socket, frames, invalidFrame = () => {}, priorHeader = "pi-proof-prior-token") {
   const trace = { errorCode: "UNKNOWN", httpStatus: null, upgradeSeen101: false, witness: undefined };
   socket.on("error", error => { trace.errorCode = safeOwnerErrorCode(error); });
   socket.on("upgrade", response => {
     trace.httpStatus = response.statusCode;
     trace.upgradeSeen101 = response.statusCode === 101;
     trace.witness = {
-      boot: response.headers["pi-proof-boot"], prior: response.headers["pi-proof-prior-token"],
+      boot: response.headers["pi-proof-boot"], prior: response.headers[priorHeader],
       posts: typeof response.headers["pi-proof-posts"] === "string" && /^[0-5]$/.test(response.headers["pi-proof-posts"]) ? Number(response.headers["pi-proof-posts"]) : NaN,
     };
   });
@@ -53,6 +53,13 @@ export function safeWitnessStatus(witness) {
 }
 export function proofIdentity(values) {
   const url = new URL(values.url);
+  if (values.stage === "opencode") {
+    assert.equal(url.href, "https://pi.roccho.workers.dev/");
+    assert.equal(values.session, "owner-jev-opencode-proof-20261021");
+    assert.equal(values.continue, true);
+    assert.ok(!values["forensic-once"] && !values["recover-seed-once"] && !values["recover-transport-once"]);
+    return;
+  }
   if (url.origin !== "https://pi.roccho.workers.dev" || url.pathname !== "/" ||
       url.username || url.password || url.search || url.hash ||
       values.session !== "owner-jev-proof-20261020" ||
@@ -106,6 +113,48 @@ export function closeOwnerSocket(socket, signal) {
     signal.addEventListener("abort", cancel, { once: true });
     socket.close(1000, "finite proof");
   });
+}
+
+export async function connectOwnerWorker({ origin, session, headers, signal, sockets, priorHeader = "pi-proof-prior-token" }) {
+  signal.throwIfAborted();
+  const url = new URL("/api/sessions/" + session, origin);
+  url.protocol = "wss:";
+  phase("WORKER_WS");
+  lastSocketTrace = undefined;
+  const ws = new WebSocket(url, {
+    headers,
+    followRedirects: false, handshakeTimeout: 15_000,
+  });
+  sockets.add(ws);
+  ws.once("close", () => sockets.delete(ws));
+  const frames = [];
+  const trace = observeOwnerSocket(ws, frames, () => phase("INVALID_WS_FRAME"), priorHeader);
+  lastSocketTrace = trace;
+  await new Promise((resolve, reject) => { ws.once("open", resolve); ws.once("error", () => reject(new Error("Owner WebSocket rejected"))); });
+  phase("AUTOMATIC_ROOT_WAIT");
+  const wait = predicate => waitOwnerFrame(frames, ws, predicate, signal);
+  await wait(frame => frame.type === "session.snapshot");
+  return {
+    witness: trace.witness, frames, wait,
+    async command(command) {
+      ws.send(JSON.stringify(command));
+      const result = await wait(frame => frame.type === "command.result" && frame.requestId === command.requestId);
+      assert.equal(result.ok, true);
+      return result;
+    },
+    async turn(conversationId, content) {
+      const start = frames.length;
+      const result = await this.command({ type: "prompt.submit", requestId: randomUUID(), conversationId, content });
+      await wait(frame => completedTurn(frame, conversationId, result.submissionId));
+      const messages = turnMessages(frames.slice(start), conversationId);
+      lastProviderFailure = providerFailureReceipt(messages);
+      if (lastProviderFailure) throw new Error("Proof provider failure; no resend");
+      return messages;
+    },
+    close() {
+      return closeOwnerSocket(ws, signal);
+    },
+  };
 }
 
 const recordObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -447,6 +496,101 @@ export async function reconcileConnection(connection, beforeVerify = () => {}) {
   return emptyRootCertificate(connection.frames, connection.witness);
 }
 
+
+function assistant(messages) {
+  const reply = messages.filter(message => message.role === "assistant" && message.stopReason === "stop").at(-1);
+  assert.ok(reply, "No completed new assistant reply");
+  return reply.content.filter(part => part.type === "text").map(part => part.text).join("");
+}
+
+export function openCodeWireReceipts(messages, expectedAttempts) {
+  const completions = completionReceipt(messages, expectedAttempts.length === 2 ? ["toolUse", "stop"] : ["stop"]);
+  const assistants = messages.filter(message => message.role === "assistant");
+  const wires = assistants.map(message => message.piProofWire);
+  assert.deepEqual(wires.map(wire => wire?.attempt), expectedAttempts);
+  assert.ok(wires.every(wire => wire?.schema === "pi.opencode.wire.v1" && wire.ownUserAgent === true &&
+    typeof wire.sessionSha256 === "string" && /^[0-9a-f]{64}$/.test(wire.sessionSha256)));
+  assert.ok(wires.every(wire => wire.sessionSha256 === wires[0].sessionSha256));
+  return { completions, sessionSha256: wires[0].sessionSha256 };
+}
+
+export function codeReviewResult(messages, caseId) {
+  const results = messages.filter(message => message.role === "toolResult" && message.toolName === "ask_jev");
+  assert.equal(results.length, 1); assert.equal(results[0].isError, false);
+  const calls = messages.filter(message => message.role === "assistant")
+    .flatMap(message => message.content).filter(part => part.type === "toolCall");
+  assert.equal(calls.length, 1); assert.equal(calls[0].name, "ask_jev");
+  assert.equal(calls[0].id, results[0].toolCallId);
+  const assessment = JSON.parse(results[0].content.filter(part => part.type === "text").map(part => part.text).join(""));
+  assert.deepEqual(Object.keys(assessment).sort(), ["noul","type"]);
+  assert.equal(assessment.type, "noul"); assert.ok(Number.isFinite(assessment.noul) && assessment.noul >= 0 && assessment.noul <= 1);
+  const result = JSON.parse(assistant(messages));
+  assert.deepEqual(Object.keys(result).sort(), ["assessment","caseId","finding"]);
+  assert.equal(result.caseId, caseId); assert.deepEqual(result.assessment, assessment);
+  assert.ok(typeof result.finding === "string" && result.finding.length > 0);
+  return result;
+}
+
+/** New finite API proof: no registration path, OAuth import, local key or credential operation. */
+export async function runOpenCodeProof(values, dependencies = {}) {
+  proofIdentity(values);
+  const abort = new AbortController();
+  const cancel = () => abort.abort();
+  process.once("SIGINT", cancel);
+  const obtainAccess = dependencies.accessToken ?? (() => execFileSync(values.cloudflared,
+    ["access", "token", "--app", "https://pi.roccho.workers.dev"],
+    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim());
+  const connectWorker = dependencies.connect ?? connectOwnerWorker;
+  const idle = dependencies.idle ?? (() => new Promise((resolve, reject) => {
+    const timer = setTimeout(resolve, 180_000);
+    abort.signal.addEventListener("abort", () => { clearTimeout(timer); reject(new Error("cancelled")); }, { once: true });
+  }));
+  try {
+    await withOwnerSockets(abort.signal, async sockets => {
+      phase("CF_CACHE");
+      const cookie = obtainAccess();
+      const connect = () => connectWorker({ origin: new URL(values.url), session: values.session, sockets,
+        headers: { Cookie: "CF_Authorization=" + cookie }, signal: abort.signal, priorHeader: "pi-proof-prior-owner" });
+      const first = await connect();
+      proofWitness(first.witness, 0, "false");
+      const created = await first.command({ type: "conversation.create", requestId: randomUUID() });
+      assert.ok(Number.isSafeInteger(created.conversationId) && created.conversationId > 1);
+      const id = created.conversationId, caseId = randomBytes(24).toString("hex");
+      phase("OPENCODE_REVIEW");
+      const seed = await first.turn(id, "Review this JavaScript test case " + caseId +
+        ". Requirement: return undefined for an empty array. Code: function first(items) { return items[0].value; }" +
+        " Call ask_jev once to assess the likelihood that this code violates the requirement." +
+        " Use the actual typed Jev assessment. Return only JSON with keys caseId, finding, assessment.");
+      const expected = codeReviewResult(seed, caseId);
+      const initial = openCodeWireReceipts(seed, [1,2]);
+      await first.close();
+      phase("OPENCODE_IDLE_NO_PROBES");
+      await idle();
+      const second = await connect();
+      proofWitness(second.witness, 2, "false");
+      assert.notEqual(second.witness.boot, first.witness.boot, "Actual new DO required before recall");
+      await second.command({ type: "conversation.open", requestId: randomUUID(), conversationId: id });
+      phase("OPENCODE_REVIEW_RECALL");
+      const recalled = await second.turn(id,
+        "Summarize our previous code review findings and its exact Jev assessment. Return the original JSON with caseId, finding, assessment. Do not call tools.");
+      assert.deepEqual(JSON.parse(assistant(recalled)), expected);
+      const final = openCodeWireReceipts(recalled, [3]);
+      assert.equal(final.sessionSha256, initial.sessionSha256);
+      const completions = [...initial.completions, ...final.completions];
+      assertDistinctCompletions(completions);
+      await second.close();
+      const receipt = await connect();
+      proofWitness(receipt.witness, 3);
+      await receipt.close();
+      console.log(JSON.stringify({ scope: "ACTUAL_OPENCODE_WORKER_REVIEW_PROOF", session: values.session,
+        conversationId: id, completions, modelPostAdmissions: 3, successfulJevToolResults: 1,
+        recreated: true, priorOwnerAdmissionAbsent: true, providerSessionHeaderStable: true,
+        ownUserAgentVerified: true, exactReviewRecallMatched: true, noClientHistoryReinjection: true,
+        oauthOrNativeCredentialOperation: "NOT_RUN", providerBillingUsage: "NOT_INDEPENDENTLY_VERIFIED" }));
+    });
+  } finally { process.removeListener("SIGINT", cancel); }
+}
+
 async function run() {
 const { values } = parseArgs({ options: {
   url: { type: "string" }, session: { type: "string" }, host: { type: "string" },
@@ -455,9 +599,10 @@ const { values } = parseArgs({ options: {
   "recover-transport-once": { type: "boolean" },
 } });
 proofIdentity(values);
-if (!process.stderr.isTTY || !values.url || !values.session || !values.host || !values.cloudflared) {
+if (!process.stderr.isTTY || !values.url || !values.session || (values.stage !== "opencode" && !values.host) || !values.cloudflared) {
   throw new Error("Owner interactive terminal and url/session/host/cloudflared arguments required");
 }
+if (values.stage === "opencode") { await runOpenCodeProof(values); return; }
 if (process.getuid() !== 1001 || homedir() !== "/home/dev") throw new Error("Wrong native owner context");
 const { lstat } = await import("node:fs/promises");
 const home = await lstat(homedir());
@@ -536,53 +681,13 @@ assert.ok(Array.isArray(catalog.models) && catalog.models.some(model => model.vi
 }
 
 async function connect() {
-  abort.signal.throwIfAborted();
   assert.ok(bearer.expires > Date.now() + 30_000, "Access expired; stop without reauthentication/retry");
-  const url = new URL("/api/sessions/" + values.session, origin);
-  url.protocol = "wss:";
-  phase("WORKER_WS");
-  lastSocketTrace = undefined;
-  const ws = new WebSocket(url, {
+  return connectOwnerWorker({ origin, session: values.session, signal: abort.signal, sockets,
     headers: { Cookie: "CF_Authorization=" + accessJwt,
-      "Pi-Proof-Access": bearer.token, "Pi-Proof-Expires": String(bearer.expires) },
-    followRedirects: false, handshakeTimeout: 15_000,
-  });
-  sockets.add(ws);
-  ws.once("close", () => sockets.delete(ws));
-  const frames = [];
-  const trace = observeOwnerSocket(ws, frames, () => phase("INVALID_WS_FRAME"));
-  lastSocketTrace = trace;
-  await new Promise((resolve, reject) => { ws.once("open", resolve); ws.once("error", () => reject(new Error("Owner WebSocket rejected"))); });
-  phase("AUTOMATIC_ROOT_WAIT");
-  const wait = predicate => waitOwnerFrame(frames, ws, predicate, abort.signal);
-  await wait(frame => frame.type === "session.snapshot");
-  return {
-    witness: trace.witness, frames, wait,
-    async command(command) {
-      ws.send(JSON.stringify(command));
-      const result = await wait(frame => frame.type === "command.result" && frame.requestId === command.requestId);
-      assert.equal(result.ok, true);
-      return result;
-    },
-    async turn(conversationId, content) {
-      const start = frames.length;
-      const result = await this.command({ type: "prompt.submit", requestId: randomUUID(), conversationId, content });
-      await wait(frame => completedTurn(frame, conversationId, result.submissionId));
-      const messages = turnMessages(frames.slice(start), conversationId);
-      lastProviderFailure = providerFailureReceipt(messages);
-      if (lastProviderFailure) throw new Error("Proof provider failure; no resend");
-      return messages;
-    },
-    close() {
-      return closeOwnerSocket(ws, abort.signal);
-    },
-  };
+      "Pi-Proof-Access": bearer.token, "Pi-Proof-Expires": String(bearer.expires) } });
 }
-function assistant(messages) {
-  const reply = messages.filter(message => message.role === "assistant" && message.stopReason === "stop").at(-1);
-  assert.ok(reply, "No completed new assistant reply");
-  return reply.content.filter(part => part.type === "text").map(part => part.text).join("");
-}
+
+
 if (stage === "history") {
   phase("HISTORY_SNAPSHOT");
   const observation = await inspectHistoryConnection(await connect());

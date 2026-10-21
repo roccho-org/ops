@@ -910,3 +910,125 @@ it("derives actual failed Session entry schema for same-minute and clock-change 
     } finally { vi.useRealTimers(); }
   }
 });
+
+const openCodeFixture = (env as unknown as { PI_PROOF_AUTH_MODE?: string }).PI_PROOF_AUTH_MODE === "opencode-go";
+const openCodeErrors = (env as unknown as { PI_PROOF_TEST_OPENCODE_ERRORS?: string }).PI_PROOF_TEST_OPENCODE_ERRORS === "true";
+it.skipIf(!openCodeFixture || openCodeErrors)(
+  "selected-opencode Session uses real provider wire, owner admission, Jev and stable durable routing after recreation", async () => {
+    const { headers: oauthHeaders, jwk } = await transientOwnerFixture();
+    const headers = { "Cf-Access-Jwt-Assertion": oauthHeaders["Cf-Access-Jwt-Assertion"] };
+    const session = "owner-jev-opencode-proof-20261021";
+    const requests: { session: string; body: any }[] = [];
+    let jevPosts = 0;
+    const caseId = "fixture-code-review-a47c";
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "https://fixture.cloudflareaccess.com/cdn-cgi/access/certs")
+        return Response.json({ keys: [{ ...jwk, kid: "session-fixture", alg: "RS256" }] });
+      const request = new Request(input, init); expect(request.redirect).toBe("manual");
+      if (request.url === "https://api.typesafe.ai/v1/systemone") {
+        jevPosts++; return Response.json({ model: "jev-latest", answers: { assessment: { type: "noul", noul: 0.84123 } } });
+      }
+      expect(request.url).toBe("https://opencode.ai/inference/go/openai/v1/responses");
+      expect(request.headers.get("authorization")).toBe("Bearer fixture-opencode-private-not-real");
+      expect(request.headers.get("user-agent")).toMatch(/^pi /);
+      const routing = request.headers.get("x-opencode-session"); expect(routing).toBeTruthy();
+      const body = await request.json() as any;
+      expect(body.model).toBe("gpt-6-luna"); expect(body.store).toBe(false); expect(body.stream).toBe(true);
+      expect(body.input.some((item: any) => item.type === "additional_tools")).toBe(false);
+      expect(body.tools).toBeInstanceOf(Array); // Native API schema; no SIWC envelope rewriting.
+      requests.push({ session: routing!, body });
+      if (requests.length === 1) return jevToolStream(1, "opencode");
+      expect(JSON.stringify(body)).toContain("0.84123");
+      const text = JSON.stringify({ caseId, finding: "Empty input dereferences undefined", assessment: { type: "noul", noul: 0.84123 } });
+      // Distinct actual provider IDs are required by the native receipt gate.
+      return new Response((await responseStream(text).text()).replaceAll("fixture-response", "opencode-response-" + requests.length),
+        { headers: { "content-type": "text/event-stream" } });
+    });
+    const missing = await exports.default.fetch("https://example.com/api/sessions/" + session, { headers: { Upgrade: "websocket" } });
+    expect(missing.status).toBe(403); expect(requests).toHaveLength(0); expect(jevPosts).toBe(0);
+    await runInDurableObject(env.SESSIONS.getByName(session), async instance => { await instance.alarm(); });
+    expect(requests).toHaveLength(0);
+    const first = await connect(session, 1, headers);
+    expect(first.response.headers.get("Pi-Proof-Prior-Owner")).toBe("false");
+    expect(first.response.headers.has("Pi-Proof-Prior-Token")).toBe(false);
+    expect(first.response.headers.get("Pi-Proof-Posts")).toBe("0");
+    const boot = first.response.headers.get("Pi-Proof-Boot");
+    await first.create("opencode-create");
+    first.submit("opencode-review", "Review code case " + caseId + ": function first(items) { return items[0].value; }. Assess the empty-input test with ask_jev.");
+    await submissionStatus(session, "opencode-review", "done", first.conversationId);
+    expect(requests).toHaveLength(2); expect(jevPosts).toBe(1);
+    expect(JSON.stringify(first.messages)).toContain("pi.opencode.wire.v1");
+    for (const secret of ["fixture-opencode-private-not-real", headers["Cf-Access-Jwt-Assertion"]])
+      expect(JSON.stringify(first.messages)).not.toContain(secret);
+    await closeSocket(first.socket);
+    await evictDurableObject(env.SESSIONS.getByName(session));
+    const rejected = await exports.default.fetch("https://example.com/api/sessions/" + session,
+      { headers: { Upgrade: "websocket", "Cf-Access-Jwt-Assertion": "invalid-owner" } });
+    expect(rejected.status).toBe(403);
+    expect(requests).toHaveLength(2); expect(jevPosts).toBe(1);
+    const second = await connect(session, first.conversationId, headers);
+    expect(second.response.headers.get("Pi-Proof-Boot")).not.toBe(boot);
+    expect(second.response.headers.get("Pi-Proof-Prior-Owner")).toBe("false");
+    expect(second.response.headers.get("Pi-Proof-Posts")).toBe("2");
+    second.submit("opencode-recall", "Summarize our previous code review findings and exact Jev assessment; return its original JSON.");
+    await submissionStatus(session, "opencode-recall", "done", first.conversationId);
+    expect(requests).toHaveLength(3); expect(jevPosts).toBe(1);
+    expect(new Set(requests.map(request => request.session)).size).toBe(1);
+    const latestUser = requests[2].body.input.filter((item: any) => item.role === "user").at(-1);
+    expect(JSON.stringify(latestUser)).not.toContain(caseId); expect(JSON.stringify(latestUser)).not.toContain("0.84123");
+    second.submit("opencode-cap", "This fourth model admission must be refused.");
+    await submissionStatus(session, "opencode-cap", "unanswered", first.conversationId);
+    expect(requests).toHaveLength(3); expect(jevPosts).toBe(1);
+    await closeSocket(second.socket);
+    await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
+      expect(await state.storage.get("pi.proof.responses.posts")).toBe(3);
+      expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
+      const tables = state.storage.sql.exec<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table'").toArray();
+      const persisted = tables.filter(table => !table.name.startsWith("_cf_") && !table.name.startsWith("sqlite_"))
+        .map(table => JSON.stringify(state.storage.sql.exec('SELECT * FROM "' + table.name.replaceAll('"','""') + '"').toArray(),
+          (_key,value) => value instanceof ArrayBuffer ? new TextDecoder().decode(value) : value)).join("\n");
+      expect(persisted).toContain(caseId); expect(persisted).toContain("0.84123");
+      expect(persisted).not.toContain("fixture-opencode-private-not-real");
+      expect(persisted).not.toContain(headers["Cf-Access-Jwt-Assertion"]);
+    });
+  },
+);
+it.skipIf(!openCodeFixture || !openCodeErrors)(
+  "selected-opencode-errors revoke last owner before pending Jev, deny cold/alarm and redact API-key echoes", async () => {
+    const { headers: oauthHeaders, jwk } = await transientOwnerFixture();
+    const headers = { "Cf-Access-Jwt-Assertion": oauthHeaders["Cf-Access-Jwt-Assertion"] };
+    const session = "owner-jev-opencode-proof-20261021";
+    let modelPosts = 0, jevPosts = 0, release!: () => void;
+    const mayFinish = new Promise<void>(resolve => { release = resolve; });
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "https://fixture.cloudflareaccess.com/cdn-cgi/access/certs")
+        return Response.json({ keys: [{ ...jwk, kid: "session-fixture", alg: "RS256" }] });
+      const request = new Request(input, init);
+      if (request.url === "https://api.typesafe.ai/v1/systemone") { jevPosts++; throw new Error("Unauthorized recovered tool send"); }
+      expect(request.url).toBe("https://opencode.ai/inference/go/openai/v1/responses"); modelPosts++;
+      if (modelPosts === 1) { await mayFinish; return jevToolStream(1, "closed-owner"); }
+      return Response.json({ error: { message: "private-echo:fixture-opencode-private-not-real" } }, { status: 401 });
+    });
+    const client = await connect(session, 1, headers);
+    await client.create("owner-gate-create");
+    client.submit("owner-gate-pending", "Review this code and call ask_jev.");
+    await vi.waitFor(() => expect(modelPosts).toBe(1), wait);
+    await closeSocket(client.socket);
+    release();
+    await submissionStatus(session, "owner-gate-pending", ["done", "unanswered"], client.conversationId);
+    expect(jevPosts).toBe(0);
+    await evictDurableObject(env.SESSIONS.getByName(session));
+    const denied = await exports.default.fetch("https://example.com/api/sessions/" + session, { headers: { Upgrade: "websocket" } });
+    expect(denied.status).toBe(403);
+    await runInDurableObject(env.SESSIONS.getByName(session), async instance => { await instance.alarm(); });
+    expect(modelPosts).toBe(1); expect(jevPosts).toBe(0);
+    const reopened = await connect(session, client.conversationId, headers);
+    reopened.submit("owner-gate-error", "Review a separate local test assertion; do not call tools.");
+    await submissionStatus(session, "owner-gate-error", "unanswered", client.conversationId);
+    expect(modelPosts).toBe(2); expect(jevPosts).toBe(0);
+    expect(JSON.stringify(reopened.messages)).not.toContain("fixture-opencode-private-not-real");
+    const failure = turnFailure(reopened.messages, client.conversationId);
+    expect(JSON.parse(failure.errorMessage)).toMatchObject({ attempt: 2, httpStatus: 401, outcome: "HTTP" });
+    await closeSocket(reopened.socket);
+  },
+);

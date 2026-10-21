@@ -6,6 +6,7 @@ import {
 } from "@earendil-works/pi-ai";
 import type { Provider } from "@earendil-works/pi-ai";
 import { openaiProvider } from "@earendil-works/pi-ai/providers/openai";
+import { opencodeGoProvider } from "@earendil-works/pi-ai/providers/opencode-go";
 import { openaiChatGPTOAuth } from "pi-proof-openai-oauth";
 import { KeyedSerialQueue } from "./serial.ts";
 
@@ -106,12 +107,16 @@ export type ProofEnvironment = {
   PI_JEV_PROOF_SESSION?: string;
   PI_JEV_PROOF_API_KEY?: string;
   PI_PROOF_TRANSIENT?: string;
+  PI_PROOF_AUTH_MODE?: string;
+  PI_PROOF_PROVIDER?: string;
+  PI_PROOF_MODEL?: string;
+  OPENCODE_API_KEY?: string;
   PI_ACCESS_ISSUER?: string;
   PI_ACCESS_AUDIENCE?: string;
   PI_ACCESS_OWNER_HASH?: string;
 };
 
-type AttemptTrace = { attempt: number | null; httpStatus: number | null; outcome: "NOT_SENT" | "HTTP" | "TRANSPORT" };
+type AttemptTrace = { attempt: number | null; httpStatus: number | null; outcome: "NOT_SENT" | "HTTP" | "TRANSPORT"; sessionSha256?: string; ownUserAgent?: boolean };
 
 /** Finite owner proof only. Credentials live in this instance, never storage. */
 export class TransientWorkerProof {
@@ -119,7 +124,20 @@ export class TransientWorkerProof {
   #access?: { token: string; expires: number };
   readonly #terminalTraces = new WeakMap<object, AttemptTrace>();
   readonly storage: DurableObjectStorage;
-  constructor(storage: DurableObjectStorage) { this.storage = storage; }
+  readonly apiKeyMode: boolean;
+  readonly #apiKey?: string;
+  readonly #owners = new Set<WebSocket>();
+  constructor(storage: DurableObjectStorage, api?: { apiKey: string }) {
+    this.storage = storage; this.apiKeyMode = api !== undefined;
+    if (api && !api.apiKey) throw new Error("OpenCode key binding required");
+    this.#apiKey = api?.apiKey;
+  }
+
+  admit(socket: WebSocket) { if (this.apiKeyMode) this.#owners.add(socket); }
+  release(socket: WebSocket) { this.#owners.delete(socket); }
+  requireOwner() {
+    if (this.apiKeyMode && ![...this.#owners].some(socket => socket.readyState === WebSocket.OPEN)) throw new Error("Active owner continuation required");
+  }
 
   get tokenPresent() { return this.#access !== undefined && this.#access.expires > Date.now(); }
 
@@ -129,6 +147,15 @@ export class TransientWorkerProof {
       issuer: env.PI_ACCESS_ISSUER ?? "", audience: env.PI_ACCESS_AUDIENCE ?? "",
       subjectHash: env.PI_ACCESS_OWNER_HASH ?? "",
     });
+    if (this.apiKeyMode) {
+      if (env.PI_PROOF_AUTH_MODE !== "opencode-go" || env.PI_PROOF_PROVIDER !== "opencode-go" ||
+          env.PI_PROOF_MODEL !== "gpt-6-luna" || env.PI_PROOF_TRANSIENT === "true" ||
+          request.headers.has("Pi-Proof-Access") || request.headers.has("Pi-Proof-Expires")) {
+        throw new Error("Explicit OpenCode proof mode required");
+      }
+      return { "Pi-Proof-Boot": this.bootId, "Pi-Proof-Prior-Owner": String([...this.#owners].some(socket => socket.readyState === WebSocket.OPEN)),
+        "Pi-Proof-Posts": String(await this.counts()) };
+    }
     const priorToken = this.tokenPresent;
     const token = request.headers.get("Pi-Proof-Access");
     const expires = Number(request.headers.get("Pi-Proof-Expires"));
@@ -143,6 +170,7 @@ export class TransientWorkerProof {
   async counts() { return await this.storage.get<number>("pi.proof.responses.posts") ?? 0; }
 
   #bearer() {
+    if (this.apiKeyMode) { this.requireOwner(); return this.#apiKey!; }
     if (!this.tokenPresent) { this.#access = undefined; throw new Error("Fresh ChatGPT access required"); }
     return this.#access!.token;
   }
@@ -151,16 +179,28 @@ export class TransientWorkerProof {
   async #request(input: RequestInfo | URL, init?: RequestInit, trace?: AttemptTrace) {
     this.#bearer();
     const request = new Request(input, init);
-    if (request.url !== "https://api.openai.com/v1/responses" || request.method !== "POST") {
+    const endpoint = this.apiKeyMode ? "https://opencode.ai/inference/go/openai/v1/responses" : "https://api.openai.com/v1/responses";
+    if (request.url !== endpoint || request.method !== "POST") {
       throw new Error("Proof transport rejected");
+    }
+    if (this.apiKeyMode) {
+      const session = request.headers.get("x-opencode-session");
+      const ownUserAgent = /^pi \([^()\r\n]+\)$/.test(request.headers.get("user-agent") ?? "");
+      if (!session || !ownUserAgent) throw new Error("OpenCode routing identity required");
+      if (trace) {
+        trace.sessionSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(session)))]
+          .map(value => value.toString(16).padStart(2, "0")).join("");
+        trace.ownUserAgent = true;
+      }
     }
     const attempt = await this.storage.transaction(async tx => {
       const count = await tx.get<number>("pi.proof.responses.posts") ?? 0;
-      if (count >= 5) throw new Error("Proof physical request budget consumed");
+      if (count >= (this.apiKeyMode ? 3 : 5)) throw new Error("Proof physical request budget consumed");
       await tx.put("pi.proof.responses.posts", count + 1);
       return count + 1;
     });
     if (trace) trace.attempt = attempt;
+    this.requireOwner(); // A close during durable admission cannot authorize a later send.
     // Count before send: an UNKNOWN result is never refunded.
     let response: Response;
     try {
@@ -179,6 +219,15 @@ export class TransientWorkerProof {
 
   failureMetadata(message: object): string {
     const trace = this.#terminalTraces.get(message);
+    if (this.apiKeyMode) {
+      const terminal = message as Record<string, unknown>;
+      delete terminal.piProofWire; // Never trust a provider-supplied lookalike.
+      if (trace?.sessionSha256 && trace.ownUserAgent && trace.outcome === "HTTP" &&
+          trace.httpStatus !== null && trace.httpStatus >= 200 && trace.httpStatus < 300) {
+        terminal.piProofWire = { schema: "pi.opencode.wire.v1", sessionSha256: trace.sessionSha256,
+          ownUserAgent: true, attempt: trace.attempt };
+      }
+    }
     return JSON.stringify({ scope: "PI_PROOF_PROVIDER_FAILURE", version: 1,
       attempt: trace?.attempt ?? null, httpStatus: trace?.httpStatus ?? null,
       outcome: trace?.outcome ?? "UNKNOWN" });
@@ -186,7 +235,13 @@ export class TransientWorkerProof {
 
   models() {
     const models = createModels({ authContext: { env: async () => undefined, fileExists: async () => false } });
-    const base: Provider = openaiProvider();
+    let base: Provider = this.apiKeyMode ? opencodeGoProvider() : openaiProvider();
+    if (this.apiKeyMode) {
+      const catalog = base.getModels().filter(model => model.id === "gpt-6-luna" && model.api === "openai-responses")
+        .map(model => ({ ...model, baseUrl: "https://opencode.ai/inference/go/openai/v1" }));
+      if (catalog.length !== 1) throw new Error("Pinned OpenCode model unavailable");
+      base = { ...base, getModels: () => catalog, getAllModels: () => catalog };
+    }
     const options = <T,>(input: T, trace: AttemptTrace) => ({
       ...input, maxRetries: 0, timeoutMs: 20_000, transport: "sse" as const,
       fetch: (input: RequestInfo | URL, init?: RequestInit) => this.#request(input, init, trace),
@@ -202,6 +257,7 @@ export class TransientWorkerProof {
         const payload = raw as Record<string, unknown>;
         if (payload.store !== false || payload.stream !== true || payload.previous_response_id !== undefined ||
             !Array.isArray(payload.input)) throw new Error("Unsupported proof wire shape");
+        if (this.apiKeyMode) return payload; // Preserve the native API schema; SIWC rewriting is OAuth-only.
         for (const message of payload.input as Record<string, unknown>[]) {
           if (message.role === "system") message.role = "developer";
         }
@@ -222,8 +278,8 @@ export class TransientWorkerProof {
     };
     models.setProvider({
       ...base,
-      auth: { apiKey: { name: "Transient validated ChatGPT OAuth access", resolve: async () =>
-        ({ auth: { apiKey: this.#bearer() }, source: "owner-transient-oauth" }) } },
+      auth: { apiKey: { name: this.apiKeyMode ? "Bound OpenCode API key" : "Transient validated ChatGPT OAuth access", resolve: async () =>
+        ({ auth: { apiKey: this.#bearer() }, source: this.apiKeyMode ? "worker-secret" : "owner-transient-oauth" }) } },
       stream: (model, context, config) => {
         const trace: AttemptTrace = { attempt: null, httpStatus: null, outcome: "NOT_SENT" };
         return associate(base.stream(model, context, options(config, trace)), trace);

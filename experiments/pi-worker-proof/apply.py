@@ -73,3 +73,39 @@ replace_once("src/chat.ts", '    name: "chat",\n', '    name: "chat",\n    hooks
 replace_once("src/chat.ts", "  jevTool?: ToolRegistration,\n", "  jevTool?: ToolRegistration,\n  failureMetadata?: (message: object) => string,\n")
 replace_once("src/session.ts", "      selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY) : undefined,", "      selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY) : undefined,\n      this.#proof ? (message) => this.#proof!.failureMetadata(message) : undefined,")
 replace_once("src/chat.ts", 'message.errorMessage = "Proof provider request failed";', 'message.errorMessage = failureMetadata ? failureMetadata(message) : "Proof provider request failed";')
+
+# Explicit API-key proof is a separate fixed session, never key-presence fallback.
+replace_once("src/chat.ts", "  failureMetadata?: (message: object) => string,\n", '  failureMetadata?: (message: object) => string,\n  proofProvider = "openai",\n')
+replace_once("src/chat.ts", 'model: { provider: "openai", modelId: "gpt-6-luna" }', 'model: { provider: proofProvider, modelId: "gpt-6-luna" }')
+replace_once("src/session.ts",
+    '    const transient = selected && (proof as ProofEnvironment).PI_PROOF_TRANSIENT === "true";\n    if (transient) this.#proof = new TransientWorkerProof(this.ctx.storage);',
+    '    const api = (proof as ProofEnvironment).PI_PROOF_AUTH_MODE === "opencode-go";\n'
+    '    if (api && (!selected || proof.PI_JEV_PROOF_SESSION !== "owner-jev-opencode-proof-20261021" ||\n'
+    '        (proof as ProofEnvironment).PI_PROOF_PROVIDER !== "opencode-go" ||\n'
+    '        (proof as ProofEnvironment).PI_PROOF_MODEL !== "gpt-6-luna" ||\n'
+    '        (proof as ProofEnvironment).PI_PROOF_TRANSIENT === "true")) throw new Error("API proof selection rejected");\n'
+    '    const transient = selected && (proof as ProofEnvironment).PI_PROOF_TRANSIENT === "true";\n'
+    '    if (transient || api) this.#proof = new TransientWorkerProof(this.ctx.storage,\n'
+    '      api ? { apiKey: (proof as ProofEnvironment).OPENCODE_API_KEY ?? "" } : undefined);')
+replace_once("src/session.ts",
+    'selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY) : undefined,',
+    'selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY, () => this.#proof?.requireOwner()) : undefined,')
+replace_once("src/session.ts",
+    '      this.#proof ? (message) => this.#proof!.failureMetadata(message) : undefined,',
+    '      this.#proof ? (message) => this.#proof!.failureMetadata(message) : undefined,\n'
+    '      api ? "opencode-go" : "openai",')
+replace_once("src/session.ts", '    this.ctx.acceptWebSocket(server);',
+    '    this.ctx.acceptWebSocket(server);\n    this.#proof?.admit(server);')
+replace_once("src/session.ts", '      reportError("Session WebSocket connection failed", error);',
+    '      this.#proof?.release(server);\n      reportError("Session WebSocket connection failed", error);')
+replace_once("src/session.ts", '    _wasClean: boolean,\n  ): Promise<void> {\n',
+    '    _wasClean: boolean,\n  ): Promise<void> {\n    this.#proof?.release(socket);\n')
+replace_once("src/session.ts", '  override async webSocketError(socket: WebSocket, error: unknown): Promise<void> {\n',
+    '  override async webSocketError(socket: WebSocket, error: unknown): Promise<void> {\n    this.#proof?.release(socket);\n')
+
+# The same trusted per-stream terminal identity also carries the noncredential wire witness.
+replace_once("src/chat.ts", '    hooks: jevTool ? [hook(GenerationTask, { afterResponse(message) {\n',
+    '    hooks: jevTool ? [hook(GenerationTask, { afterResponse(message) {\n'
+    '      const diagnostic = failureMetadata?.(message);\n')
+replace_once("src/chat.ts", 'message.errorMessage = failureMetadata ? failureMetadata(message) : "Proof provider request failed";',
+    'message.errorMessage = diagnostic ?? "Proof provider request failed";')

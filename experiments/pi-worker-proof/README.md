@@ -59,3 +59,48 @@ flowchart TB
 Keyless independent-process/crash/loopback and real Session workerd fixtures do not prove actual credential rotation, Jev or live durable memory. Source/CI acceptance grants no effects; actual current receipts remain separate. CI uses the existing normal/selected/privacy suites and exact source/checksum manifests; no native workerd PASS is inferred from Ubuntu CI. Only the new branch is added to the existing workflow watcher and its strict ci.intent declaration.
 
 Policy adrs@6e4abcd22dbee397105625b6041ce1a0d4720182. No ops523/Jev-quality/full-product completion claim. Primary basis: [SIWC Terms](https://openai.com/policies/sign-in-with-chatgpt-terms/), [registration/identity](https://developers.openai.com/siwc/token-sharing-open-source/sign-in), [profiles/serialized rotation](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions), [token reference](https://developers.openai.com/siwc/token-sharing-open-source/token-reference), [VM guidance](https://developers.openai.com/siwc/token-sharing-open-source/self-hosted-vms). Managed-DO credential custody remains unestablished; selected native custody/transient same-user/app access is an interpretation, not endorsement or blanket remote-storage conclusion.
+
+## OpenCode Go API-key route — new source candidate
+
+The completed OAuth proof remains COMPLETE on its original session/cap5. This candidate adds one explicit server mode, provider `opencode-go`, model `gpt-6-luna`, new fixed session `owner-jev-opencode-proof-20261021` and a monotonic three-model/one-Jev proof. Key presence never selects or falls back to this mode. Existing frozen provider/model/decoder is reused with the current fixed base `https://opencode.ai/inference/go/openai/v1`; the provider adds `/responses`. No SIWC body transform runs in API mode.
+
+The existing owner-verified WS remains. Both model and Jev pre-send paths require the same live accepted-owner socket lease; constructor/alarm/recovered work starts unadmitted and last socket close/error revokes. Already in-flight effects can remain UNKNOWN and are never refunded/replayed. Keys remain standard Worker bindings, never DO state, WS tokens, browser payloads or logs. API prior-owner witness does not claim the bound API key disappeared.
+
+`owner.mjs --stage opencode --continue --url https://pi.roccho.workers.dev/ --session owner-jev-opencode-proof-20261021 --cloudflared <existing-path>` branches before native profile/home/custody/OAuth loading. It performs a real small JavaScript review and Jev code-risk assessment, closes the WS and waits180s without probes/keepalive, then requires actual new boot/prior-owner=false/posts2 and opens the same conversation. Recall contains only a neutral request about the prior review, with no code/case ID/expected values/history reinjected. Exact findings/case ID/typed assessment, distinct completed response IDs and final measured posts3 are required. The native process keeps nonsecret expectations only in memory; this API-key test does not claim a process-restart credential proof.
+
+Existing SQLite ProviderDoc supplies the durable provider session. Each actual native fetch checks the effective nonempty `x-opencode-session` and actual Pi UA; the existing per-stream terminal association overwrites any lookalike with a noncredential header digest. The client checks equality across the three actual completed responses but prints only booleans, never header/digest/key. No second identity ledger or paid status probe is added.
+
+`package-runtime.py OUT --opencode` produces a separate `pi-opencode-runtime-SHA` artifact. Existing OAuth/screen artifacts retain their contracts. API source metadata declares explicit mode/provider/model/session, current base and limit3; runtime requires both OPENCODE_API_KEY and existing Jev binding and rejects OAuth bootstrap/transient selection.
+
+Key delivery and actual account/model/tool entitlement remain UNRESOLVED/NOT RUN. Existing envs dev-authoring key metadata is not a Worker binding. Root's companion reuses reviewed author→public SOPS→project machinery for a narrow new Worker destination; no old OCI recipient eligibility, host key copy or permission widening is assumed. Source/CI can proceed without keys. Later exact accepted canonical composition, separately activated standard registration/deployment and actual proof are required; no paid hello/catalog200 substitutes.
+
+```mermaid
+flowchart TB
+  Owner["👤 Existing owner Access"] --> Pi["☁️ Existing Worker · explicit OpenCode Go mode"]
+  Key["🗝️ Standard Worker secret · delivery unresolved"] --> Pi
+  Pi <--> Model["🧠 Existing provider · GPT 6 Luna · current fixed base"]
+  Pi <--> Jev["⚡ Actual typed code-risk assessment"]
+  Pi <--> Store["💾 Same conversation + SQLite provider identity"]
+  Store --> NewDO["♻️ Real new DO · same ID and wire identity"]
+  NewDO --> Recall["🧠 Neutral exact code-review recall"]
+```
+
+```mermaid
+flowchart TB
+  Design["📚 Resource audit + three-party counters"] --> Source["🛠️ Meaningful minimal source PR"]
+  Source --> Tests["🧪 Real Session wire/tools/recreation/privacy and no-owner refusal"]
+  Tests --> Review["🔍 Independent exact head/artifact/native review"]
+  Review -->|finding| Source
+  Review --> Canonical["📦 Accepted canonical Ops/envs distributions"]
+  Canonical --> Key["🔐 Separately admitted standard key projection"]
+  Key --> Deploy["☁️ Standard deploy + current/privacy readback"]
+  Deploy --> Seed["🌱 Actual code review + Jev consumption · posts0→2"]
+  Seed --> Idle["🌙 Disconnect/no probes · actual new DO"]
+  Idle --> Recall["🧠 Same conversation · neutral exact recall · posts2→3"]
+  Recall --> Done["✅ Separate finite API proof · old COMPLETE retained"]
+  Key -->|unresolved| Hold["🛑 Preserve current runtime"]
+  Seed -->|error/UNKNOWN| Stop["🛑 No automatic resend/fallback/reset"]
+  Recall -->|error/UNKNOWN| Stop
+```
+
+Primary current references: [Go contract/endpoints](https://opencode.ai/v2/docs/console/go/), [native Pi provider](https://opencode.ai/v2/docs/console/harnesses/pi/), [inference API](https://opencode.ai/v2/docs/console/api/inference/). Genuine coding-agent traffic, own UA and stable conversation headers are required; a generic memory challenge is not relabeled. Keyless native/workerd tests do not establish live entitlement or quality. No browser-chat UX or unattended operational budget claim is added.

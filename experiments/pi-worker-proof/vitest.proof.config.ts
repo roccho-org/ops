@@ -27,8 +27,12 @@ export default defineConfig({
           new Response("MOCK_ONLY: native outbound denied", { status: 401 }),
         bindings: {
           PI_JEV_PROOF_API_KEY: "fixture-jev-not-real",
-          PI_JEV_PROOF_SESSION: process.env.PI_PROOF_TEST_ERRORS === "true" ? "jev-proof-errors" : "jev-proof",
+          PI_JEV_PROOF_SESSION: process.env.PI_PROOF_TEST_OPENCODE === "true" ? "owner-jev-opencode-proof-20261021" : process.env.PI_PROOF_TEST_ERRORS === "true" ? "jev-proof-errors" : "jev-proof",
           OPENAI_API_KEY: "",
+          PI_PROOF_AUTH_MODE: process.env.PI_PROOF_TEST_OPENCODE === "true" ? "opencode-go" : "",
+          PI_PROOF_PROVIDER: "opencode-go", PI_PROOF_MODEL: "gpt-6-luna",
+          OPENCODE_API_KEY: "fixture-opencode-private-not-real",
+          PI_PROOF_TEST_OPENCODE_ERRORS: process.env.PI_PROOF_TEST_OPENCODE_ERRORS ?? "false",
           PI_PROOF_TRANSIENT: process.env.PI_PROOF_TEST_TRANSIENT === "true" ? "true" : "false",
           PI_ACCESS_ISSUER: "https://fixture.cloudflareaccess.com",
           PI_ACCESS_AUDIENCE: "fixture-app",
