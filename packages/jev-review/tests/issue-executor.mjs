@@ -2020,8 +2020,11 @@ const flatInvocation = currentInvocation.replace(/\s+/g, ' ');
 for (const required of ['semlint-goal-quality-implementation-20261015-v12', 'retires PR511/520/522 as provided targets',
   '`RANGE_TARGET_MISMATCH`', '`RANGE_TARGET_UNKNOWN`', 'runs 104..105 for PR536 only', 'from 204 to 206 with no reset',
   'not a live grant', 'This source is dormant', 'rejects PR536', 'It is not pin-only']) assert.ok(flatInvocation.includes(required), required);
-assert.deepEqual(JSON.parse(repoFile('packages/jev-review/issue-actions.json')).providedRequestTargets,
-  [{ repository: 'roccho-org/ops', repositoryId: '1275606595', pullRequest: 606 }]);
+const currentSettings = JSON.parse(repoFile('packages/jev-review/issue-actions.json'));
+validateActionsConfig(currentSettings);
+assert.deepEqual(currentSettings.providedRequestTargets, []);
+assert.deepEqual(currentSettings.targets.filter(t => Object.hasOwn(t, 'pullRequest')), [{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":511},{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":625}]);
+assert.deepEqual(currentSettings.runRanges.filter(r => Object.hasOwn(r.target ?? {}, 'pullRequest')), [{"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":333,"last":364,"reservedCallsPerRun":1,"target":{"pullRequest":625},"budgetClaimCommentId":6305451060}]);
 // Historical runtime-305b5321 budget facts stay frozen; the candidate figure is recomputed from the current context.
 assert.ok(currentInvocation.includes("Current context is 2189 bytes. With PR522's exact initial 4585-byte subject"));
 assert.ok(currentInvocation.includes('state 27373 bytes, longest question 720 and all\nquestions 4079'));
@@ -2047,9 +2050,9 @@ const guard = new Function('github', 'startsWith', `return (${guardText.replace(
 const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase().startsWith(prefix.toLowerCase()));
 // The current caller and reviewed runtime agree on the sole supplied PR606 origin; historical grants stay closed.
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
-  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574, 606, 609, 610]) {
+  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574, 606, 609, 610, 625]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
-      const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 606].includes(number) : number === 573)
+      const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 606, 625].includes(number) : number === 573)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;
       const github = { repository, event_name: 'issue_comment', event: {
         repository: { owner: { type: 'Organization' } }, comment: { body: '/jev-evaluate' },
@@ -2082,7 +2085,7 @@ assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], pinnedRuntime);
 assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], pinnedRuntime);
 assert.ok(currentInvocation.includes('305b5321ebc4d41d5c143cc002b82af71f140b8e')); // Historical runtime facts stay historical.
 const permissionBlock = '  actions: read\n  contents: read\n  issues: write\n  pull-requests: write\n';
-const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 606 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606)))";
+const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 606 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)))";
 const assertWorkflowBoundary = (text) => {
   assert.equal(text.match(/\npermissions:\n([\s\S]*?)\njobs:/)?.[1], permissionBlock);
   assert.equal([...text.matchAll(/^\s*permissions:/gm)].length, 1);
