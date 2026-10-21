@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const EXACT = "${{ github.sha }}";
 const JEV_ORG_WORKFLOW = ".github/workflows/jev-issue-comment.yml";
-const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 629 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)))";
+const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)) || (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' && github.event.issue.number == 640 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && (github.event.issue.number == 573 || github.event.issue.number == 640)) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)))";
 const JEV_PLAN_RUN = [
   'set -euo pipefail',
   '"$JEV_NODE" "$JEV_SRC/issue-executor.mjs" plan "$JEV_RUN_DIR"',
@@ -328,7 +328,9 @@ export function selftest() {
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("== 511","== 512");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replaceAll("== 573","== 574");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replaceAll("== 573","== 573 || github.event.issue.number == 574");},
-    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.number == 629 && startsWith", "startsWith");},
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.number == 640 && startsWith", "startsWith");},
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replaceAll("== 640","== 641");},
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("(github.event.issue.number == 573 || github.event.issue.number == 640)", "github.event.issue.number >= 573");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.pull_request == null && ", "");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace('fromJSON(\'"/jev-evaluate\\n"\')', '\'/jev-evaluate\'');},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("startsWith(github.event.comment.body", "contains(github.event.comment.body");},
