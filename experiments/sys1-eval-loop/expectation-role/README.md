@@ -1,3 +1,39 @@
+# 十三の原負結果を保持し、次の処置を反証する
+
+## D13：存在・不在の固定多数決も退行が残り未採用
+
+[run39571038948](https://github.com/roccho-org/ops/actions/runs/39571038948)をsource934af54/REQUEST-only activationaee46724/development13・history13から一回実行した。1252HTTP＝BestE626＋PN626、原binary回答1878＝B/P/N各626は全資格/modelStable/unknown0。原job119124983691の鍵前769/769fail0・全test名順sourceCI一致・全stepSUCCESSは技術成立であり意味合格でない。
+
+joint477→501・修復29/退行5、E584→609・修復30/退行5。freshE退行はcensus-072/078/108/178、expectation-027。618歴史保護破壊9はcensus-023/072/078/093/108/178/210、expectation-024/027。正差で退行を相殺せずDEVELOPMENT_GUARD_FAIL/未採用、元Gold/O-null17/全626を保持、selection/実要求freeze無し、未使用H count/body/Gold0。
+
+root/Rは各自provider ZIP/nativehistory13/全Core・両raw mapとboundary snapshotのstrict結合・全10projection fields/guard・原usageを独立再生しW全値と一致。原5全27,550,739B＋provider/readback/root原reportをresults/expectation-majority-development13-20261021/へ原bytes保持、新closed1が全fields/型/費用を再現する。[root source/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596899309)と[R source/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596889505)の最新全文もWがprovider自読済み。原effect/REQUEST/旧13plans/raw/Gold/SDK/recorder/qualifier/YAMLは変更しない。現保持headの必要/全通常CI成功を先取りせず、実作用source934aの769成功と区別する。中間負保持CI/Readyは次sourceの追加gateにせず、目的最終current全通常CI/三者証拠/記録/Ready未mergeを最後に閉じる。
+
+PNは同じEへ整合618件（correct604/wrong14）、反極性の矛盾8件では固定B tieがcorrect5/wrong3。Bから反転35は修復30/退行5、単独P605/!N611/最終M609。相関した同義票の共通誤りを残し、!Nを事後winnerへ差し替えず、多数決の独立性/改善保証や旧D13救済を主張しない。三者は9本文を再読し元Goldを維持。表示されたIO/明示Expected state/一般能力と利用条件/本人の必要行為は元ANYの宣言として扱い、症状/原因疑問/カテゴリ/見出し受信者/実施観測と回避だけから要求を補完しない。特定句やIDをruntime例外へしない。
+
+当回input2,480,399/output56,340は1252HTTPで既知、total_tokens全1252・金額/内部計算量は不明。D1..D13累積physical16,276/qualified16,271、input既知33,595,259/output既知590,697・各5post不明、total全16,276不明。PN commonusage/B共有は各一回、1878原回答を1878HTTPへ読み替えない。
+
+次履歴20772 qualified E＝native E16395（single binary15769＋compound P626）＋621role4-derived＋split/partition/lines/verification各626＋derived!N626＋derivedM626。rawN native absence626と原checker native correctness626はnative Eへ足さず、!N/Mに偽確率/model/usageを付けない。全qualified P/!N/Mをそれぞれ保護へ残す事前契約に従い、next620の追加はcensus-143/expectation-060。physical19525/invalid5は別、現D13の18268/618 guardを遡及変更しない。原型と派生/物理/費用の単位を分け、20772を独立案件数や保護達成可能性/不偏性能とは呼ばない。
+
+新しい処置はまだ未選択。正役割2分解の再検討にはD9と既同型というW/R反証があり、単なる同Core再送をせず実literal差・coverage・FP/FN境界を三者で反証する。別4role class等の対案も比較中で、新literal/実装/実作用は未受容。元Gold/閾値/H窓を変えず、source前全literal固定/必要CI/三者受容後だけ別一回Dへ進む。
+
+将来Hは勝ちD全guardPASSと実要求freeze後だけ接続する。[prospective順序counter](https://github.com/roccho-org/ops/pull/624#issuecomment-6310628091)のD13向け設計は未採用architectureの記録で、失敗候補用H実装を追加しない。適用する場合もH1回転/H2反転・O末尾を事前固定し、時刻/乱数との順序因果分離や全順序耐性を主張せず、両回個別AND/普通unknown非取消/actualother停止を原版から検査する。現H未開封、有限固定Gold条件付き近似・共通評定bias等の限界は不変。
+
+~~~mermaid
+flowchart TB
+ A[✅ 三者PN全文/8truth固定/必要CI769] --> B[✅ 一回D13/1252HTTP/1878原答全資格]
+ B --> F[❌ jointプラス24/fresh5/歴史9破壊]
+ F --> R[✅ 原5/10投影/全型/元Gold/費用保持・未採用]
+ R --> C[⏳ 別処置の主張反証/全literal事前固定]
+ C --> S[別source必要CI/三者exact→一回D]
+ S -->|FAIL/unknown| R
+ S -->|全PASS/実要求freeze| H[🔒 勝ちarchitectureのみ未使用H/二回AND]
+ H -->|未達| RET[当H退役/別仮説・未使用契約]
+ RET --> C
+ H -->|両回成立| Z[目的最終current全CI/記録/Ready未merge]
+~~~
+
+以下はD13 source公開時点までの記録。code-only/未実測/CIpending等は当時の状態である。
+
 # D13：基準ラベルを提示しない存在・不在判定と固定多数決（code-only）
 
 D12の原負保持を[root](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596536198)と[R](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596494434)が自己ZIP/Git全bytes/全投影から受容し、Wも両最新全文をprovider自読した。旧十二処置のFAIL・原Gold・plans/rawを救済せず、未使用H count/body/Gold0のまま別の固定構造処置を実装した。現段階はcode-onlyで、新source必要CI/三者exactと一回実D13の意味合格は別である。

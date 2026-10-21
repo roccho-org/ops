@@ -1,0 +1,18 @@
+{
+  "repository": "roccho-org/ops",
+  "workflowPath": ".github/workflows/sys1-expectation-role.yml",
+  "runId": 39571038948,
+  "runAttempt": 1,
+  "head": "aee46724c2fcdf4cc19f3b3f63f15b9aec870731",
+  "source": "934af54ca628410234a751233a6d0b4ed97989d5",
+  "branch": "codex/jev-expectation-role-20261021",
+  "event": "push",
+  "actor": "roccho-dev",
+  "conclusion": "success",
+  "runUrl": "https://github.com/roccho-org/ops/actions/runs/39571038948",
+  "artifactId": 12332133278,
+  "artifactName": "sys1-expectation-role-39571038948",
+  "artifactSize": 2939082,
+  "providerDigest": "sha256:cf858308d53e9ad50ec667899458cb7686b9922e6a39c41b028dc11978ba3a61",
+  "archiveSha256": "cf858308d53e9ad50ec667899458cb7686b9922e6a39c41b028dc11978ba3a61"
+}
