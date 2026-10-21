@@ -269,6 +269,17 @@ const REFUSED_STATEMENTS = [
   ['NEGATIVE_PREFIX', 'None of the attempts read back.'],
   ['CJK', '二回届く。'],
   ['CJK', 'The target sends 二回.'],
+  // R's W3 readback bypasses (roccho-org/ops#636): each returned [] on 49fb4ff6.
+  ['NEGATION', 'The target cannot retry.'],
+  ['COORDINATION', 'The target retries & logs.'],
+  ['NON_ASCII', 'The target retries， logs.'],
+  ['COORDINATION', 'The target retries， logs.'],
+  ['NON_ASCII', 'The target retries； it logs.'],
+  ['PUNCTUATION', 'The target retries； it logs.'],
+  ['NON_ASCII', 'The target retries a​nd logs.'],
+  ['NON_ASCII', 'The target does nоt retry.'],
+  ['NON_ASCII', 'The target retries — it logs.'],
+  ['NON_ASCII', 'The target retries\tlater.'],
 ];
 const ALLOWED_STATEMENTS = ['The target misses the delivery obligation.', 'The target meets the delivery obligation.',
   'The target waits 2.5 seconds between attempts.', 'The target names a cache e.g. the delivery store.',
