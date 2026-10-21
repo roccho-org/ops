@@ -1,3 +1,35 @@
+# 十二の原負結果を保持し、次の構造処置を反証する
+
+## D12：依存ラベル照合は共同正答を減らし未採用
+
+[run39562295979](https://github.com/roccho-org/ops/actions/runs/39562295979)をsource17f5df71/REQUEST-only activation70fafe28/development12・history12から一回実行した。BestE626＋native correctness checker626＝1252HTTP/1252原binary回答は全資格/modelStable/unknown0。原job119096184611の鍵前760/760fail0と全step成功は技術成立であり、意味採用を示さない。
+
+joint476→475・修復1/退行2、E583→582・修復1/退行2。修復はexpectation-070、freshE退行はheld-044/census-050、618歴史保護破壊36。歴史破壊全IDsは原projectionと新closed testに保持。正差条件も退行ゼロ条件も満たさずDEVELOPMENT_GUARD_FAIL/未採用、O-null17/全626/元Goldを保持しselectionは発行しない。H count/body/Gold0。
+
+root/Rが各自provider ZIP/nativehistory12/全conditional Core・実baselineへのchecker branch結合・strict binary資格・原DAGのattempt/post/skip/row順・全9projection fields/guard/usageを独立再算術してW再生と一致。原5全26,261,455B＋provider/readback/root原reportをresults/expectation-verification-development12-20261021/へ原bytes保存し、新closed1で全fieldsを再現する。[root source/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596171320)/[R source/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5596182225)。保持batchで約束したREADME図の必要CI先行・通常unknown全枝→全626guardもPR既訂正図へ同期した。原effect/source/REQUEST/旧11plans/raw/Gold/SDK/recorder/qualifier/YAMLは変更しない。
+
+checkerは623ラベル保持/3反転（修復1/退行2）。baseline誤り43のうち修復は1であり、自己正誤照合の有効性を支持せず、agreement bias等の内部原因を断定もしない。三者は変更3本文を再読し元Goldを維持した。held-044は完了報告内の責務境界、census-050はNext stepsの真正指示/必要行為、expectation-070は短い回復依頼であり、見出し・完了時制・短さを一律に判定条件へしない。今回の原checkerはEラベル正誤のprovider回答でnative Eではない。verifiedEは両strict原post/choices/proposedEからのproviderAnswer:false、確率/model/usageを付けず、共有Bestの原応答と費用を一回だけ数える。
+
+当回input2,674,649/output38,812は全1252HTTPで既知、total_tokens全1252・金額/内部計算量は不明。累積D1..D12はphysicalHTTP15,024/qualifiedHTTP15,019、input既知31,114,860/output既知534,357・各5post不明、total全15,024不明。次履歴18268 qualified E＝15143 native binary E＋621role4-derived＋split/partition/lines各626＋626verification-derived。checker原正誤626はnative Eへ足さず、physical18273/invalid5は別、618ordered/追加0は三者独立一致。旧D12の17016/618契約へ遡及変更しない。ever-correct unionと反復D選択は不偏性能や一般的達成可能性を示さない。
+
+現保持headの必要/全通常CI成功を先取りせず、実source17f5の760成功と区別する。中間負保持headのReadyを次仮説/source作成の追加gateにせず、目的最終current全通常CI/原会計/三者記録/Ready未mergeは最後に閉じる。次処置はまだ未選択で、元Gold/H窓/閾値/原負を変えて救済せず、自己案と対案の三者counter・全literal事前固定・新source必要CIの後にのみ別一回Dへ進む。
+
+~~~mermaid
+flowchart TB
+ A[✅ 原E全文引用/三者exact/必要CI760] --> B[✅ 一回D12/1252全資格/原DAG再生]
+ B --> F[❌ jointマイナス1/fresh2/歴史36破壊]
+ F --> R[✅ 原5/全9fields/元Gold/全費用保持・未採用]
+ R --> C[⏳ 次構造案の自己反証/三者比較・全文固定]
+ C --> S[必要CI/三者exact→別固定D一回]
+ S -->|FAIL/unknown| R
+ S -->|全guardPASS/実要求freeze| H[🔒 未使用H/盲検Gold/条件policy/二回AND]
+ H -->|未達| N[当H退役/別仮説・未使用契約]
+ N --> C
+ H -->|両回成立| Z[目的最終current全CI/記録/Ready未merge]
+~~~
+
+以下はD12 source公開時点までの記録。code-only/未実測/CIpending等は当時の状態である。
+
 # 十一の負結果を保持し、依存ラベル照合の固定入口を検証する
 
 ## D12：元E基準の引用と依存checker（code-only）
@@ -18,16 +50,22 @@ Hはまだcount/body/Gold0、成功D12原版と実要求freeze三者受容後だ
 
 ~~~mermaid
 flowchart TB
- A[✅ D11原負/元Gold/全費用を保持] --> C[✅ 三者反証: 不支持と不一致を分離/元E全文引用]
- C --> B[code-only: 固定626 BestE→条件checker]
+ A[✅ D11原負/元Gold/全費用を保持] --> C[✅ 三者反証/元E全文引用/固定source]
+ C --> CI[⏳ 公開exact三者/必要CI受容]
+ CI --> ACT[⏳ REQUEST-only activation12一回]
+ ACT --> B[固定626case: BestE→条件checker]
  B --> Q{BestE strict資格?}
- Q -->|通常unknown| S[checker未attempt/skip原記録/derived unknown→次case]
+ Q -->|通常unknown| S[checker未attempt/skip原記録/derived unknown/次case]
  Q -->|yes/no| K[実labelを固定checker branchへ結合]
  K --> V{checker strict資格?}
- V -->|unknown| U[反転せずderived unknown]
+ V -->|通常unknown| U[反転せずderived unknown/次case]
  V -->|qualified yes/no| E[providerAnswer:false verifiedE/両post追跡/費用一回]
- E --> G[⏳ 必要CI/三者exact→一回D12/全guard]
- G -->|FAIL/unknown| N[原版保持・別仮説counter/未採用]
+ B -->|旧model-stop| STOP[残tail未attempt/原理由保持]
+ S --> G[全626分母/資格/618保護/freshE無退行/完全joint正差]
+ U --> G
+ E --> G
+ STOP --> G
+ G -->|FAIL/unknown| N[原版保持・三者反証/未採用→別仮説]
  G -->|全PASSと実要求freeze| H[🔒 未開封H/同条件policy/二回AND]
  H -->|未達| N
  H -->|両回成立| Z[目的最終current全CI/記録/Ready未merge]
