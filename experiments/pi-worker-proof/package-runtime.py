@@ -7,7 +7,8 @@ import sys
 
 source = Path("dist/pi_durable_cloudflare_do")
 out = Path(sys.argv[1])
-api_mode = sys.argv[2:] == ["--opencode"]
+credit_mode = sys.argv[2:] == ["--opencode-credit"]
+api_mode = credit_mode or sys.argv[2:] == ["--opencode"]
 assert not sys.argv[2:] or api_mode, "Unknown runtime composition"
 shutil.copytree(source, out)
 original = json.loads((out / "wrangler.json").read_text())
@@ -30,6 +31,8 @@ export default {
 if api_mode:
     entry = (out / "runtime-entry.js").read_text()
     entry = entry.replace('env.PI_PROOF_TRANSIENT !== "true"', 'env.PI_PROOF_AUTH_MODE !== "opencode-go" || env.PI_PROOF_PROVIDER !== "opencode-go" || env.PI_PROOF_MODEL !== "gpt-6-luna" || env.PI_JEV_PROOF_SESSION !== "owner-jev-opencode-proof-20261021" || env.PI_PROOF_TRANSIENT === "true" || !env.OPENCODE_API_KEY')
+    if credit_mode:
+        entry = entry.replace('"opencode-go"', '"opencode"')
     (out / "runtime-entry.js").write_text(entry)
 (out / "wrangler.json").write_text(json.dumps({
     "name": "pi-jev-owner-proof", "main": "runtime-entry.js",
@@ -64,6 +67,9 @@ if api_mode:
         proof_session="owner-jev-opencode-proof-20261021", model_post_limit=3,
         provider="opencode-go", model="gpt-6-luna",
         base_url="https://opencode.ai/inference/go/openai/v1")
+    if credit_mode:
+        metadata.update(scope="KEY_BOUND_SELECTED_OWNER_OPENCODE_CREDIT_RUNTIME", provider="opencode",
+            base_url="https://opencode.ai/inference/openai/v1", model_post_limit=4, recovery_start_offset=1)
     (out / "source.json").write_text(json.dumps(metadata, indent=2) + "\n")
 
 import hashlib

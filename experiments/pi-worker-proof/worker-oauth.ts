@@ -6,6 +6,7 @@ import {
 } from "@earendil-works/pi-ai";
 import type { Provider } from "@earendil-works/pi-ai";
 import { openaiProvider } from "@earendil-works/pi-ai/providers/openai";
+import { opencodeProvider } from "@earendil-works/pi-ai/providers/opencode";
 import { opencodeGoProvider } from "@earendil-works/pi-ai/providers/opencode-go";
 import { openaiChatGPTOAuth } from "pi-proof-openai-oauth";
 import { KeyedSerialQueue } from "./serial.ts";
@@ -125,11 +126,13 @@ export class TransientWorkerProof {
   readonly #terminalTraces = new WeakMap<object, AttemptTrace>();
   readonly storage: DurableObjectStorage;
   readonly apiKeyMode: boolean;
+  readonly apiProvider: "opencode-go" | "opencode";
   readonly #apiKey?: string;
   readonly #owners = new WeakSet<WebSocket>();
   readonly #liveSockets: () => WebSocket[];
-  constructor(storage: DurableObjectStorage, api?: { apiKey: string; sockets: () => WebSocket[] }) {
+  constructor(storage: DurableObjectStorage, api?: { apiKey: string; sockets: () => WebSocket[]; provider?: "opencode-go" | "opencode" }) {
     this.storage = storage; this.apiKeyMode = api !== undefined;
+    this.apiProvider = api?.provider ?? "opencode-go";
     if (api && !api.apiKey) throw new Error("OpenCode key binding required");
     this.#apiKey = api?.apiKey;
     this.#liveSockets = api?.sockets ?? (() => []);
@@ -150,7 +153,7 @@ export class TransientWorkerProof {
       subjectHash: env.PI_ACCESS_OWNER_HASH ?? "",
     });
     if (this.apiKeyMode) {
-      if (env.PI_PROOF_AUTH_MODE !== "opencode-go" || env.PI_PROOF_PROVIDER !== "opencode-go" ||
+      if (env.PI_PROOF_AUTH_MODE !== this.apiProvider || env.PI_PROOF_PROVIDER !== this.apiProvider ||
           env.PI_PROOF_MODEL !== "gpt-6-luna" || env.PI_PROOF_TRANSIENT === "true" ||
           request.headers.has("Pi-Proof-Access") || request.headers.has("Pi-Proof-Expires")) {
         throw new Error("Explicit OpenCode proof mode required");
@@ -181,7 +184,7 @@ export class TransientWorkerProof {
   async #request(input: RequestInfo | URL, init?: RequestInit, trace?: AttemptTrace) {
     this.#bearer();
     const request = new Request(input, init);
-    const endpoint = this.apiKeyMode ? "https://opencode.ai/inference/go/openai/v1/responses" : "https://api.openai.com/v1/responses";
+    const endpoint = this.apiKeyMode ? (this.apiProvider === "opencode" ? "https://opencode.ai/inference/openai/v1/responses" : "https://opencode.ai/inference/go/openai/v1/responses") : "https://api.openai.com/v1/responses";
     if (request.url !== endpoint || request.method !== "POST") {
       throw new Error("Proof transport rejected");
     }
@@ -197,7 +200,7 @@ export class TransientWorkerProof {
     }
     const attempt = await this.storage.transaction(async tx => {
       const count = await tx.get<number>("pi.proof.responses.posts") ?? 0;
-      if (count >= (this.apiKeyMode ? 3 : 5)) throw new Error("Proof physical request budget consumed");
+      if (count >= (this.apiKeyMode ? (this.apiProvider === "opencode" ? 4 : 3) : 5)) throw new Error("Proof physical request budget consumed");
       await tx.put("pi.proof.responses.posts", count + 1);
       return count + 1;
     });
@@ -237,10 +240,10 @@ export class TransientWorkerProof {
 
   models() {
     const models = createModels({ authContext: { env: async () => undefined, fileExists: async () => false } });
-    let base: Provider = this.apiKeyMode ? opencodeGoProvider() : openaiProvider();
+    let base: Provider = this.apiKeyMode ? (this.apiProvider === "opencode" ? opencodeProvider() : opencodeGoProvider()) : openaiProvider();
     if (this.apiKeyMode) {
       const catalog = base.getModels().filter(model => model.id === "gpt-6-luna" && model.api === "openai-responses")
-        .map(model => ({ ...model, baseUrl: "https://opencode.ai/inference/go/openai/v1" }));
+        .map(model => ({ ...model, baseUrl: this.apiProvider === "opencode" ? "https://opencode.ai/inference/openai/v1" : "https://opencode.ai/inference/go/openai/v1" }));
       if (catalog.length !== 1) throw new Error("Pinned OpenCode model unavailable");
       base = { ...base, getModels: () => catalog, getAllModels: () => catalog };
     }

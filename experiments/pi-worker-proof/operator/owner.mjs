@@ -53,7 +53,7 @@ export function safeWitnessStatus(witness) {
 }
 export function proofIdentity(values) {
   const url = new URL(values.url);
-  if (values.stage === "opencode") {
+  if (["opencode","opencode-credit-recover"].includes(values.stage)) {
     assert.equal(url.href, "https://pi.roccho.workers.dev/");
     assert.equal(values.session, "owner-jev-opencode-proof-20261021");
     assert.equal(values.continue, true);
@@ -531,9 +531,48 @@ export function codeReviewResult(messages, caseId) {
   return result;
 }
 
+
+/** PAYG recovery inspects the same failed conversation; it never creates or resets one.
+ * Authority-level single invocation only: this is not a durable retry admission.
+ */
+export function creditSnapshotAllowed(frames, id, witness) {
+  proofWitness(witness, 1, "false");
+  const report = summarizeHistory(frames,id,witness);
+  for (const [key,value] of Object.entries({classification:"MODEL_ERROR_OR_ABORT_OBSERVED",
+    entryCount:3,userMessageCount:1,assistantCount:1,errorOrAbortCount:1,completedAssistantCount:0,
+    askJevCallCount:0,askJevResultCount:0,matchedTypedJevResultCount:0,pendingObserved:false,subsequentEventCount:0}))
+    assert.equal(report[key],value);
+  const {snapshot}=automaticSnapshot(frames,id);
+  assert.deepEqual(snapshot.entries.map(entry=>{
+    assert.ok(!Object.hasOwn(entry,"head")&&!Object.hasOwn(entry,"edits"));
+    assert.ok(Array.isArray(entry.model)&&entry.model.length===1);
+    const role=entry.model[0].role;
+    assert.equal(entry.kind,{user:"pi.user",system:"pi.system",assistant:"pi.assistant"}[role]);
+    return role;
+  }),["user","system","assistant"]);
+  assert.ok(emptyArray(snapshot.entries[2].model[0].content));
+  assert.deepEqual(providerFailureReceipt([snapshot.entries[2].model[0]]),
+    {scope:"PI_PROOF_PROVIDER_FAILURE",version:1,attempt:1,httpStatus:403,outcome:"HTTP"});
+  return report;
+}
+export async function prepareCreditConversation(connection) {
+  proofWitness(connection.witness,1,"false");
+  await connection.wait(frame=>frame?.type==="conversation.events"&&frame.conversationId===1&&
+    Array.isArray(frame.events)&&frame.events.some(event=>event?.type==="snapshot"));
+  await connection.wait(frame=>frame?.type==="conversation.inbox"&&frame.conversationId===1);
+  const selected=historyTarget(connection.frames,connection.witness);
+  assert.equal(selected.classification,"UNIQUE_OWNERLESS_NONROOT");
+  const report=await inspectHistoryConnection(connection,false);
+  assert.ok(report.inspected&&report.inventoryCount===2&&report.openedConversationCount===1);
+  creditSnapshotAllowed(connection.frames,selected.conversationId,connection.witness);
+  return selected.conversationId;
+}
+
 /** New finite API proof: no registration path, OAuth import, local key or credential operation. */
 export async function runOpenCodeProof(values, dependencies = {}) {
   proofIdentity(values);
+  const recovery = values.stage === "opencode-credit-recover";
+  const offset = recovery ? 1 : 0;
   const abort = new AbortController();
   const cancel = () => abort.abort();
   process.once("SIGINT", cancel);
@@ -552,38 +591,42 @@ export async function runOpenCodeProof(values, dependencies = {}) {
       const connect = () => connectWorker({ origin: new URL(values.url), session: values.session, sockets,
         headers: { Cookie: "CF_Authorization=" + cookie }, signal: abort.signal, priorHeader: "pi-proof-prior-owner" });
       const first = await connect();
-      proofWitness(first.witness, 0, "false");
-      const created = await first.command({ type: "conversation.create", requestId: randomUUID() });
-      assert.ok(Number.isSafeInteger(created.conversationId) && created.conversationId > 1);
-      const id = created.conversationId, caseId = randomBytes(24).toString("hex");
+      proofWitness(first.witness, offset, "false");
+      const id = recovery ? await prepareCreditConversation(first) :
+        (await first.command({ type: "conversation.create", requestId: randomUUID() })).conversationId;
+      assert.ok(Number.isSafeInteger(id) && id > 1);
+      const caseId = randomBytes(24).toString("hex");
       phase("OPENCODE_REVIEW");
       const seed = await first.turn(id, "Review this JavaScript test case " + caseId +
         ". Requirement: return undefined for an empty array. Code: function first(items) { return items[0].value; }" +
         " Call ask_jev once to assess the likelihood that this code violates the requirement." +
         " Use the actual typed Jev assessment. Return only JSON with keys caseId, finding, assessment.");
       const expected = codeReviewResult(seed, caseId);
-      const initial = openCodeWireReceipts(seed, [1,2]);
+      const initial = openCodeWireReceipts(seed, [offset+1,offset+2]);
       await first.close();
       phase("OPENCODE_IDLE_NO_PROBES");
       await idle();
       const second = await connect();
-      proofWitness(second.witness, 2, "false");
+      proofWitness(second.witness, offset+2, "false");
       assert.notEqual(second.witness.boot, first.witness.boot, "Actual new DO required before recall");
       await second.command({ type: "conversation.open", requestId: randomUUID(), conversationId: id });
       phase("OPENCODE_REVIEW_RECALL");
       const recalled = await second.turn(id,
         "Summarize our previous code review findings and its exact Jev assessment. Return the original JSON with caseId, finding, assessment. Do not call tools.");
       assert.deepEqual(JSON.parse(assistant(recalled)), expected);
-      const final = openCodeWireReceipts(recalled, [3]);
+      const final = openCodeWireReceipts(recalled, [offset+3]);
       assert.equal(final.sessionSha256, initial.sessionSha256);
       const completions = [...initial.completions, ...final.completions];
       assertDistinctCompletions(completions);
       await second.close();
       const receipt = await connect();
-      proofWitness(receipt.witness, 3);
+      proofWitness(receipt.witness, offset+3);
       await receipt.close();
-      console.log(JSON.stringify({ scope: "ACTUAL_OPENCODE_WORKER_REVIEW_PROOF", session: values.session,
-        conversationId: id, completions, modelPostAdmissions: 3, successfulJevToolResults: 1,
+      console.log(JSON.stringify({ scope: recovery ? "ACTUAL_OPENCODE_CREDIT_WORKER_REVIEW_PROOF" : "ACTUAL_OPENCODE_WORKER_REVIEW_PROOF", session: values.session,
+        conversationId: id, completions, modelPostAdmissions: offset+3, historicalFailedAdmissions: offset, freshCompletedResponses: completions.length,
+        recoveryExistingConversation: recovery, noConversationCreated: recovery,
+        proofModel: "gpt-6-luna", proofBase: recovery ? "https://opencode.ai/inference/openai/v1" : "https://opencode.ai/inference/go/openai/v1",
+        totalUserInputs: recovery ? 3 : 2, proofProvider: recovery ? "opencode" : "opencode-go", successfulJevToolResults: 1,
         recreated: true, priorOwnerAdmissionAbsent: true, providerSessionHeaderStable: true,
         ownUserAgentVerified: true, exactReviewRecallMatched: true, noClientHistoryReinjection: true,
         oauthOrNativeCredentialOperation: "NOT_RUN", providerBillingUsage: "NOT_INDEPENDENTLY_VERIFIED" }));
@@ -599,10 +642,10 @@ const { values } = parseArgs({ options: {
   "recover-transport-once": { type: "boolean" },
 } });
 proofIdentity(values);
-if (!process.stderr.isTTY || !values.url || !values.session || (values.stage !== "opencode" && !values.host) || !values.cloudflared) {
+if (!process.stderr.isTTY || !values.url || !values.session || (!["opencode","opencode-credit-recover"].includes(values.stage) && !values.host) || !values.cloudflared) {
   throw new Error("Owner interactive terminal and url/session/host/cloudflared arguments required");
 }
-if (values.stage === "opencode") { await runOpenCodeProof(values); return; }
+if (["opencode","opencode-credit-recover"].includes(values.stage)) { await runOpenCodeProof(values); return; }
 if (process.getuid() !== 1001 || homedir() !== "/home/dev") throw new Error("Wrong native owner context");
 const { lstat } = await import("node:fs/promises");
 const home = await lstat(homedir());

@@ -2,7 +2,7 @@ name: Pi Worker proof (mock inference, OAuth screen)
 
 on:
   push:
-    branches: [poc/pi-worker-oauth-20261017, codex/pi-jev-worker-20261020, codex/pi-owner-lifecycle-20261021, codex/pi-worker-manual-redirect-20261021, codex/pi-opencode-worker-20261021, proposals]
+    branches: [poc/pi-worker-oauth-20261017, codex/pi-jev-worker-20261020, codex/pi-owner-lifecycle-20261021, codex/pi-worker-manual-redirect-20261021, codex/pi-opencode-worker-20261021, codex/pi-opencode-credit-worker-20261021, proposals]
     paths:
       - experiments/pi-worker-proof/**
       - .github/workflows/pi-worker-proof.yml
@@ -106,6 +106,8 @@ jobs:
           pnpm exec wrangler deploy --config "$RUNNER_TEMP/pi-jev-runtime/wrangler.json" --dry-run --outdir "$RUNNER_TEMP/runtime-dry-run"
           python3 ../ops/experiments/pi-worker-proof/package-runtime.py "$RUNNER_TEMP/pi-opencode-runtime" --opencode
           pnpm exec wrangler deploy --config "$RUNNER_TEMP/pi-opencode-runtime/wrangler.json" --dry-run --outdir "$RUNNER_TEMP/opencode-runtime-dry-run"
+          python3 ../ops/experiments/pi-worker-proof/package-runtime.py "$RUNNER_TEMP/pi-opencode-credit-runtime" --opencode-credit
+          pnpm exec wrangler deploy --config "$RUNNER_TEMP/pi-opencode-credit-runtime/wrangler.json" --dry-run --outdir "$RUNNER_TEMP/opencode-credit-runtime-dry-run"
       - name: Workerd app and regression tests with remote network denied
         id: runtime
         if: ${{ !cancelled() && steps.overlay.outcome == 'success' }}
@@ -135,6 +137,18 @@ jobs:
           assert result["numPassedTests"] == 1 and result["numFailedTests"] == 0, result
           PY
           done
+          PI_PROOF_TEST_OPENCODE=true PI_PROOF_TEST_OPENCODE_CREDIT=true pnpm exec vitest run test/worker-app.test.ts --config vitest.proof.config.ts --testNamePattern="^selected-opencode-credit " --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/pi-worker-proof/opencode-credit-tests.json" 2>&1 | tee "$RUNNER_TEMP/pi-worker-proof/opencode-credit-runtime.log"
+          python3 - <<'PY'
+          import json, os, pathlib
+          result = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "pi-worker-proof/opencode-credit-tests.json").read_text())
+          assert result["numPassedTests"] == 1 and result["numFailedTests"] == 0, result
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && steps.runtime.outcome == 'success' }}
+        with:
+          name: pi-opencode-credit-runtime-${{ github.sha }}
+          path: ${{ runner.temp }}/pi-opencode-credit-runtime/
+          include-hidden-files: true
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && steps.runtime.outcome == 'success' }}
         with:

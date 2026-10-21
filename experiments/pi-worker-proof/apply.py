@@ -79,21 +79,22 @@ replace_once("src/chat.ts", "  failureMetadata?: (message: object) => string,\n"
 replace_once("src/chat.ts", 'model: { provider: "openai", modelId: "gpt-6-luna" }', 'model: { provider: proofProvider, modelId: "gpt-6-luna" }')
 replace_once("src/session.ts",
     '    const transient = selected && (proof as ProofEnvironment).PI_PROOF_TRANSIENT === "true";\n    if (transient) this.#proof = new TransientWorkerProof(this.ctx.storage);',
-    '    const api = (proof as ProofEnvironment).PI_PROOF_AUTH_MODE === "opencode-go";\n'
+    '    const apiMode = (proof as ProofEnvironment).PI_PROOF_AUTH_MODE;\n'
+    '    const api = apiMode === "opencode-go" || apiMode === "opencode";\n'
     '    if (api && (!selected || proof.PI_JEV_PROOF_SESSION !== "owner-jev-opencode-proof-20261021" ||\n'
-    '        (proof as ProofEnvironment).PI_PROOF_PROVIDER !== "opencode-go" ||\n'
+    '        (proof as ProofEnvironment).PI_PROOF_PROVIDER !== apiMode ||\n'
     '        (proof as ProofEnvironment).PI_PROOF_MODEL !== "gpt-6-luna" ||\n'
     '        (proof as ProofEnvironment).PI_PROOF_TRANSIENT === "true")) throw new Error("API proof selection rejected");\n'
     '    const transient = selected && (proof as ProofEnvironment).PI_PROOF_TRANSIENT === "true";\n'
     '    if (transient || api) this.#proof = new TransientWorkerProof(this.ctx.storage,\n'
-    '      api ? { apiKey: (proof as ProofEnvironment).OPENCODE_API_KEY ?? "", sockets: () => this.ctx.getWebSockets() } : undefined);')
+    '      api ? { apiKey: (proof as ProofEnvironment).OPENCODE_API_KEY ?? "", provider: apiMode as "opencode-go" | "opencode", sockets: () => this.ctx.getWebSockets() } : undefined);')
 replace_once("src/session.ts",
     'selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY) : undefined,',
     'selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY, () => this.#proof?.requireOwner()) : undefined,')
 replace_once("src/session.ts",
     '      this.#proof ? (message) => this.#proof!.failureMetadata(message) : undefined,',
     '      this.#proof ? (message) => this.#proof!.failureMetadata(message) : undefined,\n'
-    '      api ? "opencode-go" : "openai",')
+    '      api ? apiMode! : "openai",')
 replace_once("src/session.ts", '    this.ctx.acceptWebSocket(server);',
     '    this.ctx.acceptWebSocket(server);\n    this.#proof?.admit(server);')
 replace_once("src/session.ts", '      reportError("Session WebSocket connection failed", error);',
@@ -109,3 +110,14 @@ replace_once("src/chat.ts", '    hooks: jevTool ? [hook(GenerationTask, { afterR
     '      const diagnostic = failureMetadata?.(message);\n')
 replace_once("src/chat.ts", 'message.errorMessage = failureMetadata ? failureMetadata(message) : "Proof provider request failed";',
     'message.errorMessage = diagnostic ?? "Proof provider request failed";')
+
+# An existing Go conversation retains pi.agent; change only its model on the
+# already-authorized PAYG prompt command, before submitting that new input.
+replace_once("src/session.ts", '  Harness,\n', '  configure as configureProofModel,\n  Harness,\n')
+replace_once("src/session.ts", '      case "prompt.submit": {',
+    '      case "prompt.submit": {\n'
+    '        if (this.#proof?.apiKeyMode && this.#proof.apiProvider === "opencode") {\n'
+    '          this.#proof.requireOwner();\n'
+    '          await this.#harness.commit(tx => configureProofModel(tx, command.conversationId as ConversationId,\n'
+    '            { model: { provider: "opencode", modelId: "gpt-6-luna" } }), BACKGROUND_CONTEXT);\n'
+    '        }')
