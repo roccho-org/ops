@@ -848,6 +848,40 @@ for (const program of [entry, compatibility]) {
   assert.deepEqual(selectRunRange(active, { ...run, attempt: 2 }, { kind: 'pull-request', number: 629 }), { cause: 'RERUN_NOT_PAID' });
 }
 
+// W2 (roccho-dev/adrs#635 comment 6316499931): one repository may hold Issue targets with different numbers, so a new
+// origin Issue can be added beside Issue 573 without changing 573, its windows or subjectScope. The same number twice
+// stays refused, and the new target is never admitted by a legacy window or by 573's windows.
+{
+  const base = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const OPS = 'roccho-org/ops', OPS_ID = '1275606595', WF = '.github/workflows/jev-issue-comment.yml', NEW = 9999;
+  const withNew = () => {
+    const c = JSON.parse(JSON.stringify(base));
+    c.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: NEW, subject: { repository: OPS, repositoryId: OPS_ID, kind: 'issue', number: 581 } });
+    c.runRanges.push({ repository: OPS, workflowId: 377399991, path: WF, first: 375, last: 414, reservedCallsPerRun: 1, target: { issue: NEW }, budgetClaimCommentId: 1 });
+    c.providedRequestTargets = [{ repository: OPS, repositoryId: OPS_ID, issue: NEW }];
+    return c;
+  };
+  let two;
+  assert.doesNotThrow(() => { two = validateActionsConfig(withNew()); }, 'two Issue targets with different numbers in one repository');
+  assert.deepEqual(two.targets.filter(t => t.repository === OPS && Object.hasOwn(t, 'issue')).map(t => t.issue), [573, NEW]);
+  const original573 = base.targets.find(t => t.issue === 573);
+  assert.deepEqual(two.targets.find(t => t.issue === 573), original573, '573 unchanged');
+  assert.equal(two.subjectScope, base.subjectScope);
+  const duplicate = withNew();
+  duplicate.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: NEW });
+  assert.throws(() => validateActionsConfig(duplicate), /INVALID_ACTIONS_CONFIG/, 'the same Issue number twice stays refused');
+  const run = { repository: OPS, workflowId: 377399991, path: WF, number: 375, attempt: 1, id: 1 };
+  const mine = selectRunRange(two, run, { kind: 'issue', number: NEW });
+  assert.deepEqual([mine.range.first, mine.range.last, mine.callsPerRun, mine.range.budgetClaimCommentId], [375, 414, 1, 1]);
+  for (const number of [50, 190, 207, 270, 343]) {
+    assert.deepEqual(selectRunRange(two, { ...run, number }, { kind: 'issue', number: NEW }), { cause: 'RANGE_TARGET_MISMATCH' }, `run ${number}`);
+  }
+  assert.deepEqual(selectRunRange(two, run, { kind: 'issue', number: 573 }), { cause: 'RANGE_TARGET_MISMATCH' });
+  assert.equal(selectRunRange(two, { ...run, number: 207 }, { kind: 'issue', number: 573 }).range.first, 207);
+  assert.equal(selectActionsTarget(two, OPS, NEW, 'issue').subject.number, 581);
+  assert.equal(selectActionsTarget(two, OPS, 573, 'issue').subject.number, 94);
+}
+
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
   githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,
   claim: 'SOURCE_FIXTURE_ONLY_NOT_REAL_ISSUE_COMPLETION' }));
