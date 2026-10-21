@@ -1,4 +1,41 @@
-# 五つの負結果を保持し、四択役割分類からのE射影を検証
+# 四択役割分類の既知退行と資格欠測を原版保持し、別の二択出力仮説へ
+
+## D6：known退行FAILと5件の技術欠測を併記
+
+[run39535134680](https://github.com/roccho-org/ops/actions/runs/39535134680)は受容source d5606a19 / REQUEST-only activation e6cfad83 / development6・history6で一回実行した。全1252post（binaryBestE626+native role4 626）、適格1247（BestE626+role4 621）/unknown5/modelStable。四択原mapの5件はHTTP200・finite/range/count4/selectedmax/model一致だが、sum≈0.99で既定strict確率契約を満たさずresponse-probabilities AssertionError。実受信snapshotを保存し、丸め補正・正規化・choiceへの昇格・再送をしない。未知はE/Oともnullで、NEITHERやE=noにはしない。実job119009925015は鍵前714/714fail0の後、execute/projectが各exit2、artifact保存SUCCESS。
+
+原固定guardは既知退行によりDEVELOPMENT_GUARD_FAIL。baselineJointCorrect477/candidateKnownJointCorrect496は別々の既知件数で、その差19をpaired gainとは呼ばない。既知pair修復28/退行5のnet23と一致しないのは候補欠測5があるためで、全資格の改善効果は未成立。Eはbaseline584/candidateKnown603、fresh退行5（held-044/188/251、census-072/078）、歴史617保護内破壊9（held-044/086/158/188/251、census-023/072/078/210）。unknownProtected5（held-001/011/146、census-188、expectation-114）も別保持。O-null17/全626の分母は不変。正差や候補O診断で破壊を相殺しない。
+
+root/Rは各自己provider ZIP/nativehistory/全1252Core・flags・4map/snapshot・資格/617guard/usageを独立再算術し、W製品再生と全9projection fieldsが一致した。原5全24,911,546Bとprovider/readback/root独立reportをresults/expectation-role4-development6-20261021/へ原bytes保持、旧五投影/guards/原plans/REQUEST/Goldは不変。成功selectionや実要求freezeを発行せず、H count/body/Goldは0。現保持head全通常CI/記録/Readyは別残件で、sourceD560の714成功と混同しない。
+
+当回物理1252に対してusage既知1247の小計input2,386,363/output51,085、各5post不明、total_tokens全1252不明。D1..D6累積physical7512/qualified7507、input既知小計15,807,107/output既知小計245,145・各5post不明、total_tokens全7512不明。missingを0扱いせず、候補E/O射影や歴史aliasを追加call/usageに数えない。9312は最大割当で実費ではなく、料金/内部計算量は不明。原qualified Coreと標準clientからpayloadを再構成した照合であり、実HTTP body全bytes捕捉の主張ではない。
+
+9全文をW/root/Rが元rubricで読み直しGold維持。8FNは責務/境界・完了報告内の不変条件・表示IO・明示expected状態・必要行為を落とす一方、1FP census-072はFeatureRequest見出しとuninstall不能報告から要求を補った。held-158のhave to re-installとcensus-210のneed to stop all...はliteral必要行為があり、単なる症状推論というroot初期まとめは訂正した。個別case例を新promptへコピーしない。四択argmax後のE射影とE側massは別規則だが、この9原mapでは単純.5周辺和でも誤答は変わらないという負counterで、後付救済はしない。
+
+次工学保護は旧9509binary E+当回binaryBest626+qualified role4 E射影621=10756 qualified E evidence、binary10135/role4由来621を区別、保護617orderedIDs/追加無し。全10761をbinary原応答と呼ばず、当回invalidrole4 5はpost/unknownとして別保持して全626から除外しない。未来617へ今回採点を変更しない。ever-correctは不偏推定/達成可能性保証でない。
+
+次案はE1118/O581/ANY共存を保持し、最初の出力指示とcriteriaだけをnativeyes/noへ変える一package。Wは周辺和閾値案との差を反証、rootは4map厳格資格を後付緩和せずに出力形式を変える案を提示、Rはnative二択からlatent4分類/O診断を観測したとは言えない点をcounterし三者受容した。原D6確率やGoldを補正せず、binaryでも資格/意味誤り/O干渉は残り得る。内部4分類の実行やmarginal同等性・改善原因は未証明。次literal/Core/source必要CI/公開exact三者受容後の別一回であり、現D6のretry/再採点でない。D6のnativeconclusion failure/execute-project exit2/原1247+5unknown+knownFAILを正直に検証する専用prospective admissionが必要、旧五success前提は保持する。まだ次製品実装/モデル作用は0。
+
+```mermaid
+flowchart TB
+ OLD[✅ 旧五FAIL/原契約固定] --> SRC[✅ D6source/714CI/三者counter]
+ SRC --> RUN[✅ 一回1252post/原4class+snapshot]
+ RUN --> Q[⚠️ qualified1247/原sum不正unknown5]
+ Q --> FAIL[❌ knownfresh5/歴史9破壊]
+ FAIL --> RAW[✅ 原5/独立算術/欠測会計/H封印]
+ RAW --> CLOSE[⏳ 最終current全CI/記録/Ready未merge]
+ RAW --> COUNTER[三者反証/別native2出力仮説]
+ COUNTER --> SOURCE[⏳ 新literal/Core/nativefailure整合/必要CI]
+ SOURCE --> D[⏳ 別処置の有限一回]
+ D -->|未達/unknown| COUNTER
+ D -->|guard成功/実要求freeze| H[🔒 未使用H/予測前Gold/二回AND]
+ H -->|未達| RET[当H退役/別未使用H契約]
+ RET --> COUNTER
+```
+
+Hは観測した862typed/2033exact/2371canonical参照規則と固定Gold上の有限改善近似までで、意味的未見/Gold無謬/独立標本/母性能/Apps E2E/同原価を証明しない。以下はD6 source時点と旧負処置の固定記録で、当時のpendingを現況と混同しない。
+
+## D6 source時点の記録
 
 ## D6 ROLE4（code-only）
 
