@@ -1,0 +1,31 @@
+{
+  "schema": "ops.sys1.v1-contract.v1",
+  "goal": "https://github.com/roccho-dev/adrs/issues/664#issuecomment-6327715611",
+  "mmd": "https://github.com/roccho-dev/adrs/issues/664#issuecomment-6327925615",
+  "core": "Issue description convention E/O; Best binary-eo-v3 unchanged",
+  "v0": "D1..D18 DEVELOPMENT_GUARD_FAIL retained as FAIL; never rescored with the v1 guard",
+  "budget": {
+    "httpMax": 5000,
+    "inputTokenMax": 12500000,
+    "developmentMax": 2,
+    "plan": { "noise": 626, "development": [1252, 1252], "held": 1800 },
+    "countsOnly": "new v1 provider calls; historical cost total UNKNOWN"
+  },
+  "noise": {
+    "measurement": "one Best-versus-Best rerun of the 626 D626 BestE requests with request wire identical to the retained D18 BestE wire",
+    "pair": "rerun answer versus retained D18 BestE answer for the same case",
+    "rate": "f/n: n = cases where both answers are qualified yes/no, f = those whose answers differ"
+  },
+  "rMax": "ceil(f * C / n), C = cases where fresh Best is correct in the evaluated comparison; computed per development run and per held pass",
+  "developmentGuard": "all physical qualified AND model stable AND repaired > regressed AND regressed <= rMax; regressed counts only fresh Best-correct cases broken; no ever-correct union",
+  "heldAcceptance": "exactly two passes over the same unused held cases; each pass: all qualified AND model stable AND common-Gold delta lower bound > 0 AND regressed <= rMax; both passes AND, no averaging",
+  "stageInput": "posts * ceil(maxFrozenWireChars * max over retained posts of inputTokens / wireChars)",
+  "gateJ": {
+    "J1": "adrs#664 has no jev W start notice without a later done notice",
+    "J2": "roccho-org/ops workflow 377399991 has no queued or in_progress run",
+    "J3": "latest run_number of workflow 377399991 is not 379 or 380",
+    "waitUntil": "2026-10-24T00:00:00Z",
+    "expired": "NEXT: USER; continue returns to J, stop goes to v1 STOPPED"
+  },
+  "boundary": "no conversation comments on ops issues or PRs (issue_comment starts jev-issue-comment.yml); only PR body edits, commits and PR reviews"
+}
