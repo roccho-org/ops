@@ -1,0 +1,60 @@
+{
+  "schema": "ops.sys1.expectation-lines-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "c717249e3c15714ca8603c39189504ea0411c130",
+  "activation": "2a2b19e400e9f1d92bb2a98ffcfaf6936615c1ad",
+  "phase": "development10",
+  "historyCount": 10,
+  "originalFiles": 5,
+  "originalBytes": 26230116,
+  "actualPhysicalHTTP": 1252,
+  "nativeBinaryBestE": 626,
+  "nativeNamedTwoCandidatePosts": 626,
+  "qualifiedHTTP": 1252,
+  "qualifiedOriginalBinaryAnswers": 1878,
+  "unknown": 0,
+  "modelStable": true,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "W replay and root/R own ZIP/native history10/strict named2 raw qualification/full canonical LF-array Core/618 guard/one topusage per post independently agree",
+  "joint": {
+    "baselineCorrect": 477,
+    "candidateCorrect": 500,
+    "repaired": 30,
+    "regressed": 7
+  },
+  "E": {
+    "baselineCorrect": 584,
+    "candidateCorrect": 608,
+    "repaired": 31,
+    "regressed": 7,
+    "historical618Regressed": 10
+  },
+  "usage": {
+    "inputTokens": 2509086,
+    "outputTokens": 57592,
+    "totalTokensUnknownPosts": 1252
+  },
+  "seriesActual": {
+    "physicalHTTP": 12520,
+    "qualifiedHTTP": 12515,
+    "inputTokensKnownSum": 25435425,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 456733,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 12520
+  },
+  "nextEvidence": {
+    "qualifiedE": 15764,
+    "nativeBinary": 13265,
+    "qualifiedRole4Derived": 621,
+    "qualifiedDecompositionDerived": 626,
+    "qualifiedPartitionDerived": 626,
+    "qualifiedLinesDerived": 626,
+    "physicalIncludingOldInvalid": 15769,
+    "protected": 618,
+    "addedIds": [],
+    "priorInvalidUnknown": 5
+  },
+  "scope": "Lossless LF lines are not new cases or votes; questions, options and raw wholebody/Gold remain unchanged. Native two answers qualify before OR providerAnswer:false. No independent branch Gold, causal quality or internal attention effect established; all old negative guards stay fixed. No held opening. Final current CI/records/Ready is not an intermediate negative gate"
+}

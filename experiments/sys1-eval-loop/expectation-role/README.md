@@ -1,4 +1,37 @@
-# 九負結果を保持し、同じ二質問へ本文を損失なく行配列で渡す
+# 十の負結果を保持し、次の仮説へ継続する
+
+## D10：行配列でもHTMLの提出指示FNと観測の過剰採用が残った
+
+[run39551405894](https://github.com/roccho-org/ops/actions/runs/39551405894)をsource c717249e/REQUEST-only activation2a2b19e4/development10・history10から一回実行した。BestE626＋named2 linesE626＝1252HTTP/1878原binary回答は全資格・modelStable、unknown0。原job119061205402の鍵前745/745 fail0、prepare/execute/project/uploadはSUCCESSだが、意味判定はDEVELOPMENT_GUARD_FAILである。
+
+joint477→500・修復30/退行7、E584→608・修復31/退行7。freshE退行はcensus-072/100/146/161、expectation-005/027/102。歴史618保護破壊はcensus-072/093/100/146/161、expectation-004/005/027/028/102の10件。正差で退行を相殺せず未採用。O-null17/全626と元Goldを保持し、selection/実要求freezeは未発行、未使用H count/body/Gold0。
+
+root/Rは自己provider ZIP/nativehistory10/全1252 Core・可逆LF配列/strict原2mapとsnapshot/全618/freshguard/usageを独立再算術し、全9projection fieldsがW再生と一致した。原5全26,230,116Bとprovider/readback/root原reportをresults/expectation-lines-development10-20261021/へ原bytes保持、新closed1で全投影を再現する。原effect/REQUEST/旧plans/raw/Gold/SDK/Core/client/batch/YAMLは変更しない。[root source/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595354790)・[R source/必要CI](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595355129)。現保持head全通常CI成功は先取りせず、実作用source c717の745成功と区別する。中間負保持CI/Readyを次sourceの追加gateにせず、目的最終current全CI/会計/記録/Ready未mergeは最後に閉じる。
+
+当回input2,509,086/output57,592は全1252HTTPで既知。total_tokensは全1252不明、料金/内部計算量も不明。named2 topusageは一post一回、二枝/派生ORへ複製しない。D1..D10累積physicalHTTP12,520/qualifiedHTTP12,515、input既知小計25,435,425/output既知小計456,733・各5post不明、total_tokens全12,520不明である。
+
+全10本文/各branchを元rubricで読み直しGold維持。8FPは症状/見出し、回避操作、観測された因果・能力、欠落や不満を要求/仕様へ補ったもの、2FNはHTMLコメント内の真正な提出/記入指示であり、行配列でHTMLの不可視性を直したとは言えない。旧D9からの選択差は対照BestEも583→584と変動しており、状態表現だけの因果効果を証明しない。既jsonでもHTML全体はliteral、fragmentation/token増やFPを直接解く機序がないという出力前反証を残す。
+
+次履歴15764 qualified E evidence＝native binary13265＋role4derived621＋decompositionderived626＋partitionderived626＋linesderived626、physical15769/旧invalid5別、保護618/追加0。元D10guardに遡及適用せず、行はcase/票/独立情報にしない。ever-correctは工学的保護であり、反復Dの過適合/偶然や達成可能性を保証しない。
+
+次の処置はまだ未選択・未実装。原負結果を三者で閉じてから別仮説を相互反証し、全Core/入力/資格/来歴/有限割当を出力前固定する。同候補の盲再送/閾値/Gold/窓変更で救済しない。実guardPASS/原版/実要求freeze三者後だけ未使用Hを開き、有限固定Gold下の二回AND近似と同系列候補既知評定者の共通偏り/未見・母集団・Apps E2E・同原価非保証を保つ。
+
+~~~mermaid
+flowchart TB
+ A[✅ state-only全文固定/745必要CI/三者] --> B[✅ 一回1252HTTP/1878原回答資格]
+ B --> F[❌ fresh7/歴史10退行・未採用]
+ F --> R[✅ 原5/全投影/Gold/未知費用を保持]
+ R --> C[⏳ 別仮説を三者反証・全文固定]
+ C --> D[最小source/必要CI/別固定D]
+ D -->|未達/unknown| R
+ D -->|全guardPASS/実要求freeze| H[🔒 未使用H/予測前Gold/二回AND]
+ H -->|未達/unknown| RET[当H退役/別仮説・別未使用契約]
+ RET --> C
+ H -->|二回成立| Z[目的最終current全CI/記録/Ready未merge]
+~~~
+
+以下はD10 source公開時点までの記録。モデル0/CI pending等は当時の状態である。検査数の帰属と派生fieldの序数表現は本保持batchで精密化した。
+
 
 ## D10 LINES（code-only、D10モデル/H未実測）
 
@@ -6,7 +39,7 @@
 
 WがD9のHTML提出指示FN等から表現変更案を提案し、root/Rは「以前もJSON文字列にHTML全体がliteralで入っている」「機序未証明」「FPを直接解決しない」「fragmentation/token/wire増」を反証、W受容。rootの単一predicate再定式化案にはRがD1..5/D7との差分が弱いと反証しroot撤回。三者は効果が未証明の弱い仮説であっても、D9質問を一切変えないstate-only比較として限定する。内部attention改善/不可視HTML修復/一般性能を主張しない。[root原負/三者counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595262154)・[R独立原負/counter](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595262246)。
 
-三者は製品source前に自己actualD9 Coreから新stateだけを独立固定し、既SDK offlinepoststubで全1261candidate要求（626本文＋626placeholder＋端例）等を確認した。Wの全626×2 payload1252＋同数placeholderも全値一致、maxBest20805/lines21681B<24000/Gold-free。端例は空/末尾/連続LF/CRLF/孤立CR/HTML/code/table/Unicode結合文字/U+2028/NUL/孤立surrogateを含む。原通信全bytes実捕捉ではなく、標準SDKによる再構成である。
+三者は製品source前に自己actualD9 Coreから新stateだけを独立固定した。rootは既SDK offlinepoststubのcandidate1261要求（626本文＋626placeholder＋9端例）を確認。R/Wは全1252本文入り＋1252placeholderの標準wireと端例split/joinを別々に検査した。これらの全値が一致し、maxBest20805/lines21681B<24000/Gold-free。端例は空/末尾/連続LF/CRLF/孤立CR/HTML/code/table/Unicode結合文字/U+2028/NUL/孤立surrogateを含む。原通信全bytes実捕捉ではなく、標準SDKによる再構成である。
 
 LINES_QUESTIONSは元PARTITION_QUESTIONSをそのままimportし、declaration1159字/request1268字、options/model/orderは全bytes不変。原2names declaration/request、native10s/diagnoseRejection:true、strict原2資格AND後のみOR、one model/one topusage per post、旧binary15s/BestE/sharedO/Core/SDK/client/batch/YAMLは不変。新physical linesE/schemaだけでstate配列を認め、旧splitE/partitionEのstringstate資格を緩めない。新受信前検査はcurrentpost idをinput.rowsの原bodyへ結合し、state.bodyがそのsplit(LF)全値であることを要求、空array/nonstring/別body/非canonical分割を拒否する。これは新sourceの固定分岐で任意schema/profile/key/endpoint/executor/credentialは追加しない。
 
@@ -14,7 +47,7 @@ local初回16mode検査が、共有askSplitに旧stringassertが残り新candida
 
 14512 qualified E evidence＝12639binary＋621role4derived＋626decompositionderived＋626partitionderived、physical14517/invalid5別、保護618/追加0を原rawから固定。618は過去ever-correctの工学保護であり、14512は独立案件数でも不偏推定でもない。Dの反復選択/過適合/偶然を排除せず、現在D9guardを将来条件で採点し直さない。freshBest対same compound strictOR＋fixed historicalO、全1252資格/expectedmodel・completejoint正差・歴史618破壊0・freshE退行0を別ANDし、first診断/O-null17/全626を保持する。
 
-新raw named2/splitNative/SDK全entry結合と9th derived linesEは既strictcoreを固定wrapperだけで共有する。片yes＋他unknownはwholeEunknown/短絡0、派生ORはproviderAnswer:false/原postと両choiceのみで確率/confidence/model/usage/Oを作らない。受信した不資格postのtopusageも一度だけ、post前失敗/実post欠測/未割当を区別する。compound未報告modelはUNKNOWN継続、報告された非空otherだけ停止、旧binary未報告停止を実異versionと断定しない。knownFAIL表示に後driftを隠さず原flags/modelStableを使う。
+新raw named2/splitNative/SDK全entry結合と派生field linesEは既strictcoreを固定wrapperだけで共有する。片yes＋他unknownはwholeEunknown/短絡0、派生ORはproviderAnswer:false/原postと両choiceのみで確率/confidence/model/usage/Oを作らない。受信した不資格postのtopusageも一度だけ、post前失敗/実post欠測/未割当を区別する。compound未報告modelはUNKNOWN継続、報告された非空otherだけ停止、旧binary未報告停止を実異versionと断定しない。knownFAIL表示に後driftを隠さず原flags/modelStableを使う。
 
 development10/history10は原D1..9＋currentだけ。鍵前17native runs＋固定D6job1と全原版、鍵下8field原body/Core/execution、project原attempt/全資格を検証。source-only REQUESTはD9/source d0ea原bytes維持、現source必要CI/三者受容後だけREQUEST-only直子を一回実測。最大14320＝既実11268＋新D1252＋futureH1800HTTPで、原binary回答1878/将来4M/passをHTTPに加算せず、新User予算/auth gateではない。旧九plan/raw/Gold不変、350min/既六step/再送resume0。全payloadが鍵前に完全復元/<24000を満たさなければINVALID、超過case事後除外/補充/別表現fallback0。
 
