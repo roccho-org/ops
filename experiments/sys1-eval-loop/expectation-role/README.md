@@ -1,3 +1,51 @@
+# D14：E内の仕様・要求をnative四択へ分ける（code-only）
+
+D13負保持は[root](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5597298783)/[R](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5597282193)が各原ZIP/Git全bytes・全10投影・原費用から独立受容し、Wも両最新全文をprovider自読した。旧十三処置のFAIL/Gold/guard/原plans/rawを保ったまま、E内の仕様Sと要求・本人goal Rをnative4classで一度に判定する固定処置を実装した。source-only/モデル0、必要CI/公開exact三者受容と実D14成功は未成立、H count/body/Gold0。
+
+次案比較ではrootの正役割2分解へW/Rが「D9/D10の再分割と同型で、新構造とは呼べず実literal差が必要」と反証しrootが構造新規性の主張を撤回。RのE内S/R四択を三者で優先し、Wは前三classの確率質量分散でNEITHER単独argmaxが勝つ反例、root/RはS/R境界の曖昧さとD6のsum .99 unknown再発をcounterした。soft voteは未校正・相関/Bmap追加と既知残件へ直接機構がないため選ばず、同義票追加や旧D6/D13の後付救済もしない。
+
+Sは本文が仕様/期待契約として提示するrule/state/責務/機能能力/IO/表示の用途/利用条件。一般性・formal spec/must/未来/実装済を必要条件にしない。Rは真正な実行/回答/提出/改善/回復要求、または主体の意図したgoal/needとして明示された行為/state。SのExpected captionから要求発話や本人goalを補わず、R要求という発話だけからSの仕様を補わない。両roleが同文または別文に存在すればBOTH。各roleはwholebody ANYであり、他所の報告で宣言を消さない。
+
+初案のneeded action一般は、観測された出来事の因果的必要/回避経路だけをgoalへ再昇格するというroot/R反証で精密化した。意図/所望として提示されたneedは理由・完全な最終目的・相手・現在形を追加要件にせず、incident内だから捨てない。必要性を説明する実施/観測の記録だけから新たなgoal/requestを補わず、モダリティ語・時制・見出し・受信者・疑問形を一律規則にしない。HTMLコメント/表/式/テンプレ/引用は本文内の役割で扱う。別領域のdial機能対観測、costestimate必要対注文延期の合成2対を示し、原case語句/IDs/lookup/hintは入れない。v1/v2案はtoolsに保持し、製品は三者受容v3だけである。
+
+instructions2875字、criteriaはJSON serialized map394字（値文346字）。固定S_ONLY/R_ONLY/BOTH/NEITHERの4原classをnativeargmaxで選び、前三者をEyes、NEITHERをEnoへ機械射影する。E質量.2/.2/.2対NEITHER.4でもEnoになる規則で、周辺和/再正規化/後付thresholdへ変えない。元E Goldだけで射影Eを採点し、S/R下位正答率・latent推論・校正済E確率を証明しない。定義/文言/役割構造/出力形式の一packageで、個別因果/改善は未証明。
+
+新eRole4固定schema/keyだけが既askJevChoice/既provider15s・JSON文字列のbody-only stateを使う。元BestE/sharedOは全bytes不変で、候補にbaseline choice/confidence/Gold/O/ID/履歴を渡さない。旧E/Oの4labelを意味偽装せず別exact4keys、受信時eRole4Nativeは原model/usage/answerのtype/choice/confidence/全4map、原answerKeys/fieldsを保持してtyped回答へ全entry結合する。primitive/array/欠落/余剰/不正mapも保持してUNKNOWN、sum .99を補正/除外/盲再送しない。新qualifierのみresponse段階failureにpost<flags<failure<unknownを要求し、未到達provider/localへflagsを作らず、postごとのcapture/usageをresetする。旧binary/旧EO4/旧named2/SDK/qualifiersの本体と旧十三contextは変更しない。
+
+DのB/C4は旧nativebinary missing/nonstring/empty/mismatch model-stopを維持するが、これをactual reported-other観測とは呼ばない。C4のrawmodel/modelPresentで原状態を区別し、ordinary map/transport unknownなら他方予定割当を続ける。モデル停止だけ残tailを未attemptとして保持する。新Hの全経路三値capture→loop→資格→H2native admissionは勝ち候補の別sourceで閉じ、PN専用missingcontinueをC4へ無批判転記しない。
+
+最大1252HTTP＝B626＋C4626、原回答も1252でbinaryE626と4class626の混合でありPN1878ではない。raw C4はnative class答、射影Eと診断S/RはproviderAnswer:false/sourceChoice/実postへ結合し偽確率/model/usageを付けない。S/Rそれぞれは元Eと別命題なので単独をE履歴へ加えず、全class-derived Eと元Bだけを将来E保護へ残す。実usageは各post一回、不正C4でも受信済usageは原snapshotで一回保持し、不明を0にしない。
+
+鍵前に旧20772 qualified E/620ordered（nativeE16395=single15769+compoundP626、旧派生4377）/physical19525/invalid5を全原contextで再生する。原checker正誤とNabsenceはnativeEへ足さない。history14 exact D1..13+current、21native runs＋固定D6 failed-jobと実Gitparent/REQUESTphaseを束縛。新secret inputは既8fieldのみで全body/Best/3template/expectedmodel/sourceexecutionを固定し、全1252資格/expectedmodel、620歴史破壊0、freshE退行0、完全joint正差を独立AND、O-null17/全626/first診断を維持する。620はever-correct工学目標で不偏推定/独立情報/達成保証ではない。
+
+三者はsource前に自己原D13 Best/Oと5paragraph/4criteria/4truthを別wx期待へ固定し、native SDKで本文入り1878＋placeholder1878＝3756 wireを独立照合した。Wは製品sourceからも全3756 wireを自己wxへ全値照合し、maxB20805/C422116/O20856B<24000。超過case除外/切詰め/補充なし。これは実HTTP全bytes捕捉ではなくoffline再構成である。
+
+prospective-plan14の19328は既実16276＋新D最大1252＋futureH最大1800の有限割当で実費/新Userbudget gateではない。既5postのinput/output欠測とtotal全欠測を保持する。source-only REQUESTはdevelopment13/934a不変、新source必要CI/三者exact後だけ直子REQUEST-only activation14を一回実施する。中間負保持CI/Readyを追加前提にせず、目的最終current全通常CI/原会計/三者記録/Ready未mergeを最後に閉じる。
+
+勝ちD全guardPASS/原版/実要求freeze三者受容まではHを開かない。このarchitectureのHはfresh B/C4/sharedOの3MHTTP/原3M混合答（binary2M+fourclassM）、eligibility3wire。H1はD14のcaseordinal B/C4回転、H2はその2要素だけ反転、Oは両回末尾を事前固定し各repでANDする。PNの4M答やD12依存checker policyは転用しない。ordinaryUNKNOWN/意味FAILでもH2非取消、actualother/raw不整合/timeoutは別。順序/時刻/乱数は因果分離せず、全順序耐性・SRS/母集団・独立人間真値・同原価/Apps E2Eを主張しない。有限固定Gold条件付き近似と共通raterbias等の限界を維持する。
+
+~~~mermaid
+flowchart TB
+ A[✅ D13原負/全型/元Gold/費用保持] --> C[✅ D9同型反証→S/R四択・v3三者wx]
+ C --> CI[⏳ 公開exact三者/必要CI]
+ CI --> ACT[⏳ REQUEST-only D14一回]
+ ACT --> B[固定回転B/C4・原四択+4map]
+ B --> Q{各native strict資格?}
+ Q -->|C4資格| E[固定argmax→前三class Eyes/derivedfalse]
+ Q -->|普通unknown| U[raw保持/候補unknownでも他方予定続行]
+ B -->|legacy model-stop| T[原model/残tail未attempt]
+ E --> G[全626/620保護/freshE0/完全joint正差/全1252資格]
+ U --> G
+ T --> G
+ E --> D[診断S/Rは別命題・E履歴へ単独加算0]
+ G -->|FAIL/unknown| R[原版/費用保持・未採用→別仮説]
+ G -->|全PASS/実要求freeze| H[🔒 勝ちcontextのみ未使用H/二順序二回AND]
+ H -->|未達| R
+ H -->|両回成立| Z[目的最終current全CI/記録/Ready未merge]
+~~~
+
+以下はD13負保持時点までの記録。次literal未固定等は当時の状態である。
+
 # 十三の原負結果を保持し、次の処置を反証する
 
 ## D13：存在・不在の固定多数決も退行が残り未採用
