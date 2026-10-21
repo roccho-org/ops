@@ -86,7 +86,7 @@ replace_once("src/session.ts",
     '        (proof as ProofEnvironment).PI_PROOF_TRANSIENT === "true")) throw new Error("API proof selection rejected");\n'
     '    const transient = selected && (proof as ProofEnvironment).PI_PROOF_TRANSIENT === "true";\n'
     '    if (transient || api) this.#proof = new TransientWorkerProof(this.ctx.storage,\n'
-    '      api ? { apiKey: (proof as ProofEnvironment).OPENCODE_API_KEY ?? "" } : undefined);')
+    '      api ? { apiKey: (proof as ProofEnvironment).OPENCODE_API_KEY ?? "", sockets: () => this.ctx.getWebSockets() } : undefined);')
 replace_once("src/session.ts",
     'selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY) : undefined,',
     'selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY, () => this.#proof?.requireOwner()) : undefined,')

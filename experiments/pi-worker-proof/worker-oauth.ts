@@ -126,22 +126,24 @@ export class TransientWorkerProof {
   readonly storage: DurableObjectStorage;
   readonly apiKeyMode: boolean;
   readonly #apiKey?: string;
-  readonly #owners = new Set<WebSocket>();
-  constructor(storage: DurableObjectStorage, api?: { apiKey: string }) {
+  readonly #owners = new WeakSet<WebSocket>();
+  readonly #liveSockets: () => WebSocket[];
+  constructor(storage: DurableObjectStorage, api?: { apiKey: string; sockets: () => WebSocket[] }) {
     this.storage = storage; this.apiKeyMode = api !== undefined;
     if (api && !api.apiKey) throw new Error("OpenCode key binding required");
     this.#apiKey = api?.apiKey;
+    this.#liveSockets = api?.sockets ?? (() => []);
   }
 
   admit(socket: WebSocket) { if (this.apiKeyMode) this.#owners.add(socket); }
   release(socket: WebSocket) { this.#owners.delete(socket); }
   requireOwner() {
-    if (this.apiKeyMode && ![...this.#owners].some(socket => socket.readyState === WebSocket.OPEN)) throw new Error("Active owner continuation required");
+    if (this.apiKeyMode && !this.#liveSockets().some(socket => this.#owners.has(socket) && socket.readyState === WebSocket.OPEN)) throw new Error("Active owner continuation required");
   }
 
   get tokenPresent() { return this.#access !== undefined && this.#access.expires > Date.now(); }
 
-  async attach(request: Request, env: ProofEnvironment) {
+  async attach(request: Request, env: ProofEnvironment): Promise<Record<string, string>> {
     const { verifyAccessOwner } = await import("pi-proof-auth");
     await verifyAccessOwner(request.headers.get("Cf-Access-Jwt-Assertion") ?? "", {
       issuer: env.PI_ACCESS_ISSUER ?? "", audience: env.PI_ACCESS_AUDIENCE ?? "",
@@ -153,7 +155,7 @@ export class TransientWorkerProof {
           request.headers.has("Pi-Proof-Access") || request.headers.has("Pi-Proof-Expires")) {
         throw new Error("Explicit OpenCode proof mode required");
       }
-      return { "Pi-Proof-Boot": this.bootId, "Pi-Proof-Prior-Owner": String([...this.#owners].some(socket => socket.readyState === WebSocket.OPEN)),
+      return { "Pi-Proof-Boot": this.bootId, "Pi-Proof-Prior-Owner": String(this.#liveSockets().some(socket => this.#owners.has(socket) && socket.readyState === WebSocket.OPEN)),
         "Pi-Proof-Posts": String(await this.counts()) };
     }
     const priorToken = this.tokenPresent;
