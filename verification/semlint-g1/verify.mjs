@@ -6,15 +6,31 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { COUNT_ITEMS, LANE_KINDS, SCORERS, parseLedger, validateJudgment, validateSeal, validateTheta } from './schema.mjs';
 
-export const PRE_RUN_SEALS = ['no-jev', 'sys2-direct', 'answer-key', 'deadline', 'rubric'];
+// Sealed per case before the run. The rubric is sealed once for the whole series (any caseRef) and is fixed.
+export const PRE_RUN_SEALS = ['no-jev', 'sys2-direct', 'answer-key', 'deadline'];
+export const PHASES = ['pre-run', 'post-run'];
 export const PIN_DIFF_ALLOWED = ['.github/workflows/jev-issue-comment.yml', 'packages/jev-review/issue-actions.json'];
 
 const result = (errors) => ({ ok: errors.length === 0, errors });
+const isSealRow = (r) => r?.schema === 'ops.semlint.g1.seal.v1';
 
-// Every pre-run seal exists exactly once and is strictly before the run start; the with-Jev lane, if sealed,
-// is strictly after it. Equal times are not "before". Invalid rows refuse the whole check.
-export function checkSealOrder(rows, { caseRef, runStartedAt }) {
+// The single series rubric seal, or the reason there is none.
+function seriesRubric(rows) {
+  const rubrics = rows.filter((r) => isSealRow(r) && r.kind === 'rubric');
+  for (const r of rubrics) {
+    const errs = validateSeal(r);
+    if (errs.length) return { errors: [`invalid rubric seal: ${errs.join('; ')}`] };
+  }
+  if (rubrics.length !== 1) return { errors: [`rubric: expected exactly 1 across all cases, found ${rubrics.length}`] };
+  return { rubric: rubrics[0], errors: [] };
+}
+
+// pre-run (cutoff = planned run start): the four case seals and the series rubric exist exactly once and are strictly
+// before it; no with-Jev seal yet. post-run (cutoff = actual run start): the same, plus exactly one with-Jev seal
+// strictly after it. Equal times are not "before". Invalid rows refuse the whole check; the phase must be named.
+export function checkSealOrder(rows, { caseRef, runStartedAt, phase }) {
   const errors = [];
+  if (!PHASES.includes(phase)) return result([`phase must be one of ${PHASES.join(', ')}`]);
   const run = Date.parse(runStartedAt);
   if (typeof runStartedAt !== 'string' || Number.isNaN(run)) return result(['runStartedAt is not a time']);
   const mine = rows.filter((r) => r?.caseRef === caseRef);
@@ -23,13 +39,20 @@ export function checkSealOrder(rows, { caseRef, runStartedAt }) {
     if (errs.length) errors.push(`invalid seal row: ${errs.join('; ')}`);
   }
   if (errors.length) return result(errors);
+  const before = (r, kind) => {
+    if (!(Date.parse(r.sealedAt) < run)) errors.push(`${kind}: sealed ${r.sealedAt}, not before run ${runStartedAt}`);
+  };
   for (const kind of PRE_RUN_SEALS) {
     const found = mine.filter((r) => r.kind === kind);
     if (found.length !== 1) { errors.push(`${kind}: expected exactly 1, found ${found.length}`); continue; }
-    if (!(Date.parse(found[0].sealedAt) < run)) errors.push(`${kind}: sealed ${found[0].sealedAt}, not before run ${runStartedAt}`);
+    before(found[0], kind);
   }
+  const rubric = seriesRubric(rows);
+  errors.push(...rubric.errors);
+  if (rubric.rubric) before(rubric.rubric, 'rubric');
   const withJev = mine.filter((r) => r.kind === 'with-jev');
-  if (withJev.length > 1) errors.push(`with-jev: expected at most 1, found ${withJev.length}`);
+  const want = phase === 'post-run' ? 1 : 0;
+  if (withJev.length !== want) errors.push(`with-jev: expected exactly ${want}, found ${withJev.length}`);
   for (const r of withJev) {
     if (!(Date.parse(r.sealedAt) > run)) errors.push(`with-jev: sealed ${r.sealedAt}, not after run ${runStartedAt}`);
   }
@@ -65,17 +88,21 @@ export function checkTheta(thetaRow, sourceAtPin) {
   return result([]);
 }
 
-// Two blind votes (R and W) per blind ID on the same sealed rubric. Items compared: the four counts and kept.
-export function summarizeJudgments(rows, { caseRef, unblind }) {
+// Two blind votes (R and W) per blind ID, each on the single sealed series rubric. Items compared: the four counts and kept.
+export function summarizeJudgments(rows, { caseRef, unblind, seals }) {
   const errors = [];
-  const mine = rows.filter((r) => r?.caseRef === caseRef);
+  if (!Array.isArray(seals)) return { ok: false, errors: ['seals are required to bind votes to the sealed rubric'] };
+  const sealed = seriesRubric(seals);
+  if (!sealed.rubric) return { ok: false, errors: sealed.errors };
+  const mine = rows.filter((r) => r?.schema === 'ops.semlint.g1.judgment.v1' && r.caseRef === caseRef);
   for (const r of mine) {
     const errs = validateJudgment(r);
     if (errs.length) errors.push(`invalid judgment row: ${errs.join('; ')}`);
   }
   if (errors.length) return { ok: false, errors };
-  const rubric = new Set(mine.map((r) => r.rubricSha256));
-  if (rubric.size !== 1) errors.push(`votes use ${rubric.size} rubric hashes, expected 1`);
+  for (const r of mine) {
+    if (r.rubricSha256 !== sealed.rubric.sha256) errors.push(`${r.blindId}/${r.scorer}: rubricSha256 is not the sealed rubric`);
+  }
   const ids = [...new Set(mine.map((r) => r.blindId))].sort();
   if (ids.length === 0) errors.push('no votes');
   for (const id of ids) {
@@ -124,21 +151,24 @@ function readLedger(file) {
 }
 
 const USAGE = `usage:
-  verify.mjs seal-order <ledger.jsonl> <caseRef> <runStartedAt>
+  verify.mjs seal-order <ledger.jsonl> <caseRef> <runStartedAt> <pre-run|post-run>
   verify.mjs pin-diff <repo> <previousPinSha> <nextPinSha>
   verify.mjs theta <repo> <ledger.jsonl> <pinSha>
   verify.mjs judgments <ledger.jsonl> <caseRef> <unblind.json>`;
 
 function main([cmd, ...a]) {
   let res;
-  if (cmd === 'seal-order' && a.length === 3) res = checkSealOrder(readLedger(a[0]), { caseRef: a[1], runStartedAt: a[2] });
+  if (cmd === 'seal-order' && a.length === 4) {
+    res = checkSealOrder(readLedger(a[0]).filter(isSealRow), { caseRef: a[1], runStartedAt: a[2], phase: a[3] });
+  }
   else if (cmd === 'pin-diff' && a.length === 3) res = checkPinDiff(gitChangedPaths(a[0], a[1], a[2]));
   else if (cmd === 'theta' && a.length === 3) {
     const rows = readLedger(a[1]).filter((r) => r.schema === 'ops.semlint.g1.theta.v1');
     res = rows.length === 1 ? checkTheta(rows[0], gitShow(a[0], a[2], rows[0].file))
       : { ok: false, errors: [`expected exactly 1 theta row, found ${rows.length}`] };
   } else if (cmd === 'judgments' && a.length === 3) {
-    res = summarizeJudgments(readLedger(a[0]), { caseRef: a[1], unblind: JSON.parse(fs.readFileSync(a[2], 'utf8')) });
+    const rows = readLedger(a[0]);
+    res = summarizeJudgments(rows, { caseRef: a[1], unblind: JSON.parse(fs.readFileSync(a[2], 'utf8')), seals: rows.filter(isSealRow) });
   } else {
     console.error(USAGE);
     return 2;

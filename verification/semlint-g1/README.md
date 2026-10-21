@@ -10,22 +10,27 @@ judges nothing by itself.
 
 | schema | fields | notes |
 |---|---|---|
-| `ops.semlint.g1.seal.v1` | `caseRef`, `kind`, `laneId`, `sha256`, `sealedAt`, `evidence{repository, commentId}` | `kind` ∈ no-jev, sys2-direct, with-jev, answer-key, deadline, rubric. Lane kinds carry a `laneId`, others `null`. Only the hash is recorded; content is refused. |
-| `ops.semlint.g1.judgment.v1` | `caseRef`, `scorer` (R/W), `blindId`, `rubricSha256`, `counts{falseFinding, duplicate, inconsistency, omission}`, `requiredKept{kept, required}`, `laneGuess`, `judgedAt` | `laneGuess` ∈ no-jev, with-jev, sys2-direct, unsure: the scorer's sealed guess, used to measure blinding leakage. |
-| `ops.semlint.g1.burden.v1` | `caseRef`, `laneId`, `kind`, `quantity{unit, value}`, `evidence`, `observedAt` | `kind` ∈ input-authoring, reading, recovery, round-trip. `unit` ∈ bytes, seconds, count. UNKNOWN is `null`, never 0. |
-| `ops.semlint.g1.theta.v1` | `file`, `constant`, `value`, `band{low, high}`, `recordedAt` | A copy of the W1 code constant. `file` is fixed to `packages/jev-review/github-comment.mjs`; `band` is the official 0.30–0.70. |
+| `ops.semlint.g1.seal.v1` | `caseRef`, `kind`, `laneId`, `sha256`, `sealedAt`, `evidence{repository, commentId}` | `kind` ∈ no-jev, sys2-direct, with-jev, answer-key, deadline, rubric. Lane kinds carry a `laneId` matching `^[a-z0-9-]{1,32}$`, others `null`. Only the hash is recorded; content is refused. |
+| `ops.semlint.g1.judgment.v1` | `caseRef`, `scorer` (R/W), `blindId`, `rubricSha256`, `counts{falseFinding, duplicate, inconsistency, omission}`, `requiredKept{kept, required}`, `laneGuess`, `judgedAt` | `blindId` matches `^[A-Z0-9]{1,8}$`. `rubricSha256` must equal the sealed series rubric. `laneGuess` ∈ no-jev, with-jev, sys2-direct, unsure: the scorer's sealed guess, used to measure blinding leakage. |
+| `ops.semlint.g1.burden.v1` | `caseRef`, `laneId`, `kind`, `quantity{unit, value}`, `evidence`, `observedAt` | `kind` ∈ input-authoring, reading, recovery, round-trip. `unit` ∈ bytes, seconds, count. UNKNOWN is `null`, never 0. `evidence` is a GitHub issue/comment/PR/run URL or `null`. |
+| `ops.semlint.g1.theta.v1` | `file`, `constant`, `value`, `band{low, high}`, `recordedAt` | A copy of the W1 code constant: `file` is `packages/jev-review/github-comment.mjs`, `constant` is `SEMLINT_THETA` (W1 writes exactly one `export const SEMLINT_THETA = …;` and no other `SEMLINT_THETA =` text in that file). The value is fixed at stage 0.5, not here. `band` is the official 0.30–0.70. |
 
 ## Checks (`verify.mjs`)
 
-- `seal-order`: no-jev, sys2-direct, answer-key, deadline and rubric each sealed exactly once and strictly
-  before the run start; the with-Jev lane strictly after it. Equal times fail.
+- `seal-order` with an explicit phase: no-jev, sys2-direct, answer-key and deadline sealed exactly once per case,
+  and the rubric exactly once for the whole series (a later case cannot reseal it), all strictly before the run
+  start. `pre-run` requires no with-Jev seal yet; `post-run` requires exactly one, strictly after the run start.
+  Equal times fail.
+- The ledger times (`sealedAt`, `runStartedAt`) are self-reported here. At stage 1.5 P checks each seal row against
+  the GitHub comment named by `evidence.commentId` (its `created_at` and the posted hash) and the run's
+  `run_started_at`; this instrument does not call GitHub.
 - `pin-diff`: between two runtime pins only `packages/jev-review/issue-actions.json` and
   `.github/workflows/jev-issue-comment.yml` may change (`git diff --no-renames`). Anything else is a
   prerequisite failure.
 - `theta`: the ledger copy must equal the single `export const NAME = <number>;` in the display file at the
   pinned SHA. While W1 has not defined it the result is `THETA_CONSTANT_ABSENT` (a failure, never a pass);
   a second assignment is `AMBIGUOUS`, a non-literal is `NOT_NUMERIC_LITERAL`.
-- `judgments`: one R and one W vote per blind ID on one rubric hash, every blind ID in P's unblinding map;
+- `judgments`: one R and one W vote per blind ID, every vote on the sealed rubric's hash, every blind ID in P's unblinding map;
   reports agreement, disagreements and each scorer's lane-guess hits, misses and unsure.
 
 ```sh

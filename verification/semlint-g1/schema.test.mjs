@@ -4,7 +4,7 @@ import { validateSeal, validateJudgment, validateBurden, validateTheta, parseLed
 
 const H = 'a'.repeat(64);
 const seal = {
-  schema: 'ops.semlint.g1.seal.v1', caseRef: 'roccho-org/ops#581', kind: 'no-jev', laneId: 'L1', sha256: H,
+  schema: 'ops.semlint.g1.seal.v1', caseRef: 'roccho-org/ops#581', kind: 'no-jev', laneId: 'l1', sha256: H,
   sealedAt: '2026-10-22T01:00:00Z', evidence: { repository: 'roccho-org/ops', commentId: 1 },
 };
 const judgment = {

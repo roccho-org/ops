@@ -10,10 +10,16 @@ export const COUNT_ITEMS = ['falseFinding', 'duplicate', 'inconsistency', 'omiss
 export const BURDEN_KINDS = ['input-authoring', 'reading', 'recovery', 'round-trip'];
 export const BURDEN_UNITS = ['bytes', 'seconds', 'count'];
 export const THETA_FILE = 'packages/jev-review/github-comment.mjs';
+export const THETA_CONSTANT = 'SEMLINT_THETA';
 export const UNCERTAIN_BAND = { low: 0.3, high: 0.7 };
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
-const isStr = (v) => typeof v === 'string' && v.length > 0 && v.length <= 200;
+// IDs are short closed tokens so that no sealed text fits in them.
+const isLaneId = (v) => typeof v === 'string' && /^[a-z0-9-]{1,32}$/.test(v);
+const isBlindId = (v) => typeof v === 'string' && /^[A-Z0-9]{1,8}$/.test(v);
+const GH = 'https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/';
+const isEvidenceUrl = (v) => typeof v === 'string'
+  && new RegExp(`^${GH}(?:(?:issues|pull)/[1-9]\\d*(?:#issuecomment-[1-9]\\d*)?|actions/runs/[1-9]\\d*)$`).test(v);
 const isNat = (v) => Number.isSafeInteger(v) && v >= 0;
 const isHash = (v) => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const isTime = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/.test(v) && !Number.isNaN(Date.parse(v));
@@ -33,7 +39,9 @@ export function validateSeal(row) {
   if (row.schema !== 'ops.semlint.g1.seal.v1') e.push('schema');
   if (!isCase(row.caseRef)) e.push('caseRef');
   if (!SEAL_KINDS.includes(row.kind)) e.push('kind');
-  if (LANE_KINDS.includes(row.kind) ? !isStr(row.laneId) : row.laneId !== null) e.push('laneId (lane seals carry one, others null)');
+  if (LANE_KINDS.includes(row.kind) ? !isLaneId(row.laneId) : row.laneId !== null) {
+    e.push('laneId (lane seals carry ^[a-z0-9-]{1,32}$, others null)');
+  }
   if (!isHash(row.sha256)) e.push('sha256');
   if (!isTime(row.sealedAt)) e.push('sealedAt');
   const ev = row.evidence;
@@ -48,7 +56,7 @@ export function validateJudgment(row) {
   if (row.schema !== 'ops.semlint.g1.judgment.v1') e.push('schema');
   if (!isCase(row.caseRef)) e.push('caseRef');
   if (!SCORERS.includes(row.scorer)) e.push('scorer');
-  if (!isStr(row.blindId)) e.push('blindId');
+  if (!isBlindId(row.blindId)) e.push('blindId ^[A-Z0-9]{1,8}$');
   if (!isHash(row.rubricSha256)) e.push('rubricSha256');
   const c = row.counts;
   if (!isObj(c) || Object.keys(c).sort().join() !== [...COUNT_ITEMS].sort().join() || !COUNT_ITEMS.every((k) => isNat(c[k]))) e.push('counts');
@@ -66,14 +74,14 @@ export function validateBurden(row) {
   if (!keys(row, ['schema', 'caseRef', 'laneId', 'kind', 'quantity', 'evidence', 'observedAt'], e)) return e;
   if (row.schema !== 'ops.semlint.g1.burden.v1') e.push('schema');
   if (!isCase(row.caseRef)) e.push('caseRef');
-  if (!(row.laneId === null || isStr(row.laneId))) e.push('laneId');
+  if (!(row.laneId === null || isLaneId(row.laneId))) e.push('laneId ^[a-z0-9-]{1,32}$ or null');
   if (!BURDEN_KINDS.includes(row.kind)) e.push('kind');
   const q = row.quantity;
   // UNKNOWN is null; it is never replaced by zero.
   if (!isObj(q) || Object.keys(q).sort().join() !== 'unit,value' || !BURDEN_UNITS.includes(q.unit) || !(q.value === null || isNat(q.value))) {
     e.push('quantity {unit, value: nonnegative integer or null}');
   }
-  if (!(row.evidence === null || (isStr(row.evidence) && row.evidence.startsWith('https://')))) e.push('evidence');
+  if (!(row.evidence === null || isEvidenceUrl(row.evidence))) e.push('evidence (GitHub issue, comment, PR or run URL, or null)');
   if (!isTime(row.observedAt)) e.push('observedAt');
   return e;
 }
@@ -83,7 +91,7 @@ export function validateTheta(row) {
   if (!keys(row, ['schema', 'file', 'constant', 'value', 'band', 'recordedAt'], e)) return e;
   if (row.schema !== 'ops.semlint.g1.theta.v1') e.push('schema');
   if (row.file !== THETA_FILE) e.push(`file must be ${THETA_FILE}`);
-  if (typeof row.constant !== 'string' || !/^[A-Z][A-Z0-9_]*$/.test(row.constant)) e.push('constant');
+  if (row.constant !== THETA_CONSTANT) e.push(`constant must be ${THETA_CONSTANT}`);
   if (typeof row.value !== 'number' || !(row.value >= 0 && row.value <= 1)) e.push('value in [0,1]');
   const b = row.band;
   if (!isObj(b) || Object.keys(b).sort().join() !== 'high,low' || b.low !== UNCERTAIN_BAND.low || b.high !== UNCERTAIN_BAND.high) {
