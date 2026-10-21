@@ -1,3 +1,30 @@
+# D16: four role criteria — 原負結果
+
+実run [39596558898](https://github.com/roccho-org/ops/actions/runs/39596558898)、source985ab92e498935e4b7afd6bd2ccaf2f060396e02 / REQUEST-only activation4dbcd017bc2482284baf886cc84487c8f7b4e3be。必要CI796・consumer実import/cleanunshare3true/health・三者exact全文受容後の一回実測。原5全30,233,053bytesとprovider/readback/root独立reportを保存。native SUCCESSだが **DEVELOPMENT_GUARD_FAIL・未採用**、H count/body/Gold/model0。
+
+- 1252HTTP全attempt/post/qualified、1878原binary回答全資格、unknown0/modelStable。B626 native EとSR626 postsの下位役割1252回答を区別し、S/R単独はE履歴へ加算しない。whole OR EのみproviderAnswer:false、原確率/model/usageの派生捏造0。
+- joint477→506、paired修復31/退行2。E584→614、修復32/退行2。fresh census072/108、history622破壊8＝held267,census023/072/093/108/143,expectation060/118。全8本文/GoldはD15と同一で三者再読、凍結Gold変更0。
+- D15→D16 candidateE全626同値。S差0、R差4(census099/209,expectation023/063)は全てORでmask。B差3(census033,expectation052/116)。この観測はcriteria一般の無効性、旧instructions無視、単一因果を証明しない。追加入力97,030tokensを含め、入力2,626,883/出力57,592、全1252post既知各一回、total1252全欠測/金額不明。
+- D1..16実20032HTTP/資格20020、既知入力41,245,339/出力757,286、各旧5post欠測、total20032不明。次24521 qualified E＝nativeE18273(single17647+P626)＋旧role4derived621＋split/partition/lines/verification/!N/majority各626＋wholeC4derived619＋D15/16 wholeSRderived各626。physical23281/invalid12別、保護622追加[]。現D16guard23269/622遡及0。
+
+原job463786Bの鍵前796全名/順序はsourceCIと一致、execute/project exit2なし。原全10projection/strictSR/rawmap binding/ordinal/usageをW再生とroot/R独立算術で照合。症状から要求補完FPと、責務/UI目的/提出template/適用設定宣言FNが併存する。形式語/時制/引用/従属節lookupを足さず、語用境界の不確実性を保持する。四criteria-onlyは新構造でも改善保証でもなく、今回不成立の原版を補正/再送しない。
+
+次仮説は三者反証・literal/期待Coreの事前固定後に別source/必要CI/一回D。中間負headのReadyや通常CIを追加gateにしない。全Dguard成功と要求freezeまで未使用H開封不可。winning Hは別固定contextで全経路model三状態とH2継続を接続する。共通Gold/有限集合条件付き近似、反復D過適合、同系統評価者の共通偏りという限界を維持。目的最終current通常CI/記録/Ready未mergeは最後に閉じる。
+
+~~~mermaid
+flowchart TB
+ A["✅ source/必要CI/三者exact"] --> B["✅ 一回D16/1252HTTP"]
+ B --> C["🔴 fresh2/history8破壊 FAIL"]
+ C --> D["📦 原5/費用/型付きE保持・Gold固定"]
+ D --> E["🛠️ 別literal三者固定→source/必要CI→別D"]
+ E --> F{"全Dguard PASS?"}
+ F -->|未達| D
+ F -->|成立| H["🔒 要求freeze後のみ未使用H・各回AND"]
+ H --> Z["⏳ 目的最終current全CI/記録/Ready未merge"]
+~~~
+
+以下はD16 source時点までの全文履歴。当時未実施等の記述は歴史記録。
+
 # D16 source: specification/request criteria-only精密化
 
 **CODE_ONLY・実D16/H未実施・未採用。** 原D15 FAILを保持した0cd57a389b7431afbb86670f213d774a3098fc64から、別処置をsource前に固定した。旧15の負結果/原版/Gold/plan/REQUESTは不変。現在REQUESTはdevelopment15/source ddefa43bf268317dbabf51b0eb4823cc545dca9eで、新sourceだけではmodelを呼ばない。
@@ -6,7 +33,7 @@
 
 三者の主張・反証：rootは短いv6への全説明圧縮を提案したが、W/Rは責務/quoted用途/真正template/設定宣言のcoverage削減を反証し保留。W一問union案は既D7/D11との差と既知意味誤りへの機構が弱く今回は選ばない。Rのcriteria-only案を三者で優先した。初稿Syesのaction/setting一般否定は機能/設定定義も落とすroot counterを受容し、performed/observed reportingがそれ自体で役割を成立させないと修正。引用/report/templateは関係を宣言する用途のときだけ数え、形式だけの十分条件にしない。他三criteriaは不変。noは全文不在が本体で、観測を含むと真正宣言を取消す規則、空/謝辞等の列挙漏れ、採用済/fulfilled/未来/must/主文等の新必要条件は足さない。症状条件と明示goalの語用曖昧さ、UI目的と観測規則性の区別は未解消のままGold固定。実case句/ID/新例を入れず、過去Dの単独branchを勝者採用しない。
 
-source前三者それぞれ自己actualD15の原B/O/Coreと独立literalからwx期待を固定、全requests/3templates/order/truth4/型/会計/protocolを照合した。標準SDK offline3756payloadのMAXはB20805/SR23495/O20856 bytes<24000。Wの表現比較helperでtruth配列対mapとDphysical2keys対Heligibility3wireの誤同一視を是正しただけで、原期待/製品/model0変更。4criteria以外のrequest全値一致を実装後も全件確認する。これらはコード検証でモデル品質実証ではない。
+source前三者それぞれ自己actualD15の原B/SR CoreとD15inputに保持されたhistorical qualified O template（D15の新O実POST0）と独立literalからwx期待を固定、全requests/3templates/order/truth4/型/会計/protocolを照合した。標準SDK offline3756payloadのMAXはB20805/SR23495/O20856 bytes<24000。Wの表現比較helperでtruth配列対mapとDphysical2keys対Heligibility3wireの誤同一視を是正しただけで、原期待/製品/model0変更。4criteria以外のrequest全値一致を実装後も全件確認する。これらはコード検証でモデル品質実証ではない。
 
 - D16固定input/report/projection schemaはops.sys1.expectation-role-criteria-development.v1/同-predictions.v1/同-projection.v1、physical roleCriteriaE。旧askRoleBoundary private本体を新exactschema/keyだけが再用し、元B/SDK/transport無変更。raw field roleBoundaryNativeは同SR受信境界のshape名であり、要求/source/keyは新contextの原値へ別結合する。旧qual関数/固定export本体は不変、同private検算へnewkeyを渡すnamedwrapperだけ追加。公開genericprofile/executor0。
 - original2named raw type/choice/confidence/exact2maps/model/topusage→typed全entryをstrict検証。local失敗はpost/flags無し、providerはpost必須/flags無し、response段はpost<flags<failure<unknown。借用flags/受信post削除も拒否。無効raw補正/再送0、currentpostのflags/usageをreset。片側yesでも他不資格ならwholeUNKNOWN、下位二回答枠もUNKNOWN、fallback/shortcut0。
