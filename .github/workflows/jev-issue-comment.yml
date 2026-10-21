@@ -1,6 +1,6 @@
 name: Jev Issue comment evaluation
 
-# Closed Org origins; PR606 accepts supplied input for one fresh finite follow-up trial.
+# Closed Org origins; PR625 accepts supplied input for one separate finite Goal-specific trial.
 # One PR budget claim across a finite ordinal window; no refill.
 # Historical grants remain; no rerun spending or automatic ordinal following.
 on:
@@ -23,9 +23,9 @@ jobs:
       github.event_name == 'issue_comment' &&
       github.event.repository.owner.type == 'Organization' &&
       ((github.event.comment.body == '/jev-evaluate' &&
-      (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)) ||
+      (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606)) ||
       (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&
-      github.event.issue.number == 606 &&
+      github.event.issue.number == 625 &&
       startsWith(github.event.comment.body, fromJSON('"/jev-evaluate\n"')))) &&
       ((github.event.issue.pull_request == null &&
       ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) ||
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: roccho-org/ops
-          ref: 6b7dd42171e32f91bb6fe60595f9bff37eb9d0b6
+          ref: 3d79c6fa89f705bf35a79abf6581af8fcf86c4c5
           persist-credentials: false
 
       - name: Install fixed toolchain provisioner
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          runtime_source=6b7dd42171e32f91bb6fe60595f9bff37eb9d0b6
+          runtime_source=3d79c6fa89f705bf35a79abf6581af8fcf86c4c5
           test "$(git rev-parse HEAD)" = "$runtime_source"
           out="$(nix build --no-link --print-out-paths .#jev-review)"
           line="$(grep '^exec ' "$out/bin/jev-review")"
