@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';import {digest} from '../run.mjs';
 import {verifyQualificationEvents,verifyRole4QualificationEvents} from '../observation/qualification.mjs';
 import {roleRequest} from './request.mjs';
 import {prepareRoleDevelopment} from './development.mjs';
-import {expectationRoleDevelopmentGuard,expectationBoundaryDevelopmentGuard,expectationExampleDevelopmentGuard,expectationFocusDevelopmentGuard,expectationDeclarationDevelopmentGuard,expectationRole4DevelopmentGuard} from './guard.mjs';
+import {expectationRoleDevelopmentGuard,expectationBoundaryDevelopmentGuard,expectationExampleDevelopmentGuard,expectationFocusDevelopmentGuard,expectationDeclarationDevelopmentGuard,expectationRole4DevelopmentGuard,expectationRole2DevelopmentGuard} from './guard.mjs';
 import {boundaryRequest}from'./boundary-request.mjs';import {prepareBoundaryDevelopment}from'./boundary-input.mjs';
 const ROLE=Object.freeze({inputSchema:'ops.sys1.expectation-role-development.v1',predictionsSchema:'ops.sys1.expectation-role-development-predictions.v1',projectionSchema:'ops.sys1.expectation-role-development-projection.v1',prepare:prepareRoleDevelopment,request:roleRequest,guard:expectationRoleDevelopmentGuard,usageScope:"1252 new physical E requests only; historical O and E receipts are evidence aliases, never new calls; single candidate E is a qualified provider receipt; projection adds no physical call or fabricated provider fields; absent total_tokens and money stay unknown"});
 const BOUNDARY=Object.freeze({inputSchema:'ops.sys1.expectation-boundary-development.v1',predictionsSchema:'ops.sys1.expectation-boundary-development-predictions.v1',projectionSchema:'ops.sys1.expectation-boundary-development-projection.v1',prepare:prepareBoundaryDevelopment,request:boundaryRequest,guard:expectationBoundaryDevelopmentGuard,usageScope:'1252 new physical E requests only; prior E and O are historical evidence aliases; single boundary candidate is its qualified provider receipt; no fabricated probabilities/model/usage; missing total_tokens and money stay unknown'});
@@ -14,7 +14,9 @@ import {declarationRequest}from'./declaration-request.mjs';import {prepareDeclar
 const DECLARATION=Object.freeze({inputSchema:'ops.sys1.expectation-declaration-development.v1',predictionsSchema:'ops.sys1.expectation-declaration-development-predictions.v1',projectionSchema:'ops.sys1.expectation-declaration-development-projection.v1',prepare:prepareDeclarationDevelopment,request:declarationRequest,guard:expectationDeclarationDevelopmentGuard,usageScope:'1252 new physical E requests only; all8257 historical E and fixed O are evidence aliases; single English declaration E is its qualified provider receipt; no fabricated probabilities/model/usage; missing total_tokens and money stay unknown'});
 import {role4Request}from'./role4-request.mjs';import {prepareRole4Development}from'./role4-input.mjs';
 const ROLE4=Object.freeze({inputSchema:'ops.sys1.expectation-role4-development.v1',predictionsSchema:'ops.sys1.expectation-role4-development-predictions.v1',projectionSchema:'ops.sys1.expectation-role4-development-projection.v1',prepare:prepareRole4Development,request:role4Request,guard:expectationRole4DevelopmentGuard,usageScope:'1252 new physical calls:626 binary BestE and626 native four-class role4 responses; E/O projections add no calls or fabricated probabilities/confidence/model/usage; all9509 historical binary E and fixed O are evidence aliases; candidate O diagnostic only; absent total_tokens and money stay unknown'});
-const role4Choices=['E_ONLY','O_ONLY','BOTH','NEITHER'],choices=(profile,key)=>profile===ROLE4&&key==='role4'?role4Choices:['yes','no'],pairOrder=(profile,i)=>order(i).map(k=>profile===ROLE4&&k==='scopedE'?'role4':k);
+import{role2Request}from'./role2-request.mjs';import{prepareRole2Development}from'./role2-input.mjs';
+const ROLE2=Object.freeze({inputSchema:'ops.sys1.expectation-role2-development.v1',predictionsSchema:'ops.sys1.expectation-role2-development-predictions.v1',projectionSchema:'ops.sys1.expectation-role2-development-projection.v1',prepare:prepareRole2Development,request:role2Request,guard:expectationRole2DevelopmentGuard,usageScope:'1252 new native binary E requests only; all10756 qualified historical E evidence (10135 binary and621 role4-derived) and fixed O are aliases; prior invalid5 remain physical/unknown; candidate O and latent4 are not observed; no fabricated probability/confidence/model/usage; absent tokens and money stay unknown'});
+const role4Choices=['E_ONLY','O_ONLY','BOTH','NEITHER'],choices=(profile,key)=>profile===ROLE4&&key==='role4'?role4Choices:['yes','no'],pairOrder=(profile,i)=>order(i).map(k=>k==='scopedE'?(profile===ROLE4?'role4':profile===ROLE2?'role2':k):k);
 const keys=['bestE','scopedE'],order=i=>[...keys.slice(i%2),...keys.slice(0,i%2)];
 function planned(profile,input){assert.equal(input.schema,profile.inputSchema);assert.equal(input.maxPosts,1252);assert.equal(input.expectedModel,'jev-1.13.0');assert.equal(input.rows.length,626);assert.equal(new Set(input.rows.map(r=>r.id)).size,626);return input.rows.flatMap((r,i)=>pairOrder(profile,i).map(k=>r.id+'/'+k));}
 async function evaluatePaired(profile,input,ask,observe){
@@ -37,7 +39,7 @@ async function projectPaired(profile,input,attempt,report,events,data){
  return{...base,role4};
 }
 
-// Six fixed internal contexts; callers cannot supply a profile, schema or constructor.
+// Seven fixed internal contexts; callers cannot supply a profile, schema or constructor.
 export function evaluateRoleDevelopment(input,ask,observe){return evaluatePaired(ROLE,input,ask,observe);}
 export function projectRoleDevelopment(input,attempt,report,events,data){return projectPaired(ROLE,input,attempt,report,events,data);}
 export function evaluateBoundaryDevelopment(input,ask,observe){return evaluatePaired(BOUNDARY,input,ask,observe);}
@@ -54,3 +56,6 @@ export function projectDeclarationDevelopment(input,attempt,report,events,data){
 
 export function evaluateRole4Development(input,ask,observe){return evaluatePaired(ROLE4,input,ask,observe);}
 export function projectRole4Development(input,attempt,report,events,data){return projectPaired(ROLE4,input,attempt,report,events,data);}
+
+export function evaluateRole2Development(input,ask,observe){return evaluatePaired(ROLE2,input,ask,observe);}
+export function projectRole2Development(input,attempt,report,events,data){return projectPaired(ROLE2,input,attempt,report,events,data);}

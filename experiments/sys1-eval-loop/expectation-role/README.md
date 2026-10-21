@@ -1,4 +1,37 @@
-# 四択役割分類の既知退行と資格欠測を原版保持し、別の二択出力仮説へ
+# 六つの負結果を固定し、E/O役割定義付きnative二択を検証
+
+## D7 ROLE2（code-only）
+
+D6のE1118字/O581字・ANY共存を全文保持し、intro第一文の出力指定だけをEの有無のyes/noへ変え、criteriaを元D5のyes/no114字へ戻す。instructions2295字の一packageで、BestE/sharedO/body/Gold/model/client/questionkeyは不変。latent4分類を内部実行した証明、候補O診断、保存4確率からのmarginal観測や二値確率は作らない。候補Eはnative provider二択でありproviderAnswer:falseという派生偽装をしない。4map資格を緩和せず出力を変える新処置だが、binaryでもsum契約/同じ意味誤り/O干渉は残り得る。語句/fewshot/個別bodyhintの追加0。
+
+Wは4class argmaxとE側massの違いを反証し、root/Rは実9mapでは単純.5massでも破壊が解消しないことを独立確認した。rootはjoint役割定義付きnative2案を提示、Rは出力2から内部4/Oを観測したとは言えない点をcounter、Wは2択sum正常も未保証・D6failure偽装不可をcounterした。intro第一文+元criteriaのみというliteralを三者全文確認し、Wliteralとroot/R各自己原Coreの期待値が出力前一致。[root原負と次案](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594492241)・[R原負と次案](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594487546)。
+
+旧9509binary+Best626binary+qualified role4 E射影621=10756 qualified E evidenceで617ordered保護、追加0。binary10135とrole4由来621を区別し、physical全10761とは同一でない。invalid5はunknownEvidenceに保持し全626を削除しない。旧六schema/Core/guards/outcomes/plans/raw/Goldは不変で、過去FAILを再採点/正規化して救済しない。freshBestE/role2各626=1252新native二択と同じfixed historicalOで比較し、全資格/model・complete joint正差・歴史617破壊0・freshE退行0を独立AND、機械firstは診断、O-null17全分母保持。ever-correctは工学目標で不偏性能推定や達成保証ではない。
+
+旧13run success契約を保ち、D6だけ原1252post/1247qualified/HTTP200 sum≈.99の5unknown/modelStable/knownFAILを全raw再構成して限定failureとして結合する。14run API+実Git親/REQUESTphaseに加え、D6だけjobs API一回で同じ単一run/job/9番号付きsteps（鍵前/prepare成功、execute/projectfailure、upload成功）を照合。任意failure/cancel/timeout/unknownonlyは通さない。jobs APIにexitcode欄は無く、actualexit2は既受容原joblogの限定再用とraw/source挙動整合でありAPI値を捏造しない。標準binaryrecorder/qualifier/SDK/transport/workflow六stepは一字も変えず、第七private context/namedwrapper/nativehistory7だけを追加、鍵前全原版/鍵下exact8field/fullCore/attempt1252の境界を維持する。
+
+source-onlyは旧D6/sourceD560 REQUESTを保持し、次のREQUEST-only activation7だけが一回起動する。最大10564=実消費7512（無効5も含む）+新最大1252+将来H1800、実会計と別、新User予算/認証gate無し。**中間8765保持のCI/Readyを次sourceや作用の追加前提にしない。新sourceの必要CI/三者技術受容を満たして直進し、全目的の最終current headだけ全通常CI/記録/Ready未mergeを閉じる。**
+
+Hは既窓/prior/noRefillを維持し、実D7guardPASS/原版/実要求freezeの三者受容前にcount/body/Goldを開封しない。成功したrole2だけ既3Mへ固定contextを足し、失敗role4 Hprototypeを並設しない。freshBestE/role2/sharedO各1×同cases二回、ordinaryunknown/knownFAILはrep2を取消さず、actualdriftはrawmodelStableで停止する。cap350のprospective改訂/予測前Gold/null/全bodyGoldCore値照合を維持、固定有限Gold条件の改善近似までで、同系統候補既知raterの共通偏り/意味的未見/母集団やApps E2E/同原価は保証しない。
+
+```mermaid
+flowchart TB
+ NEG[✅ 六負結果/原byte/三者反証] --> LIT[✅ intro1文とnative2criteria事前固定]
+ LIT --> CODE[✅ 第七閉context/標準binary再用]
+ CODE --> CI[⏳ 新source必要CI/三者受容]
+ CI --> D[⏳ history7/REQUESTonly一回1252]
+ D -->|未達/unknown| SAVE[原版/欠測費用保存/三者反証]
+ SAVE --> HYP[別の意味ある処置をsource化]
+ HYP --> CI
+ D -->|全guardPASS/実要求freeze| H[🔒 未使用H/予測前Gold/3M二回AND]
+ H -->|未達| RET[当H退役/別未使用H契約]
+ RET --> HYP
+ H --> FINAL[⏳ 目的の最終current全CI/記録/Ready未merge]
+```
+
+次source/実測は現時点code-onlyで、以下はD6原負保持時点と旧sourceの固定記録。当時のpendingは現時点と区別する。
+
+## D6負保持時点の記録
 
 ## D6：known退行FAILと5件の技術欠測を併記
 
