@@ -1,4 +1,36 @@
-# 六つの負結果を固定し、E/O役割定義付きnative二択を検証
+# 七つの負結果を保持し、次の構造処置へ進む
+
+## D7：全二値資格は成立、既知退行で未採用
+
+[run39539156188](https://github.com/roccho-org/ops/actions/runs/39539156188)はsource e8a9c9b6 / REQUEST-only activation5c054e57 / development7・history7で一回実行した。native binary BestE626＋role2626＝1252postが全資格/modelStable、unknown0。実job119022661211は鍵前722/722fail0とprepare後、execute/project/uploadまでSUCCESS。native成功は意味合格を意味しない。
+
+joint475→503、pair修復31/退行3、E582→611・修復32/退行3。freshE退行はcensus-072/108/178、617保護破壊はheld-086、census-023/072/108/178/210の6件で、固定guardはDEVELOPMENT_GUARD_FAIL。正差で退行を相殺せず、O-null17/全626を保持、selection/実要求freezeを発行しない。未使用Hのcount/body/Goldは0のまま。
+
+root/Rは各自己ZIP/nativehistory7/全1252Core・flags・資格/617guard/費用を独立再算術し全8projection fieldsがW再生と一致。原5全24,502,968B＋provider/readback/root原reportをresults/expectation-role2-development7-20261021/へ原bytes保持。旧六projection/schema/Core/guards/plans/raw/REQUEST/Goldは不変で、D6の5invalidを遡及補正しない。[root source/必要CI反証](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594580683)・[R独立source/必要CI反証](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5594573949)。現保持head全通常CI成功は先取りせず、目的の最終current全CI/記録/Ready未mergeを残す。中間負原版ごとのCI/Ready待ちは次source/作用の追加gateにしない。
+
+当回usage input2,372,526/output38,812は1252全件既知、total_tokensは全1252不明。D1..D7累積physical8764/qualified8759、input既知小計18,179,633/output既知小計283,957・各5post不明、total_tokens全8764不明。料金/内部計算量は不明、missingを0扱いしない。今回は全nativebinary資格が通ったという観測までで、D6の同5応答の反事実や将来のbinarysum正常・単一原因・同原価は証明しない。旧4map周辺和による救済は0。
+
+W/root/Rが6本文を元rubricで読み直しGold維持。3FNは現在の責務境界、表示中の機能IO宣言、明示された必要行為。3FPは症状＋見出し、実施阻害/原因推測、侵害状況＋Notify見出し/mentionだけ。見出し/時制/疑問符だけを規則にせず、case語句やIDを次promptへコピーしない。次履歴は12008 qualified E evidence＝native binary11387＋role4由来621、physical12013/既invalid5は別、617ordered保護は追加0。新保護でD7を遡及採点しない。ever-correctは工学的保護で、不偏性能推定や達成可能性保証でない。
+
+次は意味ある別の構造処置を三者反証し、wholeCore/資格/原来歴/有限割当を出力前固定して一回測定する。下位役割分解等はまだ未選択/未実装、同候補盲再送や閾値救済はしない。成功候補の実guard/原版/要求freeze三者受容後だけ、固定窓/priorからHを開く。Hの有限Gold条件付改善近似・同系統評定者偏り・意味的未見/母集団/Apps E2E未保証は維持する。
+
+~~~mermaid
+flowchart TB
+ PRE[✅ 六負原版/全Core/三者反証] --> SRC[✅ E8a source/722必要CI/三者]
+ SRC --> RUN[✅ D7一回1252/全二値資格/原8投影]
+ RUN --> FAIL[❌ fresh3/歴史6退行・未採用]
+ FAIL --> RAW[✅ 原5/別ZIP独立算術/欠測会計/Gold固定]
+ RAW --> HYP[⏳ 別構造仮説を三者反証/出力前固定]
+ HYP --> CODE[⏳ 最小source/必要CI/三者/別有限D]
+ CODE -->|未達/unknown| RAW
+ CODE -->|実guardPASS/要求freeze| H[🔒 未使用H/予測前Gold/fresh3M二回AND]
+ H -->|未達/unknown| RET[当H退役/別仮説・別未使用契約]
+ RET --> HYP
+ H -->|二回条件成立| END[目的の最終current全CI/会計/記録/Ready未merge]
+~~~
+
+以下はD7 code-only source時点の原説明。当時の未実測/pendingは現D7負結果と区別する。
+
 
 ## D7 ROLE2（code-only）
 
