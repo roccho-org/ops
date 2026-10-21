@@ -69,3 +69,7 @@ replace_once("src/session.ts", "return new Response(null, { status: 101, webSock
 # Terminal provider diagnostics must not become durable credential copies.
 replace_once("src/chat.ts", "  configure,\n", "  configure,\n  hook,\n  GenerationTask,\n")
 replace_once("src/chat.ts", '    name: "chat",\n', '    name: "chat",\n    hooks: jevTool ? [hook(GenerationTask, { afterResponse(message) {\n      if (message.stopReason === "error" || message.stopReason === "aborted") {\n        message.errorMessage = "Proof provider request failed";\n        message.content = [];\n        delete message.responseId;\n        delete message.rawStopReason;\n      }\n    } })] : [],\n')
+
+replace_once("src/chat.ts", "  jevTool?: ToolRegistration,\n", "  jevTool?: ToolRegistration,\n  failureMetadata?: (message: object) => string,\n")
+replace_once("src/session.ts", "      selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY) : undefined,", "      selected ? bindJevProof(proof.PI_JEV_PROOF_API_KEY) : undefined,\n      this.#proof ? (message) => this.#proof!.failureMetadata(message) : undefined,")
+replace_once("src/chat.ts", 'message.errorMessage = "Proof provider request failed";', 'message.errorMessage = failureMetadata ? failureMetadata(message) : "Proof provider request failed";')

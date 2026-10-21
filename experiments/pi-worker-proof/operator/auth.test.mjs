@@ -657,3 +657,122 @@ test("real history loopback sends ZERO commands for root/ambiguity or exactly ON
     }
   }
 });
+function failedRecoveryObservation() {
+  return { state: "OBSERVED", classification: "MODEL_ERROR_OR_ABORT_OBSERVED", inspected: true,
+    postsAtUpgrade: 1, entryCount: 3, userMessageCount: 1, assistantCount: 1, errorOrAbortCount: 1,
+    completedAssistantCount: 0, askJevCallCount: 0, askJevResultCount: 0, matchedTypedJevResultCount: 0,
+    subsequentEventCount: 0, inventoryCount: 2, openedConversationCount: 1, pendingObserved: false,
+    subsequentEventScope: "ROOT_AND_SELECTED_CONVERSATION" };
+}
+test("one seed recovery consumes a durable admission before external work and keeps all old UNKNOWN audits", async () => {
+  const { mkdtemp, readFile, unlink, rmdir } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const { withRegistration } = await import("./custody.mjs");
+  const { beginSeedRecovery, recoveryHistoryAllowed, proofIdentity } = await import("./owner.mjs");
+  const dir = await mkdtemp(tmpdir() + "/owner-seed-recovery-"), path = dir + "/registration.json";
+  const prior = { state: "UNKNOWN", attemptedStage: "seed",
+    reconciliation: { state: "UNKNOWN", forensicOnce: { state: "UNKNOWN" } },
+    historyInspection: failedRecoveryObservation() };
+  try {
+    await withRegistration(path, store => store.save({ state: "READY", proof: prior }));
+    const before = await readFile(path, "utf8");
+    await withRegistration(path, async store => {
+      await assert.rejects(beginSeedRecovery(store, Date.now() - 1));
+      assert.equal(await readFile(path, "utf8"), before);
+    });
+    for (const [key,value] of Object.entries({ userMessageCount: 2, assistantCount: 2, errorOrAbortCount: 0,
+      completedAssistantCount: 1, askJevCallCount: 1, askJevResultCount: 1, matchedTypedJevResultCount: 1,
+      pendingObserved: true, subsequentEventCount: 1, inventoryCount: 3, openedConversationCount: 0, inspected: false })) {
+      assert.throws(() => recoveryHistoryAllowed({ ...prior.historyInspection, [key]: value }));
+    }
+    const child = `
+      const {withRegistration}=await import(${JSON.stringify(new URL("./custody.mjs", import.meta.url).href)});
+      const {beginSeedRecovery}=await import(${JSON.stringify(new URL("./owner.mjs", import.meta.url).href)});
+      await withRegistration(process.argv[1], async store => {
+        await beginSeedRecovery(store,Date.now()+300000);console.log("RECOVERY_DURABLE_BEFORE_EXTERNAL");
+        if(process.argv[2]==="crash")process.kill(process.pid,"SIGKILL");
+      }).catch(()=>{console.error("RECOVERY_REFUSED");process.exitCode=1;});
+    `;
+    const execute = (crash = false) => promisify(execFile)(process.execPath, ["--input-type=module", "-e", child, path, crash ? "crash" : "normal"], { timeout: 5000 });
+    await assert.rejects(execute(true), error => error.signal === "SIGKILL" && error.stdout.trim() === "RECOVERY_DURABLE_BEFORE_EXTERNAL");
+    await assert.rejects(execute(), error => error.stderr.trim() === "RECOVERY_REFUSED");
+    const marked = JSON.parse(await readFile(path, "utf8")).proof;
+    assert.deepEqual(marked.seedRecovery.originalUnknown, prior);
+    assert.deepEqual(marked.reconciliation, prior.reconciliation);
+    assert.equal(marked.state, "UNKNOWN");
+    for (const value of [null, false, {}, { state: "UNKNOWN" }]) {
+      await withRegistration(path, store => store.save({ state: "READY", proof: { ...prior, seedRecovery: value } }));
+      await assert.rejects(execute());
+    }
+    assert.throws(() => proofIdentity({ url: "https://pi.roccho.workers.dev", session: "owner-jev-proof-20261020",
+      host: "64a8f191-83c2-5eeb-8dc0-612bc80970db", stage: "history", continue: true, "recover-seed-once": true }));
+  } finally {
+    for (const name of ["registration.json","registration.json.lock"]) await unlink(dir + "/" + name).catch(() => {});
+    await rmdir(dir);
+  }
+});
+test("terminal provider diagnostics accept only the own fixed envelope, never raw provider text", async () => {
+  const { providerFailureReceipt, proofWitness, safeWitnessStatus } = await import("./owner.mjs");
+  const envelope = { scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: 2, httpStatus: 401, outcome: "HTTP" };
+  const failure = errorMessage => [{ role: "assistant", stopReason: "error", errorMessage }];
+  assert.deepEqual(providerFailureReceipt(failure(JSON.stringify(envelope))), envelope);
+  assert.equal(providerFailureReceipt([{ role: "assistant", stopReason: "stop" }]), undefined);
+  for (const value of ["synthetic-private-HTTP401", JSON.stringify({ ...envelope, private: "synthetic-private" }),
+    JSON.stringify({ ...envelope, attempt: 5 }), JSON.stringify({ ...envelope, httpStatus: "401" }),
+    JSON.stringify({ ...envelope, outcome: "TRANSPORT" }), JSON.stringify({ ...envelope, scope: "provider" })]) {
+    const result = providerFailureReceipt(failure(value));
+    assert.equal(result.outcome, "UNKNOWN");
+    assert.equal(JSON.stringify(result).includes("synthetic-private"), false);
+  }
+  const witness = { boot: "00000000-0000-4000-8000-000000000608", posts: 4, prior: "false" };
+  proofWitness(witness, 4, "false"); assert.equal(safeWitnessStatus(witness).posts, 4);
+});
+test("recovery uses the unique existing conversation and emits only ONE open, never create or prompt", async () => {
+  const { prepareRecoveryConversation, observeOwnerSocket, withOwnerSockets, waitOwnerFrame, closeOwnerSocket } = await import("./owner.mjs");
+  const { WebSocket, WebSocketServer } = await import("ws");
+  const { once } = await import("node:events");
+  for (const mode of ["valid","posts0","posts2","prior","completed","jev","pending","ambiguous","root-work"]) {
+    const server = new WebSocketServer({ host: "127.0.0.1", port: 0 }); await once(server, "listening");
+    const commands = [];
+    server.on("headers", headers => headers.push("Pi-Proof-Boot: 00000000-0000-4000-8000-000000000608",
+      "Pi-Proof-Prior-Token: " + (mode === "prior" ? "true" : "false"),
+      "Pi-Proof-Posts: " + (mode === "posts0" ? 0 : mode === "posts2" ? 2 : 1)));
+    server.on("connection", socket => {
+      for (const frame of historyFrames(mode === "ambiguous" ? [{ id: 9 },{ id: 10 }] : [{ id: 9 }],
+        mode === "root-work" ? [{ model: [] }] : [])) socket.send(JSON.stringify(frame));
+      socket.on("message", data => {
+        const command = JSON.parse(String(data)); commands.push(command);
+        assert.equal(command.type, "conversation.open"); assert.equal(command.conversationId, 9);
+        const entries = [{ model: [{ role: "user", content: "synthetic-old-failed" }] },
+          { model: [] }, { model: [{ role: "assistant", stopReason: mode === "completed" ? "stop" : "error",
+            rawStopReason: mode === "completed" ? "completed" : undefined, responseId: mode === "completed" ? "old" : undefined,
+            content: mode === "jev" ? [{ type: "toolCall", name: "ask_jev", id: "old" }] : [] }] }];
+        const opened = historyFrames([], entries);
+        if (mode === "pending") opened[1].events[0].compactions.push({ id: "pending" });
+        for (const frame of opened.slice(1,3)) socket.send(JSON.stringify({ ...frame, conversationId: 9 }));
+        socket.send(JSON.stringify({ type: "command.result", command: "conversation.open", requestId: command.requestId, ok: true }));
+      });
+    });
+    const abort = new AbortController();
+    try {
+      await withOwnerSockets(abort.signal, async sockets => {
+        const frames = [], socket = new WebSocket("ws://127.0.0.1:" + server.address().port); sockets.add(socket);
+        const trace = observeOwnerSocket(socket, frames); await once(socket, "open");
+        const wait = predicate => waitOwnerFrame(frames, socket, predicate, abort.signal, 500);
+        const connection = { frames, witness: trace.witness, wait,
+          close: () => closeOwnerSocket(socket, abort.signal),
+          async command(command) { socket.send(JSON.stringify(command));
+            return wait(frame => frame?.type === "command.result" && frame.requestId === command.requestId); } };
+        if (mode === "valid") assert.equal(await prepareRecoveryConversation(connection), 9);
+        else await assert.rejects(prepareRecoveryConversation(connection));
+        await connection.close();
+      });
+      assert.equal(commands.length, ["valid","completed","jev","pending"].includes(mode) ? 1 : 0);
+    } finally {
+      for (const socket of server.clients) socket.terminate();
+      await new Promise(resolve => server.close(resolve));
+    }
+  }
+});

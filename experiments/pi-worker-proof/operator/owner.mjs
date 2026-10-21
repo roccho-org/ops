@@ -12,6 +12,7 @@ import { withRegistration, replaceCredential, ready, refreshTiming } from "./cus
 let lastPhase = "VALIDATE";
 let lastHttpStatus;
 let lastSocketTrace;
+let lastProviderFailure;
 function phase(name) { lastPhase = name; lastHttpStatus = undefined; console.log(JSON.stringify({ scope: "OWNER_PHASE_ENTERED", phase: name })); }
 export function parseOwnerFrame(data) {
   try { return JSON.parse(String(data)); } catch { return { type: "invalid.owner.frame" }; }
@@ -30,7 +31,7 @@ export function observeOwnerSocket(socket, frames, invalidFrame = () => {}) {
     trace.upgradeSeen101 = response.statusCode === 101;
     trace.witness = {
       boot: response.headers["pi-proof-boot"], prior: response.headers["pi-proof-prior-token"],
-      posts: typeof response.headers["pi-proof-posts"] === "string" && /^[0-3]$/.test(response.headers["pi-proof-posts"]) ? Number(response.headers["pi-proof-posts"]) : NaN,
+      posts: typeof response.headers["pi-proof-posts"] === "string" && /^[0-4]$/.test(response.headers["pi-proof-posts"]) ? Number(response.headers["pi-proof-posts"]) : NaN,
     };
   });
   socket.on("unexpected-response", (_request, response) => {
@@ -46,7 +47,7 @@ export function safeWitnessStatus(witness) {
   return {
     bootPresent: typeof witness?.boot === "string" && witness.boot.length > 0,
     bootValid: typeof witness?.boot === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(witness.boot),
-    posts: Number.isInteger(witness?.posts) && witness.posts >= 0 && witness.posts <= 3 ? witness.posts : null,
+    posts: Number.isInteger(witness?.posts) && witness.posts >= 0 && witness.posts <= 4 ? witness.posts : null,
     priorToken: witness?.prior === "true" ? true : witness?.prior === "false" ? false : null,
   };
 }
@@ -58,7 +59,8 @@ export function proofIdentity(values) {
       values.host !== "64a8f191-83c2-5eeb-8dc0-612bc80970db" ||
       !["login","reauth","refresh","seed","recall","reconcile","history"].includes(values.stage) ||
       (["seed","recall","reconcile","history"].includes(values.stage) && values.continue !== true) ||
-      (values["forensic-once"] === true && values.stage !== "reconcile")) throw new Error("Proof identity mismatch");
+      (values["forensic-once"] === true && values.stage !== "reconcile") ||
+      (values["recover-seed-once"] === true && values.stage !== "seed")) throw new Error("Proof identity mismatch");
 }
 export async function loadOwnerOAuth() {
   delete process.env.PI_OAUTH_CALLBACK_HOST;
@@ -208,7 +210,7 @@ export function summarizeHistory(frames, id, witness) {
     pendingObserved: pending, subsequentEventCount: otherEvents, subsequentEventScope: "ROOT_AND_SELECTED_CONVERSATION",
     providerHttpCause: "UNAVAILABLE_FROM_MASKED_HISTORY" };
 }
-export async function inspectHistoryConnection(connection) {
+export async function inspectHistoryConnection(connection, closeAfter = true) {
   await connection.wait(frame => frame?.type === "conversation.events" && frame.conversationId === 1 &&
     Array.isArray(frame.events) && frame.events.some(event => event?.type === "snapshot"));
   await connection.wait(frame => frame?.type === "conversation.inbox" && frame.conversationId === 1);
@@ -225,7 +227,7 @@ export async function inspectHistoryConnection(connection) {
       Array.isArray(frame.events) && frame.events.some(event => event?.type === "snapshot"));
     await connection.wait(frame => frame?.type === "conversation.inbox" && frame.conversationId === selected.conversationId);
   }
-  await connection.close();
+  if (closeAfter) await connection.close();
   // Reject foreign/unknown frames rather than silently filtering them from the inspected snapshot.
   assert.ok(connection.frames.every(frame => {
     if (!recordObject(frame)) return false;
@@ -257,6 +259,53 @@ export async function beginHistoryInspection(store, expires) {
 export async function saveHistoryObservation(store, observation) {
   const record = store.get();
   await store.save({ ...record, proof: { ...record.proof, historyInspection: { state: "OBSERVED", ...observation } } });
+}
+export function recoveryHistoryAllowed(observation) {
+  assert.ok(observation?.classification === "MODEL_ERROR_OR_ABORT_OBSERVED" && observation.inspected === true);
+  for (const [key, expected] of Object.entries({ postsAtUpgrade: 1, entryCount: 3, userMessageCount: 1, assistantCount: 1, errorOrAbortCount: 1,
+    completedAssistantCount: 0, askJevCallCount: 0, askJevResultCount: 0, matchedTypedJevResultCount: 0,
+    subsequentEventCount: 0, inventoryCount: 2, openedConversationCount: 1 })) assert.equal(observation[key], expected);
+  assert.equal(observation.pendingObserved, false);
+  assert.equal(observation.subsequentEventScope, "ROOT_AND_SELECTED_CONVERSATION");
+}
+export async function beginSeedRecovery(store, expires) {
+  const record = store.get(), proof = record.proof;
+  assert.ok(proof?.state === "UNKNOWN" && proof.attemptedStage === "seed" &&
+    proof.reconciliation?.state === "UNKNOWN" && proof.reconciliation.forensicOnce?.state === "UNKNOWN" &&
+    proof.historyInspection?.state === "OBSERVED" && !Object.hasOwn(proof, "seedRecovery"));
+  recoveryHistoryAllowed(proof.historyInspection);
+  assert.ok(Number.isFinite(expires) && expires > Date.now() + 30_000);
+  await store.save({ ...record, proof: { ...proof, seedRecovery: { state: "UNKNOWN", originalUnknown: proof } } });
+}
+export async function prepareRecoveryConversation(connection) {
+  proofWitness(connection.witness, 1, "false");
+  await connection.wait(frame => frame?.type === "conversation.events" && frame.conversationId === 1 &&
+    Array.isArray(frame.events) && frame.events.some(event => event?.type === "snapshot"));
+  await connection.wait(frame => frame?.type === "conversation.inbox" && frame.conversationId === 1);
+  const target = historyTarget(connection.frames, connection.witness);
+  assert.equal(target.classification, "UNIQUE_OWNERLESS_NONROOT");
+  const observation = await inspectHistoryConnection(connection, false);
+  recoveryHistoryAllowed(observation);
+  return target.conversationId;
+}
+export function providerFailureReceipt(messages) {
+  const failures = messages.filter(message => message.role === "assistant" && ["error","aborted"].includes(message.stopReason));
+  if (failures.length === 0) return undefined;
+  const unknown = { scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: null, httpStatus: null, outcome: "UNKNOWN" };
+  if (failures.length !== 1) return unknown;
+  try {
+    const value = JSON.parse(failures[0].errorMessage);
+    assert.deepEqual(Object.keys(value).sort(), Object.keys(unknown).sort());
+    assert.equal(value.scope, unknown.scope); assert.equal(value.version, 1);
+    assert.ok(value.attempt === null || (Number.isInteger(value.attempt) && value.attempt >= 1 && value.attempt <= 4));
+    assert.ok(value.httpStatus === null || (Number.isInteger(value.httpStatus) && value.httpStatus >= 100 && value.httpStatus <= 599));
+    assert.ok(["HTTP","TRANSPORT","NOT_SENT","UNKNOWN"].includes(value.outcome));
+    assert.ok(value.outcome !== "HTTP" || (value.attempt !== null && value.httpStatus !== null));
+    assert.ok(value.outcome === "HTTP" || value.httpStatus === null);
+    assert.ok(value.outcome !== "TRANSPORT" || value.attempt !== null);
+    assert.ok(!["NOT_SENT","UNKNOWN"].includes(value.outcome) || value.attempt === null);
+    return value;
+  } catch { return unknown; }
 }
 export function emptyRootCertificate(frames, witness) {
   proofWitness(witness, 0);
@@ -341,7 +390,7 @@ async function run() {
 const { values } = parseArgs({ options: {
   url: { type: "string" }, session: { type: "string" }, host: { type: "string" },
   cloudflared: { type: "string" }, stage: { type: "string" }, continue: { type: "boolean" },
-  "forensic-once": { type: "boolean" },
+  "forensic-once": { type: "boolean" }, "recover-seed-once": { type: "boolean" },
 } });
 proofIdentity(values);
 if (!process.stderr.isTTY || !values.url || !values.session || !values.host || !values.cloudflared) {
@@ -394,13 +443,14 @@ if (stage === "refresh") {
 // paid continuation consent, never a read-only status query or an automatic recovery.
 if (!values.continue) throw new Error("Explicit --continue required before access attachment");
 const record = store.get();
-proofStageAllowed(record.proof, stage, values["forensic-once"] === true);
+if (!(stage === "seed" && values["recover-seed-once"] === true)) proofStageAllowed(record.proof, stage, values["forensic-once"] === true);
 if (stage === "recall" && (record.proof?.state !== "SEEDED" || (record.rotations ?? 0) <= record.proof.rotations)) {
   throw new Error("Completed seed and actual durable refresh required");
 }
 const previousProof = record.proof;
 if (stage === "recall" && (previousProof.session !== values.session || previousProof.origin !== values.url || previousProof.host !== values.host)) throw new Error("Proof binding mismatch");
-if (stage === "reconcile") {
+if (stage === "seed" && values["recover-seed-once"] === true) await beginSeedRecovery(store, credential.expires);
+else if (stage === "reconcile") {
   await beginReconciliation(store, values["forensic-once"] === true, credential.expires);
 } else if (stage === "history") await beginHistoryInspection(store, credential.expires);
 else await store.save({ ...record, proof: { ...previousProof, state: "UNKNOWN", attemptedStage: stage } });
@@ -455,7 +505,10 @@ async function connect() {
       const start = frames.length;
       const result = await this.command({ type: "prompt.submit", requestId: randomUUID(), conversationId, content });
       await wait(frame => completedTurn(frame, conversationId, result.submissionId));
-      return turnMessages(frames.slice(start), conversationId);
+      const messages = turnMessages(frames.slice(start), conversationId);
+      lastProviderFailure = providerFailureReceipt(messages);
+      if (lastProviderFailure) throw new Error("Proof provider failure; no resend");
+      return messages;
     },
     close() {
       return closeOwnerSocket(ws, abort.signal);
@@ -490,18 +543,28 @@ if (stage === "reconcile") {
 }
 if (stage === "seed") {
 const first = await connect();
-proofWitness(first.witness, 0, "false");
+const recovery = values["recover-seed-once"] === true;
+proofWitness(first.witness, recovery ? 1 : 0, "false");
 if (previousProof?.state === "RECONCILED_EMPTY") assert.notEqual(first.witness.boot, previousProof.reconciliation.boot, "Idle/recreated instance required after reconciliation");
-phase("SEED_CREATE");
-const created = await first.command({ type: "conversation.create", requestId: randomUUID() });
+let conversationId;
+if (recovery) {
+  phase("RECOVERY_EXISTING_CONVERSATION");
+  conversationId = await prepareRecoveryConversation(first);
+  // Pin the actual current unique ID before any fresh prompt. Old history did not retain it.
+  await store.save({ ...store.get(), proof: { ...store.get().proof,
+    seedRecovery: { ...store.get().proof.seedRecovery, conversationId } } });
+} else {
+  phase("SEED_CREATE");
+  conversationId = (await first.command({ type: "conversation.create", requestId: randomUUID() })).conversationId;
+}
 const marker = randomBytes(24).toString("hex");
 phase("SEED_SUBMIT");
-const messages = await first.turn(created.conversationId,
+const messages = await first.turn(conversationId,
   "Remember marker " + marker + ". Call ask_jev exactly once with state describing this finite memory experiment and one likelihood question. Use its actual assessment, then repeat the marker and assessment.");
 const results = messages.filter(message => message.role === "toolResult" && message.toolName === "ask_jev");
 assert.equal(results.length, 1); assert.equal(results[0].isError, false);
 const calls = messages.filter(message => message.role === "assistant").flatMap(message => message.content).filter(part => part.type === "toolCall");
-assert.equal(calls.length, 1); assert.equal(calls[0].id, results[0].toolCallId);
+assert.equal(calls.length, 1); assert.equal(calls[0].name, "ask_jev"); assert.equal(calls[0].id, results[0].toolCallId);
 const assessment = JSON.parse(results[0].content.filter(part => part.type === "text").map(part => part.text).join(""));
 assert.equal(assessment.type, "noul"); assert.ok(Number.isFinite(assessment.noul));
 const answer = assistant(messages);
@@ -509,18 +572,20 @@ assert.ok(answer.includes(marker) && answer.includes(String(assessment.noul)));
 const completions = completionReceipt(messages, ["toolUse", "stop"]);
 await first.close();
 phase("SEED_COMMIT");
-await store.save({ ...store.get(), proof: { ...previousProof, state: "SEEDED", session: values.session,
-  origin: values.url, host: values.host, conversationId: created.conversationId, marker, assessment, boot: first.witness.boot,
+await store.save({ ...store.get(), proof: { ...store.get().proof, state: "SEEDED", modelPostOffset: recovery ? 1 : 0, session: values.session,
+  origin: values.url, host: values.host, conversationId: conversationId, marker, assessment, boot: first.witness.boot,
   rotations: record.rotations ?? 0, completions, seededAt: Date.now() } });
-console.log(JSON.stringify({ scope: "ACTUAL_WORKER_SEED_ONLY", status: "SEEDED", conversationId: created.conversationId,
+console.log(JSON.stringify({ scope: "ACTUAL_WORKER_SEED_ONLY", status: "SEEDED", conversationId: conversationId,
   completions, successfulJevToolResults: 1, memoryRecall: "NOT_RUN" }));
 } else {
 assert.equal(previousProof.session, values.session);
 const reopened = await connect();
-proofWitness(reopened.witness, 2, "false");
+const offset = previousProof.modelPostOffset ?? 0;
+assert.ok(offset === 0 || offset === 1);
+proofWitness(reopened.witness, 2 + offset, "false");
 assert.ok(reopened.witness.boot !== previousProof.boot && reopened.witness.prior === "false",
   "NOT_PROVEN: real DO recreation not observed; no recall prompt sent");
-assert.equal(reopened.witness.posts, 2);
+assert.equal(reopened.witness.posts, 2 + offset);
 await reopened.command({ type: "conversation.open", requestId: randomUUID(), conversationId: previousProof.conversationId });
 phase("RECALL_SUBMIT");
 const messages = await reopened.turn(previousProof.conversationId,
@@ -532,11 +597,12 @@ const completions = [...previousProof.completions, ...completionReceipt(messages
 assertDistinctCompletions(completions);
 await reopened.close();
 const receipt = await connect();
-proofWitness(receipt.witness, 3);
+proofWitness(receipt.witness, 3 + offset);
 await receipt.close();
 await store.save({ ...store.get(), proof: { ...previousProof, state: "COMPLETE", completions } });
 console.log(JSON.stringify({ scope: "ACTUAL_WORKER_CREDENTIAL_LIFECYCLE_PROOF", session: values.session,
-  conversationId: previousProof.conversationId, completions, responsesPostAttempts: 3,
+  conversationId: previousProof.conversationId, completions, responsesPostAttempts: 3 + offset, historicalFailedAdmissions: offset,
+  overallUserInputs: offset ? 3 : 2,
   successfulJevToolResults: 1, recreated: true, priorTokenAbsent: true, actualRefreshPersistedAcrossProcess: true,
   markerSha256: createHash("sha256").update(previousProof.marker).digest("hex"),
   assessment: previousProof.assessment, recallMatched: true, noClientHistoryReinjection: true,
@@ -564,6 +630,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     httpStatus: Number.isInteger(status) && status >= 100 && status <= 599 ? status : null,
     errorCode: lastSocketTrace?.errorCode ?? safeOwnerErrorCode(error),
     upgradeSeen101: lastSocketTrace?.upgradeSeen101 === true,
-    witness: safeWitnessStatus(lastSocketTrace?.witness), noAutomaticResend: true }));
+    witness: safeWitnessStatus(lastSocketTrace?.witness), providerFailure: lastProviderFailure ?? null, noAutomaticResend: true }));
   process.exitCode = 1;
 });

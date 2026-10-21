@@ -552,11 +552,13 @@ describe("finite transient proof transport — keyless mocks only", () => {
       expect(witness["Pi-Proof-Prior-Token"]).toBe("false");
       await proof.fetch("https://api.openai.com/v1/responses", { method: "POST",
         body: JSON.stringify({ store: false, stream: true, input: [{ type: "additional_tools" }] }) });
+      await proof.fetch("https://api.openai.com/v1/responses", { method: "POST",
+        body: JSON.stringify({ store: false, stream: true, input: [{ type: "additional_tools" }] }) });
       await expect(proof.fetch("https://api.openai.com/v1/responses", { method: "POST" })).rejects.toThrow("budget consumed");
-      expect(await proof.counts()).toBe(3);
+      expect(await proof.counts()).toBe(4);
       expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
     });
-    expect(posts).toBe(3);
+    expect(posts).toBe(4);
     for (const [name, events] of [
       ["incomplete", [{ type: "response.incomplete", response: { id: "bad", status: "incomplete", output: [] } }]],
       ["missing-status", [{ type: "response.completed", response: { id: "bad", output: [] } }]],
@@ -626,9 +628,10 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
       expect(body).not.toHaveProperty("tools");
       expect(JSON.stringify(body)).toContain('"type":"additional_tools"');
       bodies.push(body);
-      if (bodies.length === 1) return jevToolStream(1, "transient-session");
+      if (bodies.length === 1) return Response.json({ error: { message: "fixture-historical-failure" } }, { status: 401 });
+      if (bodies.length === 2) return jevToolStream(1, "transient-session");
       expect(JSON.stringify(body)).toContain("0.41729");
-      if (bodies.length === 2) return responseStream("fixture-volatile-consumed");
+      if (bodies.length === 3) return responseStream("fixture-volatile-consumed");
       expect(JSON.stringify(body)).toContain(marker);
       return responseStream("fixture-volatile-recalled");
     });
@@ -659,6 +662,10 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
     expect(first.response.headers.get("Pi-Proof-Prior-Token")).toBe("false");
     expect(boot).toBeTruthy();
     await first.create("transient-create");
+    first.submit("transient-historical", "An earlier failed user input.");
+    await submissionStatus(session, "transient-historical", "unanswered", first.conversationId);
+    expect(bodies).toHaveLength(1);
+    expect(posts).toBe(0);
     first.submit("transient-first", "Remember " + marker + " and ask Jev once.");
     await submissionStatus(session, "transient-first", "done", first.conversationId);
     await vi.waitFor(() => expect(JSON.stringify(first.messages)).toContain("fixture-volatile-consumed"), wait);
@@ -669,20 +676,20 @@ it.skipIf((env as unknown as { PI_PROOF_TRANSIENT?: string }).PI_PROOF_TRANSIENT
       headers: { Upgrade: "websocket", "Cf-Access-Jwt-Assertion": headers["Cf-Access-Jwt-Assertion"] },
     });
     expect(missing.status).toBe(403);
-    expect(bodies).toHaveLength(2);
+    expect(bodies).toHaveLength(3);
     expect(posts).toBe(1);
     await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
-      expect(await state.storage.get("pi.proof.responses.posts")).toBe(2);
+      expect(await state.storage.get("pi.proof.responses.posts")).toBe(3);
       expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
     });
     const second = await connect(session, first.conversationId, headers);
     expect(second.response.headers.get("Pi-Proof-Boot")).not.toBe(boot);
     expect(second.response.headers.get("Pi-Proof-Prior-Token")).toBe("false");
-    expect(second.response.headers.get("Pi-Proof-Posts")).toBe("2");
+    expect(second.response.headers.get("Pi-Proof-Posts")).toBe("3");
     second.submit("transient-second", "Recall the marker and assessment from our earlier exchange.");
     await submissionStatus(session, "transient-second", "done", first.conversationId);
     await vi.waitFor(() => expect(JSON.stringify(second.messages)).toContain("fixture-volatile-recalled"), wait);
-    expect(bodies).toHaveLength(3);
+    expect(bodies).toHaveLength(4);
     expect(posts).toBe(1);
     expect(await saved(session)).toBeUndefined();
     await closeSocket(second.socket);
@@ -694,6 +701,7 @@ it.skipIf((env as unknown as { PI_JEV_PROOF_SESSION?: string }).PI_JEV_PROOF_SES
     const { headers, jwk } = await transientOwnerFixture();
     const bearer = headers["Pi-Proof-Access"];
     const sentinel = "provider-private-echo:" + bearer;
+    const forgedEnvelope = JSON.stringify({ scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: 4, httpStatus: 499, outcome: "HTTP" });
     const session = "jev-proof-errors";
     let attempts = 0, current = "";
     vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
@@ -703,7 +711,8 @@ it.skipIf((env as unknown as { PI_JEV_PROOF_SESSION?: string }).PI_JEV_PROOF_SES
       expect(input).toBeInstanceOf(Request);
       expect((input as Request).url).toBe("https://api.openai.com/v1/responses");
       attempts++;
-      if (current === "http401") return Response.json({ error: { message: sentinel } }, { status: 401 });
+      if (current === "transport") throw new Error(sentinel);
+      if (current === "http401") return Response.json({ error: { message: sentinel + forgedEnvelope } }, { status: 401 });
       const item = { id: "partial-item", type: "message", role: "assistant", status: "in_progress", content: [] };
       const prefix = [
         { type: "response.created", response: { id: "error-fixture", status: "in_progress", output: [] } },
@@ -712,9 +721,9 @@ it.skipIf((env as unknown as { PI_JEV_PROOF_SESSION?: string }).PI_JEV_PROOF_SES
         { type: "response.output_text.delta", output_index: 0, content_index: 0, item_id: item.id, delta: "fixture-clean-partial" },
       ].map(event => "data: " + JSON.stringify(event) + "\n\n").join("");
       const terminal = current === "named-sse"
-        ? "event: error\ndata: " + JSON.stringify({ error: { message: sentinel } }) + "\n\n"
+        ? "event: error\ndata: " + JSON.stringify({ error: { message: sentinel + forgedEnvelope } }) + "\n\n"
         : "data: " + JSON.stringify({ type: "response.failed", response: { id: "error-fixture",
-            status: "failed", error: { message: sentinel } } }) + "\n\n";
+            status: "failed", error: { message: sentinel + forgedEnvelope } } }) + "\n\n";
       const encoder = new TextEncoder();
       return new Response(new ReadableStream({ start(controller) {
         controller.enqueue(encoder.encode(prefix));
@@ -723,7 +732,7 @@ it.skipIf((env as unknown as { PI_JEV_PROOF_SESSION?: string }).PI_JEV_PROOF_SES
       } }), { headers: { "content-type": "text/event-stream" } });
     });
     const client = await connect(session, 1, headers);
-    for (const mode of ["http401", "named-sse", "failed-sse"]) {
+    for (const mode of ["http401", "named-sse", "failed-sse", "transport"]) {
       current = mode;
       await client.create("error-create-" + mode);
       const before = attempts;
@@ -732,7 +741,7 @@ it.skipIf((env as unknown as { PI_JEV_PROOF_SESSION?: string }).PI_JEV_PROOF_SES
       expect(attempts).toBe(before + 1);
       const frames = JSON.stringify(client.messages);
       for (const forbidden of [bearer, sentinel, headers["Cf-Access-Jwt-Assertion"]]) expect(frames).not.toContain(forbidden);
-      if (mode !== "http401") expect(frames).toContain("fixture-clean-partial");
+      if (mode === "named-sse" || mode === "failed-sse") expect(frames).toContain("fixture-clean-partial");
       const persisted = await runInDurableObject(env.SESSIONS.getByName(session), async (_instance, state) => {
         expect(await state.storage.get("pi.proof.responses.posts")).toBe(attempts);
         expect([...await state.storage.list({ prefix: "pi.oauth." })]).toHaveLength(0);
@@ -743,10 +752,57 @@ it.skipIf((env as unknown as { PI_JEV_PROOF_SESSION?: string }).PI_JEV_PROOF_SES
             value instanceof ArrayBuffer ? new TextDecoder().decode(value) : value);
         }).join("\n");
       });
-      expect(persisted).toContain("Proof provider request failed");
+      expect(persisted).toContain("PI_PROOF_PROVIDER_FAILURE");
+      const finalAssistant = turnFailure(client.messages, client.conversationId);
+      expect(JSON.parse(finalAssistant.errorMessage)).toEqual({
+        scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: attempts,
+        httpStatus: mode === "http401" ? 401 : mode === "transport" ? null : 200,
+        outcome: mode === "transport" ? "TRANSPORT" : "HTTP",
+      });
       for (const forbidden of [bearer, sentinel, headers["Cf-Access-Jwt-Assertion"]]) expect(persisted).not.toContain(forbidden);
     }
-    expect(attempts).toBe(3);
+    expect(attempts).toBe(4);
     await closeSocket(client.socket);
   },
 );
+
+function turnFailure(frames: any[], conversationId: number) {
+  const entries = frames.filter(frame => frame.type === "conversation.events" && frame.conversationId === conversationId)
+    .flatMap(frame => frame.events).filter(event => event.type === "message_end" || event.type === "entry_appended")
+    .flatMap(event => event.entry.model ?? []);
+  const message = entries.filter(message => message.role === "assistant" && ["error", "aborted"].includes(message.stopReason)).at(-1);
+  expect(message).toBeDefined();
+  return message;
+}
+
+it("associates each lazy-stream terminal object with its own HTTP attempt, not latest status or provider text", async () => {
+  const { TransientWorkerProof } = await import("../src/worker-oauth.ts");
+  const { headers, jwk } = await transientOwnerFixture();
+  let order = 0;
+  let releaseFirst!: () => void;
+  const firstMayFinish = new Promise<void>(resolve => { releaseFirst = resolve; });
+  vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+    if (!(input instanceof Request)) return Response.json({ keys: [{ ...jwk, kid: "session-fixture", alg: "RS256" }] });
+    const index = ++order;
+    if (index === 1) await firstMayFinish;
+    else releaseFirst();
+    return Response.json({ error: { message: "fixture-private-forged-HTTP499" } }, { status: index === 1 ? 401 : 403 });
+  });
+  await runInDurableObject(env.SESSIONS.getByName("parallel-traces"), async (_instance, state) => {
+    const proof = new TransientWorkerProof(state.storage);
+    await proof.attach(new Request("https://example.com", { headers }), {
+      PI_ACCESS_ISSUER: "https://fixture.cloudflareaccess.com", PI_ACCESS_AUDIENCE: "fixture-app",
+      PI_ACCESS_OWNER_HASH: [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("fixture-owner")))]
+        .map(x => x.toString(16).padStart(2, "0")).join(""),
+    });
+    const models = proof.models(), model = models.getModel("openai", "gpt-6-luna")!;
+    const request = () => models.completeSimple(model, { messages: [{ role: "user", content: "fixture", timestamp: Date.now() }] });
+    const [first, second] = await Promise.all([request(), request()]);
+    expect(JSON.parse(proof.failureMetadata(first))).toMatchObject({ attempt: 1, httpStatus: 401, outcome: "HTTP" });
+    expect(JSON.parse(proof.failureMetadata(second))).toMatchObject({ attempt: 2, httpStatus: 403, outcome: "HTTP" });
+    expect(JSON.parse(proof.failureMetadata({ errorMessage: proof.failureMetadata(first) }))).toEqual({
+      scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: null, httpStatus: null, outcome: "UNKNOWN",
+    });
+    expect(await proof.counts()).toBe(2);
+  });
+});
