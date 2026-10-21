@@ -1,3 +1,33 @@
+# D18: 日本語役割質問 — 原負結果
+
+実run [39612744621](https://github.com/roccho-org/ops/actions/runs/39612744621)、source82260ecf0994fb737a7b8e4b1b6dff320fb1512d / REQUEST-only activation0a61b07dece17ecb66360d1b9a1ea66a1e201c99。必要CI814/freshconsumer/healthと最新三者正式全文を先に受容し、一回実測した。原5全29,385,450bytes/provider/readback/root独立reportを無編集保持。native SUCCESSだが **DEVELOPMENT_GUARD_FAIL・未採用**、H count/body/Gold/model0。
+
+- 1252HTTP全attempt/post/qualified、1878原binary回答全資格、unknown0/modelStable。B626 native EとSR626posts中の下位役割1252を区別、両strict後だけwholeOR-derivedE。S/R単独fullE履歴加算0、派生probability/model/usage捏造0。
+- joint475→506、paired修復33/退行2。E582→616、修復36/退行2。fresh census072/expectation005、history622破壊6＝held267,census023/072/093/210,expectation005。正差で退行を相殺しない。全6body/Goldを三者再読維持。責務境界・表示IO・本人goalの見逃しと症状/原因から未記載specの補完が併存し、形式語lookup/後付Gold・null変更/外部リンク・画像補完0。
+- D16完全二instructions＋四criteriaの日本語意味対訳を選び、直前D17比では長契約/元2合成例復帰も含むpackage。同義同能力、短長/言語単独因果、Gold日本語ゆえ改善は証明しない。原本文の翻訳・要約・切詰め0。B旧flags対SRraw境界、両legacyモデル欠測stopとactualreported-otherの区別を保持。
+- input3,015,629/output57,592は全1252post各一回既知、total1252全不明/金額不明。累積D1..18 actual22536HTTP/qualified22524、既知input46,725,091/output872,470、旧5post各欠測/total22536欠落。1878回答枠をHTTP/費用へ二重計上0。
+- 次27025qualifiedE/native19525(single18899+P626)/wholeSRderived2504/physical25785invalid12/保護622追加[]。今回B626+wholeOR626のみ追加、下位S/R別snapshot0。現D18guard25773/622は遡及変更0。原job473696Bの鍵前814全名/順序はsourceCIと完全一致、execute/project exit2なし。
+
+原全10projection/rawmaps/type/confidence/typedbinding/trace/usageはW原5再生とroot/R製品数学非依存readerで一致。新closed1は原5から全10fields/guard/1252HTTP対1878原答/派生来歴を固定再検証。旧17原FAILと今回を保持し、原回答補正/再送/同処置救済はしない。
+
+次処置は未選択・未実装。R native3classはANY-Epositiveを一class、全文E不在のみdescription/otherへ分割し出力競合を変える案。negative票分散によるFP・mixedFN・strict3不資格を自己反証し、事後周辺和/閾値/正規化救済0。W位置2分割の範囲付きANY存在OR案はD10全体判定とは異なるが、境界跨ぎFN/範囲誤帰属FP/wire増の反証が強く保留。root再役割分解も既D9/D16同型のため保留。実case句/ID追加や候補混合0、全literal/全3756wire/型/protocolを次source前に三者固定する。中間negative通常CI/Readyを新gateにしない。
+
+未使用Hは全Dguard成立とactual要求freeze後だけ。winning別sourceで全path三値/currentpost/rawusage/資格/H2責務を閉じ、凍結body/Gold/null/同Mに対する二回ANDと共通Gold差下限>0/任意軸退行上限0を維持。D626は620exactbody/重複4群・knownE/O矛盾0の限定監査であり、Gold真理/model達成可能性/一般性能は未証明、分母変更0。目的最終current全通常CI/記録/Ready未mergeは最後に閉じる。
+
+~~~mermaid
+flowchart TB
+ A["✅ source/必要CI/三者exact"] --> B["✅ 一回D18/全資格"]
+ B --> C["🔴 fresh2/history6破壊 FAIL"]
+ C --> D["📦 原5/費用/型付きE保持・Gold不変"]
+ D --> E["🔄 三者別仮説→literal/source/CI→別D"]
+ E --> F{"全Dguard成立?"}
+ F -->|未達| D
+ F -->|成立| H["🔒 要求freeze後だけ未使用H/二回AND"]
+ H --> Z["⏳ 目的最終全CI/記録/Ready未merge"]
+~~~
+
+以下はD18 source時点までの全文履歴。
+
 # D18: 日本語 native S/R 全文対訳 — sourceのみ
 
 D17原負保持5abd770c1614a56f2ec93c648407af04f998d72eを三者正式全文で閉じた。全17原FAIL/Gold/費用を保持し、H count/body/Gold/model0。今回の処置はD16完全契約の二instructions＋四criteria全てを日本語へ意味対訳する一package。直前D17比では長い契約と元2合成例の復帰も含み、言語単独因果/同義同能力・新構造・Gold日本語だから改善という保証はない。原bodyの翻訳/要約/切詰め0、原B/O・名前順・yes/noキー・objectstate/body・native named2/strictAND後wholeOR/15s B・10s SR diagnoseを保持する。
