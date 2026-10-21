@@ -269,7 +269,11 @@ export function validateActionsConfig(value) {
         || exact(target, ['repository', 'repositoryId', 'pullRequest']) && positive(target.pullRequest))
       && REPOSITORY.test(target.repository) && databaseId(target.repositoryId))
     || new Set(config.targets.map((target) => JSON.stringify(Object.hasOwn(target, 'pullRequest')
-      ? [target.repository, 'pull-request', target.pullRequest] : [target.repository, 'issue']))).size !== config.targets.length
+      ? [target.repository, 'pull-request', target.pullRequest] : [target.repository, 'issue', target.issue]))).size !== config.targets.length
+    // One plain Issue origin per repository, as before. Further Issue origins there must name a subject, so each one
+    // runs only inside its own target-scoped range (below) and never through a legacy range.
+    || new Set(config.targets.filter((target) => Object.hasOwn(target, 'issue') && !Object.hasOwn(target, 'subject'))
+      .map((target) => target.repository)).size !== config.targets.filter((target) => Object.hasOwn(target, 'issue') && !Object.hasOwn(target, 'subject')).length
     || config.targets.filter((target) => Object.hasOwn(target, 'pullRequest')).length > 2
     || !Array.isArray(ranges) || !ranges.every((r) => (exact(r, RANGE_KEYS) || exact(r, [...RANGE_KEYS, 'target']) && rangeTarget(r.target)
       || exact(r, [...RANGE_KEYS, 'target', 'budgetClaimCommentId']) && rangeTarget(r.target)

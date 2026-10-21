@@ -836,7 +836,20 @@ for (const program of [entry, compatibility]) {
 // Validate today's operative settings separately from the frozen historical controls below.
 {
   const active = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
-  assert.deepEqual(active.providedRequestTargets.map(grant => ({ ...grant })), [{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":629}]);
+  // W2 (roccho-dev/adrs#635 comment 6316499931): the single provided grant moved from PR629 (its window is consumed) to
+  // the origin Issue 640, whose subject is given only as the config number 581.
+  assert.deepEqual(active.providedRequestTargets.map(grant => ({ ...grant })), [{"repository":"roccho-org/ops","repositoryId":"1275606595","issue":640}]);
+  assert.equal(JSON.stringify(selectActionsTarget(active, 'roccho-org/ops', 640, 'issue')),
+    JSON.stringify({ repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 640, subject: { repository: 'roccho-org/ops', repositoryId: '1275606595', kind: 'issue', number: 581 } }));
+  {
+    const run640 = { repository: 'roccho-org/ops', workflowId: 377399991, path: '.github/workflows/jev-issue-comment.yml', number: 380, attempt: 1, id: 1 };
+    for (const number of [380, 419]) {
+      const selected = selectRunRange(active, { ...run640, number }, { kind: 'issue', number: 640 });
+      assert.deepEqual([selected.callsPerRun, selected.range.first, selected.range.last, selected.range.budgetClaimCommentId], [1, 380, 419, 6316894098]);
+    }
+    for (const number of [379, 420, 374, 207]) assert.equal(Object.hasOwn(selectRunRange(active, { ...run640, number }, { kind: 'issue', number: 640 }), 'range'), false, `run ${number}`);
+    assert.deepEqual(selectRunRange(active, run640, { kind: 'issue', number: 573 }), { cause: 'RANGE_TARGET_MISMATCH' });
+  }
   assert.equal(active.targets.some(t => t.pullRequest === 536), false);
   const run = { repository: 'roccho-org/ops', workflowId: 377399991, path: '.github/workflows/jev-issue-comment.yml', number: 343, attempt: 1, id: 1 };
   for (const number of [343, 374]) {
@@ -846,6 +859,50 @@ for (const program of [entry, compatibility]) {
   }
   for (const number of [342, 375]) assert.deepEqual(selectRunRange(active, { ...run, number }, { kind: 'pull-request', number: 629 }), { cause: 'NO_RANGE' });
   assert.deepEqual(selectRunRange(active, { ...run, attempt: 2 }, { kind: 'pull-request', number: 629 }), { cause: 'RERUN_NOT_PAID' });
+}
+
+// W2 (roccho-dev/adrs#635 comment 6316499931): one repository may hold Issue targets with different numbers, so a new
+// origin Issue can be added beside Issue 573 without changing 573, its windows or subjectScope. The same number twice
+// stays refused, and the new target is never admitted by a legacy window or by 573's windows.
+{
+  const base = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const OPS = 'roccho-org/ops', OPS_ID = '1275606595', WF = '.github/workflows/jev-issue-comment.yml', NEW = 9999;
+  const withNew = () => {
+    const c = JSON.parse(JSON.stringify(base));
+    c.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: NEW, subject: { repository: OPS, repositoryId: OPS_ID, kind: 'issue', number: 581 } });
+    c.runRanges.push({ repository: OPS, workflowId: 377399991, path: WF, first: 420, last: 459, reservedCallsPerRun: 1, target: { issue: NEW }, budgetClaimCommentId: 1 });
+    c.providedRequestTargets = [{ repository: OPS, repositoryId: OPS_ID, issue: NEW }];
+    return c;
+  };
+  let two;
+  assert.doesNotThrow(() => { two = validateActionsConfig(withNew()); }, 'two Issue targets with different numbers in one repository');
+  assert.deepEqual(two.targets.filter(t => t.repository === OPS && Object.hasOwn(t, 'issue')).map(t => t.issue), [573, 640, NEW]);
+  const original573 = base.targets.find(t => t.issue === 573);
+  // validateActionsConfig returns null-prototype snapshots, so the comparison is on the serialized bytes.
+  assert.equal(JSON.stringify(two.targets.find(t => t.issue === 573)), JSON.stringify(original573), '573 unchanged');
+  assert.equal(two.subjectScope, base.subjectScope);
+  const duplicate = withNew();
+  duplicate.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: NEW });
+  assert.throws(() => validateActionsConfig(duplicate), /INVALID_ACTIONS_CONFIG/, 'the same Issue number twice stays refused');
+  // A second plain Issue origin (no subject) in one repository stays refused: it could run through a legacy range.
+  const plain = JSON.parse(JSON.stringify(base));
+  plain.targets.push({ repository: 'roccho-org/envs', repositoryId: '1391871347', issue: 53 });
+  assert.throws(() => validateActionsConfig(plain), /INVALID_ACTIONS_CONFIG/, 'a second plain Issue origin in envs');
+  const plainOps = withNew();
+  plainOps.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: 10000 });
+  assert.doesNotThrow(() => validateActionsConfig(plainOps), 'one plain Issue origin in ops beside subject-bearing ones');
+  plainOps.targets.push({ repository: OPS, repositoryId: OPS_ID, issue: 10001 });
+  assert.throws(() => validateActionsConfig(plainOps), /INVALID_ACTIONS_CONFIG/, 'a second plain Issue origin in ops');
+  const run = { repository: OPS, workflowId: 377399991, path: WF, number: 420, attempt: 1, id: 1 };
+  const mine = selectRunRange(two, run, { kind: 'issue', number: NEW });
+  assert.deepEqual([mine.range.first, mine.range.last, mine.callsPerRun, mine.range.budgetClaimCommentId], [420, 459, 1, 1]);
+  for (const number of [50, 190, 207, 270, 343, 380]) {
+    assert.deepEqual(selectRunRange(two, { ...run, number }, { kind: 'issue', number: NEW }), { cause: 'RANGE_TARGET_MISMATCH' }, `run ${number}`);
+  }
+  assert.deepEqual(selectRunRange(two, run, { kind: 'issue', number: 573 }), { cause: 'RANGE_TARGET_MISMATCH' });
+  assert.equal(selectRunRange(two, { ...run, number: 207 }, { kind: 'issue', number: 573 }).range.first, 207);
+  assert.equal(selectActionsTarget(two, OPS, NEW, 'issue').subject.number, 581);
+  assert.equal(selectActionsTarget(two, OPS, 573, 'issue').subject.number, 94);
 }
 
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
