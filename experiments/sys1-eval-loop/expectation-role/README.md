@@ -1,4 +1,35 @@
-# E判定の三候補の負結果と継続する仮説検証
+# 三候補の負結果を保持し、候補EのO向け対比削除を別処置で検証
+
+## D4固定FOCUS context（code-only、実作用前）
+
+元D3の候補instructionsからO判定向け183字の連続対比blockを一回だけ削る。末尾のbody全体/非推測は残し、前E/ANY・元620suffix・286字5例・全criteria・BestE/sharedOは全値保持する。削るblockには許容条件Eの比較例も含むため「純Oだけ」「全E例不変」とは言わない。英語例追加や4choice分類は混ぜない。混合軸干渉は仮説であり、内部原因や削除単独の一般効果は未証明。
+
+Wは後body-only句まで削る案へcounterし、rootも自己counterで対象境界保持へ精密化した。Rは許容条件E例も削ることを指摘し、3者が原D3 Coreから183字を独立抽出して削除後全instructionsを出力前一致確認した。[root負保持と三者反証](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593723442)・[R負保持とexact残文確認](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593727115)。root/Rは別々の原取得Coreから期待値を固定し、今回もnetwork HTTPbody捕捉ではなく標準client再構成で全1252 payloadを照合する。実case本文への役割hint/ID例外はない。
+
+元7005物理Eから全626 case/610正答を保護し、fresh BestE/candidateEを各626=1252新規測定する。同一の固定historicalOを両armへ用いる非同時D診断で、fresh E退行0と歴史610破壊0・完全joint正差・全1252資格/expected modelを独立ANDにする。機械firstは診断だけ、O-null17を全分母に残す。610は独立情報数/不偏推定/到達保証ではない。旧D1/604・D2/607・D3/607の全projection/Core/raw/FAILは固定contextで再生し、610へ遡及採点しない。
+
+同じworkflow/350分/sixstep/secret/clientの固定development4のみを追加し、history exact4（原D1,D2,D3,current）と全11 native API/実Git親/REQUEST-only sourcephaseを鍵前に結合する。新schema/namedwrappersで処置を区別し、任意profile/schema/max/endpoint/constructor overrideは受けない。source-onlyは旧phase3/3610 REQUESTを一字も変更せず、必要CIと三者exact受容後のactivation4だけがREQUESTを変更して一回起動する。以前の意味FAILは新D取消条件にせず、原技術資格/来歴は必須。
+
+prospective-plan4.jsonはseries最大6808=実消費3756+新D最大1252+将来H最大1800を明示する。旧plansは原文保持し、最大割当と実会計を分離する。同GO内で追加User予算/認証を求めるgateではない。新Hの固定Oct18窓/prior862・2033・2371/noRefillは変えず、実D4guard成功と要求freeze受容前のcount/body/Goldは0。H250→350技術cap改訂は別held sourceで出力前に明示し、ここでは旧250契約の成功を主張しない。
+
+```mermaid
+flowchart TB
+ W[✅ W別処置仮説と対象境界counter] --> ROOT[✅ root自己counter/独立183字Core固定]
+ ROOT --> R[✅ R許容条件比較例の削除を反証]
+ R --> CODE[✅ 四閉context/原3投影/秘密境界code-only]
+ CODE --> CI[⏳ 現source必要CI/公開exact三者受容]
+ CI --> D4[⏳ REQUEST-only history4/一回1252]
+ D4 -->|FAIL/unknown| NEG[負原版保存/三者原因反証]
+ NEG --> NEXT[別の意味ある仮説をsource化]
+ NEXT --> CI
+ D4 -->|guard成功/実要求freeze| H[⏳ 未使用H/予測前Gold/二回AND]
+ H -->|未達| RETIRE[当H退役/別未使用H契約]
+ RETIRE --> NEXT
+ H --> FINAL[⏳ 最終exact全通常CI/独立記録/Ready未merge]
+```
+
+以下は受容済みのD3負結果と各旧sourceの固定記録。新source/必要CI/実D4/新H/最終current全CIは未完である。
+
 
 ## D3 scope・合成例候補：正差23でもfresh退行1・歴史破壊3で不受容
 

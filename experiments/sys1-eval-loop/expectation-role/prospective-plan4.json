@@ -1,0 +1,54 @@
+{
+  "schema": "ops.sys1.expectation-focus-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593723442",
+  "previousPlan": "D1/604, D2/607 and D3/607 original plans remain byte-for-byte unchanged",
+  "candidate": "From fixed D3 scopedE instructions delete the exact183-character contiguous O-directed comparison block once, including its permissive-condition example; preserve body-only/no-inference clause, preceding E/ANY, original620 suffix, five286-character examples, all criteria, BestE and sharedO. No added English examples or other rewrite. Mixed-axis interference is an unproven hypothesis; no causal claim or guarantee of preserving610.",
+  "development": {
+    "phase": "development4",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "priorPhysicalE": 7005,
+    "protectedE": 610,
+    "primary": "fresh qualified originalBestE versus single focused E with same fixed first historical O; first anchor diagnostic only",
+    "acceptance": "all1252 qualification and expected model AND positive complete known joint gain AND zero destruction of610 historical E correctness AND zero known fresh E regression; all17 O-null stay assigned",
+    "admission": "exact original D1,D2,D3 plus current D4 history4; original prior full projections/604/607/607 and FAIL remain unchanged; actual Git parent/source/request-only phase for all11 native records; prior semantic FAIL noncanceling, technical ineligibility rejected",
+    "timeoutMinutes": 350
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 250,
+    "admission": "actualD4guardPASS/originals and standard-client reconstructed full-request freeze accepted by three parties before count/body/Gold; current H untouched",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion"
+  },
+  "seriesMaximum": 6808,
+  "accounting": "D1+D2+D3 actual3756 + D4maximum1252 + prospective Hmaximum1800. Finite assignment, no extra User budget permission; historical7005 evidence receipts are not new calls.",
+  "entry": "same branch/workflow/secret/350-minute sixstep; source-only retains original phase3/3610 REQUEST bytes; activation4 only REQUEST to development4/acceptedsourceSHA once",
+  "status": "LOCAL_CODE_ONLY; exactsource/necessaryCI/threeparty acceptance before D4; new H count/body/Gold/model0",
+  "continuation": "all negative originals and costs retained; distinct source-fixed hypothesis after counter only; no same treatment blind resend, historical Gold revision or same-H rescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting."
+}
