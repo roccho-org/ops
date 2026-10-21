@@ -1,0 +1,41 @@
+{
+  "schema": "ops.sys1.expectation-role4-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "technical": "1252 posts;1247 qualified;5 role4 HTTP200 raw maps sum approximately.99 violate unchanged strict probability contract; modelstable; original response snapshots retained without repair",
+  "source": "d5606a19db70fa7be9d992be5ff4d63e12e9ef48",
+  "activation": "e6cfad8376385daa8a735cd5b39e6ab7db883113",
+  "phase": "development6",
+  "historyCount": 6,
+  "originalFiles": 5,
+  "originalBytes": 24911546,
+  "actualPhysical": 1252,
+  "binaryBestE": 626,
+  "nativeRole4": 626,
+  "qualifiedNativeRole4": 621,
+  "derivedECalls": 0,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "root/R independently acquired provider ZIP/native Git history6; all1252 Core/attempts/flags/native4map+snapshot/617guard/usage agree with W product replay",
+  "knownPartial": {
+    "baselineJointCorrect": 477,
+    "candidateKnownJointCorrect": 496,
+    "knownPairedRepair": 28,
+    "knownPairedRegression": 5,
+    "countDifference": 19,
+    "pairedNet": 23,
+    "qualificationComplete": false,
+    "freshERegression": 5,
+    "historicalERegression": 9,
+    "unknownProtectedE": 5
+  },
+  "seriesActual": {
+    "physicalPosts": 7512,
+    "qualified": 7507,
+    "inputTokensKnownSum": 15807107,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 245145,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 7512
+  },
+  "next": "distinct prospective role-definition binary output package; old D6 raw/617/sum contract remains unchanged, no retry/normalization or posthoc marginal rescue"
+}

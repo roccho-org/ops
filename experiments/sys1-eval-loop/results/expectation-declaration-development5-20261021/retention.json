@@ -1,0 +1,21 @@
+{
+  "schema": "ops.sys1.expectation-declaration-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "e86b9b8bef2c062da184bcbb76e436a9d2fa58ee",
+  "activation": "bd28a3f734b0d62a42687cdf337d801584e8a37c",
+  "phase": "development5",
+  "historyCount": 5,
+  "originalFiles": 5,
+  "originalBytes": 22289214,
+  "actualPhysical": 1252,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "root/R independently acquired native provider ZIP and Git parent/phase5; full1252 expected Core/events/qualification/611 guard/usage agree with W product replay",
+  "seriesActual": {
+    "physicalPosts": 6260,
+    "inputTokens": 13420744,
+    "outputTokens": 194060,
+    "totalTokensUnknownPosts": 6260
+  },
+  "next": "distinct structural hypothesis only after source/necessaryCI/threeparty; original611 and all prior outcomes fixed, Gold unchanged"
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "ops.sys1.expectation-example-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#pullrequestreview-5593479772",
+  "previousPlan": "prospective-plan.json D1/604/3052 and prospective-plan2.json D2/607/4304 remain byte-for-byte unchanged",
+  "candidate": "Keep complete D2 criteria/common/original620 suffix/BestE/sharedO; append one ASCII space then the fixed286-character EXAMPLE_SUPPLEMENT to scopedE instructions only. A scope plus five synthetic contrasts bundle; no isolated example/placement/length causality or real-body role hints.",
+  "development": {
+    "phase": "development3",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "priorPhysicalE": 5753,
+    "protectedE": 607,
+    "primary": "fresh qualified originalBestE versus single scope-and-examples E, both with fixed first historical O; first anchor diagnostic only",
+    "acceptance": "all1252 qualification and expected model AND positive complete known joint gain AND zero destruction of607 historical E correctness AND zero known fresh E regression; all17 O-null stay assigned",
+    "admission": "exactly original D1 plus D2 plus current D3 native history3; both prior original raw complete/modelStable/source/Core/old604 and old607/outcome projections replayed unchanged; actual Git parent/request-only source/phase for all10 native records; semantic FAIL preserved and noncanceling, technical ineligibility rejected",
+    "timeoutMinutes": 350
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 250,
+    "admission": "actualD3guardPASS/originals and standard-client reconstructed full-request freeze accepted by three parties before count/body/Gold; current H untouched",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion"
+  },
+  "seriesMaximum": 5556,
+  "accounting": "D1+D2 actual2504 + D3 maximum1252 + prospective H maximum1800. Finite assignment, not extra User budget permission or claimed consumption; all5753 historical evidence receipts are not new calls.",
+  "entry": "same branch/workflow/secret/350-minute sixstep; source-only leaves phase2/f361 original REQUEST bytes unchanged; activation3 changes only REQUEST to development3/acceptedsourceSHA once",
+  "status": "LOCAL_CODE_ONLY; new source/necessaryCI/threeparty acceptance before D3; no new H count/body/Gold/model",
+  "continuation": "all negative originals and costs retained; distinct source-fixed hypothesis after counter only; no same treatment blind resend, historical Gold revision or same-H rescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting."
+}

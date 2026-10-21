@@ -1,0 +1,88 @@
+{
+  "schema": "ops.sys1.expectation-majority-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "934af54ca628410234a751233a6d0b4ed97989d5",
+  "activation": "aee46724c2fcdf4cc19f3b3f63f15b9aec870731",
+  "phase": "development13",
+  "historyCount": 13,
+  "originalFiles": 5,
+  "originalBytes": 27550739,
+  "actualPhysicalHTTP": 1252,
+  "originalBinaryAnswers": 1878,
+  "nativeBaselineEAnswers": 626,
+  "nativePresenceEAnswers": 626,
+  "nativeAbsenceAnswers": 626,
+  "derivedInverseAbsenceE": 626,
+  "derivedMajorityE": 626,
+  "qualifiedHTTP": 1252,
+  "qualifiedOriginalBinaryAnswers": 1878,
+  "unknown": 0,
+  "modelStable": true,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "W replay and root/R own ZIP/native history13/full Core/strict whole PN and B/618 guard/usage independently agree",
+  "joint": {
+    "baselineCorrect": 477,
+    "candidateCorrect": 501,
+    "repaired": 29,
+    "regressed": 5
+  },
+  "E": {
+    "baselineCorrect": 584,
+    "candidateCorrect": 609,
+    "repaired": 30,
+    "regressed": 5,
+    "historical618Regressed": 9
+  },
+  "polarityDiagnostic": {
+    "Pcorrect": 605,
+    "inverseNcorrect": 611,
+    "majorityCorrect": 609,
+    "coherent": 618,
+    "coherentCorrect": 604,
+    "coherentWrong": 14,
+    "disagree": 8,
+    "baselineTieCorrect": 5,
+    "baselineTieWrong": 3,
+    "flips": 35,
+    "repaired": 30,
+    "regressed": 5
+  },
+  "usage": {
+    "inputTokens": 2480399,
+    "outputTokens": 56340,
+    "totalTokensUnknownPosts": 1252
+  },
+  "seriesActual": {
+    "physicalHTTP": 16276,
+    "qualifiedHTTP": 16271,
+    "inputTokensKnownSum": 33595259,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 590697,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 16276
+  },
+  "nextEvidence": {
+    "qualifiedE": 20772,
+    "nativeE": 16395,
+    "nativeSingleE": 15769,
+    "nativeCompoundPresenceE": 626,
+    "qualifiedRole4Derived": 621,
+    "qualifiedDecompositionDerived": 626,
+    "qualifiedPartitionDerived": 626,
+    "qualifiedLinesDerived": 626,
+    "qualifiedVerificationDerived": 626,
+    "qualifiedInverseAbsenceDerived": 626,
+    "qualifiedMajorityDerived": 626,
+    "nativeCorrectnessNotE": 626,
+    "nativeAbsenceNotE": 626,
+    "physicalIncludingOldInvalid": 19525,
+    "protected": 620,
+    "addedIds": [
+      "census-143",
+      "expectation-060"
+    ],
+    "priorInvalidUnknown": 5
+  },
+  "scope": "All B/P/N strict before majority; P native E, raw N absence not native E, !N/M providerAnswer:false with actual sources. Common compound usage and baseline shared once. All qualified P/!N/M future E evidence retained independently of final M; evidence is not independent cases. Coherent wrong14 demonstrates correlated errors, no posthoc single winner, vote repair or old FAIL rescue. Original D13guard618 unchanged, next620 prospective only. All thirteen negatives/plans/Gold remain fixed; H0. Objective final CI/records/Ready is not an intermediate negative gate"
+}

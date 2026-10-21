@@ -1,0 +1,81 @@
+{
+  "schema": "ops.sys1.expectation-verification-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#pullrequestreview-5595854426",
+  "previousPlan": "All original eleven plans/Core/guards/raw/Gold and prior paired loops unchanged; D11 negative retained",
+  "candidate": "Fixed fresh BestE baseline plus nativebinary checker of whether that actual yes/no matches verbatim original BestE instructions/criteria quoted as E reference. New outer meta task and complementary correctness criteria; no D5 definition translation/rewrite or new examples. Both nativeanswers qualify before keep/invert derivedE. New task-role, sequential order, baseline sharing, conditional JSON-string state and inversion form one package, not independent self-correction or hidden-uncertainty proof.",
+  "development": {
+    "phase": "development12",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "originalAnswerMaximum": 1252,
+    "physicalComposition": "626 baseline native E posts plus at most626 dependent native label-correctness posts; checker correctness is not a native E label, baseline shared once",
+    "priorQualifiedEEvidence": 17016,
+    "priorBinaryE": 14517,
+    "priorQualifiedRole4EProjections": 621,
+    "priorInvalidRole4": 5,
+    "protectedE": 618,
+    "primary": "fresh qualified BestE versus derived verifiedE from that exact E label and its current strict correctness checker, same fixed historical O; first anchor diagnostic",
+    "acceptance": "all1252 qualified/expectedmodel AND complete jointgain>0 AND historical618 E destruction0 AND fresh E regression0; O-null17/all626 retained; no missing promotion",
+    "admission": "history12 exact original D1..D11 plus current; oldsuccesses/fixedD6failure unchanged;19 prior native runs plus fixed D6jobs API/actual Gitparent/REQUESTphase; all17016 E replayed under original contexts",
+    "timeoutMinutes": 350,
+    "priorQualifiedDecompositionEProjections": 626,
+    "priorQualifiedPartitionEProjections": 626,
+    "priorQualifiedLinesEProjections": 626
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "checker",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 350,
+    "admission": "Only actualD12 allguardPASS/native originals and all four actual request templates freeze threeparty before H count/body/Gold; successful dependent policy only. Three HTTP/three rawbinaryanswers per case/pass at maximum, with explicit dependency skip unknowns and no extra posts.",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion",
+    "technicalCapRevision": "Prospective350 per pass before unopened H; old250 plans unchanged. Fixed3M assigned HTTP/three rawbinaryanswers per case atmaximum,twopasses/no retry/existing15s provider. Checker actualrequest depends on baseline, not a fixed realized input across reps. No completion guarantee or after-timeout extension.",
+    "originalAnswersPerCase": 3,
+    "originalAnswerRoles": {
+      "bestE": "native E label",
+      "checker": "native label correctness, not E",
+      "sharedO": "native O label"
+    },
+    "eligibilityWireKeys": [
+      "bestE",
+      "checkerYes",
+      "checkerNo",
+      "sharedO"
+    ],
+    "policyIdentity": "Same body/Gold/M and same BestE/checker definitions plus both fixed label-conditional templates, with each actual checker branch bound to the current qualified baseline choice. Rep baseline labels and actual checker states may differ; do not require or claim identical realized payloads, exclude cases or cancel H2 based on labels."
+  },
+  "seriesMaximum": 16824,
+  "accounting": "Consumed13772 actual HTTP includes invalid5; newD12 maximum1252 plus futureH maximum1800=16824. D1252 rawbinaryanswers include626 nativeE labels and626 correctness labels when complete; futureH adds O, not another baseline. Bothorigins for derivedE and oneusage per actualpost; unqualifiedposted and unattempteddependency/modelstop separate,missingtokens/money retained,no new Userbudget/authgate.",
+  "entry": "Same branch/workflow/350minute sixstep. Source-only D11/1d13 REQUEST retained; activation12 REQUEST-only development12/acceptedsource once. No intermediate negativeheadReady/CIgate; current source necessaryCI/threeparty before oneD; objective finalcurrent allCI/records/Ready unchanged.",
+  "status": "CODE_ONLY_NO_D12_MODEL_OR_H_COUNT",
+  "continuation": "all negative originals and costs retained; distinct source-fixed hypothesis after counter only; no same treatment blind resend, historical Gold revision or same-H rescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting.",
+  "recorder": "Unchanged nativebinary standardRecorder/askJevChoice/SDK/provider15s and strict2class qualification. Fixed dependent evaluator/projector is not caller configurable; no new transport/executor/profile/auth. Oldpaired loops and all priorraw/replay stay exact.",
+  "projection": "Checker nativeanswer choice/model/usage judges baseline E-label correctness. Derived verifiedE providerAnswer:false references both postIDs and rawchoices; no invented probabilities/confidence/model/usage. Bothstrict required; baselineunknown leaves checker unattempted with reason, candidateunknown; technicalunknown never inverted. Qualified incorrect No may misflip and is scored against unchanged Gold/guard, not a self-proof.",
+  "modelProtocol": "Existing binary mismatch/modelChanged stop behavior preserved, including missing-model stop which does not prove reported other-version. Prospective H closes rawmodel three-state capture/stop/qualification/H2admission separately before H effects.",
+  "literal": "Verbatim original BestE instructions598chars and criteria91chars are JSON-quoted inside1578char checker meta-wrapper; complementary correctness criteria335chars. Actualwire.state is JSON string encoding exact body/proposedE only for checker and body only for Best/O; proposedE is actualqualified yes/no, never Gold/confidence/ID/O/oldhistory. Both labelbranches fixed before output.",
+  "schedule": "Per case BestE first, checker only after that samecase qualified BestE; otherwise explicit dependency-skip and nextcase continue unless legacy modelstop. Never invent thirdlabel or historicalalias. Gapped attempts/control trace and percomponent unattemptedReason reconstructed from originalevents, not oldprefix schedule. Reported other and legacy missingmodel stop tail assignments."
+}

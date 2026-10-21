@@ -1,0 +1,58 @@
+{
+  "schema": "ops.sys1.expectation-contrast-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "1d136e7167f7e01163468ad263c8bfa8d774728c",
+  "activation": "ddd10a592703301241e75d4658544b1fa95b0112",
+  "phase": "development11",
+  "historyCount": 11,
+  "originalFiles": 5,
+  "originalBytes": 28787939,
+  "actualPhysicalHTTP": 1252,
+  "originalBinaryAnswers": 1252,
+  "qualifiedHTTP": 1252,
+  "unknown": 0,
+  "modelStable": true,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "W replay and root/R own ZIP/native history11/full Core/binary qualification/618 guard/usage independently agree",
+  "joint": {
+    "baselineCorrect": 477,
+    "candidateCorrect": 500,
+    "repaired": 25,
+    "regressed": 2
+  },
+  "E": {
+    "baselineCorrect": 584,
+    "candidateCorrect": 608,
+    "repaired": 26,
+    "regressed": 2,
+    "historical618Regressed": 10
+  },
+  "usage": {
+    "inputTokens": 3004786,
+    "outputTokens": 38812,
+    "totalTokensUnknownPosts": 1252
+  },
+  "seriesActual": {
+    "physicalHTTP": 13772,
+    "qualifiedHTTP": 13767,
+    "inputTokensKnownSum": 28440211,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 495545,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 13772
+  },
+  "nextEvidence": {
+    "qualifiedE": 17016,
+    "nativeBinary": 14517,
+    "qualifiedRole4Derived": 621,
+    "qualifiedDecompositionDerived": 626,
+    "qualifiedPartitionDerived": 626,
+    "qualifiedLinesDerived": 626,
+    "physicalIncludingOldInvalid": 17021,
+    "protected": 618,
+    "addedIds": [],
+    "priorInvalidUnknown": 5
+  },
+  "scope": "Actual contrast candidate is its native binary E receipt; D3 plus815-char contrast/language/length/path bundle cause is not isolated, branch Gold or latent inference unobserved. All original eleven negative contexts and guards remain fixed. No held selection or Gold changes. Objective final CI/records/Ready is not an intermediate negative gate"
+}

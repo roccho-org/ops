@@ -1,0 +1,63 @@
+{
+  "schema": "ops.sys1.expectation-verification-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "17f5df71c4fd8f65cc9ec1350312cb9e0ce8d81e",
+  "activation": "70fafe28dfe93431f9bb25b4dbfb13e86b163cbd",
+  "phase": "development12",
+  "historyCount": 12,
+  "originalFiles": 5,
+  "originalBytes": 26261455,
+  "actualPhysicalHTTP": 1252,
+  "originalBinaryAnswers": 1252,
+  "nativeEAnswers": 626,
+  "nativeCorrectnessAnswers": 626,
+  "derivedE": 626,
+  "qualifiedHTTP": 1252,
+  "unknown": 0,
+  "modelStable": true,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "W replay and root/R own ZIP/native history12/full Core/binary qualification/618 guard/usage independently agree",
+  "joint": {
+    "baselineCorrect": 476,
+    "candidateCorrect": 475,
+    "repaired": 1,
+    "regressed": 2
+  },
+  "E": {
+    "baselineCorrect": 583,
+    "candidateCorrect": 582,
+    "repaired": 1,
+    "regressed": 2,
+    "historical618Regressed": 36
+  },
+  "usage": {
+    "inputTokens": 2674649,
+    "outputTokens": 38812,
+    "totalTokensUnknownPosts": 1252
+  },
+  "seriesActual": {
+    "physicalHTTP": 15024,
+    "qualifiedHTTP": 15019,
+    "inputTokensKnownSum": 31114860,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 534357,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 15024
+  },
+  "nextEvidence": {
+    "qualifiedE": 18268,
+    "nativeBinary": 15143,
+    "qualifiedRole4Derived": 621,
+    "qualifiedDecompositionDerived": 626,
+    "qualifiedPartitionDerived": 626,
+    "qualifiedLinesDerived": 626,
+    "qualifiedVerificationDerived": 626,
+    "nativeCorrectnessNotE": 626,
+    "physicalIncludingOldInvalid": 18273,
+    "protected": 618,
+    "addedIds": [],
+    "priorInvalidUnknown": 5
+  },
+  "scope": "Actual checker is native E-label correctness, not native E. Derived verifiedE binds both actual post choices and proposedE, providerAnswer:false without fabricated provider fields. Shared baseline physical once; 623 label keeps and3 flips (1 repair2 regressions) do not prove agreement-bias or an internal cause. All original twelve negative contexts and guards remain fixed. No held selection or Gold changes. Objective final CI/records/Ready is not an intermediate negative gate"
+}

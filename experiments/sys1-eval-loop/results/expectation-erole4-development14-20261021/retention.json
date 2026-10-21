@@ -1,0 +1,85 @@
+{
+  "schema": "ops.sys1.expectation-erole4-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "b826d1c2bf4f0369e0671e133adff13671bc6b31",
+  "activation": "ebba36f0851756f9290424f12e3bd6d75ace0e3a",
+  "phase": "development14",
+  "historyCount": 14,
+  "originalFiles": 5,
+  "originalBytes": 26518732,
+  "actualPhysicalHTTP": 1252,
+  "originalMixedAnswers": 1252,
+  "nativeBaselineEAnswers": 626,
+  "nativeFourClassAnswers": 626,
+  "qualifiedBaselineE": 626,
+  "qualifiedFourClass": 619,
+  "derivedWholeClassE": 619,
+  "qualifiedHTTP": 1245,
+  "unknown": 7,
+  "unknownCauses": {
+    "probabilitySum": 6,
+    "selectedNotMax": 1
+  },
+  "modelStable": true,
+  "nativeConclusion": "failure",
+  "executeAndProjectExit2": true,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "joint": {
+    "baselineCorrect": 476,
+    "candidateKnownCorrect": 498,
+    "knownPairedRepaired": 32,
+    "knownPairedRegressed": 6,
+    "knownCountDifference": 22,
+    "knownPairedNet": 26
+  },
+  "E": {
+    "baselineCorrect": 584,
+    "candidateKnownCorrect": 604,
+    "knownPairedRepaired": 32,
+    "knownPairedRegressed": 6,
+    "knownCountDifference": 20,
+    "knownPairedNet": 26,
+    "historical620KnownRegressed": 11
+  },
+  "usage": {
+    "inputTokens": 2493344,
+    "outputTokens": 51405,
+    "unknownQualificationUsagePreservedOnce": 7,
+    "totalTokensUnknownPosts": 1252
+  },
+  "seriesActual": {
+    "physicalHTTP": 17528,
+    "qualifiedHTTP": 17516,
+    "inputTokensKnownSum": 36088603,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 642102,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 17528
+  },
+  "nextEvidence": {
+    "qualifiedE": 22017,
+    "nativeE": 17021,
+    "nativeSingleE": 16395,
+    "nativeCompoundPresenceE": 626,
+    "qualifiedOldRole4Derived": 621,
+    "qualifiedDecompositionDerived": 626,
+    "qualifiedPartitionDerived": 626,
+    "qualifiedLinesDerived": 626,
+    "qualifiedVerificationDerived": 626,
+    "qualifiedInverseAbsenceDerived": 626,
+    "qualifiedMajorityDerived": 626,
+    "qualifiedERole4WholeClassDerived": 619,
+    "nativeCorrectnessNotE": 626,
+    "nativeAbsenceNotE": 626,
+    "diagnosticSRNotE": true,
+    "physicalIncludingInvalid": 20777,
+    "invalid": 12,
+    "protected": 622,
+    "addedIds": [
+      "held-267",
+      "expectation-118"
+    ]
+  },
+  "scope": "Strict4 raw qualification unchanged: six sum≈.99 and one nonmax selected class remain UNKNOWN without repair or retry. Raw top usage remains known once on all seven invalid posts. Known semantic regressions imply FAIL independently of technical incompleteness. Known count differences are not paired gains. Only B and qualified whole-class E projection join future E history; diagnostic S/R and native C4 are not native binary E. Current D14guard620 unchanged; next622 prospective. H0, all old source/raw/Gold/plans retained; final Ready is not an intermediate negative gate."
+}

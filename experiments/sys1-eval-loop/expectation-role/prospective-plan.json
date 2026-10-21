@@ -1,0 +1,54 @@
+{
+  "schema": "ops.sys1.expectation-role-prospective-plan.v1",
+  "upstream": "PR622 failed OR remains not adopted, +18 complete gain cannot compensate census-023 historical or census-093 fresh E destruction; old Gold/source/raw unchanged",
+  "candidate": "Single E: preserve current scopedE full criteria, baseline BestE/O and common instructions; replace only the fixed E-specific instructions suffix with the role-first procedure; one wording/placement bundle, not isolated placement causality",
+  "development": {
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "originalPhysicalEReceipts": 3249,
+    "protectedE": 604,
+    "primary": "fresh qualified BestE versus fresh single role candidate E, both with the same fixed historical first O",
+    "first": "diagnostic only, never choose a baseline after outputs",
+    "acceptance": "all1252 qualified/expected model AND positive complete known joint gain AND zero destruction of604 historical E correctness AND zero known fresh E regression; all17 O-null remain assigned",
+    "timeoutMinutes": 350,
+    "limitations": "historical O is not contemporary and errors may hide E repairs; D is a diagnostic, not operational proof",
+    "native": "Before credentials replay all3249 raw E and original8 native runs via provider API, Git parent and phase-specific REQUEST; current one child/history1. Under credential compare exact8 input fields/full rows/full templates to fixed source. Project original attempt/input/report/events without credential."
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutable ID tie; fixed prefix before body eligibility, no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "prior": {
+      "typed": 862,
+      "exactBodies": 2033,
+      "referenceURLs": 2371
+    },
+    "referenceRule": "all2371 use unchanged canonical fixed-scope casefold repository+positive issue number conservative exclusion; keep issues/pull kind and alias/outside limits; do not expose private inventory",
+    "physicalKeys": [
+      "bestE",
+      "scopedE",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 250,
+    "admission": "actual D guard PASS and original raw plus standard-client reconstructed full requests three-party accepted before new count/body/Gold; no rescued OR selection",
+    "acceptance": "each pass complete qualification/expected model, same full body/Gold/Core input and deterministic common-Gold census delta lower>0, regression upper=0; both-pass AND; no averaging/cancellation",
+    "noCases": "M0 NO_CASES/zero effects, no posthoc window expansion"
+  },
+  "seriesMaximum": 3052,
+  "resource": "D2E is simultaneous baseline and one candidate, not composite; H each arm uses1E+same-passO, physical3M once; longer candidate input can add costs; money/total/internal compute unknown",
+  "status": "LOCAL_CODE_ONLY; fixed D native entry/350min six-step profile implemented with REQUEST absent; before actual1252 require upstream622 final technical closure, new exactsource/necessaryCI/three-party acceptance; no H entry/count/body/Gold/model",
+  "continuation": "retain failures, counter a genuinely distinct hypothesis/source before another effect; retire any H after two passes, no same-H rescue",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/622#pullrequestreview-5592969753"
+}

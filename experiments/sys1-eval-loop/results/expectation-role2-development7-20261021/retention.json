@@ -1,0 +1,56 @@
+{
+  "schema": "ops.sys1.expectation-role2-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "e8a9c9b6ac05ff5fac0200cf93acd8adcee0e764",
+  "activation": "5c054e5792dfccd388ebf9a82747e711b0292142",
+  "phase": "development7",
+  "historyCount": 7,
+  "originalFiles": 5,
+  "originalBytes": 24502968,
+  "actualPhysical": 1252,
+  "nativeBinaryBestE": 626,
+  "nativeBinaryRole2": 626,
+  "qualified": 1252,
+  "unknown": 0,
+  "modelStable": true,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "root/R independently acquired provider ZIP/native history7; all1252 original Core/attempt/flags/binary qualification/617guard/usage compared to W product replay",
+  "joint": {
+    "baselineCorrect": 475,
+    "candidateCorrect": 503,
+    "repaired": 31,
+    "regressed": 3
+  },
+  "E": {
+    "baselineCorrect": 582,
+    "candidateCorrect": 611,
+    "repaired": 32,
+    "regressed": 3,
+    "historical617Regressed": 6
+  },
+  "usage": {
+    "inputTokens": 2372526,
+    "outputTokens": 38812,
+    "totalTokensUnknownPosts": 1252
+  },
+  "seriesActual": {
+    "physicalPosts": 8764,
+    "qualified": 8759,
+    "inputTokensKnownSum": 18179633,
+    "inputTokensUnknownPosts": 5,
+    "outputTokensKnownSum": 283957,
+    "outputTokensUnknownPosts": 5,
+    "totalTokensUnknownPosts": 8764
+  },
+  "nextEvidence": {
+    "qualified": 12008,
+    "nativeBinary": 11387,
+    "qualifiedRole4Derived": 621,
+    "physicalIncludingOldInvalid": 12013,
+    "protected": 617,
+    "added": 0,
+    "priorInvalidUnknown": 5
+  },
+  "scope": "Native binary answers only; no observed candidate O/latent4/marginal; no posthoc rescue of old role4 maps, no Gold changes or held selection; final objective CI/records/Ready is not an intermediate negative gate"
+}

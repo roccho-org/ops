@@ -1,0 +1,88 @@
+{
+  "schema": "ops.sys1.expectation-role-japanese-prospective-plan.v1",
+  "contractOrigin": "https://github.com/roccho-org/ops/pull/624#issuecomment-6317153595",
+  "previousPlan": "All original seventeen plans/Core/guards/raw/Gold unchanged; D17 nativeSUCCESS/allqualified but semanticFAIL retained, no held exposure",
+  "candidate": "Translate the complete D16 two instructions and four criteria into Japanese, including its two original synthetic contrasts. Body/B/O/state/order/strictOR and protocol unchanged. Relative to immediate D17 this also restores the original long-contract coverage and two illustrations. Language, wording, length and order one package; no isolated language cause, semantic/ability equivalence, new structure or Gold-language improvement guarantee.",
+  "literal": "Three independent v3 wx; complete D16 sixfield Japanese meaning-translation, S520/R574 chars and four criteria translated; relative D17 restores fullcontract and originaltwoillustrations. No actualcase phrase or body translation/summary. Native3756 wire MAX20805/23039/20856<24000, unchanged keys/order/state/native2/strictOR/10s diagnose.",
+  "development": {
+    "phase": "development18",
+    "cases": 626,
+    "physicalMaximum": 1252,
+    "originalAnswerMaximum": 1878,
+    "originalBinaryEAnswers": 626,
+    "originalRoleAnswers": 1252,
+    "physicalComposition": "626 original BestE binary posts at15s JSONstring body and626 named2 SR posts at10s diagnoseRejectiontrue objectstate body; each compound usage once, roles not E",
+    "priorQualifiedEEvidence": 25773,
+    "priorNativeE": 18899,
+    "priorNativeSingleE": 18273,
+    "priorNativeCompoundPresenceE": 626,
+    "priorQualifiedRole4EProjections": 621,
+    "priorQualifiedNamed2EProjections": 1878,
+    "priorQualifiedVerificationEProjections": 626,
+    "priorQualifiedInverseAbsenceEProjections": 626,
+    "priorQualifiedMajorityEProjections": 626,
+    "priorQualifiedERole4EProjections": 619,
+    "priorInvalidPhysical": 12,
+    "protectedE": 622,
+    "primary": "fresh qualified BestE versus both-qualified wholeSR OR-derived E; same fixed historical O and first diagnostic",
+    "acceptance": "all1252 physical qualifiedexpected AND completejointgain>0 AND historical622 E destruction0 AND fresh E regression0; all626/O-null17 preserved; baselineunknown not promoted to repair",
+    "admission": "history18 exact D1..17 pluscurrent;25native runs+only fixedD6/D14 failurejobs/Gitparents/REQUEST; old17 fullprojections before credentials; arbitraryfailure/cancel/timedout/unknownonly rejected",
+    "timeoutMinutes": 350,
+    "priorQualifiedRoleBoundaryWholeOREProjections": 1878
+  },
+  "held": {
+    "metadataNative": "8bc883c3607aba1b3a02c6e38f4e9d6ab3395301",
+    "windowUTC": {
+      "createdAtInclusive": "2026-10-18T00:00:00Z",
+      "createdAtExclusive": "2026-10-19T00:00:00Z"
+    },
+    "scope": [
+      "cli/cli",
+      "NixOS/nixpkgs",
+      "microsoft/vscode"
+    ],
+    "prefixMaximum": 300,
+    "order": "createdAt ascending, ordinal immutableID tie; prefix before body eligibility and no refill",
+    "priorNative": "e727e0459ad614e3c780b6140c561cd79c49a2c7",
+    "typedIds": 862,
+    "exactBodies": 2033,
+    "referenceURLs": 2371,
+    "referenceRule": "unchanged canonical fixedscope/positive number conservative rule applied uniformly, preserve issues/pull kind and alias/outside limitations",
+    "physicalKeys": [
+      "bestE",
+      "roleJapaneseE",
+      "sharedO"
+    ],
+    "repetitions": 2,
+    "maximumPhysical": 1800,
+    "timeoutMinutesPerPass": 350,
+    "admission": "Only actualD18 allguardPASS/native originals/all3fullrequestfreeze before H count/body/Gold. Winning architecture only:3MHTTP/4M native binary answers,2M B/O plus2Mlowerroles; no B label input to candidate.",
+    "acceptance": "both same-fixed-case passes: all3M qualified/expected model, common-Gold deterministic census delta lower>0 and regression upper0, no averaging/cancellation or denominator doubling",
+    "gold": "predictionblind/mutuallyunread native initials before adjudication, null preserved; same-family/candidate-known raters are not independent human truth",
+    "noCases": "M0 NO_CASES/no model/no posthoc window expansion",
+    "technicalCapRevision": "Prospective350 per pass before unopened H, all old250 plans unchanged.3MHTTP/4M originalbinaryanswers perpass/twopasses; B/O15s andSR10s diagnose. No retry/resume/after-timeout extension; cap does not guarantee completion.",
+    "originalAnswersPerCase": 4,
+    "originalAnswerRoles": {
+      "bestE": "native binary E",
+      "roleJapaneseE": "native lower specification/request binary pair, bothstrict before wholeOR-derivedE, not two nativeE labels",
+      "sharedO": "native binary O"
+    },
+    "eligibilityWireKeys": [
+      "bestE",
+      "roleJapaneseE",
+      "sharedO"
+    ],
+    "policyIdentity": "Same wholebody/Gold/M/allB/SR/O Core andpayload across reps. H1 D18ordinal B/SR rotation, H2 reverseonly B/SR eachcase, Olastboth. Eachfixedschedule individuallyAND, no result/latency order selection, time/order/randomness inseparable. FailedD12conditionalchecker/D14fourclass units not mechanically reused."
+  },
+  "seriesMaximum": 24336,
+  "accounting": "Consumed21284 actual HTTP including invalid12;D18 max1252+futureH1800=24336,not actualcost/newUserbudgetgate. D1252HTTP1878 originalbinaryanswers,H3MHTTP4M;only B+wholeOR E evidence,lowerroles not standaloneE. Actual rawusage once;missing tokens/moneyunknown.",
+  "entry": "Same branch/workflow/350min sixstep;source-only REQUEST17/0f44 unchanged. Activation18REQUEST-only directacceptedsource once after necessaryCI/all3exact. Intermediate negativeCI/Ready not gate,objective finalcurrentallCI/records/Ready remains.",
+  "status": "CODE_ONLY_NO_D18_MODEL_OR_H_COUNT",
+  "continuation": "all seventeen negative raw/costs retained;v3 sixfield meaningtranslation after mutualcounter;not same-treatmentblindresend/Goldrevision/Hrescue",
+  "claimLimits": "Historical ever-correct protection is an engineering adoption guard, not an unbiased estimator. Held convenience Issue units are not SRS or mutually independent samples; report actual M, distinct whole bodies and reference inconsistencies as diagnostics, never outcome-based exclusion/refill/reweighting.",
+  "recorder": "Original askRoleBoundary private body/B/SDK/oldpaths unchanged,newfixed18schema/key dispatch only. Same roleBoundaryNative SRsnapshot shape;request/source/key bind separately. Oldqualificationbody/exports unchanged with fixednewwrapper appended,no public genericprofile/transport/executor.",
+  "projection": "Both wholecompound strict before OR-derivedE providerAnswerfalse/sourceChoices/currentpost; technicalunknown plusvalidyes still UNKNOWN. No fabricated E probability/confidence/model/usage. S/R roles mayoverlap but are lower predicates/diagnostics and not standaloneEhistory; originalE Gold only.",
+  "modelProtocol": "D B and new fixed native SR compound both preserve legacy missing/nonstring/empty/other model-stop. Raw model/modelPresent are retained; this stop is not proof of actually reported-other. PN special missing-model-continue is not copied. Ordinary map or transport UNKNOWN still executes the other independent scheduled assignment; no previous-post flags/usage reuse. Model-stop binds the current post snapshot and trace. Winning H all B/SR/O three-state capture, loop, qualifier replay and H2 admission require a separate prospective source. Original B flags/return remain unchanged and do not newly capture raw Bmodel identifier; new rawmodel/modelPresent only SR. WinningH allpathcapture/loop/qualification/H2 same3state predicate is別source.",
+  "schedule": "Independent caseordinal B/SR rotation, ordinary unknown attempts other, current legacy modelstop ends tail. Candidate request never sees B output/Gold/O/ID/history.",
+  "stageIntegrity": "Every local failure has no post/flags; provider failure has currentpost and no flags; response-model/answers/probabilities/typed-contract require post<flags<failure<qualification-unknown. Both stale borrowedflags and providerpostdrop rejected, currentpost usage reset, no raw repair."
+}

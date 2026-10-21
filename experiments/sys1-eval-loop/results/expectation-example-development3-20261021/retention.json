@@ -1,0 +1,21 @@
+{
+  "schema": "ops.sys1.expectation-example-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "3610f16da26ed81883cbdfc75f454b37e6deed80",
+  "activation": "ff235faf8540b4551eda7f8d457069885c2ff5b7",
+  "phase": "development3",
+  "historyCount": 3,
+  "originalFiles": 5,
+  "originalBytes": 27224473,
+  "actualPhysical": 1252,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "root/R independently acquired native provider ZIP and actual Git parent/REQUEST phase3; all1252 expected Core/events/qualification/607 guard/usage agree with W original bytes and product replay",
+  "seriesActual": {
+    "physicalPosts": 3756,
+    "inputTokens": 8399626,
+    "outputTokens": 116436,
+    "totalTokensUnknownPosts": 3756
+  },
+  "next": "distinct fixed hypothesis only; old D3 protected607 and prior role/boundary failures unchanged; no candidate blind retry or held opening"
+}

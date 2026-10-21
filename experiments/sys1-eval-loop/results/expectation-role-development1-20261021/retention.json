@@ -1,0 +1,13 @@
+{
+  "schema": "ops.sys1.expectation-role-development-retention.v1",
+  "outcome": "DEVELOPMENT_GUARD_FAIL",
+  "source": "926efffdc495b46f8b4615eac37d35bc4273595a",
+  "activation": "482a5c3fc0f0876537d3f8d9f7e419f724e2ae19",
+  "originalFiles": 5,
+  "originalBytes": 25911013,
+  "actualPhysical": 1252,
+  "selectionIssued": false,
+  "newHeldCountBodyGoldOpened": false,
+  "verification": "root/R independently acquired native provider ZIP and reconstructed all1252 Core, qualifications, shared historical O, guard and usage; W original bytes/product replay agree",
+  "next": "separate genuine boundary hypothesis; all4501 retained physical E protect607 for next prospective source only, never retroactively replace current604"
+}
