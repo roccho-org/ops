@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const EXACT = "${{ github.sha }}";
 const JEV_ORG_WORKFLOW = ".github/workflows/jev-issue-comment.yml";
-const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 606 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)))";
+const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 625 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)))";
 const JEV_PLAN_RUN = [
   'set -euo pipefail',
   '"$JEV_NODE" "$JEV_SRC/issue-executor.mjs" plan "$JEV_RUN_DIR"',
@@ -328,7 +328,7 @@ export function selftest() {
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("== 511","== 512");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replaceAll("== 573","== 574");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replaceAll("== 573","== 573 || github.event.issue.number == 574");},
-    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.number == 606 && startsWith", "startsWith");},
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.number == 625 && startsWith", "startsWith");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.pull_request == null && ", "");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace('fromJSON(\'"/jev-evaluate\\n"\')', '\'/jev-evaluate\'');},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("startsWith(github.event.comment.body", "contains(github.event.comment.body");},
@@ -337,7 +337,7 @@ export function selftest() {
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.event.issue.pull_request != null && ","");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("Organization","User");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("/jev-evaluate","/other");},
-    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace(" && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)", "");},
+    w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace(" && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606)", "");},
     w=>{w.jobs.evaluate.if+=" || true";},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("== 511","== 511 || github.event.issue.number == 512");},
     w=>{w.jobs.evaluate.if=w.jobs.evaluate.if.replace("github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)", "(github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)");},

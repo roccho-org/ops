@@ -1,6 +1,6 @@
 name: Jev Issue comment evaluation
 
-# Closed Org origins; PR606 accepts supplied input for one fresh finite follow-up trial.
+# Closed Org origins; PR625 accepts supplied input for one separate finite Goal-specific trial.
 # One PR budget claim across a finite ordinal window; no refill.
 # Historical grants remain; no rerun spending or automatic ordinal following.
 on:
@@ -23,9 +23,9 @@ jobs:
       github.event_name == 'issue_comment' &&
       github.event.repository.owner.type == 'Organization' &&
       ((github.event.comment.body == '/jev-evaluate' &&
-      (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)) ||
+      (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606)) ||
       (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&
-      github.event.issue.number == 606 &&
+      github.event.issue.number == 625 &&
       startsWith(github.event.comment.body, fromJSON('"/jev-evaluate\n"')))) &&
       ((github.event.issue.pull_request == null &&
       ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) ||
