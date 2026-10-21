@@ -720,7 +720,7 @@ test("terminal provider diagnostics accept only the own fixed envelope, never ra
   assert.deepEqual(providerFailureReceipt(failure(JSON.stringify(envelope))), envelope);
   assert.equal(providerFailureReceipt([{ role: "assistant", stopReason: "stop" }]), undefined);
   for (const value of ["synthetic-private-HTTP401", JSON.stringify({ ...envelope, private: "synthetic-private" }),
-    JSON.stringify({ ...envelope, attempt: 5 }), JSON.stringify({ ...envelope, httpStatus: "401" }),
+    JSON.stringify({ ...envelope, attempt: 6 }), JSON.stringify({ ...envelope, httpStatus: "401" }),
     JSON.stringify({ ...envelope, outcome: "TRANSPORT" }), JSON.stringify({ ...envelope, scope: "provider" })]) {
     const result = providerFailureReceipt(failure(value));
     assert.equal(result.outcome, "UNKNOWN");
@@ -774,5 +774,115 @@ test("recovery uses the unique existing conversation and emits only ONE open, ne
       for (const socket of server.clients) socket.terminate();
       await new Promise(resolve => server.close(resolve));
     }
+  }
+});
+function transportCorrectionFrames(clockDelta = false) {
+  const frames = historyFrames([{ id: 9 }]);
+  const messages = [
+    { role: "user", content: "synthetic-old-input" },
+    { role: "system", content: "", sections: { preamble: "fixture", clock: "Current time: 2026-10-21T01:00Z." } },
+    { role: "assistant", stopReason: "error", content: [], errorMessage: "Proof provider request failed" },
+    { role: "user", content: "synthetic-second-input" },
+    ...(clockDelta ? [{ role: "system", content: "", sections: { clock: "Current time: 2026-10-21T01:01Z." } }] : []),
+    { role: "assistant", stopReason: "error", content: [], errorMessage: JSON.stringify({
+      scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: 2, httpStatus: null, outcome: "TRANSPORT" }) },
+  ];
+  const entries = messages.map((message,id) => ({ id: id + 1, kind: "pi." + message.role, model: [message] }));
+  const opened = historyFrames([], entries);
+  frames.push(...opened.slice(1,3).map(frame => ({ ...frame, conversationId: 9 })));
+  return frames;
+}
+test("transport snapshot accepts only source-shaped failed entries and the same attempt2 trusted envelope", async () => {
+  const { transportSnapshotAllowed } = await import("./owner.mjs");
+  const witness = { ...historyWitness(2), prior: "false" };
+  for (const delta of [false,true]) assert.equal(transportSnapshotAllowed(transportCorrectionFrames(delta),9,witness).errorOrAbortCount,2);
+  for (const mutate of [
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries.push({ kind: "pi.unknown", model: [] }); },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[0].edits = []; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[0].head = "self"; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[4].model[0].sections.preamble = "synthetic-new-instructions"; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[4].model[0].toolsAdded = []; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[4].model[0].toolsRemoved = []; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries[4].model[0].sections.clock = null; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries.at(-1).model[0].errorMessage = "synthetic-private-transport"; },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries.at(-1).model[0].errorMessage = JSON.stringify({
+      scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: 1, httpStatus: null, outcome: "TRANSPORT" }); },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].entries.at(-1).model[0].errorMessage = JSON.stringify({
+      scope: "PI_PROOF_PROVIDER_FAILURE", version: 1, attempt: 2, httpStatus: 401, outcome: "HTTP" }); },
+    f => { f.find(frame => frame.type === "conversation.events" && frame.conversationId === 9).events[0].compactions.push({ id: "pending" }); },
+    f => { f.push({ type: "conversation.events", conversationId: 1, events: [{ type: "run_start" }] }); },
+  ]) { const frames=transportCorrectionFrames(true);mutate(frames);assert.throws(()=>transportSnapshotAllowed(frames,9,witness)); }
+  for (const posts of [0,1,3,4,5]) assert.throws(()=>transportSnapshotAllowed(transportCorrectionFrames(),9,{...witness,posts}));
+});
+test("distinct transport correction mark survives process death and preserves the consumed old recovery", async () => {
+  const { mkdtemp, readFile, unlink, rmdir } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const { withRegistration } = await import("./custody.mjs");
+  const { beginTransportRecovery, proofIdentity } = await import("./owner.mjs");
+  const original={state:"UNKNOWN",attemptedStage:"seed",reconciliation:{state:"UNKNOWN",forensicOnce:{state:"UNKNOWN"}},
+    historyInspection:failedRecoveryObservation()};
+  const prior={...original,seedRecovery:{state:"UNKNOWN",originalUnknown:original,conversationId:9}};
+  const dir=await mkdtemp(tmpdir()+"/owner-transport-"),path=dir+"/registration.json";
+  try {
+    await withRegistration(path,store=>store.save({state:"READY",proof:prior}));
+    const before=await readFile(path,"utf8");
+    await withRegistration(path,async store=>{
+      await assert.rejects(beginTransportRecovery(store,Date.now()-1));assert.equal(await readFile(path,"utf8"),before);
+    });
+    const child=`
+      const {withRegistration}=await import(${JSON.stringify(new URL("./custody.mjs",import.meta.url).href)});
+      const {beginTransportRecovery}=await import(${JSON.stringify(new URL("./owner.mjs",import.meta.url).href)});
+      await withRegistration(process.argv[1],async store=>{
+        await beginTransportRecovery(store,Date.now()+300000);console.log("TRANSPORT_MARK_DURABLE");
+        if(process.argv[2]==="crash")process.kill(process.pid,"SIGKILL");
+      }).catch(()=>{console.error("TRANSPORT_REFUSED");process.exitCode=1;});
+    `;
+    const execute=(crash=false)=>promisify(execFile)(process.execPath,["--input-type=module","-e",child,path,crash?"crash":"normal"],{timeout:5000});
+    await assert.rejects(execute(true),error=>error.signal==="SIGKILL"&&error.stdout.trim()==="TRANSPORT_MARK_DURABLE");
+    await assert.rejects(execute(),error=>error.stderr.trim()==="TRANSPORT_REFUSED");
+    const marked=JSON.parse(await readFile(path,"utf8")).proof;
+    assert.deepEqual(marked.transportRecovery.originalUnknown,prior);assert.deepEqual(marked.seedRecovery,prior.seedRecovery);
+    for (const marker of [null,false,{}, {state:"UNKNOWN"}]) {
+      await withRegistration(path,store=>store.save({state:"READY",proof:{...prior,transportRecovery:marker}}));
+      await assert.rejects(execute());
+    }
+    for (const stage of ["history","refresh","recall"]) assert.throws(()=>proofIdentity({url:"https://pi.roccho.workers.dev",
+      session:"owner-jev-proof-20261020",host:"64a8f191-83c2-5eeb-8dc0-612bc80970db",stage,continue:true,"recover-transport-once":true}));
+  } finally {
+    for(const name of ["registration.json","registration.json.lock"])await unlink(dir+"/"+name).catch(()=>{});
+    await rmdir(dir);
+  }
+});
+test("real transport-correction loopback opens only the previously saved inventory ID", async () => {
+  const { prepareTransportConversation, observeOwnerSocket, withOwnerSockets, waitOwnerFrame, closeOwnerSocket } = await import("./owner.mjs");
+  const {WebSocket,WebSocketServer}=await import("ws");const {once}=await import("node:events");
+  for(const saved of [9,10]) {
+    const server=new WebSocketServer({host:"127.0.0.1",port:0});await once(server,"listening");
+    const commands=[];
+    server.on("headers",headers=>headers.push("Pi-Proof-Boot: 00000000-0000-4000-8000-000000000608","Pi-Proof-Prior-Token: false","Pi-Proof-Posts: 2"));
+    server.on("connection",socket=>{
+      for(const frame of historyFrames([{id:9}]))socket.send(JSON.stringify(frame));
+      socket.on("message",data=>{
+        const command=JSON.parse(String(data));commands.push(command);
+        for(const frame of transportCorrectionFrames(true).slice(3))socket.send(JSON.stringify(frame));
+        socket.send(JSON.stringify({type:"command.result",command:"conversation.open",requestId:command.requestId,ok:true}));
+      });
+    });
+    const abort=new AbortController();
+    try {
+      await withOwnerSockets(abort.signal,async sockets=>{
+        const frames=[],socket=new WebSocket("ws://127.0.0.1:"+server.address().port);sockets.add(socket);
+        const trace=observeOwnerSocket(socket,frames);await once(socket,"open");
+        const wait=predicate=>waitOwnerFrame(frames,socket,predicate,abort.signal,500);
+        const connection={frames,witness:trace.witness,wait,close:()=>closeOwnerSocket(socket,abort.signal),
+          async command(command){socket.send(JSON.stringify(command));return wait(frame=>frame.type==="command.result"&&frame.requestId===command.requestId);}};
+        if(saved===9)assert.equal(await prepareTransportConversation(connection,saved),9);
+        else await assert.rejects(prepareTransportConversation(connection,saved));
+        await connection.close();
+      });
+      assert.deepEqual(commands.map(command=>[command.type,command.conversationId]),saved===9?[["conversation.open",9]]:[]);
+    } finally {for(const socket of server.clients)socket.terminate();await new Promise(resolve=>server.close(resolve));}
   }
 });

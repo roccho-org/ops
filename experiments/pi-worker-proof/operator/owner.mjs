@@ -31,7 +31,7 @@ export function observeOwnerSocket(socket, frames, invalidFrame = () => {}) {
     trace.upgradeSeen101 = response.statusCode === 101;
     trace.witness = {
       boot: response.headers["pi-proof-boot"], prior: response.headers["pi-proof-prior-token"],
-      posts: typeof response.headers["pi-proof-posts"] === "string" && /^[0-4]$/.test(response.headers["pi-proof-posts"]) ? Number(response.headers["pi-proof-posts"]) : NaN,
+      posts: typeof response.headers["pi-proof-posts"] === "string" && /^[0-5]$/.test(response.headers["pi-proof-posts"]) ? Number(response.headers["pi-proof-posts"]) : NaN,
     };
   });
   socket.on("unexpected-response", (_request, response) => {
@@ -47,7 +47,7 @@ export function safeWitnessStatus(witness) {
   return {
     bootPresent: typeof witness?.boot === "string" && witness.boot.length > 0,
     bootValid: typeof witness?.boot === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(witness.boot),
-    posts: Number.isInteger(witness?.posts) && witness.posts >= 0 && witness.posts <= 4 ? witness.posts : null,
+    posts: Number.isInteger(witness?.posts) && witness.posts >= 0 && witness.posts <= 5 ? witness.posts : null,
     priorToken: witness?.prior === "true" ? true : witness?.prior === "false" ? false : null,
   };
 }
@@ -60,7 +60,8 @@ export function proofIdentity(values) {
       !["login","reauth","refresh","seed","recall","reconcile","history"].includes(values.stage) ||
       (["seed","recall","reconcile","history"].includes(values.stage) && values.continue !== true) ||
       (values["forensic-once"] === true && values.stage !== "reconcile") ||
-      (values["recover-seed-once"] === true && values.stage !== "seed")) throw new Error("Proof identity mismatch");
+      (values["recover-seed-once"] === true && values.stage !== "seed") ||
+      (values["recover-transport-once"] === true && (values.stage !== "seed" || values["recover-seed-once"] === true))) throw new Error("Proof identity mismatch");
 }
 export async function loadOwnerOAuth() {
   delete process.env.PI_OAUTH_CALLBACK_HOST;
@@ -288,6 +289,62 @@ export async function prepareRecoveryConversation(connection) {
   recoveryHistoryAllowed(observation);
   return target.conversationId;
 }
+export async function beginTransportRecovery(store, expires) {
+  const record = store.get(), proof = record.proof;
+  assert.ok(proof?.state === "UNKNOWN" && proof.attemptedStage === "seed" &&
+    proof.reconciliation?.state === "UNKNOWN" && proof.reconciliation.forensicOnce?.state === "UNKNOWN" &&
+    proof.historyInspection?.state === "OBSERVED" && proof.seedRecovery?.state === "UNKNOWN" &&
+    recordObject(proof.seedRecovery.originalUnknown) && Number.isSafeInteger(proof.seedRecovery.conversationId) &&
+    proof.seedRecovery.conversationId > 1 && !Object.hasOwn(proof, "transportRecovery"));
+  recoveryHistoryAllowed(proof.historyInspection);
+  assert.ok(Number.isFinite(expires) && expires > Date.now() + 30_000);
+  await store.save({ ...record, proof: { ...proof, transportRecovery: { state: "UNKNOWN", originalUnknown: proof } } });
+}
+export function transportSnapshotAllowed(frames, id, witness) {
+  proofWitness(witness, 2, "false");
+  const report = summarizeHistory(frames, id, witness);
+  for (const [key, expected] of Object.entries({ classification: "MODEL_ERROR_OR_ABORT_OBSERVED",
+    userMessageCount: 2, assistantCount: 2, errorOrAbortCount: 2, completedAssistantCount: 0,
+    askJevCallCount: 0, askJevResultCount: 0, matchedTypedJevResultCount: 0,
+    pendingObserved: false, subsequentEventCount: 0 })) assert.equal(report[key], expected);
+  const { snapshot } = automaticSnapshot(frames, id);
+  const roles = snapshot.entries.map(entry => {
+    assert.ok(!Object.hasOwn(entry, "head") && !Object.hasOwn(entry, "edits"));
+    assert.ok(Array.isArray(entry.model) && entry.model.length === 1);
+    const role = entry.model[0]?.role;
+    assert.equal(entry.kind, { user: "pi.user", assistant: "pi.assistant", system: "pi.system" }[role]);
+    assert.ok(["user","assistant","system"].includes(role));
+    if (role === "assistant") assert.ok(emptyArray(entry.model[0].content));
+    return role;
+  });
+  // Frozen prompt rendering adds one baseline and may add a clock delta at the next minute.
+  assert.ok(JSON.stringify(roles) === JSON.stringify(["user","system","assistant","user","assistant"]) ||
+    JSON.stringify(roles) === JSON.stringify(["user","system","assistant","user","system","assistant"]));
+  if (roles.length === 6) {
+    const delta = snapshot.entries[4].model[0];
+    assert.equal(delta.content, "");
+    assert.ok(Object.keys(delta).every(key => ["role","content","sections","timestamp"].includes(key)));
+    assert.ok(recordObject(delta.sections) && Object.keys(delta.sections).join(",") === "clock");
+    assert.match(delta.sections.clock, /^Current time: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z\.$/);
+  }
+  const latest = snapshot.entries.at(-1).model[0];
+  assert.deepEqual(providerFailureReceipt([latest]), { scope: "PI_PROOF_PROVIDER_FAILURE",
+    version: 1, attempt: 2, httpStatus: null, outcome: "TRANSPORT" });
+  return report;
+}
+export async function prepareTransportConversation(connection, savedId) {
+  proofWitness(connection.witness, 2, "false");
+  await connection.wait(frame => frame?.type === "conversation.events" && frame.conversationId === 1 &&
+    Array.isArray(frame.events) && frame.events.some(event => event?.type === "snapshot"));
+  await connection.wait(frame => frame?.type === "conversation.inbox" && frame.conversationId === 1);
+  const selected = historyTarget(connection.frames, connection.witness);
+  assert.equal(selected.classification, "UNIQUE_OWNERLESS_NONROOT");
+  assert.equal(selected.conversationId, savedId);
+  const observation = await inspectHistoryConnection(connection, false);
+  assert.ok(observation.inspected && observation.inventoryCount === 2 && observation.openedConversationCount === 1);
+  transportSnapshotAllowed(connection.frames, savedId, connection.witness);
+  return savedId;
+}
 export function providerFailureReceipt(messages) {
   const failures = messages.filter(message => message.role === "assistant" && ["error","aborted"].includes(message.stopReason));
   if (failures.length === 0) return undefined;
@@ -297,7 +354,7 @@ export function providerFailureReceipt(messages) {
     const value = JSON.parse(failures[0].errorMessage);
     assert.deepEqual(Object.keys(value).sort(), Object.keys(unknown).sort());
     assert.equal(value.scope, unknown.scope); assert.equal(value.version, 1);
-    assert.ok(value.attempt === null || (Number.isInteger(value.attempt) && value.attempt >= 1 && value.attempt <= 4));
+    assert.ok(value.attempt === null || (Number.isInteger(value.attempt) && value.attempt >= 1 && value.attempt <= 5));
     assert.ok(value.httpStatus === null || (Number.isInteger(value.httpStatus) && value.httpStatus >= 100 && value.httpStatus <= 599));
     assert.ok(["HTTP","TRANSPORT","NOT_SENT","UNKNOWN"].includes(value.outcome));
     assert.ok(value.outcome !== "HTTP" || (value.attempt !== null && value.httpStatus !== null));
@@ -391,6 +448,7 @@ const { values } = parseArgs({ options: {
   url: { type: "string" }, session: { type: "string" }, host: { type: "string" },
   cloudflared: { type: "string" }, stage: { type: "string" }, continue: { type: "boolean" },
   "forensic-once": { type: "boolean" }, "recover-seed-once": { type: "boolean" },
+  "recover-transport-once": { type: "boolean" },
 } });
 proofIdentity(values);
 if (!process.stderr.isTTY || !values.url || !values.session || !values.host || !values.cloudflared) {
@@ -443,13 +501,14 @@ if (stage === "refresh") {
 // paid continuation consent, never a read-only status query or an automatic recovery.
 if (!values.continue) throw new Error("Explicit --continue required before access attachment");
 const record = store.get();
-if (!(stage === "seed" && values["recover-seed-once"] === true)) proofStageAllowed(record.proof, stage, values["forensic-once"] === true);
+if (!(stage === "seed" && (values["recover-seed-once"] === true || values["recover-transport-once"] === true))) proofStageAllowed(record.proof, stage, values["forensic-once"] === true);
 if (stage === "recall" && (record.proof?.state !== "SEEDED" || (record.rotations ?? 0) <= record.proof.rotations)) {
   throw new Error("Completed seed and actual durable refresh required");
 }
 const previousProof = record.proof;
 if (stage === "recall" && (previousProof.session !== values.session || previousProof.origin !== values.url || previousProof.host !== values.host)) throw new Error("Proof binding mismatch");
-if (stage === "seed" && values["recover-seed-once"] === true) await beginSeedRecovery(store, credential.expires);
+if (stage === "seed" && values["recover-transport-once"] === true) await beginTransportRecovery(store, credential.expires);
+else if (stage === "seed" && values["recover-seed-once"] === true) await beginSeedRecovery(store, credential.expires);
 else if (stage === "reconcile") {
   await beginReconciliation(store, values["forensic-once"] === true, credential.expires);
 } else if (stage === "history") await beginHistoryInspection(store, credential.expires);
@@ -543,11 +602,16 @@ if (stage === "reconcile") {
 }
 if (stage === "seed") {
 const first = await connect();
+const transportRecovery = values["recover-transport-once"] === true;
 const recovery = values["recover-seed-once"] === true;
-proofWitness(first.witness, recovery ? 1 : 0, "false");
+const offset = transportRecovery ? 2 : recovery ? 1 : 0;
+proofWitness(first.witness, offset, "false");
 if (previousProof?.state === "RECONCILED_EMPTY") assert.notEqual(first.witness.boot, previousProof.reconciliation.boot, "Idle/recreated instance required after reconciliation");
 let conversationId;
-if (recovery) {
+if (transportRecovery) {
+  phase("TRANSPORT_CORRECTION_EXISTING_CONVERSATION");
+  conversationId = await prepareTransportConversation(first, previousProof.seedRecovery.conversationId);
+} else if (recovery) {
   phase("RECOVERY_EXISTING_CONVERSATION");
   conversationId = await prepareRecoveryConversation(first);
   // Pin the actual current unique ID before any fresh prompt. Old history did not retain it.
@@ -572,7 +636,7 @@ assert.ok(answer.includes(marker) && answer.includes(String(assessment.noul)));
 const completions = completionReceipt(messages, ["toolUse", "stop"]);
 await first.close();
 phase("SEED_COMMIT");
-await store.save({ ...store.get(), proof: { ...store.get().proof, state: "SEEDED", modelPostOffset: recovery ? 1 : 0, session: values.session,
+await store.save({ ...store.get(), proof: { ...store.get().proof, state: "SEEDED", modelPostOffset: offset, session: values.session,
   origin: values.url, host: values.host, conversationId: conversationId, marker, assessment, boot: first.witness.boot,
   rotations: record.rotations ?? 0, completions, seededAt: Date.now() } });
 console.log(JSON.stringify({ scope: "ACTUAL_WORKER_SEED_ONLY", status: "SEEDED", conversationId: conversationId,
@@ -581,7 +645,7 @@ console.log(JSON.stringify({ scope: "ACTUAL_WORKER_SEED_ONLY", status: "SEEDED",
 assert.equal(previousProof.session, values.session);
 const reopened = await connect();
 const offset = previousProof.modelPostOffset ?? 0;
-assert.ok(offset === 0 || offset === 1);
+assert.ok(offset === 0 || offset === 1 || offset === 2);
 proofWitness(reopened.witness, 2 + offset, "false");
 assert.ok(reopened.witness.boot !== previousProof.boot && reopened.witness.prior === "false",
   "NOT_PROVEN: real DO recreation not observed; no recall prompt sent");
@@ -602,7 +666,7 @@ await receipt.close();
 await store.save({ ...store.get(), proof: { ...previousProof, state: "COMPLETE", completions } });
 console.log(JSON.stringify({ scope: "ACTUAL_WORKER_CREDENTIAL_LIFECYCLE_PROOF", session: values.session,
   conversationId: previousProof.conversationId, completions, responsesPostAttempts: 3 + offset, historicalFailedAdmissions: offset,
-  overallUserInputs: offset ? 3 : 2,
+  overallUserInputs: 2 + offset,
   successfulJevToolResults: 1, recreated: true, priorTokenAbsent: true, actualRefreshPersistedAcrossProcess: true,
   markerSha256: createHash("sha256").update(previousProof.marker).digest("hex"),
   assessment: previousProof.assessment, recallMatched: true, noClientHistoryReinjection: true,

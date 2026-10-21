@@ -59,5 +59,9 @@ function stopped(code: string) {
 
 // Server binding only: no model argument can set a key, provider, URL or model.
 export function bindJevProof(apiKey?: string) {
-  return apiKey ? createJevProofTool(bindJev({ apiKey, fetch: (input, init) => globalThis.fetch(input, { ...init, redirect: "error" }) })) : undefined;
+  return apiKey ? createJevProofTool(bindJev({ apiKey, fetch: async (input, init) => {
+    const response = await globalThis.fetch(input, { ...init, redirect: "manual" });
+    if (response.status >= 300 && response.status < 400) throw new Error("Jev proof redirect rejected");
+    return response;
+  } })) : undefined;
 }

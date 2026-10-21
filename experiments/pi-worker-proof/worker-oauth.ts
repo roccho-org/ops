@@ -156,20 +156,23 @@ export class TransientWorkerProof {
     }
     const attempt = await this.storage.transaction(async tx => {
       const count = await tx.get<number>("pi.proof.responses.posts") ?? 0;
-      if (count >= 4) throw new Error("Proof physical request budget consumed");
+      if (count >= 5) throw new Error("Proof physical request budget consumed");
       await tx.put("pi.proof.responses.posts", count + 1);
       return count + 1;
     });
     if (trace) trace.attempt = attempt;
     // Count before send: an UNKNOWN result is never refunded.
+    let response: Response;
     try {
-      const response = await globalThis.fetch(request, { redirect: "error" });
-      if (trace) { trace.httpStatus = response.status; trace.outcome = "HTTP"; }
-      return response;
+      response = await globalThis.fetch(request, { redirect: "manual" });
     } catch {
       if (trace) trace.outcome = "TRANSPORT";
       throw new Error("Proof transport failed");
     }
+    if (trace) { trace.httpStatus = response.status; trace.outcome = "HTTP"; }
+    // Workers supports manual/follow, not error. Never forward bearer/body to Location.
+    if (response.status >= 300 && response.status < 400) throw new Error("Proof redirect rejected");
+    return response;
   }
 
   readonly fetch: typeof fetch = (input, init) => this.#request(input, init);
