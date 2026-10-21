@@ -2154,6 +2154,7 @@ assert.equal(steps.filter((s) => s.includes('${{ github.token }}')).length, 2);
 await check('provided-human-view-legacy-reconciliation-and-safe-text', async () => {
   const w = prWorld(), cfg = providedConfig(), payload = providedPayload(w);
   payload.cases[0].input.checks[0].id = '@fixture|<b>`é';
+  payload.cases[0].input.checks[0].predicate.question = 'Is <script>alert(`x`)</script> & @fixture present?';
   const command = w.addComment({ body: providedBody(payload) });
   const first = await fullRun(w, command, { cfg });
   assert.deepEqual(outcome(first), ['APPENDED', 'READBACK_EXACT']);
@@ -2163,19 +2164,36 @@ await check('provided-human-view-legacy-reconciliation-and-safe-text', async () 
   assert.equal(view.includes('@fixture'), false); assert.equal(view.includes('<b>'), false);
   assert.equal(view.includes('`'), false); assert.ok(view.includes('&#124;')); assert.ok(view.includes('&#233;'));
   const envelope = parseResultComment(body);
+  assert.equal(envelope.schema, 'ops.jev.issue-result.v2');
   assert.equal(envelope.result.cases[0].result.records[0].rule, payload.cases[0].input.checks[0].id);
+  assert.deepEqual(envelope.presentation.cases[0].checks[0], { id: payload.cases[0].input.checks[0].id,
+    ...payload.cases[0].input.checks[0].predicate });
+  assert.ok(view.includes('Problem criterion (true)') && view.includes('Ok criterion (false)'));
+  assert.ok(view.includes('not support or actual model use'));
+  assert.equal(view.includes('<script>'), false);
+  assert.equal(view.includes(payload.cases[0].input.context[0].content), false);
   for (const modified of [body + 'extra', 'Unbound findings\n' + body, body.replace('No automatic approval', 'Automatic approval'), body.replace('Execution evidence', 'Other evidence')]) assert.equal(parseResultComment(modified), null);
   const explanation = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. See the linked request for the questions and conditions.\n\n";
-  const historicalReadable = body.replace(explanation, '');
-  assert.notEqual(historicalReadable, body); assert.deepEqual(parseResultComment(historicalReadable), envelope);
-  for (const changed of [body.replace(explanation, explanation + explanation), body.replace('Jev supplies', 'Other tool supplies')]) assert.equal(parseResultComment(changed), null);
-  w.posted[0].body = historicalReadable;
-  const beforeHistorical = effects(w);
-  await fullRun(w, command, { cfg, run: first.run });
-  assert.deepEqual(effects(w), beforeHistorical);
+  const inputExplanation = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. Questions and criteria appear below; the linked request retains the full supplied input for audit.\n\n";
+  assert.ok(body.includes(inputExplanation) && view.includes('[Full supplied input (audit)]'));
+  const { presentation, ...legacyFields } = envelope;
+  const legacyEnvelope = { ...legacyFields, schema: 'ops.jev.issue-result.v1' };
+  const legacyReadable = body.replace(/### Questions and supplied context\n[\s\S]*?### Model observations\n\n/, '')
+    .replace(inputExplanation, explanation).replace('[Full supplied input (audit)]', '[Request and evaluation conditions]')
+    .replace('Read the questions and criteria above and the supplied source scope before deciding what to change. ', 'Read the linked question, criteria and source scope before deciding what to change. ')
+    .replace(JSON.stringify(envelope), JSON.stringify(legacyEnvelope));
+  const historicalReadable = legacyReadable.replace(explanation, '');
+  assert.notEqual(historicalReadable, body); assert.deepEqual(parseResultComment(historicalReadable), legacyEnvelope);
+  for (const changed of [body.replace(inputExplanation, inputExplanation + inputExplanation), body.replace('Jev supplies', 'Other tool supplies')]) assert.equal(parseResultComment(changed), null);
+  for (const savedBody of [body, legacyReadable, historicalReadable]) {
+    w.posted[0].body = savedBody;
+    const beforeHistorical = effects(w);
+    await fullRun(w, command, { cfg, run: first.run });
+    assert.deepEqual(effects(w), beforeHistorical);
+  }
   // A historical saved provided body must not cause a second provider/post on re-delivery.
-  w.posted[0].body = RESULT_PREFIX + JSON.stringify(envelope) + '\n';
-  assert.deepEqual(parseResultComment(w.posted[0].body), envelope);
+  w.posted[0].body = RESULT_PREFIX + JSON.stringify(legacyEnvelope) + '\n';
+  assert.deepEqual(parseResultComment(w.posted[0].body), legacyEnvelope);
   const before = effects(w);
   await fullRun(w, command, { cfg, run: first.run });
   assert.deepEqual(effects(w), before);
@@ -2191,6 +2209,21 @@ await check('provided-human-view-size-refusal-before-provider', async () => {
   assert.ok(Buffer.byteLength(RESULT_PREFIX + JSON.stringify(legacySized), 'utf8') + 4096 < 32768, 'full legacy result plus conservative identity reserve fits');
   const result = await fullRun(w, command, { cfg });
   assert.deepEqual(outcome(result), ['NONE', 'RESULT_WOULD_EXCEED_COMMENT_CAP']);
+  assert.deepEqual(effects(w), zero);
+});
+
+await check('provided-question-display-size-refusal-before-provider', async () => {
+  const w = prWorld(), cfg = providedConfig(), payload = providedPayload(w);
+  const check = payload.cases[0].input.checks[0];
+  payload.cases[0].input.checks = Array.from({ length: 6 }, (_, i) => ({ ...check, id: `fixture-size-${i}`,
+    predicate: { question: '&'.repeat(450), true: '&'.repeat(450), false: '&'.repeat(450) } }));
+  // The original result shape fits; only repeating escaped predicates in the new display exceeds the cap.
+  const prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: payload.cases });
+  const output = await runPlan(prepared, async (_, questions) => ({ model: JEV_MODEL,
+    answers: Object.fromEntries(Object.keys(questions).map(key => [key, { type: 'noul', noul: 0.5 }])) }));
+  assert.ok(Buffer.byteLength(JSON.stringify(output)) + 4096 < 32768);
+  const command = w.addComment({ body: providedBody(payload) });
+  assert.deepEqual(outcome(await fullRun(w, command, { cfg })), ['NONE', 'RESULT_WOULD_EXCEED_COMMENT_CAP']);
   assert.deepEqual(effects(w), zero);
 });
 
