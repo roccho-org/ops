@@ -47,3 +47,4 @@
 {"deps":["nodejs"],"kind":"check","name":"goal-evaluation-unix","script":"experiments/goal-evaluation-unix/core.test.mjs"}
 {"deps":["nodejs","semlint-core"],"kind":"check","name":"semlint-core","script":"packages/semlint-core/tests/run.mjs"}
 {"deps":["nodejs","semlint-owner"],"kind":"check","name":"semlint-owner-package","script":"packages/jev-review/tests/owner-package.mjs"}
+{"deps":["nodejs","git"],"kind":"check","name":"semlint-g1-instrument","script":"verification/semlint-g1/run.mjs"}
