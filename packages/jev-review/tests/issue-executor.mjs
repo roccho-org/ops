@@ -1609,14 +1609,25 @@ await check('exact-public-pr511-pr522-current-context-budget', async () => {
     const oversized = { ...planned.state.admission,
       issue: { ...planned.state.admission.issue, body: 'x'.repeat(28001) } };
     assert.deepEqual(await admitIssueCommand(oversized, shipped),
-      { status: 'NOT_ADMITTED', cause: 'INVALID_REQUEST_OR_ADMISSION', authority: false });
+      kind === 'pull-request'
+        ? { status: 'NOT_ADMITTED', cause: 'LITERAL_STATE_BUDGET_EXCEEDED', authority: false,
+          observed: { issueNodeId: oversized.issue.nodeId, subjectRevision: subjectRevision(oversized.issue) } }
+        : { status: 'NOT_ADMITTED', cause: 'INVALID_REQUEST_OR_ADMISSION', authority: false });
     if (kind === 'pull-request') {
       const previous = { ...planned.state.admission,
         context: planned.state.admission.context.map(row => ({ ...row, content: REFUSED_S2_CONTEXT })) };
-      assert.deepEqual(await admitIssueCommand(previous, shipped),
-        { status: 'NOT_ADMITTED', cause: 'INVALID_REQUEST_OR_ADMISSION', authority: false });
       const previousPlan = { ...planned.plan, cases: [{ ...planned.plan.cases[0], input: {
         ...input, context: input.context.map(row => ({ ...row, content: REFUSED_S2_CONTEXT, sha256: hash(REFUSED_S2_CONTEXT) })) } }] };
+      let stateBudgetExceeded = false;
+      try { validateJevBudget(previousPlan.cases[0].input, {}); }
+      catch (error) {
+        assert.equal(error.message, `Jev state budget exceeded: ${Buffer.byteLength(JSON.stringify(previousPlan.cases[0].input))} bytes`);
+        stateBudgetExceeded = true;
+      }
+      assert.deepEqual(await admitIssueCommand(previous, shipped), stateBudgetExceeded
+        ? { status: 'NOT_ADMITTED', cause: 'LITERAL_STATE_BUDGET_EXCEEDED', authority: false,
+          observed: { issueNodeId: previous.issue.nodeId, subjectRevision: subjectRevision(previous.issue) } }
+        : { status: 'NOT_ADMITTED', cause: 'INVALID_REQUEST_OR_ADMISSION', authority: false });
       await assert.rejects(() => preparePlan(previousPlan), /ENTRY_PREFLIGHT_FAILED/);
     }
   }
@@ -2022,9 +2033,9 @@ for (const required of ['semlint-goal-quality-implementation-20261015-v12', 'ret
   'not a live grant', 'This source is dormant', 'rejects PR536', 'It is not pin-only']) assert.ok(flatInvocation.includes(required), required);
 const currentSettings = JSON.parse(repoFile('packages/jev-review/issue-actions.json'));
 validateActionsConfig(currentSettings);
-assert.deepEqual(currentSettings.providedRequestTargets, [{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":625}]);
-assert.deepEqual(currentSettings.targets.filter(t => Object.hasOwn(t, 'pullRequest')), [{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":511},{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":625}]);
-assert.deepEqual(currentSettings.runRanges.filter(r => Object.hasOwn(r.target ?? {}, 'pullRequest')), [{"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":337,"last":368,"reservedCallsPerRun":1,"target":{"pullRequest":625},"budgetClaimCommentId":6306254839}]);
+assert.deepEqual(currentSettings.providedRequestTargets, []);
+assert.deepEqual(currentSettings.targets.filter(t => Object.hasOwn(t, 'pullRequest')), [{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":511},{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":629}]);
+assert.deepEqual(currentSettings.runRanges.filter(r => Object.hasOwn(r.target ?? {}, 'pullRequest')), [{"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":341,"last":372,"reservedCallsPerRun":1,"target":{"pullRequest":629},"budgetClaimCommentId":6309485681}]);
 // Historical runtime-305b5321 budget facts stay frozen; the candidate figure is recomputed from the current context.
 assert.ok(currentInvocation.includes("Current context is 2189 bytes. With PR522's exact initial 4585-byte subject"));
 assert.ok(currentInvocation.includes('state 27373 bytes, longest question 720 and all\nquestions 4079'));
@@ -2048,11 +2059,11 @@ const prefixExpression = `fromJSON('${JSON.stringify(REQUEST_PREFIX)}')`;
 assert.ok(guardText.includes(prefixExpression));
 const guard = new Function('github', 'startsWith', `return (${guardText.replace(prefixExpression, JSON.stringify(REQUEST_PREFIX))});`);
 const guardAllows = github => guard(github, (body, prefix) => body.toLowerCase().startsWith(prefix.toLowerCase()));
-// The current caller and reviewed runtime agree on the sole supplied PR625 origin; historical grants stay closed.
+// PR629 is a literal bootstrap; provided grants are empty. The inactive PR606 workflow arm is still configuration-denied.
 for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other', 'roccho-dev/ops']) {
-  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574, 606, 609, 610, 625]) {
+  for (const number of [483, 52, 511, 512, 520, 521, 522, 523, 536, 573, 574, 606, 609, 610, 625, 629, 630]) {
     for (const pullRequest of [null, { url: 'untrusted:never-used' }]) {
-      const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 606].includes(number) : number === 573)
+      const allowed = repository === 'roccho-org/ops' && (pullRequest ? [511, 606, 629].includes(number) : number === 573)
         || repository === 'roccho-org/envs' && number === 52 && pullRequest === null;
       const github = { repository, event_name: 'issue_comment', event: {
         repository: { owner: { type: 'Organization' } }, comment: { body: '/jev-evaluate' },
@@ -2061,7 +2072,7 @@ for (const repository of ['roccho-org/ops', 'roccho-org/envs', 'roccho-org/other
       assert.equal(guardAllows(github), allowed);
       for (const body of [REQUEST_PREFIX + '{}', REQUEST_PREFIX + 'not json', REQUEST_PREFIX]) {
         const providedEvent = { ...github, event: { ...github.event, comment: { body } } };
-        assert.equal(guardAllows(providedEvent), repository === 'roccho-org/ops' && number === 625 && pullRequest !== null);
+        assert.equal(guardAllows(providedEvent), repository === 'roccho-org/ops' && number === 606 && pullRequest !== null);
       }
       for (const body of ['/jev-evaluate later', '/jev-evaluate\\\\n{}', '/jev-evaluate\\r\\n{}', 'prefix' + REQUEST_PREFIX]) {
         assert.equal(guardAllows({ ...github, event: { ...github.event, comment: { body } } }), false);
@@ -2085,7 +2096,7 @@ assert.equal(workflow.match(/ref: ([0-9a-f]{40})/)[1], pinnedRuntime);
 assert.equal(workflow.match(/runtime_source=([0-9a-f]{40})/)[1], pinnedRuntime);
 assert.ok(currentInvocation.includes('305b5321ebc4d41d5c143cc002b82af71f140b8e')); // Historical runtime facts stay historical.
 const permissionBlock = '  actions: read\n  contents: read\n  issues: write\n  pull-requests: write\n';
-const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 625 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)))";
+const expectedGuard = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && ((github.event.comment.body == '/jev-evaluate' && (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 606 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)))";
 const assertWorkflowBoundary = (text) => {
   assert.equal(text.match(/\npermissions:\n([\s\S]*?)\njobs:/)?.[1], permissionBlock);
   assert.equal([...text.matchAll(/^\s*permissions:/gm)].length, 1);
@@ -2111,7 +2122,7 @@ for (const forbidden of [
   workflow.replace('github.event.issue.number == 511', 'github.event.issue.number >= 511'),
   workflow.replaceAll('github.event.issue.number == 573', 'github.event.issue.number == 574'),
   workflow.replaceAll('github.event.issue.number == 573', 'github.event.issue.number == 573 || github.event.issue.number == 574'),
-  workflow.replace('github.event.issue.number == 625 &&', 'true &&'),
+  workflow.replace('github.event.issue.number == 606 &&', 'true &&'),
   workflow.replace('github.event.issue.pull_request == null &&', 'true &&'),
   workflow.replace(prefixExpression, "'/jev-evaluate'"),
   workflow.replace('startsWith(github.event.comment.body', 'contains(github.event.comment.body'),
@@ -2225,6 +2236,39 @@ await check('provided-question-display-size-refusal-before-provider', async () =
   const command = w.addComment({ body: providedBody(payload) });
   assert.deepEqual(outcome(await fullRun(w, command, { cfg })), ['NONE', 'RESULT_WOULD_EXCEED_COMMENT_CAP']);
   assert.deepEqual(effects(w), zero);
+});
+
+await check('literal-PR-state-budget-refusal-preserves-own-pair-before-effects', async () => {
+  const baseline = prWorld(), cfg = prConfig();
+  const first = await fullRun(baseline, baseline.addComment(), { cfg });
+  assert.deepEqual(outcome(first), ['APPENDED', 'READBACK_EXACT']);
+  const native = first.planBody.cases[0].input;
+  const padding = 28000 - Buffer.byteLength(JSON.stringify(native));
+  assert.ok(padding > 0);
+  const boundary = prWorld(); boundary.issue.body += 'x'.repeat(padding);
+  const atLimit = await fullRun(boundary, boundary.addComment(), { cfg });
+  assert.deepEqual(outcome(atLimit), ['APPENDED', 'READBACK_EXACT']);
+  assert.equal(Buffer.byteLength(JSON.stringify(atLimit.planBody.cases[0].input)), 28000);
+  const over = prWorld(); over.issue.body += 'x'.repeat(padding + 1);
+  const command = over.addComment(), run = over.newRun();
+  const planned = await planIssueCommand(ctxFor(over, command, run), cfg, over.deps);
+  assert.deepEqual([planned.receipt.outcome, planned.receipt.cause, planned.receipt.claimed, planned.receipt.providerCalls],
+    ['NONE', 'LITERAL_STATE_BUDGET_EXCEEDED', false, 0]);
+  assert.deepEqual(planned.receipt.observed, { issueNodeId: over.issue.id, subjectRevision: subjectRevision({
+    number: over.issue.number, nodeId: over.issue.id, body: over.issue.body, lastEditedAt: over.issue.lastEditedAt,
+    includesCreatedEdit: over.issue.includesCreatedEdit, userContentEditsTotal: over.issue.edits }) });
+  assert.equal(planned.plan, undefined); assert.deepEqual(planned.state, planned.receipt);
+  assert.equal(JSON.stringify(planned).includes(over.issue.body), false);
+  assert.deepEqual(effects(over), zero);
+  const beforePost = { ...over.calls };
+  const post = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), null, cfg, over.deps);
+  assert.deepEqual(post.receipt, { ...planned.receipt, stage: 'post' });
+  assert.deepEqual(over.calls, beforePost); assert.deepEqual(effects(over), zero);
+  // A separate malformed Core input is not promoted to budget refusal merely because it is large.
+  const invalid = prWorld(); invalid.issue.body += 'x'.repeat(padding + 1) + '\ud800';
+  const invalidPlan = await planIssueCommand(ctxFor(invalid, invalid.addComment(), invalid.newRun()), cfg, invalid.deps);
+  assert.notEqual(invalidPlan.receipt.cause, 'LITERAL_STATE_BUDGET_EXCEEDED');
+  assert.equal(Object.hasOwn(invalidPlan.receipt, 'observed'), false); assert.deepEqual(effects(invalid), zero);
 });
 
 const cli = spawnSync(process.execPath, [here, 'plan', 'relative-dir'], { encoding: 'utf8', env: { LANG: 'C.UTF-8' }, timeout: 10000 });

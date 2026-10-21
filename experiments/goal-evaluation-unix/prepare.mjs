@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { REQUEST_PREFIX, parseResultComment, COMMAND_OBSERVATION, ISSUE_KEYS, subjectRevision } from '../../packages/jev-review/github-comment.mjs';
+import { REQUEST_PREFIX, parseResultComment, COMMAND_OBSERVATION, ISSUE_KEYS, subjectRevision, LITERAL_STATE_BUDGET_CAUSE } from '../../packages/jev-review/github-comment.mjs';
 import { EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { exact } from '../../packages/jev-review/semlint-entry.mjs';
 import { validateJevBudget } from '../../packages/jev-review/core.mjs';
@@ -25,6 +25,7 @@ const MAX_CHECKS = 6;
 const VERDICTS = ['FAITHFUL', 'UNFAITHFUL', 'UNKNOWN'];
 const LITERAL_COMMAND = '/jev-evaluate';
 const REFUSAL_KIND = 'literal-cjk-refusal';
+const BUDGET_REFUSAL_KIND = 'literal-state-budget-refusal';
 const ISSUE_REFUSAL_KIND = 'literal-cjk-refusal-issue-subject';
 
 // One receipt per acquisition. Only HTTP 200 with non-empty text is OK; 404 is NOT_FOUND; anything else,
@@ -315,13 +316,14 @@ function planStageReceipt(log, accept) {
     .filter(x => x?.schema === 'ops.jev.issue-actions-receipt.v1' && x.stage === 'plan');
   if (plans.length !== 1) return { cause: plans.length ? 'PLAN_RECEIPT_AMBIGUOUS' : 'PLAN_RECEIPT_MISSING' };
   const [p] = plans;
-  if (accept === 'REFUSED_CJK' || accept === 'REFUSED_CJK_SUBJECT') {
+  if (accept === 'REFUSED_CJK' || accept === 'REFUSED_CJK_SUBJECT' || accept === 'REFUSED_STATE_BUDGET') {
     const issueRoute = accept === 'REFUSED_CJK_SUBJECT';
-    if (!exact(p, REFUSAL_RECEIPT_KEYS) || p.outcome !== 'NONE' || p.cause !== 'UNSUPPORTED_CJK' || p.claimed !== false || p.providerCalls !== 0
+    const budget = accept === 'REFUSED_STATE_BUDGET';
+    if (!exact(p, REFUSAL_RECEIPT_KEYS) || p.outcome !== 'NONE' || p.cause !== (budget ? LITERAL_STATE_BUDGET_CAUSE : 'UNSUPPORTED_CJK') || p.claimed !== false || p.providerCalls !== 0
       || p.authority !== false || !positive(p.commentId) || !exact(p.run, ['id', 'number', 'attempt', 'workflowId'])
       || !exact(p.observed, ['issueNodeId', 'subjectRevision', ...(issueRoute ? ['subject'] : [])]) || !text(p.observed.issueNodeId) || !text(p.observed.subjectRevision)
       || (issueRoute && (!exact(p.observed.subject, ['nodeId', 'revision']) || !text(p.observed.subject.nodeId) || !text(p.observed.subject.revision)))) {
-      return { cause: 'PLAN_RECEIPT_NOT_REFUSED_CJK' };
+      return { cause: budget ? 'PLAN_RECEIPT_NOT_REFUSED_STATE_BUDGET' : 'PLAN_RECEIPT_NOT_REFUSED_CJK' };
     }
     return { plan: p };
   }
@@ -436,16 +438,20 @@ function boundRefusal(args, accept, kind) {
       executionSource: approved.runtimeSource, activationCommit: approved.activationCommit, workflowSha256: workflowReceipt.sha256, planLogSha256: planLog.sha256 },
     limits: [...ORIGIN_LIMITS,
       'the observation is the executor\'s subject state when it refused, not a later read: a public read cannot see an edit that restores the same body, and only a later provided admission recomputes the revision',
-      'a refusal does not show that the body is CJK; that the activated runtime prints this receipt is a phase fact this code cannot certify'] };
+      kind === BUDGET_REFUSAL_KIND
+        ? 'a state-budget refusal is not an evaluation or admission success; that the activated runtime prints this receipt is a phase fact this code cannot certify'
+        : 'a refusal does not show that the body is CJK; that the activated runtime prints this receipt is a phase fact this code cannot certify'] };
 }
 export function refusalOrigin(args) { return boundRefusal(args, 'REFUSED_CJK', REFUSAL_KIND); }
+// PR-only state-budget refusal; separate from CJK, a PLANNED origin, and an evaluated result.
+export function budgetRefusalOrigin(args) { return boundRefusal(args, 'REFUSED_STATE_BUDGET', BUDGET_REFUSAL_KIND); }
 export function issueRefusalOrigin(args) { return boundRefusal(args, 'REFUSED_CJK_SUBJECT', ISSUE_REFUSAL_KIND); }
 
 // N1 for a literal CJK refusal: node and body come only from the public PR, the edit signals only from the refusal's
 // observation, through the same revision parser as the result path. Node equality is required three ways.
 export function refusalIdentitySnapshot({ origin, pullRequestReceipt, target }) {
   if (!exact(target, ['repository', 'number']) || !REPOSITORY.test(target.repository) || !positive(target.number)) return hold('TARGET_INVALID');
-  if (origin?.status !== 'BOUND' || origin.kind !== REFUSAL_KIND) return hold('ORIGIN_KIND_MISMATCH');
+  if (origin?.status !== 'BOUND' || ![REFUSAL_KIND, BUDGET_REFUSAL_KIND].includes(origin.kind)) return hold('ORIGIN_KIND_MISMATCH');
   if (origin.target?.repository !== target.repository || origin.target.number !== target.number) return hold('TARGET_MISMATCH');
   const pr = pullRequestFrom(pullRequestReceipt, target);
   if (pr.status !== 'OK') return pr;
@@ -455,7 +461,7 @@ export function refusalIdentitySnapshot({ origin, pullRequestReceipt, target }) 
   if (!snapshot) return hold(cause);
   return { status: 'VERIFIED', target: { ...target }, snapshot,
     readerDeclaredLive: origin.readerDeclaredLive === true && pullRequestReceipt.reader.mode === 'live',
-    origin: { kind: REFUSAL_KIND, ...origin.origin } };
+    origin: { kind: origin.kind, ...origin.origin } };
 }
 
 // N1 on the Issue route, JA branch: the Issue route's refusal origin and its approved origin Issue, plus the approved

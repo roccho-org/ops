@@ -14,7 +14,7 @@ import { preparePlan, executeOwnerPlan } from '../../packages/jev-review/semlint
 import { validateJevBudget, JEV_MODEL } from '../../packages/jev-review/core.mjs';
 import { planIssueCommand, postIssueCommand, PULL_REQUEST_QUERY, ISSUE_QUERY, SUBJECT_QUERY, COMMENT_QUERY, CLAIM, EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { plan } from './core.mjs';
-import { acquire, executorIdentitySnapshot, project as projectPlan, expectedOrigin, fidelityFromReview, refusalOrigin, refusalIdentitySnapshot,
+import { acquire, executorIdentitySnapshot, project as projectPlan, expectedOrigin, fidelityFromReview, refusalOrigin, budgetRefusalOrigin, refusalIdentitySnapshot,
   issueSubjectIdentitySnapshot, issueRefusalOrigin, issueRefusalSubjectSnapshot } from './prepare.mjs';
 
 // Every fixture plan here supplies the evaluated subject text as the observation 'target' and declares it, as a caller
@@ -392,18 +392,18 @@ const RUN_HEAD = 'c'.repeat(40), WORKFLOW_PATH = '.github/workflows/jev-issue-co
 const WORKFLOW = (() => {
   let text = repoFile(WORKFLOW_PATH).replaceAll(/(ref:\s*|runtime_source=)[0-9a-f]{40}/g, `$1${SHA}`);
   const historicalMetadata = [
-    ["      ((github.event.comment.body == '/jev-evaluate' &&\n      (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606)) ||", "      (github.event.comment.body == '/jev-evaluate' ||"],
+    ["      ((github.event.comment.body == '/jev-evaluate' &&\n      (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)) ||", "      (github.event.comment.body == '/jev-evaluate' ||"],
     ['# One PR budget claim across a finite ordinal window; no refill.',
       '# One projected Org slot; no Repository/Environment copy.'],
     ['# Historical grants remain; no rerun spending or automatic ordinal following.',
       '# Initial four-call history plus 200 authorized additions; no rerun spending.'],
-    ['# Closed Org origins; PR625 accepts supplied input for one separate finite Goal-specific trial.',
+    ['# Closed Org origins; PR629 literal bootstrap only; no provided request grant.',
       '# Guard binds Org Ops483/envs52/PR511/PR522; runtime is published target-bound source.'],
-    ["      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 625 &&",
+    ["      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 606 &&",
       "      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 522 &&"],
     ["((github.repository == 'roccho-org/ops' && github.event.issue.number == 573) ||",
       "((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) ||"],
-    ['      (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 625)))',
+    ['      (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)))',
       '      (github.event.issue.number == 511 || github.event.issue.number == 522)))'],
   ];
   for (const [current, historical] of historicalMetadata) {
@@ -633,9 +633,45 @@ const refusalLine = (extra = {}, stage = 'plan') => '2026-10-15T00:00:01.0000000
   run: { id: RUN.id, number: RUN.number, attempt: 1, workflowId: RUN.workflowId }, observed: OBSERVED, ...extra });
 const refusalLog = (lines = [refusalLine(), refusalLine({}, 'post')]) => planLog(['2026-10-15T00:00:00.0000000Z ##[group]Run plan', ...lines].join('\n'));
 const refusedOf = (options = {}) => originOf({ log: refusalLog(), bind: refusalOrigin, ...options });
+const budgetObserved = { issueNodeId: NODE, subjectRevision: literal.identity.subjectRevision };
+const budgetRefusalLog = (extra = {}) => refusalLog([refusalLine({ cause: 'LITERAL_STATE_BUDGET_EXCEEDED', observed: budgetObserved, ...extra })]);
+const budgetRefusedOf = (options = {}) => originOf({ log: budgetRefusalLog(), bind: budgetRefusalOrigin, ...options });
 const refusalSnapshotOf = async ({ origin, body = JA_BODY, mode, prPage, target = TARGET } = {}) =>
   refusalIdentitySnapshot({ origin: origin ?? await refusedOf(), pullRequestReceipt: (await receipts({ body, mode, prPage })).pullRequestReceipt, target });
 const AUX = { text: 'Adds a retry for the delivery job.', sourceSha256: sha256(JA_BODY) };
+
+test('PR state-budget refusal has a separate bound kind, no evaluation authority, and exact snapshot binding', async () => {
+  const origin = await budgetRefusedOf();
+  assert.equal(origin.status, 'BOUND', origin.cause);
+  assert.equal(origin.kind, 'literal-state-budget-refusal');
+  assert.deepEqual(origin.planObservation, budgetObserved);
+  assert.equal(Object.hasOwn(origin, 'expected') || Object.hasOwn(origin.origin, 'planRequestDigest'), false);
+  assert.match(origin.limits[3], /not an evaluation or admission success/);
+  const pr = (await receipts()).pullRequestReceipt;
+  const snapshot = refusalIdentitySnapshot({ origin, pullRequestReceipt: pr, target: TARGET });
+  assert.equal(snapshot.status, 'VERIFIED', snapshot.cause);
+  assert.equal(snapshot.snapshot.body, BODY);
+  assert.equal(snapshot.origin.kind, 'literal-state-budget-refusal');
+  assert.equal((await originOf({ log: budgetRefusalLog() })).status, 'HOLD');
+  assert.equal((await refusedOf({ log: budgetRefusalLog() })).status, 'HOLD');
+  assert.equal((await budgetRefusedOf({ log: refusalLog() })).status, 'HOLD');
+  assert.equal((await budgetRefusedOf({ log: planLog() })).status, 'HOLD');
+  for (const extra of [{ cause: 'INVALID_REQUEST_OR_ADMISSION' }, { cause: 'ENTRY_PREFLIGHT_FAILED' },
+    { claimed: true }, { providerCalls: 1 }, { authority: true }, { requestDigest: literal.requestDigest },
+    { observed: { ...budgetObserved, body: BODY } }, { outcome: 'PLANNED' }]) {
+    assert.equal((await budgetRefusedOf({ log: budgetRefusalLog(extra) })).status, 'HOLD');
+  }
+  const duplicate = refusalLine({ cause: 'LITERAL_STATE_BUDGET_EXCEEDED', observed: budgetObserved });
+  assert.equal((await budgetRefusedOf({ log: refusalLog([duplicate, duplicate]) })).cause, 'PLAN_RECEIPT_AMBIGUOUS');
+  assert.equal((await budgetRefusedOf({ log: { ...budgetRefusalLog(), sha256: '0'.repeat(64) } })).cause, 'PLAN_LOG_RECEIPT_INVALID');
+  for (const observed of [{ ...budgetObserved, issueNodeId: 'PR_wrong' },
+    { ...budgetObserved, subjectRevision: budgetObserved.subjectRevision + '|wrong' }]) {
+    const changed = await budgetRefusedOf({ log: budgetRefusalLog({ observed }) });
+    assert.equal(refusalIdentitySnapshot({ origin: changed, pullRequestReceipt: pr, target: TARGET }).status, 'HOLD');
+  }
+  assert.equal(refusalIdentitySnapshot({ origin: { ...origin, kind: 'PLANNED' }, pullRequestReceipt: pr, target: TARGET }).cause, 'ORIGIN_KIND_MISMATCH');
+  assert.equal(refusalIdentitySnapshot({ origin, pullRequestReceipt: (await receipts({ body: BODY + ' changed' })).pullRequestReceipt, target: TARGET }).cause, 'SUBJECT_DRIFT');
+});
 // A plan built on the JA subject text, with the same Goal, clauses, questions, criteria and needs as goalPlan.
 const jaGoalPlan = (questions, goal, quoted) => goalPlan(questions, goal, quoted, {}, JA_BODY);
 const wireInput = out => JSON.parse(out.envelope.slice(out.envelope.indexOf('\n') + 1)).cases[0].input;
