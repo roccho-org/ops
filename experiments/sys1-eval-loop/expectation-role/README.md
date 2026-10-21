@@ -1,3 +1,36 @@
+# D16 source: specification/request criteria-only精密化
+
+**CODE_ONLY・実D16/H未実施・未採用。** 原D15 FAILを保持した0cd57a389b7431afbb86670f213d774a3098fc64から、別処置をsource前に固定した。旧15の負結果/原版/Gold/plan/REQUESTは不変。現在REQUESTはdevelopment15/source ddefa43bf268317dbabf51b0eb4823cc545dca9eで、新sourceだけではmodelを呼ばない。
+
+固定した差は原v5 specification/request **四つのyes/no criteria値のみ**。S1695/R1823文字の全instruction・二つの異領域合成対比・question names/order・yes/no keys・body-only objectstate・10s/diagnoseRejectiontrue・原BestE/sharedO・両資格AND→ORを一字同値で保持する。criteriaは既存のdefined-role関係の存在とその全文不在を選択肢直近に詳述する。旧criteriaも存在/不在を定義しており、欠陥が証明されたとは言わない。長文化/否定理解/混在真陽性喪失/ORのFP増幅/同post干渉は残り、選択肢の近接が改善する機構・単一因果・正答保証は未証明。同じ二役割構造の文言/配置処置であり新構造ではない。
+
+三者の主張・反証：rootは短いv6への全説明圧縮を提案したが、W/Rは責務/quoted用途/真正template/設定宣言のcoverage削減を反証し保留。W一問union案は既D7/D11との差と既知意味誤りへの機構が弱く今回は選ばない。Rのcriteria-only案を三者で優先した。初稿Syesのaction/setting一般否定は機能/設定定義も落とすroot counterを受容し、performed/observed reportingがそれ自体で役割を成立させないと修正。引用/report/templateは関係を宣言する用途のときだけ数え、形式だけの十分条件にしない。他三criteriaは不変。noは全文不在が本体で、観測を含むと真正宣言を取消す規則、空/謝辞等の列挙漏れ、採用済/fulfilled/未来/must/主文等の新必要条件は足さない。症状条件と明示goalの語用曖昧さ、UI目的と観測規則性の区別は未解消のままGold固定。実case句/ID/新例を入れず、過去Dの単独branchを勝者採用しない。
+
+source前三者それぞれ自己actualD15の原B/O/Coreと独立literalからwx期待を固定、全requests/3templates/order/truth4/型/会計/protocolを照合した。標準SDK offline3756payloadのMAXはB20805/SR23495/O20856 bytes<24000。Wの表現比較helperでtruth配列対mapとDphysical2keys対Heligibility3wireの誤同一視を是正しただけで、原期待/製品/model0変更。4criteria以外のrequest全値一致を実装後も全件確認する。これらはコード検証でモデル品質実証ではない。
+
+- D16固定input/report/projection schemaはops.sys1.expectation-role-criteria-development.v1/同-predictions.v1/同-projection.v1、physical roleCriteriaE。旧askRoleBoundary private本体を新exactschema/keyだけが再用し、元B/SDK/transport無変更。raw field roleBoundaryNativeは同SR受信境界のshape名であり、要求/source/keyは新contextの原値へ別結合する。旧qual関数/固定export本体は不変、同private検算へnewkeyを渡すnamedwrapperだけ追加。公開genericprofile/executor0。
+- original2named raw type/choice/confidence/exact2maps/model/topusage→typed全entryをstrict検証。local失敗はpost/flags無し、providerはpost必須/flags無し、response段はpost<flags<failure<unknown。借用flags/受信post削除も拒否。無効raw補正/再送0、currentpostのflags/usageをreset。片側yesでも他不資格ならwholeUNKNOWN、下位二回答枠もUNKNOWN、fallback/shortcut0。
+- 原B flags/return形を維持し、new rawmodel/modelPresent保存はSRのみ。D B/SR共にlegacy missing/nonstring/empty/other modelstopで、実other観測の証明とは呼ばない。map/transport普通UNKNOWNなら他方予定割当は続行する。未来winningHの全B/SR/O三状態capture→loop→資格再生→H2nativeは別source。
+- 旧15全projection再生→23269 qualified E/622protected。physical22029/invalid12別、nativeE17647(single17021+P626)。今回からも原Bとbothqualified wholeOR Eだけを将来履歴へ、lower S/R=noはfull E=noと同義でなく単独snapshot加算0。固定history16/23原native runs＋D6/D14のみexactfailurejobs/Gitparents/REQUEST結合を認証前確認する。
+- D1252HTTP=原B626＋SR626、1878原binary回答=626B＋1252lowerroles、各topusage一回。採否は全1252expected資格・completejointgain>0・622破壊0・freshE退行0のAND、全626/O-null17維持。guard弱化/観測欠測を修復化/branchGoldを作ることはしない。finite21832=実18780＋次1252＋futureH1800はprospective有限割当でUser予算gate/実費ではない。
+
+実D成功/全要求freezeまではH count/body/Gold/model0。既window/prefix300/prior除外/no-refill/M0を維持し、開封前の余分sourceCIを加えない。勝ちHだけfresh B/SR/Oの3MHTTP/4M原binary、H1caseordinalB/SR回転・H2その逆/O末尾を事前固定し両回各AND。普通unknownで予定H2非取消、実other停止、全経路三状態の閉包と元native/raw整合が必要。350技術cap・二回/共通Gold Δ下限>0/R任意軸上限0、有限集合/Gold条件付き近似の限界を保持。現在Draft/未merge。中間negativeCI/Readyは次案gateでなく、目的最終current全通常CI/会計/記録/Readyは最後に閉じる。
+
+~~~mermaid
+flowchart TB
+ A["✅ D15FAIL原5・費用・型を保持"] --> B["✅ 3者4criteriaのみv2/wx固定"]
+ B --> C["⏳ source独立counter＋必要CI"]
+ C --> D["⏳ REQUEST-only一回D16"]
+ D --> E["各case B/SR固定順/原2maps strict"]
+ E --> U["wholeOR known/UNKNOWN 全626へ保持"]
+ U --> F{"全資格＋正差＋fresh/history退行0？"}
+ F -->|未達| R["原版保持・別仮説へ"]
+ F -->|成立| H["🔒 実要求freeze後のみ未使用H"]
+ H --> Z["各回ANDの有限近似→目的最終currentCI/記録/Ready未merge"]
+~~~
+
+以下はD15原負保持までの歴史記録を全文保持。
+
 # D15: native specification/request role-boundary OR — 原負結果
 
 実run [39589645629](https://github.com/roccho-org/ops/actions/runs/39589645629)、固定source ddefa43bf268317dbabf51b0eb4823cc545dca9e / REQUEST-only activation9ff9b1b1a9281d6c24913e56eeaba90258853515。一回実測の原5全28,459,926bytes、provider/readback/root独立reportを保存。必要CI787・consumer実import/cleanunshare3true/healthと三者exact全文受容を先に完了し、一回作用した。native jobはSUCCESSだが **DEVELOPMENT_GUARD_FAIL・未採用**、H count/body/Gold/model0。

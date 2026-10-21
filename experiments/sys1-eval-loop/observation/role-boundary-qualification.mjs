@@ -42,3 +42,6 @@ function verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,
 
 // One closed specification/request compound context; no caller-supplied predicate.
 export function verifyRoleBoundaryQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/roleBoundaryE'));}
+
+// Separate fixed schema/key uses the identical native S/R boundary; old exports and bodies unchanged.
+export function verifyRoleCriteriaQualificationEvents(report,events,attempts,posts,answers,failures){return verifyNamedTwoQualificationEvents(report,events,attempts,posts,answers,failures,id=>id.endsWith('/roleCriteriaE'));}
