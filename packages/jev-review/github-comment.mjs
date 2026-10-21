@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
 import { ENTRY_LIMITS, preparePlan, entryLimits, digest, exact, snapshotJson, validateOwnerResult } from './semlint-entry.mjs';
-import { JEV_MODEL } from './core.mjs';
+import { JEV_MODEL, validateJevBudget } from './core.mjs';
 
 export const REQUEST_PREFIX = '/jev-evaluate\n';
 export const RESULT_PREFIX = '<!-- ops-jev-result-v1 -->\n';
+export const LITERAL_STATE_BUDGET_CAUSE = 'LITERAL_STATE_BUDGET_EXCEEDED';
 const RESULT_BYTE_CAP = 32768;
 const REPORT_EXPLANATION = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. See the linked request for the questions and conditions.\n\n";
 const INPUT_REPORT_EXPLANATION = "Jev supplies the model observations shown here; semlint formats and posts this report. The tool that prepared the checks is not recorded here. Questions and criteria appear below; the linked request retains the full supplied input for audit.\n\n";
@@ -449,7 +450,19 @@ export async function admitIssueCommand(inputValue, configValue) {
     try {
       prepared = await preparePlan({ schema: 'ops.semlint.real-input.v1', cases: [{ id: targetKind, input: semlintInput }] },
         { ...config.limits, maxCalls: selected.callsPerRun });
-    } catch { return reject('INVALID_REQUEST_OR_ADMISSION'); }
+    } catch (error) {
+      // v1 snapshot() preserves this constructed state; evaluate() applies the same validator before ask.
+      // Other invalid inputs, limits, and question-only budget failures do not acquire an identity observation.
+      if (pullRequest && error?.message === 'ENTRY_PREFLIGHT_FAILED') {
+        try { validateJevBudget(semlintInput, {}); }
+        catch (budgetError) {
+          const bytes = Buffer.byteLength(JSON.stringify(semlintInput), 'utf8');
+          if (budgetError?.message === `Jev state budget exceeded: ${bytes} bytes`) return {
+            ...reject(LITERAL_STATE_BUDGET_CAUSE), observed: { issueNodeId: issue.nodeId, subjectRevision: revision } };
+        }
+      }
+      return reject('INVALID_REQUEST_OR_ADMISSION');
+    }
   }
   return finishRequest(prepared, (planDigest) => ({
     repository: input.repository, issue: issue.number, issueNodeId: issue.nodeId, subjectRevision: revision,

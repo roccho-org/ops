@@ -807,13 +807,13 @@ for (const program of [entry, compatibility]) {
   const active = validateActionsConfig(JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8')));
   assert.deepEqual(active.providedRequestTargets.map(grant => ({ ...grant })), []);
   assert.equal(active.targets.some(t => t.pullRequest === 536), false);
-  const run = { repository: 'roccho-org/ops', workflowId: 377399991, path: '.github/workflows/jev-issue-comment.yml', number: 340, attempt: 1, id: 1 };
-  for (const number of [340, 371]) {
+  const run = { repository: 'roccho-org/ops', workflowId: 377399991, path: '.github/workflows/jev-issue-comment.yml', number: 341, attempt: 1, id: 1 };
+  for (const number of [341, 372]) {
     const selected = selectRunRange(active, { ...run, number }, { kind: 'pull-request', number: 629 });
-    assert.equal(selected.callsPerRun, 1); assert.equal(selected.range.first, 340); assert.equal(selected.range.last, 371);
-    assert.equal(selected.range.budgetClaimCommentId, 6309047332);
+    assert.equal(selected.callsPerRun, 1); assert.equal(selected.range.first, 341); assert.equal(selected.range.last, 372);
+    assert.equal(selected.range.budgetClaimCommentId, 6309485681);
   }
-  for (const number of [339, 372]) assert.deepEqual(selectRunRange(active, { ...run, number }, { kind: 'pull-request', number: 629 }), { cause: 'NO_RANGE' });
+  for (const number of [340, 373]) assert.deepEqual(selectRunRange(active, { ...run, number }, { kind: 'pull-request', number: 629 }), { cause: 'NO_RANGE' });
   assert.deepEqual(selectRunRange(active, { ...run, attempt: 2 }, { kind: 'pull-request', number: 629 }), { cause: 'RERUN_NOT_PAID' });
 }
 

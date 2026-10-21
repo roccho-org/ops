@@ -1609,14 +1609,25 @@ await check('exact-public-pr511-pr522-current-context-budget', async () => {
     const oversized = { ...planned.state.admission,
       issue: { ...planned.state.admission.issue, body: 'x'.repeat(28001) } };
     assert.deepEqual(await admitIssueCommand(oversized, shipped),
-      { status: 'NOT_ADMITTED', cause: 'INVALID_REQUEST_OR_ADMISSION', authority: false });
+      kind === 'pull-request'
+        ? { status: 'NOT_ADMITTED', cause: 'LITERAL_STATE_BUDGET_EXCEEDED', authority: false,
+          observed: { issueNodeId: oversized.issue.nodeId, subjectRevision: subjectRevision(oversized.issue) } }
+        : { status: 'NOT_ADMITTED', cause: 'INVALID_REQUEST_OR_ADMISSION', authority: false });
     if (kind === 'pull-request') {
       const previous = { ...planned.state.admission,
         context: planned.state.admission.context.map(row => ({ ...row, content: REFUSED_S2_CONTEXT })) };
-      assert.deepEqual(await admitIssueCommand(previous, shipped),
-        { status: 'NOT_ADMITTED', cause: 'INVALID_REQUEST_OR_ADMISSION', authority: false });
       const previousPlan = { ...planned.plan, cases: [{ ...planned.plan.cases[0], input: {
         ...input, context: input.context.map(row => ({ ...row, content: REFUSED_S2_CONTEXT, sha256: hash(REFUSED_S2_CONTEXT) })) } }] };
+      let stateBudgetExceeded = false;
+      try { validateJevBudget(previousPlan.cases[0].input, {}); }
+      catch (error) {
+        assert.equal(error.message, `Jev state budget exceeded: ${Buffer.byteLength(JSON.stringify(previousPlan.cases[0].input))} bytes`);
+        stateBudgetExceeded = true;
+      }
+      assert.deepEqual(await admitIssueCommand(previous, shipped), stateBudgetExceeded
+        ? { status: 'NOT_ADMITTED', cause: 'LITERAL_STATE_BUDGET_EXCEEDED', authority: false,
+          observed: { issueNodeId: previous.issue.nodeId, subjectRevision: subjectRevision(previous.issue) } }
+        : { status: 'NOT_ADMITTED', cause: 'INVALID_REQUEST_OR_ADMISSION', authority: false });
       await assert.rejects(() => preparePlan(previousPlan), /ENTRY_PREFLIGHT_FAILED/);
     }
   }
@@ -2024,7 +2035,7 @@ const currentSettings = JSON.parse(repoFile('packages/jev-review/issue-actions.j
 validateActionsConfig(currentSettings);
 assert.deepEqual(currentSettings.providedRequestTargets, []);
 assert.deepEqual(currentSettings.targets.filter(t => Object.hasOwn(t, 'pullRequest')), [{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":511},{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":629}]);
-assert.deepEqual(currentSettings.runRanges.filter(r => Object.hasOwn(r.target ?? {}, 'pullRequest')), [{"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":340,"last":371,"reservedCallsPerRun":1,"target":{"pullRequest":629},"budgetClaimCommentId":6309047332}]);
+assert.deepEqual(currentSettings.runRanges.filter(r => Object.hasOwn(r.target ?? {}, 'pullRequest')), [{"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":341,"last":372,"reservedCallsPerRun":1,"target":{"pullRequest":629},"budgetClaimCommentId":6309485681}]);
 // Historical runtime-305b5321 budget facts stay frozen; the candidate figure is recomputed from the current context.
 assert.ok(currentInvocation.includes("Current context is 2189 bytes. With PR522's exact initial 4585-byte subject"));
 assert.ok(currentInvocation.includes('state 27373 bytes, longest question 720 and all\nquestions 4079'));
@@ -2225,6 +2236,39 @@ await check('provided-question-display-size-refusal-before-provider', async () =
   const command = w.addComment({ body: providedBody(payload) });
   assert.deepEqual(outcome(await fullRun(w, command, { cfg })), ['NONE', 'RESULT_WOULD_EXCEED_COMMENT_CAP']);
   assert.deepEqual(effects(w), zero);
+});
+
+await check('literal-PR-state-budget-refusal-preserves-own-pair-before-effects', async () => {
+  const baseline = prWorld(), cfg = prConfig();
+  const first = await fullRun(baseline, baseline.addComment(), { cfg });
+  assert.deepEqual(outcome(first), ['APPENDED', 'READBACK_EXACT']);
+  const native = first.planBody.cases[0].input;
+  const padding = 28000 - Buffer.byteLength(JSON.stringify(native));
+  assert.ok(padding > 0);
+  const boundary = prWorld(); boundary.issue.body += 'x'.repeat(padding);
+  const atLimit = await fullRun(boundary, boundary.addComment(), { cfg });
+  assert.deepEqual(outcome(atLimit), ['APPENDED', 'READBACK_EXACT']);
+  assert.equal(Buffer.byteLength(JSON.stringify(atLimit.planBody.cases[0].input)), 28000);
+  const over = prWorld(); over.issue.body += 'x'.repeat(padding + 1);
+  const command = over.addComment(), run = over.newRun();
+  const planned = await planIssueCommand(ctxFor(over, command, run), cfg, over.deps);
+  assert.deepEqual([planned.receipt.outcome, planned.receipt.cause, planned.receipt.claimed, planned.receipt.providerCalls],
+    ['NONE', 'LITERAL_STATE_BUDGET_EXCEEDED', false, 0]);
+  assert.deepEqual(planned.receipt.observed, { issueNodeId: over.issue.id, subjectRevision: subjectRevision({
+    number: over.issue.number, nodeId: over.issue.id, body: over.issue.body, lastEditedAt: over.issue.lastEditedAt,
+    includesCreatedEdit: over.issue.includesCreatedEdit, userContentEditsTotal: over.issue.edits }) });
+  assert.equal(planned.plan, undefined); assert.deepEqual(planned.state, planned.receipt);
+  assert.equal(JSON.stringify(planned).includes(over.issue.body), false);
+  assert.deepEqual(effects(over), zero);
+  const beforePost = { ...over.calls };
+  const post = await postIssueCommand(JSON.parse(JSON.stringify(planned.state)), null, cfg, over.deps);
+  assert.deepEqual(post.receipt, { ...planned.receipt, stage: 'post' });
+  assert.deepEqual(over.calls, beforePost); assert.deepEqual(effects(over), zero);
+  // A separate malformed Core input is not promoted to budget refusal merely because it is large.
+  const invalid = prWorld(); invalid.issue.body += 'x'.repeat(padding + 1) + '\ud800';
+  const invalidPlan = await planIssueCommand(ctxFor(invalid, invalid.addComment(), invalid.newRun()), cfg, invalid.deps);
+  assert.notEqual(invalidPlan.receipt.cause, 'LITERAL_STATE_BUDGET_EXCEEDED');
+  assert.equal(Object.hasOwn(invalidPlan.receipt, 'observed'), false); assert.deepEqual(effects(invalid), zero);
 });
 
 const cli = spawnSync(process.execPath, [here, 'plan', 'relative-dir'], { encoding: 'utf8', env: { LANG: 'C.UTF-8' }, timeout: 10000 });

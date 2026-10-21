@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { validateActionsConfig, selectActionsTarget, admitIssueCommand, selectRunRange, deriveIssuePrior, nextIssueEffect,
-  composeResultComment, verifyResultReadback, subjectRevision } from './github-comment.mjs';
+  composeResultComment, verifyResultReadback, subjectRevision, LITERAL_STATE_BUDGET_CAUSE } from './github-comment.mjs';
 
 // GitHub-hosted Actions adapter for one trusted literal command (ops#483). `plan` and `post` run without the Jev
 // key; between them the workflow's single key-bearing step runs only the fixed semlint-entry.mjs on plan.json.
@@ -173,14 +173,15 @@ export async function planIssueCommand(ctx, configValue, deps) {
     issue: seen.issue, command: seen.command, context, ...(targetKind === 'pull-request' ? { targetKind } : {}), ...(grant ? { subject } : {}) };
   const request = await admitIssueCommand(admission, config);
   if (request.status !== 'ADMITTED') {
-    // Only the granted-literal CJK refusal carries an observation, and it is kept only when it is exactly this run's
+    // Only literal CJK or PR state-budget refusals carry an observation, kept only when it is exactly this run's
     // snapshot (node ID and 5-part revision). It is printed in the receipt/state, never claimed, posted or sent.
     // A third key (the evaluated subject's own pair) is kept only under an explicit Issue provided grant for this origin,
     // and only when it equals this run's own subject read; a subject grant alone never retains one.
     const o = request.observed;
     const issueGrant = grant !== undefined && config.providedRequestTargets?.some((g) => g.repository === ctx.repository
       && g.issue === e.issue.number) === true;
-    const exactObservation = request.cause === 'UNSUPPORTED_CJK' && o !== null && typeof o === 'object'
+    const exactObservation = (request.cause === 'UNSUPPORTED_CJK'
+      || (targetKind === 'pull-request' && request.cause === LITERAL_STATE_BUDGET_CAUSE)) && o !== null && typeof o === 'object'
       && Object.keys(o).length === (issueGrant ? 3 : 2) && o.issueNodeId === seen.issue.nodeId && o.subjectRevision === subjectRevision(seen.issue)
       && (!issueGrant || (o.subject !== null && typeof o.subject === 'object' && Object.keys(o.subject).length === 2
         && o.subject.nodeId === subject.nodeId && o.subject.revision === subjectRevision(subject)));
