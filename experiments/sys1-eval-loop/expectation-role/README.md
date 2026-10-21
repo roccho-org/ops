@@ -1,3 +1,44 @@
+# D14 原版保持：技術不完全と既知退行で不合格、Hは未開封
+
+S/R四択→E射影のD14は **DEVELOPMENT_GUARD_FAIL**。全1252 HTTPを一回だけ実施し、B626とC4 619がqualified、C4 7件はUNKNOWN。modelStableで停止なし。原Gold/旧14処置の結果/原planを維持し、再送・map補正・周辺和救済・候補採用は行わない。
+
+実source b826d1c2bf4f0369e0671e133adff13671bc6b31、REQUEST-only直子 ebba36f0851756f9290424f12e3bd6d75ace0e3a、[原run39579745319](https://github.com/roccho-org/ops/actions/runs/39579745319)。原native conclusion=failure、Execute/Project各exit2、upload成功。job119154117385の原454409BはsourceCIと同じ778全test名順で778/778 pass/fail0。これは測定実装の技術検査で意味品質の証明ではない。
+
+原artifact12335847907/2701421B/SHA256 3b3cca6ed5382b161d457cfa86a4fa73dbf51d129f18cb0e14ffcd0c702f59e7をW/root/Rが各自取得。原5全26,518,732Bとprovider/readback/root独立reportを保存し、全10projection/全1252Core/strict4 snapshot/資格/usageを別算術で一致確認した。
+
+|判定|B正答|候補既知正答|既知paired修復/退行|既知件数差|
+|---|---:|---:|---:|---:|
+|joint|476|498|32/6|22|
+|E|584|604|32/6|20|
+
+未知7があるため件数差22/20をpaired net26と同一視しない。fresh E退行6は census072/077/080/108/146/204。歴史620の既知破壊11は census023/072/077/080/093/108/143/146/204, expectation004/060。技術不完全とは別に既知退行でFAIL、正差だけで採用しない。
+
+未知7は全C4 HTTP200 response-probabilities。held041は選択BOTH .49< S_ONLY .50（sum1）で非最大、held099/158,census036/116/151,expectation003はsum≈.99。原class/maps/confidenceとflagsを保持し、正規化・反転・再送をしない。未知7も現在postの原usageを受信したためinput/outputを各一回計上できる。D6のusage欠測を後から補ったものではない。
+
+費用は当回input2,493,344/output51,405が1252全post既知、total_tokens1252不明・金額不明。D1..14実累計17,528HTTP/17,516qualified、input既知36,088,603/output642,102、input/output各5post欠測を維持、total_tokens17,528不明。UNKNOWNを0課金/成功へ変換しない。
+
+次保護は22,017 qualified E evidence（native E17,021=single binary16,395+compound P626、旧role4-derived621、split/partition/lines/verification/inverseN/majority各626、新wholeC4-derived619）。C4の原classとS/R診断だけはnative binary Eでも独立E evidenceでもない。原checker正誤626/raw N absence626は別、物理20,777/invalid旧5+新7=12。protected622へheld267/expectation118を追加、**現D14guard620へ遡及しない**。反復・同文を含む工学的ever-correct保護で、独立標本数/不偏推定量/達成可能性保証ではない。
+
+全11本文を三者自読し元Goldを維持。実設定/請求見積/過去default/観測規則性/症状を仕様や真正goalへ補完しない一方、表示の目的IO・提出template/HTML実指示を数える境界がなお誤る。want/need語・時制・見出し・文書種類だけでは解決しない。特に目標提示と症状再現条件の語用役割の不確実性は残り、原因断定/Gold変更はしない。
+
+次は既named2 S/R二値ORの構造再利用＋相補的役割境界の精密化を比較優先するが、literal未固定・製品未実装。これはD8/9同型の文言/役割/出力format packageで、新構造とも単一原因とも呼ばない。Wのv3一問binaryunion対案は意味誤りへの機構が弱く、Rのnative3class対案はnegative質量分割/不資格リスクを反証して今回は優先しない。報告形式の一律排除は真の仕様・goalも壊すため不採用。次処置はsource前の三者wx固定、source/必要CI原版受容後の別一回だけ。H count/body/Gold/model0、selection無し。
+
+~~~mermaid
+flowchart TB
+ A["✅ v3/原source必要CI778/三者counter"] --> B["✅ D14一回1252HTTP/原C4保存"]
+ B --> C["❌ 1245資格/未知7・既知fresh6/歴史11"]
+ C --> D["✅ 原版/費用/旧guard固定・負保持counter"]
+ D --> E["🛠️ 次仮説相互反証→literal事前固定→source/必要CI"]
+ E --> F["⏳ 新しい固定Dを一回"]
+ F -->|全guard PASS| G["🔒 実要求freeze後だけ未使用H"]
+ G --> H["⏳ blind Gold/最終Hsource/二回AND"]
+ H -->|全目的成立| I["目的最終current全通常CI/記録/Ready未merge"]
+~~~
+
+負保持の中間Readyや全通常CIは次source作成の追加gateにしない。最終current全通常CI/記録/Readyは目的全体閉包時の別義務。
+
+以下はD14 source公開時点までの記録。model0/未実測/CIpending等は当時の状態である。
+
 # D14：E内の仕様・要求をnative四択へ分ける（code-only）
 
 D13負保持は[root](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5597298783)/[R](https://github.com/roccho-org/ops/pull/624#pullrequestreview-5597282193)が各原ZIP/Git全bytes・全10投影・原費用から独立受容し、Wも両最新全文をprovider自読した。旧十三処置のFAIL/Gold/guard/原plans/rawを保ったまま、E内の仕様Sと要求・本人goal Rをnative4classで一度に判定する固定処置を実装した。source-only/モデル0、必要CI/公開exact三者受容と実D14成功は未成立、H count/body/Gold0。
