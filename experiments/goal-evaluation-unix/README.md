@@ -184,8 +184,9 @@ Before a later review, use the existing artifacts as this input map:
 - **Not assessed:** inspect `notProjected` and its reasons/needs,
   `unprojectedClauses`, `unquotedGoalText` and `missing`. These preserve withheld
   questions, uncovered clauses/text and unresolved needs; they are not successful
-  evaluation results. The whole Goal is not the model input: `goal.onWire`
-  records whether its text is carried, and local coverage records remain local.
+  evaluation results. The whole Goal is not the model input. When an envelope
+  exists, `goal.onWire` records whether its context includes the Goal text;
+  local coverage records remain local.
 - **Prepared request:** when emittable, `command.txt` contains the exact request.
   After `/jev-evaluate` and its newline, inspect JSON `cases[].input.subject`,
   `.context` and `.checks` for what the command supplies. Otherwise inspect
