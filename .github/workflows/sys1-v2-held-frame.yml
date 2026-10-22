@@ -1,0 +1,31 @@
+name: sys1 v2 held frame
+on:
+  push:
+    branches: [sys1/v1-contract-20261022]
+    paths: [experiments/sys1-eval-loop/v2/held-frame-request.json]
+permissions:
+  contents: read
+concurrency:
+  group: sys1-v2-held-frame
+  cancel-in-progress: false
+jobs:
+  frame:
+    if: github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Build the public held frame without provider credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node experiments/sys1-eval-loop/v2/held-frame.mjs "$RUNNER_TEMP/v2-held-frame"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: sys1-v2-held-frame-${{ github.run_id }}
+          path: ${{ runner.temp }}/v2-held-frame
+          if-no-files-found: ignore
+          retention-days: 30
