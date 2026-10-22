@@ -186,6 +186,198 @@
         "issue": 642
       },
       "budgetClaimCommentId": 6331143482
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 470,
+      "last": 472,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 647
+      },
+      "budgetClaimCommentId": 6339219135
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 511,
+      "last": 516,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 647
+      },
+      "budgetClaimCommentId": 6339219475
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 473,
+      "last": 475,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 648
+      },
+      "budgetClaimCommentId": 6339220157
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 517,
+      "last": 522,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 648
+      },
+      "budgetClaimCommentId": 6339220542
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 476,
+      "last": 478,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 649
+      },
+      "budgetClaimCommentId": 6339221211
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 523,
+      "last": 528,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 649
+      },
+      "budgetClaimCommentId": 6339221594
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 529,
+      "last": 534,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 650
+      },
+      "budgetClaimCommentId": 6339222301
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 479,
+      "last": 481,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 651
+      },
+      "budgetClaimCommentId": 6339222955
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 535,
+      "last": 540,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 651
+      },
+      "budgetClaimCommentId": 6339223307
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 482,
+      "last": 484,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 652
+      },
+      "budgetClaimCommentId": 6339224003
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 541,
+      "last": 546,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 652
+      },
+      "budgetClaimCommentId": 6339224349
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 485,
+      "last": 487,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 653
+      },
+      "budgetClaimCommentId": 6339226452
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 547,
+      "last": 552,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 653
+      },
+      "budgetClaimCommentId": 6339226863
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 488,
+      "last": 490,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 654
+      },
+      "budgetClaimCommentId": 6339227527
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 553,
+      "last": 558,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 654
+      },
+      "budgetClaimCommentId": 6339227954
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 491,
+      "last": 493,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 650
+      },
+      "budgetClaimCommentId": 6339222301
     }
   ],
   "targets": [
@@ -236,13 +428,136 @@
         "kind": "issue",
         "number": 204
       }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 647,
+      "subject": {
+        "repository": "roccho-org/ops",
+        "repositoryId": "1275606595",
+        "kind": "issue",
+        "number": 373
+      }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 648,
+      "subject": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "1276016160",
+        "kind": "issue",
+        "number": 193
+      }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 649,
+      "subject": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "1276016160",
+        "kind": "issue",
+        "number": 168
+      }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 650,
+      "subject": {
+        "repository": "roccho-dev/ism",
+        "repositoryId": "1305473032",
+        "kind": "issue",
+        "number": 1
+      }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 651,
+      "subject": {
+        "repository": "roccho-dev/governance",
+        "repositoryId": "1275976791",
+        "kind": "issue",
+        "number": 167
+      }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 652,
+      "subject": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "1276016160",
+        "kind": "issue",
+        "number": 146
+      }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 653,
+      "subject": {
+        "repository": "roccho-org/ops",
+        "repositoryId": "1275606595",
+        "kind": "issue",
+        "number": 50
+      }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 654,
+      "subject": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "1276016160",
+        "kind": "issue",
+        "number": 133
+      }
     }
   ],
   "providedRequestTargets": [
     {
       "repository": "roccho-org/ops",
       "repositoryId": "1275606595",
-      "issue": 642
+      "issue": 647
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 648
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 649
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 650
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 651
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 652
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 653
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 654
     }
   ],
   "provider": {

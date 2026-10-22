@@ -1,6 +1,6 @@
 name: Jev Issue comment evaluation
 
-# Closed Org origins; the provided grant is the origin Issue 642 (case 2), at most one actual provider call per claimed window.
+# Closed Org origins; the provided grants are the cycle-2 origin Issues 647-654, at most one actual provider call per claimed window.
 # One PR budget claim across a finite ordinal window; no refill.
 # Historical grants remain; no rerun spending or automatic ordinal following.
 on:
@@ -25,10 +25,10 @@ jobs:
       ((github.event.comment.body == '/jev-evaluate' &&
       (github.event.issue.pull_request == null || github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)) ||
       (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' &&
-      github.event.issue.number == 642 &&
+      (github.event.issue.number == 647 || github.event.issue.number == 648 || github.event.issue.number == 649 || github.event.issue.number == 650 || github.event.issue.number == 651 || github.event.issue.number == 652 || github.event.issue.number == 653 || github.event.issue.number == 654) &&
       startsWith(github.event.comment.body, fromJSON('"/jev-evaluate\n"')))) &&
       ((github.event.issue.pull_request == null &&
-      ((github.repository == 'roccho-org/ops' && (github.event.issue.number == 573 || github.event.issue.number == 640 || github.event.issue.number == 642)) ||
+      ((github.repository == 'roccho-org/ops' && (github.event.issue.number == 573 || github.event.issue.number == 640 || github.event.issue.number == 642 || github.event.issue.number == 647 || github.event.issue.number == 648 || github.event.issue.number == 649 || github.event.issue.number == 650 || github.event.issue.number == 651 || github.event.issue.number == 652 || github.event.issue.number == 653 || github.event.issue.number == 654)) ||
       (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) ||
       (github.event.issue.pull_request != null &&
       github.repository == 'roccho-org/ops' &&
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: roccho-org/ops
-          ref: dc9757b68f411cb0ea81fdffed464cbfb2d1b05a
+          ref: fee7a57d4815d292057d8e34dcb259f5d5c86f2f
           persist-credentials: false
 
       - name: Install fixed toolchain provisioner
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          runtime_source=dc9757b68f411cb0ea81fdffed464cbfb2d1b05a
+          runtime_source=fee7a57d4815d292057d8e34dcb259f5d5c86f2f
           test "$(git rev-parse HEAD)" = "$runtime_source"
           out="$(nix build --no-link --print-out-paths .#jev-review)"
           line="$(grep '^exec ' "$out/bin/jev-review")"
