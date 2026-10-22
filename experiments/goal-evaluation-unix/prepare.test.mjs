@@ -504,12 +504,13 @@ const WORKFLOW = (() => {
       '# One projected Org slot; no Repository/Environment copy.'],
     ['# Historical grants remain; no rerun spending or automatic ordinal following.',
       '# Initial four-call history plus 200 authorized additions; no rerun spending.'],
-    // W2 (roccho-dev/adrs#635 comment 6316499931) moved the provided clause from PR629 to the origin Issue 640.
-    ['# Closed Org origins; the provided grant is the origin Issue 640 (W2), at most one actual provider call.',
+    // W2 (roccho-dev/adrs#635 comment 6316499931) moved the provided clause from PR629 to the origin Issue 640, and case 2
+    // (comment 6330666411) moved it to the origin Issue 642.
+    ['# Closed Org origins; the provided grant is the origin Issue 642 (case 2), at most one actual provider call.',
       '# Guard binds Org Ops483/envs52/PR511/PR522; runtime is published target-bound source.'],
-    ["      (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 640 &&",
+    ["      (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 642 &&",
       "      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 522 &&"],
-    ["((github.repository == 'roccho-org/ops' && (github.event.issue.number == 573 || github.event.issue.number == 640)) ||",
+    ["((github.repository == 'roccho-org/ops' && (github.event.issue.number == 573 || github.event.issue.number == 640 || github.event.issue.number == 642)) ||",
       "((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) ||"],
     ['      (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)))',
       '      (github.event.issue.number == 511 || github.event.issue.number == 522)))'],
