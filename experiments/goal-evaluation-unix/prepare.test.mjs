@@ -15,7 +15,7 @@ import { validateJevBudget, JEV_MODEL } from '../../packages/jev-review/core.mjs
 import { planIssueCommand, postIssueCommand, PULL_REQUEST_QUERY, ISSUE_QUERY, SUBJECT_QUERY, COMMENT_QUERY, CLAIM, EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
 import { plan } from './core.mjs';
 import { acquire, executorIdentitySnapshot, project as projectPlan, expectedOrigin, fidelityFromReview, refusalOrigin, budgetRefusalOrigin, refusalIdentitySnapshot,
-  issueSubjectIdentitySnapshot, issueRefusalOrigin, issueRefusalSubjectSnapshot } from './prepare.mjs';
+  issueSubjectIdentitySnapshot, issueRefusalOrigin, issueRefusalSubjectSnapshot, issuePublicSubjectSnapshot } from './prepare.mjs';
 
 // Every fixture plan here supplies the evaluated subject text as the observation 'target' and declares it, as a caller
 // must. Tests of the declaration itself call projectPlan directly.
@@ -1936,4 +1936,43 @@ test('importing prepare from eval with its path in argv does not execute the CLI
     assert.equal(execution.stderr.length, 0);
     assert.equal(existsSync(output), false);
   }
+});
+
+// Cycle 2 (roccho-dev/adrs#635 c6340734023, R's option (b)): on the Issue route, a literal whose state exceeds the budget is
+// refused without any observation, so no executor evidence names the subject. The public-read snapshot is built from the
+// executor's own GraphQL queries (ISSUE_QUERY for the origin, SUBJECT_QUERY for the granted subject) read by the caller.
+// It is not bound to an executor run; the provided admission re-reads the subject and compares it before any claim.
+const publicRead = (query, variables, data, mode = 'live') => ({ reader: { id: 'fixture-graphql', mode }, query, variables,
+  observedAt: '2026-10-22T13:00:00.000Z', content: JSON.stringify({ data }) });
+const gqlIssue = i => ({ id: i.nodeId, number: i.number, body: i.body, lastEditedAt: i.lastEditedAt, includesCreatedEdit: i.includesCreatedEdit,
+  userContentEdits: { totalCount: i.userContentEditsTotal } });
+const publicReads = ({ origin = originIssue(), subject = subjectIssue(), repo = {}, mode, originVars = {}, subjectVars = {} } = {}) => ({
+  originRead: publicRead(ISSUE_QUERY, { owner: 'roccho-org', name: 'ops', number: ORIGIN_NUMBER, ...originVars }, { repository: { issue: gqlIssue(origin) } }, mode),
+  subjectRead: publicRead(SUBJECT_QUERY, { owner: 'fixture-user', name: 'apps', number: SUBJECT_NUMBER, ...subjectVars },
+    { repository: { databaseId: Number(SUBJECT.repositoryId), nameWithOwner: SUBJECT_REPO, isPrivate: false, issue: gqlIssue(subject), ...repo } }, mode),
+});
+test('Issue route public-read subject snapshot: VERIFIED from the executor queries, and the projection accepts it', async () => {
+  const snap = issuePublicSubjectSnapshot({ ...publicReads(), originTarget: ORIGIN, subjectTarget: SUBJECT });
+  assert.equal(snap.status, 'VERIFIED', snap.cause);
+  assert.deepEqual([snap.subjectKind, snap.target, snap.snapshot, snap.readerDeclaredLive, snap.provenance.kind, snap.provenance.originRevision],
+    ['issue', { repository: SUBJECT_REPO, number: SUBJECT_NUMBER }, subjectIssue(), true, 'public-graphql-subject-read', subjectRevision(originIssue())]);
+  assert.deepEqual(snap.originTarget, { ...ORIGIN, nodeId: ORIGIN_NODE });
+  assert.ok(snap.provenance.limits.some(l => /not bound to an executor run/.test(l)));
+  const value = await kPlan([question('q1')], [{ ref: 'target', content: BODY }]);
+  assert.equal(project(value, snap).status, 'ELIGIBLE');
+  assert.equal(issuePublicSubjectSnapshot({ ...publicReads({ mode: 'test-double' }), originTarget: ORIGIN, subjectTarget: SUBJECT }).readerDeclaredLive, false);
+});
+test('Issue route public-read subject snapshot holds on any mismatch', () => {
+  const snap = options => issuePublicSubjectSnapshot({ ...publicReads(options), originTarget: ORIGIN, subjectTarget: SUBJECT });
+  assert.equal(snap({ repo: { isPrivate: true } }).cause, 'SUBJECT_MISMATCH');
+  assert.equal(snap({ repo: { databaseId: 999 } }).cause, 'SUBJECT_MISMATCH');
+  assert.equal(snap({ repo: { nameWithOwner: 'other/apps' } }).cause, 'SUBJECT_MISMATCH');
+  assert.equal(snap({ subject: { ...subjectIssue(), number: 95 } }).cause, 'SUBJECT_MISMATCH');
+  assert.equal(snap({ subject: subjectIssue('') }).cause, 'SUBJECT_BODY_UNOBSERVED');
+  assert.equal(snap({ origin: { ...originIssue(), number: 484 } }).cause, 'ORIGIN_MISMATCH');
+  assert.equal(snap({ subjectVars: { number: 95 } }).cause, 'READ_MISMATCH');
+  const reads = publicReads();
+  assert.equal(issuePublicSubjectSnapshot({ ...reads, subjectRead: { ...reads.subjectRead, query: ISSUE_QUERY }, originTarget: ORIGIN, subjectTarget: SUBJECT }).cause, 'READ_MISMATCH');
+  assert.equal(issuePublicSubjectSnapshot({ ...reads, subjectRead: { ...reads.subjectRead, content: '{"errors":[{}]}' }, originTarget: ORIGIN, subjectTarget: SUBJECT }).cause, 'READ_UNREADABLE');
+  assert.equal(issuePublicSubjectSnapshot({ ...reads, originTarget: { repository: REPO }, subjectTarget: SUBJECT }).cause, 'TARGET_INVALID');
 });

@@ -7,7 +7,7 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { REQUEST_PREFIX, parseResultComment, COMMAND_OBSERVATION, ISSUE_KEYS, subjectRevision, LITERAL_STATE_BUDGET_CAUSE } from '../../packages/jev-review/github-comment.mjs';
-import { EXECUTOR_LOGIN } from '../../packages/jev-review/issue-executor.mjs';
+import { EXECUTOR_LOGIN, ISSUE_QUERY, SUBJECT_QUERY } from '../../packages/jev-review/issue-executor.mjs';
 import { exact } from '../../packages/jev-review/semlint-entry.mjs';
 import { validateJevBudget } from '../../packages/jev-review/core.mjs';
 import { checkPlan, unquotedGoalText } from './core.mjs';
@@ -27,6 +27,7 @@ const LITERAL_COMMAND = '/jev-evaluate';
 const REFUSAL_KIND = 'literal-cjk-refusal';
 const BUDGET_REFUSAL_KIND = 'literal-state-budget-refusal';
 const ISSUE_REFUSAL_KIND = 'literal-cjk-refusal-issue-subject';
+const PUBLIC_SUBJECT_KIND = 'public-graphql-subject-read';
 
 // One receipt per acquisition. Only HTTP 200 with non-empty text is OK; 404 is NOT_FOUND; anything else,
 // including 403/429/5xx, a thrown reader or an empty body, is UNKNOWN. A list read is OK only when the reader
@@ -178,7 +179,7 @@ export function issueSubjectIdentitySnapshot({ commentsReceipt, originIssueRecei
 const issueSnapshotValid = s => exact(s, ['status', 'subjectKind', 'originTarget', 'target', 'snapshot', 'readerDeclaredLive', 'provenance'])
   && s.subjectKind === 'issue' && exact(s.originTarget, ['repository', 'number', 'nodeId']) && exact(s.target, ['repository', 'number'])
   && exact(s.snapshot, ISSUE_KEYS) && typeof s.readerDeclaredLive === 'boolean'
-  && exact(s.provenance, ['kind', 'originRevision', 'subjectTarget', 'origin', 'limits']) && ['literal-result', ISSUE_REFUSAL_KIND].includes(s.provenance.kind)
+  && exact(s.provenance, ['kind', 'originRevision', 'subjectTarget', 'origin', 'limits']) && ['literal-result', ISSUE_REFUSAL_KIND, PUBLIC_SUBJECT_KIND].includes(s.provenance.kind)
   && exact(s.provenance.subjectTarget, ['repository', 'repositoryId', 'number']) && s.provenance.subjectTarget.repository === s.target.repository
   && s.provenance.subjectTarget.number === s.target.number;
 
@@ -507,6 +508,47 @@ export function issueRefusalSubjectSnapshot({ origin, originIssueReceipt, subjec
     readerDeclaredLive: origin.readerDeclaredLive === true && [originIssueReceipt, subjectIssueReceipt].every(r => r.reader.mode === 'live'),
     provenance: { kind: ISSUE_REFUSAL_KIND, originRevision: observed.subjectRevision, subjectTarget: { ...subjectTarget }, origin: { ...origin.origin },
       limits: [...origin.limits, READER_LIMIT] } };
+}
+
+// Cycle 2 (roccho-dev/adrs#635 c6340734023, option (b)): on the Issue route a literal whose state exceeds the budget is
+// refused without any observation, so no executor evidence names the subject. This snapshot is read by the caller with the
+// executor's own GraphQL queries (ISSUE_QUERY for the origin, SUBJECT_QUERY for the granted subject) and mapped exactly as the
+// executor maps them. It is not bound to an executor run: the provided admission re-reads the subject and compares its
+// revision before any claim, which stays the safety gate. Each read is {reader, query, variables, observedAt, content}.
+const PUBLIC_SUBJECT_LIMIT = 'public read by the caller, not bound to an executor run; the provided admission re-reads and compares the subject before any claim';
+const gqlIssueKeys = ['id', 'number', 'body', 'lastEditedAt', 'includesCreatedEdit', 'userContentEdits'];
+const publicIssue = i => exact(i, gqlIssueKeys) && text(i.id) && positive(i.number) && exact(i.userContentEdits, ['totalCount'])
+  && Number.isSafeInteger(i.userContentEdits.totalCount) && i.userContentEdits.totalCount >= 0 && typeof i.includesCreatedEdit === 'boolean'
+  && (i.lastEditedAt === null || Number.isFinite(Date.parse(i.lastEditedAt)));
+const readOf = (read, query, variables) => {
+  if (!exact(read, ['reader', 'query', 'variables', 'observedAt', 'content']) || !exact(read.reader, ['id', 'mode']) || !['live', 'test-double'].includes(read.reader.mode)
+    || read.query !== query || JSON.stringify(read.variables) !== JSON.stringify(variables)) return { cause: 'READ_MISMATCH' };
+  const value = parse(read.content);
+  if (!exact(value, ['data']) || value.data?.repository === undefined) return { cause: 'READ_UNREADABLE' };
+  return { repository: value.data.repository };
+};
+export function issuePublicSubjectSnapshot({ originRead, subjectRead, originTarget, subjectTarget }) {
+  if (!targetValid(originTarget) || !subjectTargetValid(subjectTarget)) return hold('TARGET_INVALID');
+  const [oOwner, oName] = originTarget.repository.split('/'), [sOwner, sName] = subjectTarget.repository.split('/');
+  const o = readOf(originRead, ISSUE_QUERY, { owner: oOwner, name: oName, number: originTarget.number });
+  if (o.cause) return hold(o.cause);
+  const s = readOf(subjectRead, SUBJECT_QUERY, { owner: sOwner, name: sName, number: subjectTarget.number });
+  if (s.cause) return hold(s.cause);
+  const oi = o.repository?.issue;
+  if (!exact(o.repository, ['issue']) || !publicIssue(oi) || oi.number !== originTarget.number) return hold('ORIGIN_MISMATCH');
+  const repo = s.repository, si = repo?.issue;
+  if (!exact(repo, ['databaseId', 'nameWithOwner', 'isPrivate', 'issue']) || !positive(repo.databaseId) || String(repo.databaseId) !== subjectTarget.repositoryId
+    || repo.nameWithOwner !== subjectTarget.repository || repo.isPrivate !== false || !publicIssue(si) || si.number !== subjectTarget.number) return hold('SUBJECT_MISMATCH');
+  if (!observedBody(si.body)) return hold('SUBJECT_BODY_UNOBSERVED');
+  const toSnapshot = i => ({ number: i.number, nodeId: i.id, body: i.body, lastEditedAt: i.lastEditedAt, includesCreatedEdit: i.includesCreatedEdit,
+    userContentEditsTotal: i.userContentEdits.totalCount });
+  const origin = toSnapshot(oi);
+  return { status: 'VERIFIED', subjectKind: 'issue', originTarget: { repository: originTarget.repository, number: originTarget.number, nodeId: oi.id },
+    target: { repository: subjectTarget.repository, number: subjectTarget.number }, snapshot: toSnapshot(si),
+    readerDeclaredLive: [originRead, subjectRead].every(r => r.reader.mode === 'live'),
+    provenance: { kind: PUBLIC_SUBJECT_KIND, originRevision: subjectRevision(origin), subjectTarget: { ...subjectTarget },
+      origin: { originReadSha256: sha256(originRead.content), subjectReadSha256: sha256(subjectRead.content), observedAt: [originRead.observedAt, subjectRead.observedAt] },
+      limits: [READER_LIMIT, PUBLIC_SUBJECT_LIMIT] } };
 }
 
 const FIDELITY_MARKER = '<!-- semlint-fidelity-v1 -->';
