@@ -842,10 +842,11 @@ for (const program of [entry, compatibility]) {
   assert.equal(JSON.stringify(selectActionsTarget(active, 'roccho-org/ops', 642, 'issue')),
     JSON.stringify({ repository: 'roccho-org/ops', repositoryId: '1275606595', issue: 642, subject: { repository: 'roccho-dev/ui', repositoryId: '1276016160', kind: 'issue', number: 204 } }));
   {
+    // Case 2 has two claimed windows for 642: 420-439 for the literal run, 440-459 for the provided run.
     const run642 = { repository: 'roccho-org/ops', workflowId: 377399991, path: '.github/workflows/jev-issue-comment.yml', number: 420, attempt: 1, id: 1 };
-    for (const number of [420, 459]) {
+    for (const [number, window] of [[420, [420, 439, 6330650091]], [439, [420, 439, 6330650091]], [440, [440, 459, 6331143482]], [459, [440, 459, 6331143482]]]) {
       const selected = selectRunRange(active, { ...run642, number }, { kind: 'issue', number: 642 });
-      assert.deepEqual([selected.callsPerRun, selected.range.first, selected.range.last, selected.range.budgetClaimCommentId], [1, 420, 459, 6330650091]);
+      assert.deepEqual([selected.callsPerRun, selected.range.first, selected.range.last, selected.range.budgetClaimCommentId], [1, ...window]);
     }
     for (const number of [419, 460, 380]) assert.equal(Object.hasOwn(selectRunRange(active, { ...run642, number }, { kind: 'issue', number: 642 }), 'range'), false, `run ${number}`);
   }
