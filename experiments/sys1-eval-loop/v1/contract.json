@@ -19,7 +19,7 @@
   "rMax": "ceil(f * C / n), C = cases where fresh Best is correct in the evaluated comparison; computed per development run and per held pass",
   "developmentGuard": "all physical qualified AND model stable AND repaired > regressed AND regressed <= rMax; regressed counts only fresh Best-correct cases broken; no ever-correct union",
   "heldAcceptance": "exactly two passes over the same unused held cases; each pass: all qualified AND model stable AND common-Gold delta lower bound > 0 AND regressed <= rMax; both passes AND, no averaging",
-  "stageInput": "posts * ceil(maxFrozenWireChars * max over retained posts of inputTokens / wireChars)",
+  "stageInput": "admission: sum of per-post estimates <= remaining input; a request identical to a retained one uses its retained actual input, a new wire uses ceil(wireChars * sum retained inputTokens / sum retained wireChars); runtime: before each post stop if counted input + estimate > remaining, after each post count actual input_tokens or the estimate when unknown",
   "gateJ": {
     "J1": "adrs#664 has no jev W start notice without a later done notice",
     "J2": "roccho-org/ops workflow 377399991 has no queued or in_progress run",

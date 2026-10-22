@@ -19,9 +19,9 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Verify keyless source
-        run: node --test experiments/sys1-eval-loop/v1-*test.mjs
-      - name: Admit activation, gate J and budget before credentials
+      - name: Verify keyless source and closed evidence
+        run: node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs
+      - name: Prepare fixed assignment before credentials
         id: prepare
         env:
           GH_TOKEN: ${{ github.token }}

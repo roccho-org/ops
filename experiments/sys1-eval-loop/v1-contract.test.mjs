@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
-import {noiseRate,rMax,developmentGuardV1,heldAcceptanceV1,stageInputMax,admitStage} from './v1/contract.mjs';
+import {noiseRate,rMax,developmentGuardV1,heldAcceptanceV1,postInputEstimate,inputCap,admitStage} from './v1/contract.mjs';
 const contract=JSON.parse(fs.readFileSync(new URL('./v1/contract.json',import.meta.url),'utf8'));
 
 test('v1 budget plan fits the User-approved plan 1',()=>{const b=contract.budget,p=b.plan;assert.equal(b.httpMax,5000);assert.equal(b.developmentMax,2);assert.equal(p.development.length,b.developmentMax);assert.equal(p.noise+p.development.reduce((a,c)=>a+c,0)+p.held,4930);});
@@ -10,6 +10,6 @@ test('development guard needs net repair and regression within rMax',()=>{const 
 
 test('held acceptance is a two-pass AND without averaging',()=>{const noise={n:626,f:3},ok={qualificationComplete:true,modelStable:true,deltaLower:1,regressed:0,bestCorrect:85};assert.equal(heldAcceptanceV1([ok,ok],noise).accepted,true);assert.equal(heldAcceptanceV1([ok,{...ok,deltaLower:0}],noise).accepted,false);assert.equal(heldAcceptanceV1([ok,{...ok,regressed:2}],noise).accepted,false);assert.throws(()=>heldAcceptanceV1([ok],noise));});
 
-test('stage input uses the maximum retained token-per-char ratio',()=>{assert.equal(stageInputMax(10,1000,[{inputTokens:200,wireChars:100},{inputTokens:300,wireChars:300}]),20000);});
+test('new-wire estimate uses the aggregate retained ratio and the cap counts actual usage',()=>{assert.equal(postInputEstimate(1000,[{inputTokens:200,wireChars:100},{inputTokens:300,wireChars:300}]),1250);const cap=inputCap(10);assert.equal(cap.admit(10),true);cap.add(7,3);assert.equal(cap.used,7);assert.equal(cap.admit(4),false);cap.add(undefined,3);assert.equal(cap.used,10);assert.equal(cap.admit(0),true);});
 
 test('gate J and budget block provider stages',()=>{const idle={openLaunch:false,runs:[{run_number:354,status:'completed'}]},stage={posts:626,inputMax:1};assert.deepEqual(admitStage(contract,{http:0,input:0},stage,idle),{ok:true});assert.equal(admitStage(contract,{http:0,input:0},stage,{...idle,openLaunch:true}).reason,'J1');assert.equal(admitStage(contract,{http:0,input:0},stage,{openLaunch:false,runs:[{run_number:381,status:'in_progress'}]}).reason,'J2');assert.equal(admitStage(contract,{http:0,input:0},stage,{openLaunch:false,runs:[{run_number:379,status:'completed'}]}).reason,'J3');assert.equal(admitStage(contract,{http:4500,input:0},stage,idle).reason,'BUDGET');assert.equal(admitStage(contract,{http:0,input:12499999},{posts:1,inputMax:2},idle).reason,'BUDGET');});
