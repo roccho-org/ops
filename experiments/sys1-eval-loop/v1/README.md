@@ -13,4 +13,7 @@
 - **寄与の関門**：Q1（H の二回 AND）は未測定。Q2（P3 の独立性）は未決定。どちらも寄与の証拠ではない。ops#523 の P2→P3 は未達のまま。
 - **UNKNOWN**：返ってきた model の名前（BestE の旧来の flags は記録しない）。drift の原因。測った揺れ 4/626 が新しい model でも有効かどうか。
 - **再開の条件**：新しい model の確認と、揺れの測り直しを含む新しい契約版を、User が承認すること。
-- **原 file**：両 run の artifact（12394546135、D_1 の分）は、W の .p-tmp に取得してある。results への byte のままの保存は、worktree への download の許可が要るので未了。保持の期限は 2026-11-21 ごろ。
+- **原 file**：両 run の artifact を `gh run download` のまま、byte を変えずに保存した。
+  - `results/v1-noise-39703583069/`：artifact 12394546135。post 626、failure・unknown・budget-stop 0。output は 626 件すべて 31 で、合計 19,406。
+  - `results/v1-development1-39714529040/`：post 1。
+- **v1 の output の合計**：19,406（揺れの測定）＋ D_1 の 1 post（UNKNOWN）。
