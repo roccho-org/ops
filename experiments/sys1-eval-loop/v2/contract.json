@@ -9,7 +9,7 @@
     "httpMax": 5000,
     "inputTokenMax": 12500000,
     "developmentMax": 1,
-    "plan": { "noise": 626, "development": [1252], "held": 1800 },
+    "plan": { "noise": 626, "development": [1252], "held": 1200 },
     "ledgerAtStart": { "http": 629, "input": 1254050 },
     "moreDevelopment": "N_D >= 2 needs an additional User approval"
   },
@@ -24,7 +24,17 @@
   "developmentGuard": "all 1252 posts qualified AND every returned model = jev-1.14.0 AND repaired > regressed AND regressed <= rMax; E axis only; no ever-correct union",
   "heldAcceptance": "two passes over the same unused held cases, E axis; each pass: all qualified AND every returned model = jev-1.14.0 AND common-Gold delta lower bound > 0 AND regressed <= rMax; both passes AND",
   "contributionGate": { "Q1": "held two-pass AND (limited-case performance)", "Q2": "P3 independence yes/no/UNKNOWN fixed before held measurement; no or UNKNOWN means ops#523 P3 BLOCKED", "contribution": "only Q1 and Q2 both yes" },
-  "held": "Gold construction, creators/checkers and Q2 are NOT fixed yet; they must be fixed in source before any held count, body or Gold is opened",
+  "held": {
+    "fixedBefore": "everything below is fixed in source before any held count, body or Gold is opened (adrs#664 c6335978377)",
+    "frame": "public GitHub issues (not pull requests) created in [2026-10-18T00:00:00Z, 2026-10-19T00:00:00Z) in cli/cli, NixOS/nixpkgs, microsoft/vscode; createdAt ascending, issue node ID tie; first 300 after exclusion; no refill, no window expansion; 0 cases means NO_CASES with no provider call",
+    "exclusion": "drop an issue whose repository and number, or URL, appears anywhere under experiments/sys1-eval-loop at the freeze commit; drop empty bodies and bodies whose wire is 24000 bytes or more",
+    "custodyCaveat": "the original private held inventory (native 8bc883c3, prior e727e045) is not on GitHub (HTTP 422) and not reachable by R or W; the frame is rebuilt from the public API with the same window and scope, so the unused claim is weaker than the original plan and rests on the public exclusion above",
+    "keys": "bestE and roleJapaneseE only (E axis); 2 posts per case per pass; at most 300 x 2 x 2 = 1200 HTTP",
+    "passes": "two passes over the same frozen cases and requests; pass 2 reverses the per-case key order; no rerun, averaging or reselection",
+    "gold": "W and R each label E for every body alone, from the body text only, without the other's labels and without any model output; each commits the sha256 of its label file to adrs#664 before either file is revealed; disagreements are adjudicated once; an unresolved case counts against the candidate in the delta lower bound; Gold is final before the first held post",
+    "Q2": "no: W and R both saw D candidate behaviour and are same-family model raters; ops#523 P3 is recorded as BLOCKED whatever Q1 shows",
+    "power": "the D gain of +10/626 suggests about +5 on 300 cases; failing Q1 is not evidence of no improvement"
+  },
   "costRecord": "candidate versus Best input and HTTP ratio recorded for D and H, not a gate",
   "development1": {
     "treatment": "D18 Japanese S/R strict-AND then OR, wire unchanged except the explicit model",
