@@ -37,7 +37,8 @@
     "blockedRunNumbers": [379, 380, 419, 420, 421],
     "waitUntil": "2026-10-24T00:00:00Z"
   },
-  "ledgerAfterNoise": null,
-  "noiseResult": null,
+  "ledgerAfterNoise": { "http": 1255, "input": 2505104 },
+  "noiseResult": "experiments/sys1-eval-loop/results/v2-noise-39737634183/sys1-v2-noise-39737634183/projection.json",
+  "noiseRun": { "run": 39737634183, "activation": "3f7a2f22", "posts": 626, "qualified": 626, "returnedModel": "jev-1.14.0 x626", "inputCounted": 1251054, "output": 19406 },
   "boundary": "ops conversation comments allowed only as the User lifted (c6332053895); PR body edits, commits and reviews"
 }
