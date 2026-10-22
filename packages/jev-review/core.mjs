@@ -1,4 +1,4 @@
-export const JEV_MODEL = 'jev-1.13.0';
+export const JEV_MODEL = 'jev-1.14.0';
 export const JEV_PROVIDER_TOKEN_BUDGET_POLICY = 'provider-token-admission-v1';
 export const JEV_PROVIDER_REQUEST_MAX_BYTES = 65536;
 
