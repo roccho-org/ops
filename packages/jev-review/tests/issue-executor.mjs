@@ -2036,7 +2036,10 @@ validateActionsConfig(currentSettings);
 // W2 (roccho-dev/adrs#635 comment 6316499931): the single provided grant moved from PR629 to the origin Issue 640.
 // Case 2 (roccho-dev/adrs#635 comment 6330666411) moved the single provided grant from 640 to the origin Issue 642.
 assert.deepEqual(currentSettings.providedRequestTargets, [{"repository":"roccho-org/ops","repositoryId":"1275606595","issue":642}]);
-assert.deepEqual(currentSettings.runRanges.filter(r => r.target?.issue === 642), [{"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":420,"last":459,"reservedCallsPerRun":1,"target":{"issue":642},"budgetClaimCommentId":6330650091}]);
+// User 2026-10-22 (5,000-call series cap) let case 2 split 642 into a literal window and a provided window, each claimed once.
+assert.deepEqual(currentSettings.runRanges.filter(r => r.target?.issue === 642), [
+  {"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":420,"last":439,"reservedCallsPerRun":1,"target":{"issue":642},"budgetClaimCommentId":6330650091},
+  {"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":440,"last":459,"reservedCallsPerRun":1,"target":{"issue":642},"budgetClaimCommentId":6331143482}]);
 assert.deepEqual(currentSettings.runRanges.filter(r => r.target?.issue === 640), [{"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":380,"last":419,"reservedCallsPerRun":1,"target":{"issue":640},"budgetClaimCommentId":6316894098}]);
 assert.deepEqual(currentSettings.targets.filter(t => Object.hasOwn(t, 'pullRequest')), [{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":511},{"repository":"roccho-org/ops","repositoryId":"1275606595","pullRequest":629}]);
 assert.deepEqual(currentSettings.runRanges.filter(r => Object.hasOwn(r.target ?? {}, 'pullRequest')), [{"repository":"roccho-org/ops","workflowId":377399991,"path":".github/workflows/jev-issue-comment.yml","first":343,"last":374,"reservedCallsPerRun":1,"target":{"pullRequest":629},"budgetClaimCommentId":6310139801}]);

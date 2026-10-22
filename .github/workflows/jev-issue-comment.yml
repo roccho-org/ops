@@ -1,6 +1,6 @@
 name: Jev Issue comment evaluation
 
-# Closed Org origins; the provided grant is the origin Issue 642 (case 2), at most one actual provider call.
+# Closed Org origins; the provided grant is the origin Issue 642 (case 2), at most one actual provider call per claimed window.
 # One PR budget claim across a finite ordinal window; no refill.
 # Historical grants remain; no rerun spending or automatic ordinal following.
 on:
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: roccho-org/ops
-          ref: 607037823cb83fc3b0ce82f2cc0eca3853005a0e
+          ref: dc9757b68f411cb0ea81fdffed464cbfb2d1b05a
           persist-credentials: false
 
       - name: Install fixed toolchain provisioner
@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          runtime_source=607037823cb83fc3b0ce82f2cc0eca3853005a0e
+          runtime_source=dc9757b68f411cb0ea81fdffed464cbfb2d1b05a
           test "$(git rev-parse HEAD)" = "$runtime_source"
           out="$(nix build --no-link --print-out-paths .#jev-review)"
           line="$(grep '^exec ' "$out/bin/jev-review")"
