@@ -14,7 +14,16 @@
   "noise": {
     "measurement": "one Best-versus-Best rerun of the 626 D626 BestE requests with request wire identical to the retained D18 BestE wire",
     "pair": "rerun answer versus retained D18 BestE answer for the same case",
-    "rate": "f/n: n = cases where both answers are qualified yes/no, f = those whose answers differ"
+    "rate": "f/n: n = cases where both answers are qualified yes/no, f = those whose answers differ",
+    "measured": { "n": 626, "f": 4, "run": 39703583069, "activation": "c3925956", "artifactDigest": "sha256:1f70d6bc69b04df702f68a44bd01e8ec241061acd46d67ba28a0a453e4575c6f", "readback": "adrs#664 c6330323417, c6330348397" }
+  },
+  "ledgerAfterNoise": { "http": 626, "input": 1251054 },
+  "axis": "development guard and held delta both count the E axis only (C5, C6); O stays the fixed shared reference",
+  "costExpectation": "candidate uses two posts per case (BestE plus SR) against one for Best: HTTP x2, input about x2.4; recorded per D and H, not a gate (C7)",
+  "development1": {
+    "treatment": "D18 Japanese S/R strict-AND then OR, wire unchanged",
+    "selection": "chosen after seeing v0 D15..D18 fresh E regressions of 2 and D18 E 582->616 (repaired 36, regressed 2); old results are never a v1 pass, only the new D and unused H decide (adrs#664 c6330359196, c6330371803)",
+    "maxCalls": 1252
   },
   "rMax": "ceil(f * C / n), C = cases where fresh Best is correct in the evaluated comparison; computed per development run and per held pass",
   "developmentGuard": "all physical qualified AND model stable AND repaired > regressed AND regressed <= rMax; regressed counts only fresh Best-correct cases broken; no ever-correct union",
