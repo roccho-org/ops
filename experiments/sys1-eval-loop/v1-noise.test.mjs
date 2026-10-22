@@ -11,4 +11,6 @@ test('runtime input cap stops the tail before the budget is crossed',async()=>{c
 
 test('model drift stops the tail without inventing answers',async()=>{const input=prepareNoise(execution,ledger);let calls=0;const report=await evaluateNoise(input,async()=>{calls++;return {choice:'yes',model:'other'};},()=>{});assert.equal(calls,1);assert.equal(report.modelDrift,true);assert.ok(report.rows.every(r=>r.choice===null));assert.throws(()=>projectNoise(input,report));});
 
+test('evaluate-time input check works while the key is present, prepare still refuses it',()=>{const input=prepareNoise(execution,ledger);process.env.JEV_API_KEY='test-only';try{assertNoiseInput(input,execution,ledger);assert.throws(()=>prepareNoise(execution,ledger));}finally{delete process.env.JEV_API_KEY;}});
+
 test('activation admits only request.json on the reviewed source',()=>{const req={phase:'noise',sourceSha:'p',jevOpenLaunch:false,ledger:{http:0,input:0}},src={parent:'p',changed:['experiments/sys1-eval-loop/v1/request.json']};admitActivation(req,src);assert.throws(()=>admitActivation({...req,jevOpenLaunch:true},src));assert.throws(()=>admitActivation(req,{...src,changed:[...src.changed,'x']}));assert.throws(()=>admitActivation({...req,sourceSha:'q'},src));});
