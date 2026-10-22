@@ -32,7 +32,8 @@
   "gateJ": {
     "J1": "adrs#664 has no jev W start notice without a later done notice",
     "J2": "roccho-org/ops workflow 377399991 has no queued or in_progress run",
-    "J3": "latest run_number of workflow 377399991 is not 379 or 380",
+    "J3": "latest run_number of workflow 377399991 is not in blockedRunNumbers: the run just before and the runs of each jev launch window (first case 379..380, second case 419..421 per adrs#664 c6330924675 and c6330999996)",
+    "blockedRunNumbers": [379, 380, 419, 420, 421],
     "waitUntil": "2026-10-24T00:00:00Z",
     "expired": "NEXT: USER; continue returns to J, stop goes to v1 STOPPED"
   },

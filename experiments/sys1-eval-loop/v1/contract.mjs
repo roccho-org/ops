@@ -12,6 +12,6 @@ export function inputCap(remaining){assert.ok(Number.isSafeInteger(remaining)&&r
 // Gate J and the remaining budget, checked immediately before each provider stage.
 export function admitStage(contract,{http,input},{posts,inputMax},{openLaunch,runs}){
  const b=contract.budget,blocked=runs.some(r=>r.status==='queued'||r.status==='in_progress'),latest=Math.max(...runs.map(r=>r.run_number));
- if(openLaunch)return {ok:false,reason:'J1'};if(blocked)return {ok:false,reason:'J2'};if(latest===379||latest===380)return {ok:false,reason:'J3'};
+ if(openLaunch)return {ok:false,reason:'J1'};if(blocked)return {ok:false,reason:'J2'};if(contract.gateJ.blockedRunNumbers.includes(latest))return {ok:false,reason:'J3'};
  if(http+posts>b.httpMax||input+inputMax>b.inputTokenMax)return {ok:false,reason:'BUDGET'};return {ok:true};
 }
