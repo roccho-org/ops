@@ -916,6 +916,43 @@ for (const program of [entry, compatibility]) {
   assert.equal(selectActionsTarget(two, OPS, 573, 'issue').subject.number, 94);
 }
 
+// Cycle 2 (roccho-dev/adrs#635 comments 6338931746, R's conditions in the following R turn): Issue grants may be held by up
+// to 10 origin Issues at once (the sealed N=8 cases plus 2 spares, selection-rules-cycle2.v2.md). With more than one Issue
+// grant, every granted origin needs its own scoped range with a budget claim anchor, so each window still admits at most
+// one provider call. The PR form stays at one grant in total (no mixing), and the retired PR numbers stay refused.
+{
+  const base = JSON.parse(fs.readFileSync(new URL('../issue-actions.json', import.meta.url), 'utf8'));
+  const OPS = 'roccho-org/ops', OPS_ID = '1275606595', WF = '.github/workflows/jev-issue-comment.yml';
+  const withGrants = (count, { claim = () => true } = {}) => {
+    const c = JSON.parse(JSON.stringify(base));
+    c.providedRequestTargets = [];
+    for (let i = 0; i < count; i++) {
+      const issue = 9100 + i;
+      c.targets.push({ repository: OPS, repositoryId: OPS_ID, issue, subject: { repository: OPS, repositoryId: OPS_ID, kind: 'issue', number: 581 } });
+      c.runRanges.push({ repository: OPS, workflowId: 377399991, path: WF, first: 1000 + 10 * i, last: 1009 + 10 * i, reservedCallsPerRun: 1,
+        target: { issue }, ...(claim(i) ? { budgetClaimCommentId: 7000 + i } : {}) });
+      c.providedRequestTargets.push({ repository: OPS, repositoryId: OPS_ID, issue });
+    }
+    return c;
+  };
+  for (const count of [2, 8, 10]) {
+    const checked = validateActionsConfig(withGrants(count));
+    assert.equal(checked.providedRequestTargets.length, count, `${count} Issue grants with claimed ranges`);
+    const run = { repository: OPS, workflowId: 377399991, path: WF, number: 1000 + 10 * (count - 1), attempt: 1, id: 1 };
+    assert.equal(selectRunRange(checked, run, { kind: 'issue', number: 9100 + count - 1 }).range.budgetClaimCommentId, 7000 + count - 1);
+  }
+  assert.throws(() => validateActionsConfig(withGrants(11)), /INVALID_ACTIONS_CONFIG/, 'an 11th Issue grant exceeds the sealed 10');
+  assert.throws(() => validateActionsConfig(withGrants(2, { claim: i => i === 0 })), /INVALID_ACTIONS_CONFIG/, 'a second grant without a claimed range');
+  const duplicate = withGrants(2);
+  duplicate.providedRequestTargets.push({ ...duplicate.providedRequestTargets[0] });
+  assert.throws(() => validateActionsConfig(duplicate), /INVALID_ACTIONS_CONFIG/, 'the same Issue granted twice');
+  const mixed = withGrants(2);
+  mixed.providedRequestTargets.push({ repository: OPS, repositoryId: OPS_ID, pullRequest: 629 });
+  assert.throws(() => validateActionsConfig(mixed), /INVALID_ACTIONS_CONFIG/, 'a PR grant beside Issue grants');
+  // A single Issue grant keeps the earlier rule: its scoped range need not carry a claim anchor.
+  assert.doesNotThrow(() => validateActionsConfig(withGrants(1, { claim: () => false })), 'one Issue grant without a claim anchor');
+}
+
 console.log(JSON.stringify({ status: 'PASS', check: 'jev-comment-functional', realProviderCalls: 0,
   githubEffects: 0, fixtureNativeHttp: existingFixtureHttp + childFixtureHttp, existingFixtureHttp, childFixtureHttp,
   claim: 'SOURCE_FIXTURE_ONLY_NOT_REAL_ISSUE_COMPLETION' }));
