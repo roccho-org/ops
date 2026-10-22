@@ -18,7 +18,8 @@
     "pair": "noise-stage BestE answer versus the D_1 fresh BestE answer for the same case, same request, same version",
     "rate": "f/n: n = cases where both are qualified yes/no, f = those that differ",
     "zero": "f = 0 gives rMax = 0; the formula is fixed before measurement and never relaxed after; 626 cases with f = 0 do not prove the absence of noise",
-    "incomplete": "if D_1 stops before completion, v2 is STOPPED; an f from incomplete pairs is never used for the guard"
+    "incomplete": "if D_1 stops before completion, v2 is STOPPED; an f from incomplete pairs is never used for the guard",
+    "measuredV2": { "n": 626, "f": 4, "source": "v2 noise run 39737634183 BestE paired with D_1 run 39741518276 fresh BestE" }
   },
   "rMax": "ceil(f * C / n), C = cases where the D_1 fresh Best is correct",
   "developmentGuard": "all 1252 posts qualified AND every returned model = jev-1.14.0 AND repaired > regressed AND regressed <= rMax; E axis only; no ever-correct union",
@@ -50,6 +51,10 @@
   },
   "ledgerAfterNoise": { "http": 1255, "input": 2505104 },
   "noiseResult": "experiments/sys1-eval-loop/results/v2-noise-39737634183/sys1-v2-noise-39737634183/projection.json",
+  "ledgerAfterD1": { "http": 2507, "input": 5520733 },
+  "ledgerAfterHeld1": null,
+  "heldPass1Result": null,
+  "development1Run": { "run": 39741518276, "activation": "99238b0d", "outcome": "V2_DEVELOPMENT_GUARD_PASS", "noise": { "n": 626, "f": 4 }, "bestCorrect": 605, "rMax": 4, "repaired": 13, "regressed": 3 },
   "noiseRun": { "run": 39737634183, "activation": "3f7a2f22", "posts": 626, "qualified": 626, "returnedModel": "jev-1.14.0 x626", "inputCounted": 1251054, "output": 19406 },
   "boundary": "ops conversation comments allowed only as the User lifted (c6332053895); PR body edits, commits and reviews"
 }
