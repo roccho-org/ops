@@ -1659,7 +1659,9 @@ await check('no-grant-golden-m1', async () => {
     state: '294897a753809eacbb788a3a3bab8542b2d643e0c781e01e19a9797141e030ef',
     admissionKeys: 'repository,owner,sha,eventBody,run,issue,command,context', identity: digestM1, requestDigest: digestM1,
     configDigest: '2d02aee665e675e9a602536e6914e40c794a4707764842705d2186e251bd5c40',
-    comment: '110f0a7c37baeb5560e33db814ad406db75bd8278348252bb11d8c983ceaeb40',
+    // The result comment names JEV_MODEL; cycle 2 pins jev-1.14.0 (adrs#635 MMD c6333696119), which moves only this
+    // digest (110f0a7c... under jev-1.13.0). State, identity, request and config digests are unchanged.
+    comment: 'cdd1bf58fa25de3d5678614060db4a1993064e9f24eaef3d873fb30821f2e4c8',
     prior: { requestDigest: digestM1, state: 'APPENDED' }, readback: true,
     issueQuery: '35b6817636b7c9b83e5afa014d15729e815a5b03bf35a59be1a36544dc644a1b',
     queries: 'ISSUE,COMMENT,ISSUE,COMMENT,ISSUE,COMMENT', post: 'APPENDED,READBACK_EXACT' });
@@ -1823,7 +1825,8 @@ await check('legacy-goldens-m-f7095de4', async () => {
     subjectPlanReceipt: '41a08658a62c30484afba33c91ccc2bd11f357ac2eb7e9301ae8d810e5f74c7a',
     subjectIdentity: '372b81a57282ba8dc6c41b0a305fd6e969923ce27fbc086a8d30c3c269993109',
     subjectRequestDigest: '372b81a57282ba8dc6c41b0a305fd6e969923ce27fbc086a8d30c3c269993109',
-    subjectComment: '5724d22539f8094b2a321bb16e5e25408b79c3b7fefd46f7045feed91468f3f4',
+    // Moves only with JEV_MODEL in the result comment (5724d225... under jev-1.13.0; cycle 2 pins jev-1.14.0).
+    subjectComment: 'a4c82d4bfbbdf36b24e690f8e40a153c3eef8d89f55e1dc613d12bc6490c63a0',
     providedWithSubject: 'a4105699d0186bb328d23ce1ae0f5b3ce73cea6221b192b43a9d26d2b4aad3e4' });
 });
 

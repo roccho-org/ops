@@ -130,7 +130,8 @@ test("CLI, Worker and Review keep their distinct acceptance and model contracts"
     return { ok: true, json: async () => ({ model: "jev-latest", answers: { q: { type: "noul", noul: 0.5 } } }) };
   } });
   await assert.rejects(() => review({}, { q: { type: "noul", instructions: "Q?" } }, { timeoutMs: 1000 }), /JEV_MODEL_MISMATCH/);
-  assert.equal(sentModel, "jev-1.13.0");
+  // Review sends the pinned jev-review JEV_MODEL (jev-1.14.0 since the jev series' cycle 2, adrs#635 c6333696119).
+  assert.equal(sentModel, "jev-1.14.0");
 });
 
 test("named calls preserve cancellation, deadlines and no retry without raw exceptions", async () => {
