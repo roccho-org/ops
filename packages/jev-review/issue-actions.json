@@ -162,6 +162,18 @@
         "issue": 640
       },
       "budgetClaimCommentId": 6316894098
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 420,
+      "last": 459,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 642
+      },
+      "budgetClaimCommentId": 6330650091
     }
   ],
   "targets": [
@@ -201,13 +213,24 @@
         "kind": "issue",
         "number": 581
       }
+    },
+    {
+      "repository": "roccho-org/ops",
+      "repositoryId": "1275606595",
+      "issue": 642,
+      "subject": {
+        "repository": "roccho-dev/ui",
+        "repositoryId": "1276016160",
+        "kind": "issue",
+        "number": 204
+      }
     }
   ],
   "providedRequestTargets": [
     {
       "repository": "roccho-org/ops",
       "repositoryId": "1275606595",
-      "issue": 640
+      "issue": 642
     }
   ],
   "provider": {
