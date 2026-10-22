@@ -505,12 +505,12 @@ const WORKFLOW = (() => {
     ['# Historical grants remain; no rerun spending or automatic ordinal following.',
       '# Initial four-call history plus 200 authorized additions; no rerun spending.'],
     // W2 (roccho-dev/adrs#635 comment 6316499931) moved the provided clause from PR629 to the origin Issue 640, and case 2
-    // (comment 6330666411) moved it to the origin Issue 642, which then got a second claimed window.
-    ['# Closed Org origins; the provided grant is the origin Issue 642 (case 2), at most one actual provider call per claimed window.',
+    // (comment 6330666411) moved it to the origin Issue 642, which then got a second claimed window; cycle 2 grants 647-654.
+    ['# Closed Org origins; the provided grants are the cycle-2 origin Issues 647-654, at most one actual provider call per claimed window.',
       '# Guard binds Org Ops483/envs52/PR511/PR522; runtime is published target-bound source.'],
-    ["      (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 642 &&",
+    ["      (github.event.issue.pull_request == null && github.repository == 'roccho-org/ops' &&\n      (github.event.issue.number == 647 || github.event.issue.number == 648 || github.event.issue.number == 649 || github.event.issue.number == 650 || github.event.issue.number == 651 || github.event.issue.number == 652 || github.event.issue.number == 653 || github.event.issue.number == 654) &&",
       "      (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' &&\n      github.event.issue.number == 522 &&"],
-    ["((github.repository == 'roccho-org/ops' && (github.event.issue.number == 573 || github.event.issue.number == 640 || github.event.issue.number == 642)) ||",
+    ["((github.repository == 'roccho-org/ops' && (github.event.issue.number == 573 || github.event.issue.number == 640 || github.event.issue.number == 642 || github.event.issue.number == 647 || github.event.issue.number == 648 || github.event.issue.number == 649 || github.event.issue.number == 650 || github.event.issue.number == 651 || github.event.issue.number == 652 || github.event.issue.number == 653 || github.event.issue.number == 654)) ||",
       "((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) ||"],
     ['      (github.event.issue.number == 511 || github.event.issue.number == 606 || github.event.issue.number == 629)))',
       '      (github.event.issue.number == 511 || github.event.issue.number == 522)))'],
