@@ -216,6 +216,9 @@ export const ACTIONS_CONFIG_KEYS = ['trustedCallers', 'allowedChecks', 'context'
 const RANGE_KEYS = ['repository', 'workflowId', 'path', 'first', 'last', 'reservedCallsPerRun'];
 // Retired provided targets never regain a grant (legacy PR511, ended trial PR520, replaced PR522).
 const RETIRED_PROVIDED = Object.freeze([511, 520, 522]);
+// Issue grants held at once: the jev series' cycle-2 cases (N=8) plus 2 spares, sealed in selection-rules-cycle2.v2.md
+// (roccho-dev/adrs#635 comment 6338571848). The PR form stays at one grant in total.
+const MAX_ISSUE_GRANTS = 10;
 // An optional range target is one closed {issue} or {pullRequest} of the range's own repository.
 const rangeTarget = (t) => exact(t, ['issue']) && positive(t.issue) || exact(t, ['pullRequest']) && positive(t.pullRequest);
 const scopes = (r, kind, number) => (Object.hasOwn(r.target, 'pullRequest')
@@ -294,10 +297,19 @@ export function validateActionsConfig(value) {
       throw new Error('INVALID_ACTIONS_CONFIG');
     }
   }
-  // At most one provided grant in total: a PR body, or an origin Issue whose own subject grant (and so its own scoped
-  // range) names the evaluated Issue. Retirement numbers are PR numbers and apply to the PR form only.
+  // Provided grants: either one PR body grant alone, or up to MAX_ISSUE_GRANTS origin Issues, each with its own subject grant
+  // (and so its own scoped range) naming the evaluated Issue. With more than one Issue grant, every granted origin needs a
+  // scoped range with a budget claim anchor, so each window still admits at most one provider call. Retirement numbers are
+  // PR numbers and apply to the PR form only.
+  const grants = Array.isArray(config.providedRequestTargets) ? config.providedRequestTargets : [];
+  const prGrants = grants.filter((grant) => Object.hasOwn(grant ?? {}, 'pullRequest'));
+  const issueGrants = grants.filter((grant) => Object.hasOwn(grant ?? {}, 'issue'));
+  if (prGrants.length > 1 || (prGrants.length === 1 && grants.length > 1) || issueGrants.length > MAX_ISSUE_GRANTS
+    || new Set(issueGrants.map((grant) => JSON.stringify([grant.repository, grant.issue]))).size !== issueGrants.length
+    || (issueGrants.length > 1 && !issueGrants.every((grant) => ranges.some((r) => r.repository === grant.repository
+      && r.target?.issue === grant.issue && Object.hasOwn(r, 'budgetClaimCommentId'))))) throw new Error('INVALID_ACTIONS_CONFIG');
   if (Object.hasOwn(config, 'providedRequestTargets') && (!Array.isArray(config.providedRequestTargets)
-    || config.providedRequestTargets.length > 1 || !config.providedRequestTargets.every((grant) =>
+    || !config.providedRequestTargets.every((grant) =>
       exact(grant, ['repository', 'repositoryId', 'pullRequest']) && positive(grant.pullRequest)
       && !RETIRED_PROVIDED.includes(grant.pullRequest)
       && config.targets.some((target) => Object.hasOwn(target, 'pullRequest')
