@@ -19,7 +19,7 @@
   },
   "ledgerAfterNoise": { "http": 626, "input": 1251054 },
   "axis": "development guard and held delta both count the E axis only (C5, C6); O stays the fixed shared reference",
-  "costExpectation": "candidate uses two posts per case (BestE plus SR) against one for Best: HTTP x2, input about x2.4; recorded per D and H, not a gate (C7)",
+  "costExpectation": "candidate E comes from one S/R post per case against one BestE post for Best: HTTP x1, input about x1.41 (D18: 1764575 / 1251054); recorded per D and H, not a gate (C7, corrected adrs#664 c6330700704)",
   "development1": {
     "treatment": "D18 Japanese S/R strict-AND then OR, wire unchanged",
     "selection": "chosen after seeing v0 D15..D18 fresh E regressions of 2 and D18 E 582->616 (repaired 36, regressed 2); old results are never a v1 pass, only the new D and unused H decide (adrs#664 c6330359196, c6330371803)",
