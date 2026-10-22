@@ -1,0 +1,43 @@
+{
+  "schema": "ops.sys1.v2-contract.v1",
+  "goal": "https://github.com/roccho-dev/adrs/issues/664#issuecomment-6327715611",
+  "agreement": "adrs#664 c6334377522, c6334390082, c6334400206 (User resume c6333565187)",
+  "core": "Issue description convention E/O; Best binary-eo-v3 unchanged",
+  "model": { "request": "jev-1.14.0", "expected": "jev-1.14.0", "rule": "every post sends the explicit version ID; every returned model field is recorded and must equal it, else STOPPED" },
+  "v1": "v1 STOPPED (model drift, cause UNKNOWN) retained; v0 and v1 results are never v2 results",
+  "budget": {
+    "httpMax": 5000,
+    "inputTokenMax": 12500000,
+    "developmentMax": 1,
+    "plan": { "noise": 626, "development": [1252], "held": 1800 },
+    "ledgerAtStart": { "http": 629, "input": 1254050 },
+    "moreDevelopment": "N_D >= 2 needs an additional User approval"
+  },
+  "noise": {
+    "order": "the noise stage (626 BestE) runs before D_1",
+    "pair": "noise-stage BestE answer versus the D_1 fresh BestE answer for the same case, same request, same version",
+    "rate": "f/n: n = cases where both are qualified yes/no, f = those that differ",
+    "zero": "f = 0 gives rMax = 0; the formula is fixed before measurement and never relaxed after; 626 cases with f = 0 do not prove the absence of noise",
+    "incomplete": "if D_1 stops before completion, v2 is STOPPED; an f from incomplete pairs is never used for the guard"
+  },
+  "rMax": "ceil(f * C / n), C = cases where the D_1 fresh Best is correct",
+  "developmentGuard": "all 1252 posts qualified AND every returned model = jev-1.14.0 AND repaired > regressed AND regressed <= rMax; E axis only; no ever-correct union",
+  "heldAcceptance": "two passes over the same unused held cases, E axis; each pass: all qualified AND every returned model = jev-1.14.0 AND common-Gold delta lower bound > 0 AND regressed <= rMax; both passes AND",
+  "contributionGate": { "Q1": "held two-pass AND (limited-case performance)", "Q2": "P3 independence yes/no/UNKNOWN fixed before held measurement; no or UNKNOWN means ops#523 P3 BLOCKED", "contribution": "only Q1 and Q2 both yes" },
+  "held": "Gold construction, creators/checkers and Q2 are NOT fixed yet; they must be fixed in source before any held count, body or Gold is opened",
+  "costRecord": "candidate versus Best input and HTTP ratio recorded for D and H, not a gate",
+  "development1": {
+    "treatment": "D18 Japanese S/R strict-AND then OR, wire unchanged except the explicit model",
+    "selectionCaveat": "chosen from v0 results measured on jev-1.13.0; on jev-1.14.0 this selection evidence is weaker (adrs#664 c6334377522)"
+  },
+  "gateJ": {
+    "J1": "adrs#664 has no jev start notice without a later done notice; W rereads adrs#664 immediately before every activation push",
+    "J2": "roccho-org/ops workflow 377399991 has no queued or in_progress run",
+    "J3": "latest run_number not in blockedRunNumbers; the jev second-round window numbers are UNKNOWN and are added when announced",
+    "blockedRunNumbers": [379, 380, 419, 420, 421],
+    "waitUntil": "2026-10-24T00:00:00Z"
+  },
+  "ledgerAfterNoise": null,
+  "noiseResult": null,
+  "boundary": "ops conversation comments allowed only as the User lifted (c6332053895); PR body edits, commits and reviews"
+}
