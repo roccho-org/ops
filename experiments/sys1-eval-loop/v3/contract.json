@@ -1,0 +1,31 @@
+{
+  "schema": "ops.sys1.v3-contract.v1",
+  "goal": "https://github.com/roccho-dev/adrs/issues/664#issuecomment-6327715611",
+  "userDecision": "adrs#664 c6354117279 (continue for performance); terminal only by reaching the target or an explicit User stop",
+  "agreement": "adrs#664 c6354147911 R, c6354183755 W, c6354210045 R",
+  "core": "Issue description convention E; Best binary-eo-v3 unchanged; model jev-1.14.0 requested and checked on every post",
+  "previous": "v0/v1/v2 results retained and never rescored as v3 results; v2 STOPPED c6351410399",
+  "candidate": "exactly one treatment that removes false yes on bodies made only of template headings, placeholder or instruction text, bot boilerplate or attachments, without turning Gold-yes bodies into no; designed after the precheck, fixed in source before any v3 provider call; no held-specific phrase or ID",
+  "development": "D687 = D626 plus the 61 used v2 held cases (retired from held); one D run, N_D = 1; guard as v2 (E axis, repaired > regressed, regressed <= rMax)",
+  "precheck": "before any provider call, count D626 bodies that are template-like by a fixed keyless rule and their Gold E; record any disagreement with the held Gold treatment of templates as a guard note; Gold is never rewritten",
+  "held": {
+    "frame": "public issues (not pull requests) created in [2026-10-19T00:00:00Z, 2026-10-20T00:00:00Z) in cli/cli, NixOS/nixpkgs, microsoft/vscode; createdAt then node ID order; same exclusion as v2; first 230 after exclusion; no refill or window expansion",
+    "gold": "W and R label alone with split.mjs:7-10 hasExpectation, seal sha256 before revealing, adjudicate once, unresolved counts against the candidate; Q2 = no",
+    "passes": "two passes, pass 2 reverses the per-case key order"
+  },
+  "target": {
+    "i": "both held passes: complete, every returned model jev-1.14.0, candidate correct - Best correct > 0, regressed <= rMax(4/626, Best correct)",
+    "ii": "both held passes: candidate E accuracy >= 0.85 over all held cases (unresolved Gold counted wrong for the candidate)",
+    "done": "(i) AND (ii); P3 recorded as BLOCKED because Q2 = no",
+    "notReached": "record and move to a new contract version; stop only at the budget limit or an explicit User stop"
+  },
+  "noise": { "n": 626, "f": 4, "source": "v2 measuredV2, same version jev-1.14.0; not re-measured" },
+  "budget": {
+    "httpMax": 5000,
+    "ledgerAtStart": { "http": 2690, "input": 5945951 },
+    "remaining": 2310,
+    "plan": { "development": 1374, "held": 920 },
+    "planTotal": 2294,
+    "retry": "any rerun of a failed stage needs an additional User approval (margin 16 HTTP)"
+  }
+}

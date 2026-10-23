@@ -1,0 +1,9 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {templateLike,audit} from './v3/precheck.mjs';import {retainedRoleJapaneseDevelopment} from './expectation-role/role-japanese-development.mjs';
+const json=u=>JSON.parse(fs.readFileSync(new URL(u,import.meta.url),'utf8')),frame=json('./results/v2-held-frame-39754467738/sys1-v2-held-frame-39754467738/frame.json'),gold=json('./results/v2-held-gold-39754467738/gold.json'),contract=json('./v3/contract.json');
+
+test('v3 budget plan fits the remaining HTTP and the target needs both (i) and (ii)',()=>{const b=contract.budget;assert.equal(b.httpMax-b.ledgerAtStart.http,b.remaining);assert.equal(b.plan.development+b.plan.held,b.planTotal);assert.ok(b.planTotal<=b.remaining);assert.equal(b.plan.development,687*2);assert.ok(b.plan.held<=230*2*2);assert.match(contract.target.done,/\(i\) AND \(ii\)/);});
+
+test('template rule: unfilled template is template-like, a filled report is not',()=>{assert.equal(templateLike('<!-- note -->\n### Describe the bug\n\n- VS Code Version: \n- OS Version: \n\nSteps to Reproduce:\n\n1. \n2.\n'),true);assert.equal(templateLike('### Expected\n\nThe picker keeps showing Ask, matching the agent that is actually in use after sending a request.'),false);});
+
+test('precheck: held calibration and D626 audit (records counts only; Gold unchanged)',async()=>{const g=new Map(gold.labels.map(l=>[l.id,l.E])),held=audit(frame.cases.map(c=>({id:c.id,body:c.body,goldE:g.get(c.id)})));console.log('v3 precheck held',JSON.stringify(held));const data=await retainedRoleJapaneseDevelopment(),d=audit(data.rows.map(r=>({id:r.id,body:r.body,goldE:r.gold.E})));console.log('v3 precheck d626',JSON.stringify(d));assert.equal(d.cases,626);assert.equal(held.cases,61);assert.equal(d.gold.yes+d.gold.no,d.templateLike);});
