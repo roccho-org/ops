@@ -16,7 +16,8 @@
     "frameResult": "run 39898990493 on activation bf925872: 159 candidates, excluded mentioned 0, emptyBody 1, oversize 4; 154 cases; frame.json sha256 d234ed4b1428a58b5ee5f31c7847842d1bc595c23bf7787dc4bb989e22ec6585",
     "goldSeals": { "W": "gold-W-v4-held-39898990493.json sha256 5014aa0715317dd3625738b0d530f64349bb194702c562a86e5edbc15b6f7836 (adrs#664 c6357224114)", "R": "gold-R-v4-held-39898990493.json sha256 bbb4820b5235da081c13830c5b3e2cbcc960f56c453a681af46204914e7947ee (adrs#664 c6357632244, body c6357632588)" },
     "goldPath": "../results/v4-held-gold-39898990493/gold.json",
-    "pass1Result": "../results/v4-held1-39904548971/sys1-v4-held-39904548971/projection.json"
+    "pass1Result": "../results/v4-held1-39904548971/sys1-v4-held-39904548971/projection.json",
+    "pass2Result": "../results/v4-held2-39907691896/sys1-v4-held-39907691896/projection.json"
   },
   "target": "as v3: (i) AND (ii) on both held passes; P3 BLOCKED",
   "onFail": "if the D687 guard fails again, R asks the User including the budget",
@@ -32,6 +33,7 @@
     "httpMaxAfterUser": 10000,
     "ledgerAfterD": { "http": 4751, "input": 9607025 },
     "ledgerAfterHeld1": { "http": 5059, "input": 10258045 },
+    "ledgerAfterHeld2": { "http": 5367, "input": 10909065 },
     "retry": "any rerun needs an additional User approval"
   }
 }
