@@ -3,7 +3,8 @@ const ROOT=fileURLToPath(new URL('../../..',import.meta.url)),contract=JSON.pars
 export const SCOPE=['cli/cli','NixOS/nixpkgs','microsoft/vscode'],WINDOW=['2026-10-18T00:00:00Z','2026-10-19T00:00:00Z'],LIMIT=300;
 // Frame rule from contract.held: issues only, window, scope, createdAt then node ID order, exclusion, first 300, no refill.
 // v3 reuses the same rule with its own window and limit (v3/contract.json held.frame).
-export const FRAMES=Object.freeze({'held-frame':{window:WINDOW,limit:LIMIT},'held-frame-v3':{window:['2026-10-19T00:00:00Z','2026-10-20T00:00:00Z'],limit:230}});
+// v4 moves to 2026-10-21 after the 10-19 NO_CASES (v4/contract.json held.frame, adrs#664 c6356161029, c6356845814).
+export const FRAMES=Object.freeze({'held-frame':{window:WINDOW,limit:LIMIT},'held-frame-v3':{window:['2026-10-19T00:00:00Z','2026-10-20T00:00:00Z'],limit:230},'held-frame-v4':{window:['2026-10-21T00:00:00Z','2026-10-22T00:00:00Z'],limit:230}});
 export function orderCandidates(items,window=WINDOW){return items.filter(i=>!i.isPullRequest&&i.createdAt>=window[0]&&i.createdAt<window[1]&&SCOPE.includes(i.repo)).sort((a,b)=>a.createdAt<b.createdAt?-1:a.createdAt>b.createdAt?1:a.nodeId<b.nodeId?-1:a.nodeId>b.nodeId?1:0);}
 // Mentions are collected file by file into a set of "repo#number" keys (no whole-corpus string).
 const MENTION=/(cli\/cli|nixos\/nixpkgs|microsoft\/vscode)(?:\/issues\/|\/pull\/|#)([0-9]+)(?![0-9])/gi;
