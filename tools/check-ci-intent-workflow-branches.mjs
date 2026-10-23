@@ -19,6 +19,10 @@ const CENSUS_WORKFLOW = ".github/workflows/sys1-observation-census.yml";
 const EXPECTATION_WORKFLOW = ".github/workflows/sys1-expectation-census.yml";
 const EXPECTATION_ROLE_WORKFLOW = ".github/workflows/sys1-expectation-role.yml";
 const EXPECTATION_OR_WORKFLOW = ".github/workflows/sys1-expectation-or.yml";
+const V1_NOISE_WORKFLOW = ".github/workflows/sys1-v1-noise.yml";
+const V1_DEVELOPMENT_WORKFLOW = ".github/workflows/sys1-v1-development.yml";
+const V1_BASE_CHECK_WORKFLOW = ".github/workflows/sys1-v1-base-check.yml";
+const V2_STAGE_WORKFLOWS = {".github/workflows/sys1-v2-noise.yml":{stage:'noise',dir:'v2-noise',request:'noise-request.json',maxCalls:626,timeout:180},".github/workflows/sys1-v2-development.yml":{stage:'development1',dir:'v2-development',request:'development-request.json',maxCalls:1252,timeout:350},".github/workflows/sys1-v2-held.yml":{stage:'held',dir:'v2-held',request:'held-request.json',maxCalls:244,timeout:180},".github/workflows/sys1-v3-development.yml":{stage:'v3development',dir:'v3-development',requestPath:'experiments/sys1-eval-loop/v3/development-request.json',maxCalls:1374,timeout:350},".github/workflows/sys1-v4-development.yml":{stage:'v4development',dir:'v4-development',requestPath:'experiments/sys1-eval-loop/v4/development-request.json',maxCalls:687,timeout:350},".github/workflows/sys1-v4-held.yml":{stage:'v4held',dir:'v4-held',requestPath:'experiments/sys1-eval-loop/v4/held-request.json',maxCalls:616,timeout:180}};
 const REGRESSION_WORKFLOW = ".github/workflows/sys1-regression-repair.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
@@ -188,6 +192,22 @@ export function analyzeEffectWorkflow(workflow, boundary) {
     }
     if (boundary.path === EXPECTATION_ROLE_WORKFLOW) {
       assertExpectationRoleWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (Object.hasOwn(V2_STAGE_WORKFLOWS, boundary.path)) {
+      assertV2StageWorkflow(workflow,boundary,V2_STAGE_WORKFLOWS[boundary.path]);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === V1_BASE_CHECK_WORKFLOW) {
+      assertV1BaseCheckWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === V1_DEVELOPMENT_WORKFLOW) {
+      assertV1DevelopmentWorkflow(workflow,boundary);
+      return {issues,contributingJobs:['evaluate']};
+    }
+    if (boundary.path === V1_NOISE_WORKFLOW) {
+      assertV1NoiseWorkflow(workflow,boundary);
       return {issues,contributingJobs:['evaluate']};
     }
     if (boundary.path === EXPECTATION_OR_WORKFLOW) {
@@ -527,6 +547,50 @@ export function assertExpectationWorkflow(w,b){
   need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-expectation-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation','if-no-files-found':'ignore','retention-days':30}),'expectation receipt differs');
   v.on.push.branches=['codex/jev-observation-reserve-20261020'];v.on.push.paths=['experiments/sys1-eval-loop/reserve/request.json'];v.concurrency.group='sys1-observation-reserve';v.jobs.evaluate['timeout-minutes']=170;
   s[5].with={name:'sys1-reserve-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/reserve','if-no-files-found':'ignore','retention-days':30};assertReserveWorkflow(v,{...b,maxCalls:1984});
+}
+// sys1 v2 stages: each stage workflow mapped onto the reviewed role shape with its own entry and bound.
+export function assertV2StageWorkflow(w,b,c){
+  need(b.maxCalls===c.maxCalls,'v2 stage bound differs');
+  need(same(w.on?.push?.branches??[],['sys1/v1-contract-20261022'])&&same(w.on?.push?.paths??[],[c.requestPath??'experiments/sys1-eval-loop/v2/'+c.request]),'v2 stage entry differs');
+  need(w.concurrency?.group==='sys1-'+c.dir&&w.jobs?.evaluate?.['timeout-minutes']===c.timeout,'v2 stage deadline differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/v2/runtime.mjs '+c.stage+' '+mode+' "$RUNNER_TEMP/'+c.dir+'"','v2 stage command differs');s[n].run='node experiments/sys1-eval-loop/expectation-role/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-role"';}
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-'+c.dir+'-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/'+c.dir,'if-no-files-found':'ignore','retention-days':30}),'v2 stage receipt differs');
+  v.name='Jev fixed expectation development';v.on.push.branches=['codex/jev-expectation-role-20261021'];v.on.push.paths=['experiments/sys1-eval-loop/expectation-role/request.json'];v.concurrency.group='sys1-expectation-role';v.jobs.evaluate['timeout-minutes']=350;
+  s[5].with={name:'sys1-expectation-role-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation-role','if-no-files-found':'ignore','retention-days':30};assertExpectationRoleWorkflow(v,{...b,maxCalls:24336});
+}
+// sys1 v1 base check: one models read plus one versioned post, mapped onto the reviewed role shape.
+export function assertV1BaseCheckWorkflow(w,b){
+  need(b.maxCalls===2,'v1 base check bound differs');
+  need(same(w.on?.push?.branches??[],['sys1/v1-contract-20261022'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/v1/base-check-request.json']),'v1 base check entry differs');
+  need(w.concurrency?.group==='sys1-v1-base-check'&&w.jobs?.evaluate?.['timeout-minutes']===30,'v1 base check deadline differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/v1/base-check-runtime.mjs '+mode+' "$RUNNER_TEMP/v1-base-check"','v1 base check command differs');s[n].run='node experiments/sys1-eval-loop/expectation-role/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-role"';}
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-v1-base-check-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/v1-base-check','if-no-files-found':'ignore','retention-days':30}),'v1 base check receipt differs');
+  v.name='Jev fixed expectation development';v.on.push.branches=['codex/jev-expectation-role-20261021'];v.on.push.paths=['experiments/sys1-eval-loop/expectation-role/request.json'];v.concurrency.group='sys1-expectation-role';v.jobs.evaluate['timeout-minutes']=350;
+  s[5].with={name:'sys1-expectation-role-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation-role','if-no-files-found':'ignore','retention-days':30};assertExpectationRoleWorkflow(v,{...b,maxCalls:24336});
+}
+// sys1 v1 D_1: the reviewed role workflow shape with its own entry and stage bound.
+export function assertV1DevelopmentWorkflow(w,b){
+  need(b.maxCalls===1252,'v1 development stage bound differs');
+  need(same(w.on?.push?.branches??[],['sys1/v1-contract-20261022'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/v1/development-request.json']),'v1 development entry differs');
+  need(w.concurrency?.group==='sys1-v1-development'&&w.jobs?.evaluate?.['timeout-minutes']===350,'v1 development deadline differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/v1/development-runtime.mjs '+mode+' "$RUNNER_TEMP/v1-development"','v1 development command differs');s[n].run='node experiments/sys1-eval-loop/expectation-role/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-role"';}
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-v1-development-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/v1-development','if-no-files-found':'ignore','retention-days':30}),'v1 development receipt differs');
+  v.name='Jev fixed expectation development';v.on.push.branches=['codex/jev-expectation-role-20261021'];v.on.push.paths=['experiments/sys1-eval-loop/expectation-role/request.json'];v.concurrency.group='sys1-expectation-role';
+  s[5].with={name:'sys1-expectation-role-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation-role','if-no-files-found':'ignore','retention-days':30};assertExpectationRoleWorkflow(v,{...b,maxCalls:24336});
+}
+// sys1 v1 noise: the reviewed role workflow shape with its own entry, deadline and stage bound.
+export function assertV1NoiseWorkflow(w,b){
+  need(b.maxCalls===626,'v1 noise stage bound differs');
+  need(same(w.on?.push?.branches??[],['sys1/v1-contract-20261022'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/v1/request.json']),'v1 noise entry differs');
+  need(w.concurrency?.group==='sys1-v1-noise'&&w.jobs?.evaluate?.['timeout-minutes']===180,'v1 noise deadline differs');
+  const v=structuredClone(w),s=v.jobs.evaluate.steps;
+  for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/v1/runtime.mjs '+mode+' "$RUNNER_TEMP/v1-noise"','v1 noise command differs');s[n].run='node experiments/sys1-eval-loop/expectation-role/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-role"';}
+  need(JSON.stringify(s[5]?.with)===JSON.stringify({name:'sys1-v1-noise-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/v1-noise','if-no-files-found':'ignore','retention-days':30}),'v1 noise receipt differs');
+  v.name='Jev fixed expectation development';v.on.push.branches=['codex/jev-expectation-role-20261021'];v.on.push.paths=['experiments/sys1-eval-loop/expectation-role/request.json'];v.concurrency.group='sys1-expectation-role';v.jobs.evaluate['timeout-minutes']=350;
+  s[5].with={name:'sys1-expectation-role-'+String.fromCharCode(36)+'{{ github.run_id }}',path:String.fromCharCode(36)+'{{ runner.temp }}/expectation-role','if-no-files-found':'ignore','retention-days':30};assertExpectationRoleWorkflow(v,{...b,maxCalls:24336});
 }
 export function assertExpectationRoleWorkflow(w,b){
   need(b.maxCalls===24336,'role fixed series bound differs');

@@ -1,0 +1,60 @@
+{
+  "schema": "ops.sys1.v2-contract.v1",
+  "goal": "https://github.com/roccho-dev/adrs/issues/664#issuecomment-6327715611",
+  "agreement": "adrs#664 c6334377522, c6334390082, c6334400206 (User resume c6333565187)",
+  "core": "Issue description convention E/O; Best binary-eo-v3 unchanged",
+  "model": { "request": "jev-1.14.0", "expected": "jev-1.14.0", "rule": "every post sends the explicit version ID; every returned model field is recorded and must equal it, else STOPPED" },
+  "v1": "v1 STOPPED (model drift, cause UNKNOWN) retained; v0 and v1 results are never v2 results",
+  "budget": {
+    "httpMax": 5000,
+    "inputTokenMax": 12500000,
+    "developmentMax": 1,
+    "plan": { "noise": 626, "development": [1252], "held": 1200 },
+    "ledgerAtStart": { "http": 629, "input": 1254050 },
+    "moreDevelopment": "N_D >= 2 needs an additional User approval"
+  },
+  "noise": {
+    "order": "the noise stage (626 BestE) runs before D_1",
+    "pair": "noise-stage BestE answer versus the D_1 fresh BestE answer for the same case, same request, same version",
+    "rate": "f/n: n = cases where both are qualified yes/no, f = those that differ",
+    "zero": "f = 0 gives rMax = 0; the formula is fixed before measurement and never relaxed after; 626 cases with f = 0 do not prove the absence of noise",
+    "incomplete": "if D_1 stops before completion, v2 is STOPPED; an f from incomplete pairs is never used for the guard",
+    "measuredV2": { "n": 626, "f": 4, "source": "v2 noise run 39737634183 BestE paired with D_1 run 39741518276 fresh BestE" }
+  },
+  "rMax": "ceil(f * C / n), C = cases where the D_1 fresh Best is correct",
+  "developmentGuard": "all 1252 posts qualified AND every returned model = jev-1.14.0 AND repaired > regressed AND regressed <= rMax; E axis only; no ever-correct union",
+  "heldAcceptance": "two passes over the same unused held cases, E axis; each pass: all qualified AND every returned model = jev-1.14.0 AND common-Gold delta lower bound > 0 AND regressed <= rMax; both passes AND",
+  "contributionGate": { "Q1": "held two-pass AND (limited-case performance)", "Q2": "P3 independence yes/no/UNKNOWN fixed before held measurement; no or UNKNOWN means ops#523 P3 BLOCKED", "contribution": "only Q1 and Q2 both yes" },
+  "held": {
+    "fixedBefore": "everything below is fixed in source before any held count, body or Gold is opened (adrs#664 c6335978377)",
+    "frame": "public GitHub issues (not pull requests) created in [2026-10-18T00:00:00Z, 2026-10-19T00:00:00Z) in cli/cli, NixOS/nixpkgs, microsoft/vscode; createdAt ascending, issue node ID tie; first 300 after exclusion; no refill, no window expansion; 0 cases means NO_CASES with no provider call",
+    "exclusion": "drop an issue whose repository and number, or URL, appears anywhere under experiments/sys1-eval-loop at the freeze commit; drop empty bodies and bodies whose wire is 24000 bytes or more",
+    "custodyCaveat": "the original private held inventory (native 8bc883c3, prior e727e045) is not on GitHub (HTTP 422) and not reachable by R or W; the frame is rebuilt from the public API with the same window and scope, so the unused claim is weaker than the original plan and rests on the public exclusion above",
+    "keys": "bestE and roleJapaneseE only (E axis); 2 posts per case per pass; at most 300 x 2 x 2 = 1200 HTTP",
+    "passes": "two passes over the same frozen cases and requests; pass 2 reverses the per-case key order; no rerun, averaging or reselection",
+    "gold": "W and R each label E for every body alone, from the body text only, without the other's labels and without any model output; each commits the sha256 of its label file to adrs#664 before either file is revealed; disagreements are adjudicated once; an unresolved case counts against the candidate in the delta lower bound; Gold is final before the first held post",
+    "goldCriterion": "the D Gold criterion only, experiments/sys1-eval-loop/split.mjs:7-10 hasExpectation: yes = 本文に、実現すべき状態・必要な責務・入力と出力の対応・要件・受入条件のいずれかが宣言されている。 / no = 本文に実現すべき状態の宣言がない。見出しの名前を除くと実施報告・観測・経緯だけである。; the candidate S/R instructions and criteria are never used for Gold; unchanged after any body is opened (adrs#664 c6336397665)",
+    "Q2": "no: W and R both saw D candidate behaviour and are same-family model raters; ops#523 P3 is recorded as BLOCKED whatever Q1 shows",
+    "power": "the D gain of +10/626 suggests about +5 on 300 cases; failing Q1 is not evidence of no improvement"
+  },
+  "costRecord": "candidate versus Best input and HTTP ratio recorded for D and H, not a gate",
+  "development1": {
+    "treatment": "D18 Japanese S/R strict-AND then OR, wire unchanged except the explicit model",
+    "selectionCaveat": "chosen from v0 results measured on jev-1.13.0; on jev-1.14.0 this selection evidence is weaker (adrs#664 c6334377522)"
+  },
+  "gateJ": {
+    "J1": "adrs#664 has no jev start notice without a later done notice; W rereads adrs#664 immediately before every activation push",
+    "J2": "roccho-org/ops workflow 377399991 has no queued or in_progress run",
+    "J3": "latest run_number not in blockedRunNumbers; the jev second-round window numbers are UNKNOWN and are added when announced",
+    "blockedRunNumbers": [379, 380, 419, 420, 421],
+    "waitUntil": "2026-10-24T00:00:00Z"
+  },
+  "ledgerAfterNoise": { "http": 1255, "input": 2505104 },
+  "noiseResult": "experiments/sys1-eval-loop/results/v2-noise-39737634183/sys1-v2-noise-39737634183/projection.json",
+  "ledgerAfterD1": { "http": 2507, "input": 5520733 },
+  "ledgerAfterHeld1": null,
+  "heldPass1Result": null,
+  "development1Run": { "run": 39741518276, "activation": "99238b0d", "outcome": "V2_DEVELOPMENT_GUARD_PASS", "noise": { "n": 626, "f": 4 }, "bestCorrect": 605, "rMax": 4, "repaired": 13, "regressed": 3 },
+  "noiseRun": { "run": 39737634183, "activation": "3f7a2f22", "posts": 626, "qualified": 626, "returnedModel": "jev-1.14.0 x626", "inputCounted": 1251054, "output": 19406 },
+  "boundary": "ops conversation comments allowed only as the User lifted (c6332053895); PR body edits, commits and reviews"
+}

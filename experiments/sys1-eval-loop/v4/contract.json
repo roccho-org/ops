@@ -1,0 +1,40 @@
+{
+  "schema": "ops.sys1.v4-contract.v1",
+  "goal": "https://github.com/roccho-dev/adrs/issues/664#issuecomment-6327715611",
+  "userDecision": "adrs#664 c6354117279 (continue for performance); terminal only by reaching the target or an explicit User stop",
+  "agreement": "adrs#664 c6355114413 W, c6355440275 R",
+  "previous": "v3 D687 run 39882531311 V3_DEVELOPMENT_GUARD_FAIL retained (repaired 12, regressed 37 > rMax 5); never rescored",
+  "candidate": "E = BestE AND NOT unfilledTemplate (v4/candidate.mjs); the only wording change from v3 (one revision, no held phrase or ID); the gate can only turn a Best yes into no",
+  "development": "D687 as v3 (guard excludes expectation-017/028/043/044/045); BestE reused from the v3 D687 run (same requests, same version, fresh); only the 687 gate posts are sent; N_D = 1",
+  "templateReading": "as v3: an unfilled issue template declares nothing (E = no)",
+  "held": {
+    "frame": "phase held-frame-v4: issues created in [2026-10-21T00:00:00Z, 2026-10-22T00:00:00Z) in cli/cli, NixOS/nixpkgs, microsoft/vscode; same exclusion and order as v2; first 230 after exclusion (about 159 before exclusion, R c6356161029); natural count, no refill, no widening; fixed before any count after exclusion or any body is read",
+    "why": "the 2026-10-19 frame run 39888519201 was NO_CASES (all 210 mentioned by the D corpora); agreed W c6355865399, R c6356161029",
+    "passes": "two passes, keys bestE and unfilledTemplate, E = combine; Gold sealed by W and R before any held prediction is read; Q2 = no",
+    "emptyFrame": "if the frame selects 0 cases, NO_CASES again and R asks the User",
+    "framePath": "../results/v4-held-frame-39898990493/sys1-v2-held-frame-39898990493/frame.json",
+    "frameResult": "run 39898990493 on activation bf925872: 159 candidates, excluded mentioned 0, emptyBody 1, oversize 4; 154 cases; frame.json sha256 d234ed4b1428a58b5ee5f31c7847842d1bc595c23bf7787dc4bb989e22ec6585",
+    "goldSeals": { "W": "gold-W-v4-held-39898990493.json sha256 5014aa0715317dd3625738b0d530f64349bb194702c562a86e5edbc15b6f7836 (adrs#664 c6357224114)", "R": "gold-R-v4-held-39898990493.json sha256 bbb4820b5235da081c13830c5b3e2cbcc960f56c453a681af46204914e7947ee (adrs#664 c6357632244, body c6357632588)" },
+    "goldPath": "../results/v4-held-gold-39898990493/gold.json",
+    "pass1Result": "../results/v4-held1-39904548971/sys1-v4-held-39904548971/projection.json",
+    "pass2Result": "../results/v4-held2-39907691896/sys1-v4-held-39907691896/projection.json"
+  },
+  "target": "as v3: (i) AND (ii) on both held passes; P3 BLOCKED",
+  "adopted": "candidates/expectation-e-v4.json: the v4 candidate is the E Best by User decision adrs#664 c6360182251",
+  "onFail":"if the D687 guard fails again, R asks the User including the budget",
+  "noise": { "n": 626, "f": 4, "source": "v2 measuredV2, same version jev-1.14.0" },
+  "budget": {
+    "httpMax": 5000,
+    "inputTokenMax": 12500000,
+    "ledgerAtStart": { "http": 4064, "input": 8458344 },
+    "remaining": 936,
+    "plan": { "development": 687 },
+    "held": "needs an additional User approval: the 2026-10-19 window has about 210 issues before exclusion (R c6355440275), up to 840 HTTP for two passes, beyond the remaining 249 after D",
+    "userDecision": "adrs#664 c6356845814: httpMax raised to 10000 (+5000) for the v4 held and later rounds; inputTokenMax 12500000 unchanged (ask once if it would be hit); applied by the held stage, not by the keyless frame",
+    "httpMaxAfterUser": 10000,
+    "ledgerAfterD": { "http": 4751, "input": 9607025 },
+    "ledgerAfterHeld1": { "http": 5059, "input": 10258045 },
+    "ledgerAfterHeld2": { "http": 5367, "input": 10909065 },
+    "retry": "any rerun needs an additional User approval"
+  }
+}

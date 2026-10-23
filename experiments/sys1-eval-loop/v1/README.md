@@ -1,0 +1,19 @@
+# sys1 v1 — STOPPED（2026-10-22）
+
+正本は roccho-dev/adrs#664。ゴール宣言は c6327715611、MMD は v4（c6330359196）。契約は `contract.json` にある。
+
+| 段 | run | 結果 |
+|---|---|---|
+| 揺れの測定（1 回目） | 39700688378 | 起動前の異常で post 0。evaluate の照合が、鍵のある step で失敗した。c6e84121 で直した |
+| 揺れの測定（やり直し） | 39703583069 | 626 件すべてに資格。f/n = 4/626、input 1,251,054 |
+| D_1（D18 の処置を、wire を変えずに） | 39714529040 | 最初の post（held-001/bestE）が HTTP 200 で、model が `jev-1.13.0` と一致しなかった。旧来の model-stop の規則で、残り 1,251 件は送っていない。post 1 |
+
+- **終端**：v1 STOPPED（MMD の「D_k の異常・drift → v1 STOPPED」）。Best（binary-eo-v3）を維持する。D_1 の結果は救済しない。再送もしない。W の判定は c6331743216、R の判定は c6331756462。
+- **台帳**：HTTP 627 / 5,000。input 1,252,552 / 12,500,000（D_1 の 1 post は usage が不明なので、見積もりの 1,498 で数えた）。
+- **寄与の関門**：Q1（H の二回 AND）は未測定。Q2（P3 の独立性）は未決定。どちらも寄与の証拠ではない。ops#523 の P2→P3 は未達のまま。
+- **UNKNOWN**：返ってきた model の名前（BestE の旧来の flags は記録しない）。drift の原因。測った揺れ 4/626 が新しい model でも有効かどうか。
+- **再開の条件**：新しい model の確認と、揺れの測り直しを含む新しい契約版を、User が承認すること。
+- **原 file**：両 run の artifact を `gh run download` のまま、byte を変えずに保存した。
+  - `results/v1-noise-39703583069/`：artifact 12394546135。post 626、failure・unknown・budget-stop 0。output は 626 件すべて 31 で、合計 19,406。
+  - `results/v1-development1-39714529040/`：post 1。
+- **v1 の output の合計**：19,406（揺れの測定）＋ D_1 の 1 post（UNKNOWN）。

@@ -1,0 +1,27 @@
+{
+  "schema": "ops.sys1.adopted-core.v1",
+  "id": "expectation-e-v4",
+  "axis": "E (Issue description convention: does the body declare a state to realize)",
+  "status": "adopted Best",
+  "userDecision": "adrs#664 c6360182251 (User: 「sys1 採用で OK」), on R's terminal judgment c6358793555",
+  "supersedes": "the D18 BestE request (results/expectation-role-japanese-development18-20261021/input.json best, key bestE) as the E Best",
+  "rule": "E = yes iff BestE = yes AND unfilledTemplate = no; unknown on either side is unknown",
+  "components": {
+    "bestE": "roleJapaneseRequest(body, d18.best, 'bestE') (expectation-role/role-japanese-request.mjs), unchanged",
+    "unfilledTemplate": "unfilledTemplateRequest(body) (v4/candidate.mjs UNFILLED_TEMPLATE)",
+    "combine": "v4/candidate.mjs combine"
+  },
+  "model": "jev-1.14.0 requested explicitly and checked on every answer",
+  "evidence": {
+    "development": "D687 run 39888495084: guard PASS, repaired 10, regressed 5 <= rMax 5",
+    "held": "2026-10-21 frame run 39898990493 (154 cases), Gold results/v4-held-gold-39898990493/gold.json (yes 96 / no 58); held1 run 39904548971 and held2 run 39907691896: Best 136 -> 137, regressed 0, accuracy 0.890 on both",
+    "target": "v4/contract.json target (i) AND (ii) on both passes: done"
+  },
+  "limits": [
+    "improvement is one case (+1/154); (ii) is also met by Best alone (0.883)",
+    "held1 and held2 returned identical answers and probabilities; the two passes show order independence, not sampling variance",
+    "Gold by two same-family raters (Q2 = no); ops#523 P3 stays BLOCKED",
+    "the 2026-10-21 held cases and their errors have been inspected after adoption (W's error listing, adrs#664 W round 54); they are development data for any later version"
+  ],
+  "consumers": "no runtime consumer is switched by this record; sys1-continuation still uses binary-eo-v3 for its own E/O split"
+}

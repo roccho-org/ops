@@ -1,0 +1,42 @@
+name: sys1 v1 base check
+on:
+  push:
+    branches: [sys1/v1-contract-20261022]
+    paths: [experiments/sys1-eval-loop/v1/base-check-request.json]
+permissions:
+  actions: read
+  contents: read
+concurrency:
+  group: sys1-v1-base-check
+  cancel-in-progress: false
+jobs:
+  evaluate:
+    if: github.repository == 'roccho-org/ops' && github.actor == 'roccho-dev' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify keyless source and closed evidence
+        run: node --test experiments/sys1-eval-loop/*test.mjs experiments/sys1-continuation/*test.mjs experiments/sys1-continuation/models/*test.mjs
+      - name: Prepare fixed assignment before credentials
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node experiments/sys1-eval-loop/v1/base-check-runtime.mjs prepare "$RUNNER_TEMP/v1-base-check"
+      - name: Execute using the existing standard client
+        env:
+          JEV_API_KEY: ${{ secrets.JEV_API_KEY }}
+        run: node experiments/sys1-eval-loop/v1/base-check-runtime.mjs evaluate "$RUNNER_TEMP/v1-base-check"
+      - name: Project without credentials
+        if: always() && steps.prepare.outcome == 'success'
+        run: node experiments/sys1-eval-loop/v1/base-check-runtime.mjs project "$RUNNER_TEMP/v1-base-check"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: sys1-v1-base-check-${{ github.run_id }}
+          path: ${{ runner.temp }}/v1-base-check
+          if-no-files-found: ignore
+          retention-days: 30

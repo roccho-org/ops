@@ -1,0 +1,1 @@
+{"schema":"ops.sys1.v2-held-projection.v1","pass":"held1","complete":false,"cases":61,"bestCorrect":42,"candidateCorrect":0,"deltaLower":-42,"repaired":[],"regressed":[],"rMax":1,"accepted":false,"cost":{"bestInput":125024,"candidateInput":0},"inputCounted":278404}

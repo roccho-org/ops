@@ -103,4 +103,6 @@ flowchart TB
   RUN --> END["🗃️ 正/負/unknown全部保持・元OpsApps改善と混同しない"]
 ```
 
+**訂正注記（sys1 v1 後始末 C、2026-10-22、adrs#664）**：`results/real-case-reconfirmation-20261020.json:504` の claim 文「both prospectively fixed passes positive without observed axis regression」は誤り。同じ file の数値は両 pass とも b=0・c=0（148〜149 行、394〜395 行）で、各 pass は NOT_ESTABLISHED（251 行、497 行）、全体は NOT_RECONFIRMED（2 行）。正しくは「両 pass とも差 0、観測軸の退行 0、再確認未達」。原 file は変更しない。
+
 次cohortを勝ちそうなUI等の内容で選び直さず、本文/Gold/予測を見る前にmetadata基準で固定した同owner public issue-enabled repo集合のunion等を検討する。元母集団変更を隠さず、候補/新frame/追加effectは今roundの閉包後に別設計。fresh供給がなければ捏造/同本文再使用で成功を作らない。次sample数/有限job条件は精度・Gold負担・効果資源からM前に合意し、Userの「予算不要」を勝手な通算1000停止gateへ変えない。

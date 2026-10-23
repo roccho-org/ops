@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {baseCheckInput,evaluateBaseCheck,admitBaseCheckActivation,LEDGER_AFTER_V1} from './v1/base-check-runtime.mjs';
+
+test('base check posts the retained held-001 BestE wire with only the model set to jev-1.14.0',async()=>{const input=await baseCheckInput();assert.equal(input.caseId,'held-001');assert.equal(input.body.model,'jev-1.14.0');assert.ok(input.estimate>0);});
+
+test('base check records raw model fields and makes exactly one models read and one post',async()=>{const input=await baseCheckInput(),calls=[];const fetchFn=async(url,init)=>{calls.push([url,init?.method??'GET',init?.body?JSON.parse(init.body).model:null]);if(url.endsWith('/v1/models'))return new Response(JSON.stringify({data:[{id:'jev-1.14.0'}]}),{status:200});return new Response(JSON.stringify({model:'jev-1.14.0',usage:{input_tokens:7},answers:{live:{type:'choice',choice:'yes'}}}),{status:200});};const out=await evaluateBaseCheck(input,{apiKey:'k',fetchFn});assert.deepEqual(calls.map(c=>c[1]),['GET','POST']);assert.equal(calls[1][2],'jev-1.14.0');assert.equal(out.models.status,200);assert.deepEqual({ok:out.post.ok,model:out.post.model,modelPresent:out.post.modelPresent},{ok:true,model:'jev-1.14.0',modelPresent:true});});
+
+test('a failed post is recorded, not retried',async()=>{const input=await baseCheckInput();let posts=0;const out=await evaluateBaseCheck(input,{apiKey:'k',fetchFn:async url=>{if(url.endsWith('/v1/models'))return new Response('{}',{status:200});posts++;return new Response('{}',{status:503});}});assert.equal(posts,1);assert.equal(out.post.ok,false);assert.equal(out.post.status,503);});
+
+test('base check activation admits only its request on the reviewed source',()=>{const req={phase:'base-check',sourceSha:'p',jevOpenLaunch:false,ledger:LEDGER_AFTER_V1},src={parent:'p',changed:['experiments/sys1-eval-loop/v1/base-check-request.json']};admitBaseCheckActivation(req,src);assert.throws(()=>admitBaseCheckActivation({...req,phase:'noise'},src));assert.throws(()=>admitBaseCheckActivation(req,{...src,changed:['x']}));});
