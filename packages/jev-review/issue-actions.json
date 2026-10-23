@@ -558,6 +558,90 @@
         "issue": 654
       },
       "budgetClaimCommentId": 6353976961
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 780,
+      "last": 785,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 647
+      },
+      "budgetClaimCommentId": 6355850224
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 786,
+      "last": 791,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 649
+      },
+      "budgetClaimCommentId": 6355850547
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 792,
+      "last": 797,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 650
+      },
+      "budgetClaimCommentId": 6355850833
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 798,
+      "last": 803,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 651
+      },
+      "budgetClaimCommentId": 6355851091
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 804,
+      "last": 809,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 652
+      },
+      "budgetClaimCommentId": 6355851307
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 810,
+      "last": 815,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 653
+      },
+      "budgetClaimCommentId": 6355851565
+    },
+    {
+      "repository": "roccho-org/ops",
+      "workflowId": 377399991,
+      "path": ".github/workflows/jev-issue-comment.yml",
+      "first": 816,
+      "last": 821,
+      "reservedCallsPerRun": 1,
+      "target": {
+        "issue": 654
+      },
+      "budgetClaimCommentId": 6355851812
     }
   ],
   "targets": [
