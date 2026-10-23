@@ -1,0 +1,1 @@
+{"schema":"ops.sys1.v4-held-projection.v1","pass":"held1","complete":true,"cases":154,"bestCorrect":136,"candidateCorrect":137,"delta":1,"repaired":["microsoft/vscode#343141"],"regressed":[],"rMax":1,"accuracy":0.8896103896103896,"i":true,"ii":true,"cost":{"bestInput":350997,"gateInput":300023},"inputCounted":651020}
