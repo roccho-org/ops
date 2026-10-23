@@ -22,7 +22,7 @@ const EXPECTATION_OR_WORKFLOW = ".github/workflows/sys1-expectation-or.yml";
 const V1_NOISE_WORKFLOW = ".github/workflows/sys1-v1-noise.yml";
 const V1_DEVELOPMENT_WORKFLOW = ".github/workflows/sys1-v1-development.yml";
 const V1_BASE_CHECK_WORKFLOW = ".github/workflows/sys1-v1-base-check.yml";
-const V2_STAGE_WORKFLOWS = {".github/workflows/sys1-v2-noise.yml":{stage:'noise',dir:'v2-noise',request:'noise-request.json',maxCalls:626,timeout:180},".github/workflows/sys1-v2-development.yml":{stage:'development1',dir:'v2-development',request:'development-request.json',maxCalls:1252,timeout:350},".github/workflows/sys1-v2-held.yml":{stage:'held',dir:'v2-held',request:'held-request.json',maxCalls:244,timeout:180}};
+const V2_STAGE_WORKFLOWS = {".github/workflows/sys1-v2-noise.yml":{stage:'noise',dir:'v2-noise',request:'noise-request.json',maxCalls:626,timeout:180},".github/workflows/sys1-v2-development.yml":{stage:'development1',dir:'v2-development',request:'development-request.json',maxCalls:1252,timeout:350},".github/workflows/sys1-v2-held.yml":{stage:'held',dir:'v2-held',request:'held-request.json',maxCalls:244,timeout:180},".github/workflows/sys1-v3-development.yml":{stage:'v3development',dir:'v3-development',requestPath:'experiments/sys1-eval-loop/v3/development-request.json',maxCalls:1374,timeout:350}};
 const REGRESSION_WORKFLOW = ".github/workflows/sys1-regression-repair.yml";
 const JEV_MULTI_GUARD = "github.event_name == 'issue_comment' && github.event.repository.owner.type == 'Organization' && (github.event.comment.body == '/jev-evaluate' || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && github.event.issue.number == 522 && startsWith(github.event.comment.body, fromJSON('\"/jev-evaluate\\n\"')))) && ((github.event.issue.pull_request == null && ((github.repository == 'roccho-org/ops' && github.event.issue.number == 483) || (github.repository == 'roccho-org/envs' && github.event.issue.number == 52))) || (github.event.issue.pull_request != null && github.repository == 'roccho-org/ops' && (github.event.issue.number == 511 || github.event.issue.number == 522)))";
 const JEV_PLAN_RUN = [
@@ -551,7 +551,7 @@ export function assertExpectationWorkflow(w,b){
 // sys1 v2 stages: each stage workflow mapped onto the reviewed role shape with its own entry and bound.
 export function assertV2StageWorkflow(w,b,c){
   need(b.maxCalls===c.maxCalls,'v2 stage bound differs');
-  need(same(w.on?.push?.branches??[],['sys1/v1-contract-20261022'])&&same(w.on?.push?.paths??[],['experiments/sys1-eval-loop/v2/'+c.request]),'v2 stage entry differs');
+  need(same(w.on?.push?.branches??[],['sys1/v1-contract-20261022'])&&same(w.on?.push?.paths??[],[c.requestPath??'experiments/sys1-eval-loop/v2/'+c.request]),'v2 stage entry differs');
   need(w.concurrency?.group==='sys1-'+c.dir&&w.jobs?.evaluate?.['timeout-minutes']===c.timeout,'v2 stage deadline differs');
   const v=structuredClone(w),s=v.jobs.evaluate.steps;
   for(const [n,mode]of [[2,'prepare'],[3,'evaluate'],[4,'project']]){need(s[n]?.run==='node experiments/sys1-eval-loop/v2/runtime.mjs '+c.stage+' '+mode+' "$RUNNER_TEMP/'+c.dir+'"','v2 stage command differs');s[n].run='node experiments/sys1-eval-loop/expectation-role/runtime.mjs '+mode+' "$RUNNER_TEMP/expectation-role"';}

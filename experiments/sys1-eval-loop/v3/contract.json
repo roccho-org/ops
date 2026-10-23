@@ -5,6 +5,8 @@
   "agreement": "adrs#664 c6354147911 R, c6354183755 W, c6354210045 R",
   "core": "Issue description convention E; Best binary-eo-v3 unchanged; model jev-1.14.0 requested and checked on every post",
   "previous": "v0/v1/v2 results retained and never rescored as v3 results; v2 STOPPED c6351410399",
+  "candidateFixed": "E = BestE AND ownContent (v3/candidate.mjs): one native binary question whether the reporter wrote anything beyond issue-template headings, placeholders, filling/search/attach guidance, empty fields, empty numbered steps or link/attachment-only lines; bot-generated reports are not excluded; the gate can only turn a Best yes into no",
+  "templateReading": "an unfilled issue template declares no state to realize (E = no) under split.mjs:7-10 (adrs#664 c6354561893 W, c6354577601 R); D Gold yes on expectation-017/028/043/044/045 is unchanged and these 5 are excluded from the D687 guard",
   "candidate": "exactly one treatment that removes false yes on bodies made only of template headings, placeholder or instruction text, bot boilerplate or attachments, without turning Gold-yes bodies into no; designed after the precheck, fixed in source before any v3 provider call; no held-specific phrase or ID",
   "development": "D687 = D626 plus the 61 used v2 held cases (retired from held); one D run, N_D = 1; guard as v2 (E axis, repaired > regressed, regressed <= rMax)",
   "precheck": "before any provider call, count D626 bodies that are template-like by a fixed keyless rule and their Gold E; record any disagreement with the held Gold treatment of templates as a guard note; Gold is never rewritten",
@@ -22,6 +24,7 @@
   "noise": { "n": 626, "f": 4, "source": "v2 measuredV2, same version jev-1.14.0; not re-measured" },
   "budget": {
     "httpMax": 5000,
+    "inputTokenMax": 12500000,
     "ledgerAtStart": { "http": 2690, "input": 5945951 },
     "remaining": 2310,
     "plan": { "development": 1374, "held": 920 },
