@@ -4,6 +4,8 @@ const d18=json('../results/expectation-role-japanese-development18-20261021/inpu
 // The frame and the sealed Gold are named in v4/contract.json held only after the frame run and the W/R adjudication.
 const fixed=()=>{const h=contract.held;assert.ok(h.framePath&&h.goldPath);const frame=json(h.framePath),gold=json(h.goldPath);assert.ok(frame.cases.length>0);assert.deepEqual(gold.labels.map(l=>l.id),frame.cases.map(c=>c.id));return {frame,gold};};
 export const heldPostsV4=frame=>frame.cases.length*2;
+// Posts per pass from the retained frame (308 for the 154-case 2026-10-21 frame).
+export const V4_HELD_POSTS=heldPostsV4(json(contract.held.framePath));
 // Gate J from v2, budget from the User decision c6356845814 (httpMax 10000, input unchanged).
 export const GATE_CONTRACT=Object.freeze({gateJ:c2.gateJ,budget:{httpMax:contract.budget.httpMaxAfterUser,inputTokenMax:contract.budget.inputTokenMax}});
 // Pass 1 alternates the key order by case; pass 2 reverses each case's order.
@@ -19,3 +21,5 @@ export function scoreHeldV4(frame,gold,input,report){assert.equal(report.inputDi
 export function projectHeldV4(input,report){const {frame,gold}=fixed();return scoreHeldV4(frame,gold,input,report);}
 // Target: (i) AND (ii) on both passes; Q2 stays no, so P3 is BLOCKED.
 export function heldTargetV4(p1,p2){assert.deepEqual([p1.pass,p2.pass],['held1','held2']);const i=p1.i&&p2.i,ii=p1.ii&&p2.ii;return {i,ii,done:i&&ii,Q2:'no',P3:'BLOCKED'};}
+// Pass 2 also closes the target against the retained pass 1 projection (named in v4/contract.json held.pass1Result).
+export function heldProjectionV4(input,report){const p=projectHeldV4(input,report);if(input.pass!=='held2')return p;assert.ok(contract.held.pass1Result);return {...p,target:heldTargetV4(json(contract.held.pass1Result),p)};}
