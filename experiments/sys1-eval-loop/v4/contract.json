@@ -24,6 +24,7 @@
     "plan": { "development": 687 },
     "held": "needs an additional User approval: the 2026-10-19 window has about 210 issues before exclusion (R c6355440275), up to 840 HTTP for two passes, beyond the remaining 249 after D",
     "userDecision": "adrs#664 c6356845814: httpMax raised to 10000 (+5000) for the v4 held and later rounds; inputTokenMax 12500000 unchanged (ask once if it would be hit); applied by the held stage, not by the keyless frame",
+    "httpMaxAfterUser": 10000,
     "ledgerAfterD": { "http": 4751, "input": 9607025 },
     "retry": "any rerun needs an additional User approval"
   }
