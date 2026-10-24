@@ -133,15 +133,27 @@ bit-identical rebuild is required. Publisher native C mirror source/Apache and
 musl attribution bytes are retained, while the actual compiler's exact runtime C
 revision stays an explicit limited Unknown; no source byte equivalence is claimed.
 
-The strict byte gate still reports six publisher license-text gaps: jq, tui, svg,
-font, brotli and moonbitlang/x. Literal source headers (including x's108 headers),
-root manifests/README assertions and exact archive identity are kept, but these
-are not silently promoted into missing full license texts. Versioned publisher
-source references are preferred; canonical LICENSE paths were absent at the fixed
-x/font version commits. Normal technical coverage sufficiency belongs to R,
-separate from legal adjudication. Metadata-only or generic root notices cannot
-close source membership, missing byte references or undeclared Unknowns.
+The six publisher references now retain exact canonical bodies from SPDX commit
+31ba1a50e5397e00a304dbadc76531740e89ee48, matched publisher source references,
+and all selected existing headers/notices. Registry manifests remain authoritative;
+Git source metadata differences are explicitly preserved. Canonical template
+placeholders are unmodified; they are not invented project copyright statements.
+Font fixture raw name-record notices and the OFL-1.1 body are retained separately.
+The font files and complete source archives are acquisition evidence, not shipped
+runtime assets; the packet ships notice/header bytes and source identities.
 
-`tests/license-bytes.py` checks Go h1 membership, registry/core references and
-missing/tampered bytes. It proves refusal, not completeness. No final offline
-export is attempted while Missing exists.
+`candidate/license-reference-bindings.py --inputs RETAINED_INPUT_DIRECTORY`
+re-reads native notice members from the completed verified acquisition and Go
+runtime members from the exact official archive. It also checks matched publisher
+code/package bytes against registry archives. The resulting member inventory has
+an independent digest in native-profile.json, separate from the packet digest.
+Consumer validation binds source identity, member name and actual notice blob to
+that inventory. A newly generated inventory requires independent source review;
+changing packet and its digest alone cannot adopt different notice membership.
+
+`tests/license-bytes.py` includes native/Go runtime wrong-body and member/source
+transplant negatives, plus publisher/component/SPDX/body/header substitution and
+font notice removal. The technical byte gate has no remaining missing entries;
+independent coverage review and final-source full execution proofs remain pending.
+This is technical provenance evidence, not legal adjudication. The limited native
+C revision Unknown remains informational, not a new reproducible-build gate.

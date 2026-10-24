@@ -1,0 +1,18 @@
+{
+  "name": "mizchi/jq",
+  "version": "0.2.0",
+  "deps": {
+    "moonbitlang/x": "0.4.41",
+    "moonbitlang/async": "0.16.8"
+  },
+  "repository": "https://github.com/mizchi/jq",
+  "license": "Apache-2.0",
+  "keywords": [
+    "jq",
+    "json",
+    "moonbit"
+  ],
+  "description": "A jq clone implemented in MoonBit",
+  "readme": "src/README.mbt.md",
+  "source": "src"
+}

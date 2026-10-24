@@ -47,6 +47,10 @@ def assess_dependency_licenses(runtime, packet, blob_root=None):
     def blob(h):
         assert h in blobs, 'required license blob reference missing: '+h
         return blobs[h]
+    anchor_hash=binding['noticeMembershipSha256']
+    assert coverage['noticeMembershipAnchorBlobSha256']==anchor_hash, 'external notice membership anchor'
+    anchor=json.loads(blob(anchor_hash))
+    assert anchor['acquisitionPlanSha256']==coverage['acquisitionPlanSha256']
     plan_data=blob(coverage['acquisitionPlanBlobSha256'])
     assert _sha(plan_data)==coverage['acquisitionPlanSha256']
     plan=json.loads(plan_data)
@@ -69,6 +73,10 @@ def assess_dependency_licenses(runtime, packet, blob_root=None):
             assert identity['mode']==s['outputHashMode']
         else:
             assert identity['expected']==identity['actual']==s['localSha256'], 'native source identity mismatch'
+        membership=anchor['native'][sid]
+        assert membership['identity']==r['identity']
+        assert membership['members']=={n['member']:n['blobSha256'] for n in r['notices']}, 'native source notice membership'
+        assert len(r['notices'])==len(membership['members'])
         for notice in r['notices']:
             blob(notice['blobSha256'])
             assert notice['member'] and not notice['member'].startswith('/') and '..' not in Path(notice['member']).parts
@@ -117,7 +125,7 @@ def assess_dependency_licenses(runtime, packet, blob_root=None):
         assert h1==evidence['expectedH1']==evidence['actualH1']==m['h1'], 'binary h1 to actual module file set'
         file_hashes=dict(rows)
         assert m['noticeRefs']==notice_refs(evidence['notices']) and m['noticeRefs'], 'module notice coverage absent'
-        for n in evidence['notices']:assert file_hashes[n['member']]==n['sourceFileSha256'], 'notice outside exact Go h1 source'
+        for n in evidence['notices']:assert file_hashes[n['member']]==n['sourceFileSha256']==n['blobSha256'] and n['kind']=='upstream notice file', 'notice outside exact Go h1 source'
         if m['path']=='github.com/go-task/task/v3':
             assert roots['task']['blobSha256'] in m['noticeRefs']
             assert evidence['origin']['Hash'] in roots['task']['source']
@@ -128,6 +136,10 @@ def assess_dependency_licenses(runtime, packet, blob_root=None):
     assert go_runtime['status']=='OFFICIAL_VERSION_ARCHIVE_NOTICE_BYTES_RETAINED' and go_runtime['version']==task['goVersion']
     assert go_runtime['origin']==native_go['toolchain'] and go_runtime['archiveSha256']==go_runtime['origin']['archive']['sha256']
     assert go_runtime['noticeRefs']==notice_refs(go_runtime['notices']) and any(n['member']=='go/LICENSE' for n in go_runtime['notices'])
+    assert anchor['goRuntime']['archiveSha256']==go_runtime['archiveSha256']
+    assert anchor['goRuntime']['members']=={n['member']:n['sourceFileSha256'] for n in go_runtime['notices']}, 'official Go archive notice membership'
+    assert len(go_runtime['notices'])==len(anchor['goRuntime']['members'])
+    assert all(n['blobSha256']==n['sourceFileSha256'] and n['kind']=='upstream notice file' for n in go_runtime['notices']), 'Go runtime actual notice bytes'
     graph=json.loads(blob(actrun['selectedGraphBlobSha256']))
     selected={(m['name'],m['version']) for m in graph['modules'] if m['source']['kind']=='registry'}
     assert len(selected)==26 and selected=={(m['name'],m['version']) for m in actrun['modules']}
@@ -160,7 +172,20 @@ def assess_dependency_licenses(runtime, packet, blob_root=None):
             assert p['registryManifestByteEqual']==(p['manifestBlobSha256']==m['manifestBlobSha256'])
         full=any(n['kind']=='upstream notice file' for n in m['notices'])
         assert m['fullLicenseTextRetained']==full
-        if not full:missing.append('actrun:publisher-license-text:'+m['name']+'@'+m['version'])
+        if not full:
+            p=m.get('publisherLicenseReference')
+            assert p==anchor['publisherReferences'][m['name']], 'publisher reference independent component binding'
+            assert (p['component'],p['version'],p['registryArchiveSha256'])==(m['name'],m['version'],m['archiveSha256'])
+            assert p['references'] and p['existingNotices']
+            for n in p['references']+p['existingNotices']:blob(n['blobSha256'])
+            body=p['canonicalBody'];raw=blob(body['blobSha256'])
+            assert body['licenseId']==p['licenseId'] and body['sha256']==_sha(raw) and body['bytes']==len(raw)
+            assert body['source']=='https://raw.githubusercontent.com/spdx/license-list-data/'+body['upstreamGitCommit']+'/text/'+p['licenseId']+'.txt'
+            assert p['codeCorrespondence']['differentCodeFiles']==[]
+    assert actrun['fontFixtureNotices']==anchor['fontFixtureNotices'], 'font fixture notice binding'
+    for row in actrun['fontFixtureNotices']['records']:
+        for n in row['nameRecords']:blob(n['blobSha256'])
+    body=actrun['fontFixtureNotices']['canonicalBody'];assert _sha(blob(body['blobSha256']))==body['sha256'] and body['licenseId']=='OFL-1.1'
     core=actrun['core'];assert core['version']=='0.1.20260310+cd28f524e' and core['archiveSha256']==core['indexRow']['checksum']
     notice_refs(core['notices']);assert {'LICENSE','NOTICE'}<=set(n['member'] for n in core['notices'])
     native=actrun['nativeRuntime'];notice_refs(native['notices'])

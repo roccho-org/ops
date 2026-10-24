@@ -15,14 +15,14 @@ packet=package/'candidate/dependency-licenses.json'
 original=json.loads(packet.read_text());assets=package/'candidate/license-bytes'
 assessment=assess_dependency_licenses(profile,packet)
 assert assessment['paths']==151 and assessment['sources']==229
-assert len(assessment['missing'])==6 and assessment['status']=='MISSING_LICENSE_BYTES'
+assert not assessment['missing'] and assessment['status']=='RETAINED_BYTES_TECHNICAL_COVERAGE_REVIEW_REQUIRED'
 assert len(assessment['unknowns'])==1
 passed=[]
 def reject(name,call):
     try:call()
     except (AssertionError,KeyError,ValueError,FileNotFoundError):passed.append(name);return
     raise AssertionError('false PASS: '+name)
-reject('real-missing-embedded-notices',lambda:verify_dependency_licenses(profile,packet))
+verify_dependency_licenses(profile,packet)
 with tempfile.TemporaryDirectory() as tmp:
     root=Path(tmp);dest=root/'license-bytes';shutil.copytree(assets,dest)
     current=root/'packet.json'
@@ -51,10 +51,34 @@ with tempfile.TemporaryDirectory() as tmp:
     altered('core-NOTICE-dropped',lambda v:v['byteCoverage']['embedded']['tools']['actrun']['core'].update(notices=[n for n in v['byteCoverage']['embedded']['tools']['actrun']['core']['notices'] if n['member']!='NOTICE']))
     altered('native-C-exact-revision-claim-without-proof',lambda v:v['byteCoverage']['embedded']['tools']['actrun']['nativeRuntime'].update(unknownRevision=False))
     altered('native-C-Unknown-silently-cleared',lambda v:v['byteCoverage']['unknowns'].clear())
-    altered('missing-inventory-cleared',lambda v:v['byteCoverage']['missing'].clear())
+    altered('invented-missing-inventory',lambda v:v['byteCoverage']['missing'].append('invented'))
     altered('fixed-source-hash-changed',lambda v:v['byteCoverage']['sourceMetadata'][source]['identity'].update(actual='0'*64))
+    mit=original['byteCoverage']['rootTools']['task']['blobSha256']
+    altered('native-notice-other-component-body',lambda v:v['byteCoverage']['sourceMetadata'][source]['notices'][0].update(blobSha256=mit))
+    altered('native-notice-member-renamed',lambda v:v['byteCoverage']['sourceMetadata'][source]['notices'][0].update(member='other/COPYING'))
+    other=next(k for k in original['byteCoverage']['sourceMetadata'] if k!=source)
+    altered('native-source-notices-transplanted',lambda v:v['byteCoverage']['sourceMetadata'][source].update(notices=v['byteCoverage']['sourceMetadata'][other]['notices']))
+    def runtime_swap(v):
+        n=v['byteCoverage']['embedded']['tools']['task']['goRuntime']['notices'][0]
+        n.update(member='go/LICENSE',blobSha256=mit,sourceFileSha256=mit,bytes=original['byteCoverage']['blobs'][mit]['bytes'])
+        r=v['byteCoverage']['embedded']['tools']['task']['goRuntime'];r['notices']=[n];r['noticeRefs']=[mit]
+    altered('Go-runtime-self-consistent-wrong-member-body',runtime_swap)
+    def runtime_kind_swap(v):
+        n=v['byteCoverage']['embedded']['tools']['task']['goRuntime']['notices'][0]
+        n.update(kind='unverified header',blobSha256=mit,bytes=original['byteCoverage']['blobs'][mit]['bytes'])
+        r=v['byteCoverage']['embedded']['tools']['task']['goRuntime'];r['noticeRefs']=[n['blobSha256'] for n in r['notices']]
+    altered('Go-runtime-kind-cannot-bypass-membership',runtime_kind_swap)
+    def reference(v):return next(m['publisherLicenseReference'] for m in v['byteCoverage']['embedded']['tools']['actrun']['modules'] if 'publisherLicenseReference' in m)
+    altered('publisher-reference-wrong-component',lambda v:reference(v).update(component='other/component'))
+    altered('publisher-reference-wrong-origin',lambda v:reference(v).update(commit='0'*40))
+    altered('publisher-reference-wrong-SPDX',lambda v:reference(v).update(licenseId='MIT'))
+    altered('publisher-reference-wrong-body',lambda v:reference(v)['canonicalBody'].update(blobSha256=mit))
+    altered('publisher-reference-wrong-header',lambda v:reference(v)['references'][0].update(blobSha256=mit))
+    altered('publisher-existing-notices-dropped',lambda v:reference(v)['existingNotices'].clear())
+    altered('font-OFL-notices-dropped',lambda v:v['byteCoverage']['embedded']['tools']['actrun']['fontFixtureNotices']['records'].clear())
+    altered('membership-anchor-replaced',lambda v:v['byteCoverage'].update(noticeMembershipAnchorBlobSha256=first))
     value=copy.deepcopy(original);value.pop('byteCoverage');current.write_text(json.dumps(value));binding=copy.deepcopy(profile);binding['dependencyLicenses']['sha256']=hashlib.sha256(current.read_bytes()).hexdigest()
     report=assess_dependency_licenses(binding,current,dest)
     assert report['status']=='MISSING_LICENSE_BYTES'
     reject('metadata-only-cannot-complete',lambda:verify_dependency_licenses(binding,current,dest))
-print(json.dumps({'status':'PASS','licenseGate':'MISSING_LICENSE_BYTES','nativeOutputCoverage':151,'sourceObjects':229,'assetBlobs':assessment['blobs'],'remainingPublisherTextGaps':len(assessment['missing']),'normalProvenanceUnknowns':assessment['unknowns'],'negativeCases':passed}))
+print(json.dumps({'status':'PASS','licenseGate':assessment['status'],'nativeOutputCoverage':151,'sourceObjects':229,'assetBlobs':assessment['blobs'],'remainingPublisherTextGaps':len(assessment['missing']),'normalProvenanceUnknowns':assessment['unknowns'],'negativeCases':passed}))
