@@ -1,0 +1,17 @@
+{"kind":"purpose","generation":0,"purpose":"未認証でキャンペーンを受領できるかを実証する","contribution":"direct","authority":false}
+{"kind":"purpose","generation":1,"purpose":"無料ユーザーと未認証を区別する","contribution":"direct","authority":false}
+{"kind":"purpose","generation":2,"purpose":"証拠のない成功判定を防ぐ","contribution":"direct","authority":false}
+{"kind":"purpose","generation":3,"purpose":"使える提供経路だけを採用候補にする","contribution":"direct","authority":false}
+{"kind":"purpose","generation":4,"purpose":"不要な認証・接続実装を減らす","contribution":"conditional_indirect","authority":false}
+{"kind":"purpose","generation":5,"purpose":"開発と運用の費用を抑える","contribution":"conditional_indirect","authority":false}
+{"kind":"purpose","generation":6,"purpose":"小さな構造で検証を再利用する","contribution":"conditional_indirect","authority":false}
+{"kind":"purpose","generation":7,"purpose":"低コストで顧客価値を増やす","contribution":"conditional_indirect","authority":false}
+{"kind":"purpose","generation":8,"purpose":"高利益率の製品を継続する","contribution":"conditional_indirect","authority":false}
+{"kind":"purpose","generation":9,"purpose":"譲渡可能な事業価値を高める","contribution":"conditional_indirect","authority":false}
+{"kind":"purpose","generation":10,"purpose":"高価値法人を構築し売却する","contribution":"conditional_indirect","authority":false}
+{"kind":"source_fact","url":"https://github.com/zai-org/ZCode/blob/3c5b227649371507ddc4eb46ac5133afe6db1cab/docs/zai-start-plan-provider.md","section":"Manual claim interaction","finding":"Public preview is not receipt. Claim requires login and security verification.","deployment_equivalence_proven":false}
+{"kind":"source_fact","url":"https://github.com/zai-org/ZCode/blob/3c5b227649371507ddc4eb46ac5133afe6db1cab/packages/desktop/test/e2e/ui-shell/marketing-touch-anonymous.test.ts","section":"MTE-05","finding":"Anonymous banner opens login and submits zero claim requests.","test_executed_by_us":false}
+{"kind":"scope","claim":"Anonymous 1024 receipt","state":"UNPROVEN","live_claim_implemented":false,"candidate":"Read-only diagnostic, not merge-ready capability"}
+{"kind":"design","architecture":"flowchart TB\nsubgraph CI[Existing CI]\nsubgraph P[Secret-free probe]\nC[Fixed two-GET client] --> J[Observation classifier]\nend\nJ --> A[Evidence artifacts]\nA --> G[UNPROVEN receipt gate]\nend\nC --> Z[Official ZCode service]"}
+{"kind":"design","dataflow":"flowchart TB\nsubgraph E[Exact attempt]\nC[Source SHA and fresh device parameter] --> R[raws.jsonl]\nH[HTTP shape and byte digest] --> R\nR --> V[result.json]\nend"}
+{"kind":"revision","decision":"Check the unsupported anonymous-claim assumption before installing another agent runtime. Retain explicit UNPROVEN instead of equating an advertisement, selftest, or login with receipt."}

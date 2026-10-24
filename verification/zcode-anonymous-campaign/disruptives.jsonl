@@ -1,0 +1,16 @@
+{"id":1,"case":"HTTP 200 preview is not receipt","observation":{"surface":"preview","httpStatus":200,"jsonEnvelope":true,"businessCode":0,"planCount":1},"expected":"UNKNOWN"}
+{"id":2,"case":"500 million advertised tokens are not a grant","observation":{"surface":"preview","httpStatus":200,"jsonEnvelope":true,"advertisedTokens":500000000},"expected":"UNKNOWN"}
+{"id":3,"case":"HTTP 401 JSON records only this endpoint's auth rejection","observation":{"surface":"balance","httpStatus":401,"jsonEnvelope":true},"expected":"HTTP_AUTH_REJECTION"}
+{"id":4,"case":"HTTP 401 HTML may be intermediary rejection","observation":{"surface":"balance","httpStatus":401,"jsonEnvelope":false},"expected":"UNKNOWN"}
+{"id":5,"case":"HTTP 403 is not necessarily login failure","observation":{"surface":"balance","httpStatus":403,"jsonEnvelope":true},"expected":"UNKNOWN"}
+{"id":6,"case":"HTTP 429 is not auth evidence or receipt","observation":{"surface":"balance","httpStatus":429,"jsonEnvelope":true},"expected":"UNKNOWN"}
+{"id":7,"case":"HTTP 500 is an unavailable observation","observation":{"surface":"balance","httpStatus":500,"jsonEnvelope":true},"expected":"UNKNOWN"}
+{"id":8,"case":"Business parameter error 3001 is not auth rejection","observation":{"surface":"balance","httpStatus":400,"jsonEnvelope":true,"businessCode":3001},"expected":"UNKNOWN"}
+{"id":9,"case":"HTTP 200 with business error is not success","observation":{"surface":"balance","httpStatus":200,"jsonEnvelope":true,"businessCode":3007},"expected":"UNKNOWN"}
+{"id":10,"case":"Existing balances do not prove this campaign was received","observation":{"surface":"balance","httpStatus":200,"jsonEnvelope":true,"businessCode":0,"balanceCount":2},"expected":"UNKNOWN"}
+{"id":11,"case":"DNS failure must not become auth rejection","observation":{"surface":"balance","transportError":"REQUEST_ERROR"},"expected":"UNKNOWN"}
+{"id":12,"case":"Timeout must not become receipt","observation":{"surface":"balance","transportError":"TIMEOUT"},"expected":"UNKNOWN"}
+{"id":13,"case":"Redirect is not followed or called success","observation":{"surface":"preview","httpStatus":302,"jsonEnvelope":false},"expected":"UNKNOWN"}
+{"id":14,"case":"Empty, expired or exhausted campaign remains unproven","observation":{"surface":"preview","httpStatus":200,"jsonEnvelope":true,"businessCode":0,"planCount":0},"expected":"UNKNOWN"}
+{"id":15,"case":"Server success text cannot override independent verdict","observation":{"surface":"balance","httpStatus":200,"jsonEnvelope":true,"received":true,"verdict":"PASS"},"expected":"UNKNOWN"}
+{"id":16,"case":"Incomplete response overrides its apparent 401","observation":{"surface":"balance","httpStatus":401,"jsonEnvelope":true,"transportError":"BODY_LIMIT"},"expected":"UNKNOWN"}
