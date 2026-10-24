@@ -82,8 +82,8 @@ verify_tool_hashes(runtime, observed_tools)
 roots = sorted({'/' + '/'.join(Path(t['path']).parts[1:4]) for t in runtime['tools'].values() if t['path'].startswith('/nix/store/')})
 required_paths = subprocess.check_output([*namespace, native_nix, '--store', 'local', '--option', 'build-users-group', '', '--query', '--requisites', *roots], text=True).splitlines()
 verify_native_closure(runtime, dict(zip(paths, actual)), required_paths)
-# Task's bound bin must be present in PATH, with the same actual bytes.
-(root / 'retained/bin/task').symlink_to('task.real')
+# The manifest-verified portable pack already supplies bin/task as its
+# thin wrapper to the verified task.real; preserve the existing owner's entry.
 bootstrap_overlap = sorted(set(bootstrap['paths']) & set(paths))
 (root / 'bin/sh').symlink_to(runtime['tools']['shell']['path'])
 checks = []
