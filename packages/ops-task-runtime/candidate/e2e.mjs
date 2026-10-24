@@ -3,7 +3,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {spawn, spawnSync} from 'node:child_process';
 import {setTimeout as delay} from 'node:timers/promises';
-import {read, write, inventory} from './requests.mjs';
+import {read, write, sha} from './requests.mjs';
 import {readback} from './readback.mjs';
 import {stopTree, processIdentity, discover, alive} from './process.mjs';
 
@@ -32,7 +32,16 @@ export async function candidateE2E(manifest, root, evidence) {
   assert.match(commit, /^[0-9a-f]{40}$/); assert.match(tree, /^[0-9a-f]{40}$/);
   const tools = read(manifest);
   const runtimeIdentity = {...Object.fromEntries(Object.entries(tools.tools).sort().map(([k, v]) => [k, v.sha256])), closure: tools.closureSha256};
-  const packageOracle = inventory(path.join(root, 'packages/ops-task-runtime'));
+  // External expectations come from immutable native Git blobs, never ignored
+  // files or mutable checkout bytes (e.g. Python's local __pycache__).
+  const listing = resolve(['ls-tree', '-r', '-z', commit, '--', 'packages/ops-task-runtime/']);
+  const packageOracle = listing.split('\0').filter(Boolean).map(row => {
+    const match = /^(100644|100755) blob ([0-9a-f]{40})\t(.+)$/.exec(row);
+    assert.ok(match, 'regular committed source blob');
+    const blob = spawnSync(git, ['-C', root, 'cat-file', 'blob', match[2]], {maxBuffer: 16 * 1024 * 1024});
+    assert.equal(blob.status, 0);
+    return [match[3].replace(/^packages\/ops-task-runtime\//, ''), sha(blob.stdout)];
+  }).sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
   const summaries = {};
   for (const route of ['direct', 'actrun']) for (const mode of ['success', 'failure', 'cancel']) {
     const req = path.join(evidence, `${route}-${mode}.request.json`), out = path.join(evidence, `${route}-${mode}`);
