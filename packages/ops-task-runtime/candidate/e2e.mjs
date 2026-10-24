@@ -5,7 +5,7 @@ import {spawn, spawnSync} from 'node:child_process';
 import {setTimeout as delay} from 'node:timers/promises';
 import {read, write} from './requests.mjs';
 import {readback} from './readback.mjs';
-import {stopTree} from './process.mjs';
+import {stopTree, processIdentity, discover, alive} from './process.mjs';
 
 export async function candidateE2E(manifest, root, evidence) {
   fs.mkdirSync(evidence, {recursive: false});
@@ -35,8 +35,22 @@ export async function candidateE2E(manifest, root, evidence) {
     summaries[`${route}-${mode}`] = result.normalized;
   }
   for (const mode of ['success', 'failure', 'cancel']) assert.deepEqual(summaries[`direct-${mode}`], summaries[`actrun-${mode}`], `${mode} route parity`);
+  const invocationFile = path.join(evidence, 'direct-success/invocation.json');
+  const admissionFile = path.join(evidence, 'direct-success/admission.json');
+  const originalInvocation = fs.readFileSync(invocationFile), originalAdmission = fs.readFileSync(admissionFile);
+  const changedInvocation = JSON.parse(originalInvocation), changedAdmission = JSON.parse(originalAdmission);
+  changedInvocation.accepted[0].eventId = changedAdmission.accepted[0].eventId = 'mismatched-event';
+  fs.writeFileSync(invocationFile, JSON.stringify(changedInvocation)); fs.writeFileSync(admissionFile, JSON.stringify(changedAdmission));
+  assert.throws(() => readback(path.join(evidence, 'direct-success')), /invocation\/attempt k mismatch/);
+  fs.writeFileSync(invocationFile, originalInvocation); fs.writeFileSync(admissionFile, originalAdmission);
   const run = read(path.join(evidence, 'direct-success/invocation.json')).accepted[0];
   const out = path.join(run.dir, 'work/out'), resultPath = path.join(out, 'result.json'), original = fs.readFileSync(resultPath);
+  const missingJoin = JSON.parse(original); delete missingJoin.join;
+  fs.writeFileSync(resultPath, JSON.stringify(missingJoin));
+  assert.throws(() => readback(path.join(evidence, 'direct-success')), /monotonic/);
+  const badInterval = JSON.parse(original); badInterval.start--;
+  fs.writeFileSync(resultPath, JSON.stringify(badInterval));
+  assert.throws(() => readback(path.join(evidence, 'direct-success')), /inconsistent interval/);
   const result = JSON.parse(original); result.x = 'stale'; fs.writeFileSync(resultPath, JSON.stringify(result));
   assert.throws(() => readback(path.join(evidence, 'direct-success')), /stale/);
   fs.writeFileSync(resultPath, original);
@@ -70,6 +84,23 @@ export async function candidateE2E(manifest, root, evidence) {
   const stopped = JSON.parse(await invoke(['recover', '--attempt', a.dir])); assert.equal(stopped.status, 'STOPPED_INCOMPLETE');
   const retry = JSON.parse(await invoke(['recover', '--attempt', a.dir, '--retry-runtime', manifest]));
   assert.equal(retry.status, 'RETRIED_STOPPED_INCOMPLETE'); assert.equal(retry.result.x, a.x); assert.notEqual(retry.attempt, a.dir);
+  // Simulate PID reuse with actual independently owned live processes. A stale
+  // start identity must neither discover nor kill the replacement's children.
+  const markerPath = path.join(evidence, 'unrelated-child.pid');
+  const program = "const c=require('child_process').spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'});require('fs').writeFileSync(process.argv[1],String(c.pid));setInterval(()=>{},1000)";
+  const unrelated = spawn(process.execPath, ['-e', program, markerPath], {detached: true, stdio: 'ignore'});
+  const unrelatedExit = new Promise(resolve => unrelated.once('exit', resolve));
+  const unrelatedRoot = processIdentity(unrelated.pid);
+  try {
+    for (let i = 0; i < 500 && !fs.existsSync(markerPath); i++) await delay(10);
+    assert.equal(fs.existsSync(markerPath), true);
+    const descendant = processIdentity(Number(fs.readFileSync(markerPath, 'utf8')));
+    const stale = {...unrelatedRoot, start: String(BigInt(unrelatedRoot.start) - 1n)};
+    assert.equal(discover(stale).filter(alive).length, 0);
+    await stopTree(stale, []);
+    assert.equal(alive(unrelatedRoot), true); assert.equal(alive(descendant), true);
+    write(path.join(evidence, 'stale-pid-negative.json'), {stale, actualRoot: unrelatedRoot, actualDescendant: descendant, replacementSurvived: true});
+  } finally { await stopTree(unrelatedRoot, discover(unrelatedRoot)); await unrelatedExit; }
   const invalid = read(manifest); invalid.tools.task.sha256 = '0'.repeat(64);
   const invalidPath = path.join(evidence, 'invalid-runtime.json'); write(invalidPath, invalid);
   const requestArgs = ['requests', '--repo', root, '--request-file', recoveryReq, '--runtime-manifest', invalidPath, '--evidence-dir', path.join(evidence, 'must-not-run')];
@@ -81,7 +112,7 @@ export async function candidateE2E(manifest, root, evidence) {
     await invoke(requestArgs, 1);
     assert.equal(fs.existsSync(path.join(evidence, 'must-not-run')), false);
   } finally { fs.unlinkSync(marker); }
-  const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing', 'runtime-tamper', 'dirty-source'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
+  const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing', 'runtime-tamper', 'dirty-source', 'invocation-k-mismatch', 'missing-join-time', 'inconsistent-interval', 'stale-pid-unrelated-process'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
   write(path.join(evidence, 'e2e.json'), packet);
   return packet;
 }

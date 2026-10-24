@@ -105,7 +105,8 @@ export async function requests(args) {
     if (Buffer.from(r.inputBase64, 'base64').toString('base64') !== r.inputBase64) fail('noncanonical input');
   }
   if (git(repo, ['status', '--porcelain', '--untracked-files=all']).length) fail('dirty source refused');
-  const commit = git(repo, ['rev-parse', 'HEAD']).toString().trim(), tree = git(repo, ['rev-parse', 'HEAD^{tree}']).toString().trim();
+  const commit = git(repo, ['rev-parse', 'HEAD']).toString().trim();
+  const tree = git(repo, ['rev-parse', `${commit}^{tree}`]).toString().trim();
   fs.mkdirSync(out, {recursive: false});
   const prefix = 'packages/ops-task-runtime/';
   const archive = git(repo, ['archive', '--format=tar', commit, prefix]);

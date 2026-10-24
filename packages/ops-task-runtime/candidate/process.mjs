@@ -21,13 +21,24 @@ export function alive(identity) {
   return sameContext(identity) && current?.start === identity.start && current.state !== 'Z';
 }
 export function discover(root, known = []) {
-  const found = new Map(known.map(p => [p.pid, p]));
-  if (root) found.set(root.pid, root);
+  const key = p => `${p.pid}:${p.start}`;
+  const found = new Map(known.map(p => [key(p), p]));
+  if (root) found.set(key(root), root);
+  // A stale root PID is not an ancestry anchor for its replacement process.
+  const anchors = new Set([...found.values()].filter(alive).map(p => p.pid));
+  const currentRoot = root ? processIdentity(root.pid) : null;
+  const groupBelongsToAttempt = sameContext(root) && (!currentRoot || currentRoot.start === root.start);
   const all = fs.readdirSync('/proc').filter(p => /^\d+$/.test(p)).map(processIdentity).filter(Boolean);
   let changed = true;
   while (changed) {
     changed = false;
-    for (const p of all) if (!found.has(p.pid) && (p.group === root?.pid || found.has(p.ppid))) { found.set(p.pid, p); changed = true; }
+    for (const p of all) {
+      if (!found.has(key(p)) && ((groupBelongsToAttempt && p.group === root.pid) || anchors.has(p.ppid))) {
+        found.set(key(p), p);
+        if (alive(p)) anchors.add(p.pid);
+        changed = true;
+      }
+    }
   }
   return [...found.values()];
 }

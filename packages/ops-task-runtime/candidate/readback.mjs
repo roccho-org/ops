@@ -27,7 +27,11 @@ export function attemptReadback(dir) {
   let semantic;
   if (r.mode === 'success') {
     const p = artifact('result'), a = artifact('a'), b = artifact('b');
-    artifact('a-started'); artifact('b-started');
+    const sa = artifact('a-started'), sb = artifact('b-started');
+    for (const value of [a.start, a.end, b.start, b.end, p.start, p.end, p.join, sa.start, sb.start]) {
+      if (!Number.isSafeInteger(value) || value < 0) fail('missing or invalid monotonic time');
+    }
+    if (a.end <= a.start || b.end <= b.start || p.start !== Math.min(a.start, b.start) || p.end !== Math.max(a.end, b.end) || sa.start !== a.start || sb.start !== b.start || sa.pid !== a.pid || sb.pid !== b.pid) fail('inconsistent interval');
     if (r.exit !== 0 || r.cancelled || p.status !== 'PASS' || p.semantic !== 'AB') fail('success exit/result');
     const leaf = read(r.route === 'direct' ? path.join(dir, 'stdout') : path.join(dir, 'actrun/run-1/tasks/pure-check__step_1.stdout.log'));
     if (leaf.schema !== 'ops.taskRuntimeStaticReceipt/1' || leaf.status !== 'PASS' || leaf.target !== r.target) fail('real static leaf receipt');
@@ -54,6 +58,7 @@ export function readback(root) {
   if (new Set(dirs).size !== dirs.length || dirs.some((a, i) => dirs.some((b, j) => i !== j && a.startsWith(b + path.sep)))) fail('write isolation');
   const normalized = x.accepted.map(a => {
     if (a.commit !== x.commit || a.tree !== x.tree) fail('invocation source');
+    assert.deepEqual(a, read(path.join(a.dir, 'receipt.json')), 'invocation/attempt k mismatch');
     return attemptReadback(a.dir);
   });
   const success = x.accepted.filter(a => a.mode === 'success').map(a => read(path.join(a.dir, 'work', 'out', 'result.json')));
