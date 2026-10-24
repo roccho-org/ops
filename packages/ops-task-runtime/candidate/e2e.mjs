@@ -70,7 +70,18 @@ export async function candidateE2E(manifest, root, evidence) {
   const stopped = JSON.parse(await invoke(['recover', '--attempt', a.dir])); assert.equal(stopped.status, 'STOPPED_INCOMPLETE');
   const retry = JSON.parse(await invoke(['recover', '--attempt', a.dir, '--retry-runtime', manifest]));
   assert.equal(retry.status, 'RETRIED_STOPPED_INCOMPLETE'); assert.equal(retry.result.x, a.x); assert.notEqual(retry.attempt, a.dir);
-  const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
+  const invalid = read(manifest); invalid.tools.task.sha256 = '0'.repeat(64);
+  const invalidPath = path.join(evidence, 'invalid-runtime.json'); write(invalidPath, invalid);
+  const requestArgs = ['requests', '--repo', root, '--request-file', recoveryReq, '--runtime-manifest', invalidPath, '--evidence-dir', path.join(evidence, 'must-not-run')];
+  await invoke(requestArgs, 1); assert.equal(fs.existsSync(path.join(evidence, 'must-not-run')), false);
+  const marker = path.join(root, 'packages/ops-task-runtime', `.candidate-dirty-${process.pid}`);
+  fs.writeFileSync(marker, 'untracked proof input');
+  try {
+    requestArgs[6] = manifest;
+    await invoke(requestArgs, 1);
+    assert.equal(fs.existsSync(path.join(evidence, 'must-not-run')), false);
+  } finally { fs.unlinkSync(marker); }
+  const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing', 'runtime-tamper', 'dirty-source'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
   write(path.join(evidence, 'e2e.json'), packet);
   return packet;
 }

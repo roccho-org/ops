@@ -21,7 +21,7 @@ export async function recover(args) {
   const a = read(path.join(dir, 'accepted.json')), runtime = binding(args[3]);
   if (inputIdentity(a) !== a.x) throw Error('retry input identity');
   assert.deepEqual(inventory(path.join(dir, 'snapshot')), a.oracle);
-  assert.deepEqual(Object.fromEntries(Object.entries(runtime.tools).sort().map(([k, v]) => [k, v.sha256])), a.runtimeIdentity);
+  assert.deepEqual({...Object.fromEntries(Object.entries(runtime.tools).sort().map(([k, v]) => [k, v.sha256])), closure: runtime.closureSha256}, a.runtimeIdentity);
   const attemptId = crypto.randomUUID(), next = path.join(path.dirname(dir), attemptId);
   fs.mkdirSync(next);
   for (const name of ['tmp', 'home']) fs.mkdirSync(path.join(next, name));

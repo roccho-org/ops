@@ -30,12 +30,16 @@ export function inventory(root) {
 }
 export function binding(file) {
   const x = read(file);
-  if (x.schema !== 'ops.taskCandidateRuntime/1' || x.target !== 'linux-amd64') fail('runtime schema/target');
+  if (x.schema !== 'ops.taskCandidateRuntime/1' || x.target !== 'linux-amd64' || x.profile !== 'candidate-user-task-SAME-v5.1' || x.admission !== 'NOT_ADOPTED') fail('runtime schema/target');
   for (const k of ['node', 'python', 'task', 'actrun', 'shell', 'loader', 'git', 'coreutils']) {
     const t = x.tools[k];
     if (!t || !path.isAbsolute(t.path) || sha(fs.readFileSync(t.path)) !== t.sha256) fail(`runtime identity: ${k}`);
   }
   if (fs.realpathSync(x.tools.node.path) !== fs.realpathSync(process.execPath)) fail('caller Node identity');
+  if (!Array.isArray(x.closure) || !x.closure.length || sha(JSON.stringify(x.closure)) !== x.closureSha256) fail('runtime closure binding');
+  for (const row of x.closure) {
+    if (!/^\/nix\/store\/[a-z0-9]{32}-[^/]+$/.test(row.path) || !row.narHash || !fs.existsSync(row.path)) fail('missing closure path');
+  }
   // Candidate does not admit arbitrary lookalike task/actrun binaries.
   const source = read(new URL('../source.json', import.meta.url));
   if (x.tools.task.sha256 !== source.goTask.binarySha256 || x.tools.actrun.sha256 !== source.actrun.binarySha256) fail('upstream binary binding');
@@ -65,7 +69,7 @@ export async function execute(a, runtime) {
   const monitor = setInterval(() => {
     descendants = discover(root, descendants);
     write(path.join(a.dir, 'process.json'), {root, descendants, executable, argv: actualArgv});
-    if ((a.mode === 'cancel' && fs.existsSync(path.join(work, 'out', 'descendant.json'))) || Date.now() - started > 30000) {
+    if ((a.mode === 'cancel' && fs.existsSync(path.join(work, 'out', 'descendant.json'))) || Date.now() - started > 30000 || ['stdout', 'stderr'].some(name => fs.statSync(path.join(a.dir, name)).size > 1048576)) {
       if (!stopping) { cancelled = true; stopping = stopTree(root, descendants); }
     }
   }, 20);
@@ -126,6 +130,7 @@ export async function requests(args) {
     fs.cpSync(path.join(dir, 'snapshot'), path.join(dir, 'work'), {recursive: true});
     if (JSON.stringify(inventory(path.join(dir, 'work'))) !== JSON.stringify(oracle)) fail('copy mismatch');
     const runtimeIdentity = Object.fromEntries(Object.entries(runtime.tools).sort().map(([k, v]) => [k, v.sha256]));
+    runtimeIdentity.closure = runtime.closureSha256;
     const record = {schema: 'ops.taskCandidateAttempt/1', eventId: r.eventId, runId, attemptId, commit, tree, inputSha256: sha(input), runtimeIdentity, target: runtime.target, declaredEnv, mode: r.mode, route: r.route, dir, oracle, status: 'ACCEPTED'};
     record.x = inputIdentity(record);
     write(path.join(dir, 'accepted.json'), record); accepted.push(record);

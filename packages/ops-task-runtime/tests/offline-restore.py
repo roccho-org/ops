@@ -149,7 +149,16 @@ for route in ['direct', 'actrun']:
             else:
                 assert result['errorClass'] == 'fixture-root-failure' and result['leafExit'] == 7
             checks.append({'route': route, 'mode': mode, 'inputSha256': accepted['inputSha256'], 'x': accepted['x'], 'exit': r.returncode, 'result': result})
-probe = "import os,socket,json; assert not os.path.exists('/work/repos/ops.git'); assert not os.path.exists('/nix/var/nix/daemon-socket/socket'); s=socket.socket(); s.settimeout(1); code=s.connect_ex(('140.82.112.3',443)); assert code!=0; print(json.dumps({'originalStoreHidden':True,'daemonUnavailable':True,'networkConnectError':code}))"
+probe = """import os,socket,json
+assert not os.path.exists('/work/repos/ops.git')
+assert not os.path.exists('/nix/var/nix/daemon-socket/socket')
+try:
+ s=socket.socket(); s.settimeout(1); code=s.connect_ex(('140.82.112.3',443))
+except OSError as e:
+ code=e.errno
+assert code != 0
+print(json.dumps({'originalStoreHidden':True,'daemonUnavailable':True,'networkConnectError':code}))
+"""
 isolation = subprocess.check_output([str(x) for x in [*namespace, Path(runtime['tools']['python']['path']).resolve(), '-c', probe]], text=True)
 emit(a.out / 'offline-receipt.json', {'schema': 'ops.taskCandidateOffline/1', 'status': 'PASS', 'closurePaths': len(paths), 'exportSha256': digest(export), 'payloadSha256': digest(archive), 'carrierSha256': digest(carrier), 'bootstrapPaths': bootstrap, 'isolation': json.loads(isolation), 'checks': checks, 'licenseStatus': 'ROOT_LICENSES_RETAINED_DEPENDENCY_AUDIT_PENDING'})
 print('fresh whole runtime check PASS; dependency license audit and actual Actions still required', flush=True)
