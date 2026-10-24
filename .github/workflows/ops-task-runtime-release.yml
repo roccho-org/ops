@@ -18,12 +18,21 @@ on:
       - "packages/chatgpt-capability/ingress/carrier-job.mjs"
       - "verification/raw-artifact-carry/**"
   workflow_dispatch:
+    inputs:
+      ghalet_candidate:
+        type: boolean
+        default: false
+      event_id:
+        type: string
+      source_commit:
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   build-and-verify:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.ghalet_candidate) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -300,3 +309,54 @@ jobs:
             ${{ runner.temp }}/ops-task-runtime-public-carrier.receipt.json
           if-no-files-found: error
           retention-days: 30
+
+  ghalet-native-check:
+    if: github.event_name == 'workflow_dispatch' && inputs.ghalet_candidate
+    runs-on: ops-ghalet-candidate
+    timeout-minutes: 10
+    steps:
+      - name: Validate explicit request
+        shell: bash
+        env:
+          REQUEST_EVENT: ${{ inputs.event_id }}
+          REQUEST_SOURCE: ${{ inputs.source_commit }}
+        run: |
+          set -euo pipefail
+          [[ "$REQUEST_EVENT" =~ ^[A-Za-z0-9_-]{1,80}$ ]]
+          [[ "$REQUEST_SOURCE" =~ ^[0-9a-f]{40}$ ]]
+          test "$REQUEST_SOURCE" = "$GITHUB_SHA"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Existing native static check
+        shell: bash
+        env:
+          REQUEST_EVENT: ${{ inputs.event_id }}
+        run: |
+          set -euo pipefail
+          proof="$RUNNER_TEMP/ghalet-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$GITHUB_JOB"
+          mkdir -m 700 "$proof"
+          mkdir "$proof/home" "$proof/tmp"
+          export HOME="$proof/home" TMPDIR="$proof/tmp"
+          export OPS_TASK_VALIDATION_TIMING="$proof/timing.json"
+          node packages/ops-task-runtime/bin/ops-task-runtime.mjs selftest --root packages/ops-task-runtime > "$proof/receipt.json"
+          node --input-type=module - "$proof" <<'JS'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import {execFileSync} from 'node:child_process';
+          const p=process.argv[2], e=process.env;
+          fs.writeFileSync(p+'/binding.json',JSON.stringify({
+            event:e.REQUEST_EVENT,source:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+            ref:e.GITHUB_REF,workflowRef:e.GITHUB_WORKFLOW_REF,
+            run:e.GITHUB_RUN_ID,job:e.GITHUB_JOB,attempt:e.GITHUB_RUN_ATTEMPT,
+            runner:e.RUNNER_NAME,hostBootId:fs.readFileSync('/proc/sys/kernel/random/boot_id','utf8').trim(),
+            runtime:crypto.createHash('sha256').update(fs.readFileSync(process.execPath)).digest('hex')
+          })+'\n',{flag:'wx'});
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ghalet-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ghalet-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}/
+          if-no-files-found: error

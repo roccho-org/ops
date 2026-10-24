@@ -79,7 +79,21 @@ function main() {
     if (args.length !== 2 || args[0] !== '--root') fail('usage: ops-task-runtime [selftest] [--root DIR]');
     root = path.resolve(args[1]);
   }
-  process.stdout.write(`${JSON.stringify(validate(root), null, 2)}\n`);
+  // Optional observation surrounds only validation, including its source reads.
+  // Output creation and Node startup are outside this interval.
+  let receipt, error;
+  const start = process.hrtime.bigint();
+  try { receipt = validate(root); } catch (caught) { error = caught; }
+  const end = process.hrtime.bigint();
+  if (process.env.OPS_TASK_VALIDATION_TIMING) {
+    fs.writeFileSync(process.env.OPS_TASK_VALIDATION_TIMING, JSON.stringify({
+      schema: 'ops.taskRuntimeValidationTiming/1',
+      startNs: String(start), endNs: String(end),
+      outcome: error ? 'failure' : 'success',
+    }) + '\n', { flag: 'wx', mode: 0o600 });
+  }
+  if (error) throw error;
+  process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
 }
 
 try { main(); } catch (error) {
