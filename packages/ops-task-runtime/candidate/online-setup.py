@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 import tarfile
 import urllib.request
-from license_contract import verify_dependency_licenses
+from license_contract import verify_dependency_licenses, assess_dependency_licenses
 
 p = argparse.ArgumentParser()
 p.add_argument('--profile', type=Path, required=True)
@@ -71,8 +71,9 @@ for row in profile['licenses']:
     assert hashlib.sha256(data).hexdigest() == row['sha256'], 'root license byte mismatch: ' + row['tool']
     (license_root / (row['tool'] + '.LICENSE.txt')).write_bytes(data)
     license_receipts.append(row)
-dependency_receipt = verify_dependency_licenses(profile, Path(__file__).parent / 'dependency-licenses.json')
+dependency_receipt = assess_dependency_licenses(profile, Path(__file__).parent / 'dependency-licenses.json')
 (a.out / 'dependency-license-receipt.json').write_text(json.dumps(dependency_receipt, indent=2) + '\n')
+verify_dependency_licenses(profile, Path(__file__).parent / 'dependency-licenses.json')
 (a.out / 'root-license-receipt.json').write_text(json.dumps({'status': 'ROOT_BYTES_VERIFIED_NATIVE_DEPENDENCY_DECLARATIONS_BOUND', 'licenses': license_receipts}, indent=2) + '\n')
 (a.out / 'runtime.json').write_text(json.dumps(runtime, indent=2) + '\n')
 (a.out / 'setup-receipt.json').write_text(json.dumps({'schema': 'ops.taskCandidateOnlineSetup/1', 'status': 'LOCAL_IDENTITY_ONLY' if a.verify_existing else 'PASS', 'runtimeClosureSha256': profile['closureSha256'], 'profileSha256': digest(a.profile), 'nativeRoots': profile['nativeRoots'], 'signedCache': None if a.verify_existing else 'https://cache.nixos.org', 'provider': {'runId': os.environ.get('GITHUB_RUN_ID'), 'runAttempt': os.environ.get('GITHUB_RUN_ATTEMPT'), 'workflowSha': os.environ.get('GITHUB_SHA')}}, indent=2) + '\n')

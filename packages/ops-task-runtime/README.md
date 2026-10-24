@@ -103,3 +103,30 @@ notices are separately byte-bound in `native-profile.json`. The failed actrun
 license binding at Actions run 40097748418 remains historical evidence: the old
 local copy had an added LF; the corrected binding uses untouched pinned upstream
 bytes, with no whitespace normalization.
+
+
+License bytes checkpoint after ce33: `candidate/license-bytes/` retains exact,
+content-addressed source notices and definitions. The existing license generator
+has an opt-in retained-acquisition mode (`--plan`, `--expected-plan-sha256`,
+`--acquired`, `--base-packet`, `--assets`, `--embedded`). It requires the completed
+229-object acquisition receipt, independently rehashes the retained sources,
+extracts legal files/inline grants from tar, ZIP and native source trees, and maps
+all 151 output NARs through source and patch identities. The plan itself and raw
+Nix definition bytes are retained. Node/Python aggregate notices match exact
+upstream source LICENSE bytes. Source selection is an extraction aid; independent
+technical coverage review is still required, and no legal verdict is implied.
+
+`license_contract.py` now refuses metadata-only completion, absent/changed blob
+bytes, incomplete component/source/patch coverage and unresolved embedded bytes.
+The current packet is deliberately MISSING: task's actual Go buildinfo binds124
+modules (the own-project notice is retained;123 third-party module notices and
+Go1.26.5 runtime notices remain missing). Actrun's pinned upstream release workflow
+clones bit-vcs/bit at moving HEAD and has no retained exact embedded resolution;
+the declared ten direct MoonBit dependencies and pinned compiler input are
+provenance leads, not an exact embedded graph. Its own Apache notice is retained.
+These125 pending items cannot be cleared by assigning generic/root notices or by
+editing status flags. Actual source/notice evidence and the corresponding reviewed
+integration are needed. Online/offline whole gates fail closed while this remains
+unresolved; the successful ce33 Actions artifact remains historical exact-ce33
+proof. `tests/license-bytes.py` verifies these negative cases without asserting
+license completeness. No final offline export is attempted while Missing exists.

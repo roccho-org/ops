@@ -1,0 +1,8 @@
+--- a/libpsl.pc.in
++++ b/libpsl.pc.in
+@@ -8,4 +8,5 @@
+ Version: @PACKAGE_VERSION@
+ URL: @PACKAGE_URL@
+ Libs: -L${libdir} -lpsl
++Libs.private: @LIBS@
+ Cflags: -I${includedir}

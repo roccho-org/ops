@@ -1,0 +1,38 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cd8c271f942dd119097f7dfddb4cf760d3c5396b..ce7c5038fab0414588d002b039db7d7c4c8efa5c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -6,6 +6,8 @@
+     LANGUAGES C
+ )
+ 
++option(UVWASI_BUILD_SHARED "Build shared lib" ON)
++
+ # Point CMake at any custom modules we may ship
+ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+ 
+@@ -112,14 +114,16 @@
+ endif()
+ 
+ ## Shared library target.
+-add_library(uvwasi SHARED ${uvwasi_sources})
+-target_compile_definitions(uvwasi PRIVATE ${uvwasi_defines})
+-target_compile_options(uvwasi PRIVATE ${uvwasi_cflags})
+-target_include_directories(uvwasi PRIVATE ${PROJECT_SOURCE_DIR}/include)
+-if(CODE_COVERAGE)
+-    target_link_libraries(uvwasi PUBLIC ${LIBUV_LIBRARIES} coverage_config)
+-else()
+-    target_link_libraries(uvwasi PRIVATE ${LIBUV_LIBRARIES})
++if(UVWASI_BUILD_SHARED)
++    add_library(uvwasi SHARED ${uvwasi_sources})
++    target_compile_definitions(uvwasi PRIVATE ${uvwasi_defines})
++    target_compile_options(uvwasi PRIVATE ${uvwasi_cflags})
++    target_include_directories(uvwasi PRIVATE ${PROJECT_SOURCE_DIR}/include)
++    if(CODE_COVERAGE)
++        target_link_libraries(uvwasi PUBLIC ${LIBUV_LIBRARIES} coverage_config)
++    else()
++        target_link_libraries(uvwasi PRIVATE ${LIBUV_LIBRARIES})
++    endif()
+ endif()
+ 
+ 

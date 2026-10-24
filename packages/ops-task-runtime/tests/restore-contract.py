@@ -70,7 +70,12 @@ print(json.dumps({'status':'PASS','negativeCases':passed,'positive':['closure','
 license_spec = importlib.util.spec_from_file_location('license_contract', module_path.parent/'license_contract.py')
 lc = importlib.util.module_from_spec(license_spec); license_spec.loader.exec_module(lc)
 packet = module_path.parent/'dependency-licenses.json'
-assert lc.verify_dependency_licenses(profile,packet)['paths']==151
+assessment=lc.assess_dependency_licenses(profile,packet)
+assert assessment['paths']==151
+if assessment['missing']:
+    reject('required-embedded-license-bytes-missing',lambda:lc.verify_dependency_licenses(profile,packet))
+else:
+    lc.verify_dependency_licenses(profile,packet)
 with tempfile.TemporaryDirectory() as tmp:
     changed=Path(tmp)/'packet.json'; value=json.loads(packet.read_text())
     value['entries'][0]['narHash']='wrong';changed.write_text(json.dumps(value))

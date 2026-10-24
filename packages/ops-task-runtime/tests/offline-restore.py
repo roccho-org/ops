@@ -8,6 +8,9 @@ from pathlib import Path
 import shutil
 import subprocess
 import tarfile
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "candidate"))
+from license_contract import verify_dependency_licenses
 
 p = argparse.ArgumentParser()
 p.add_argument('--runtime', type=Path, required=True)
@@ -32,6 +35,7 @@ def emit(p, x):
 def run(argv, **kwargs):
     return subprocess.run([str(x) for x in argv], check=True, **kwargs)
 runtime = read(a.runtime)
+verify_dependency_licenses(runtime, a.repo / 'packages/ops-task-runtime/candidate/dependency-licenses.json')
 git = runtime['tools']['git']['path']
 assert Path(__file__).resolve() == a.repo / 'packages/ops-task-runtime/tests/offline-restore.py', 'driver path differs from clean source'
 commit = read(a.e2e / 'direct-success/invocation.json')['commit']
@@ -96,6 +100,7 @@ for row, license_path in zip(runtime.get('licenses', []), license_paths):
 for i, license_path in enumerate(license_paths):
     assert license_path.is_file(), license_path
     first['files'].append({'source': str(license_path.resolve()), 'path': f'licenses/{i}-{license_path.name}'})
+first.setdefault('directories', []).append({'source': str(a.repo / 'packages/ops-task-runtime/candidate/license-bytes'), 'path': 'licenses/license-bytes'})
 first['files'].append({'source': str(a.repo / 'packages/ops-task-runtime/candidate/dependency-licenses.json'), 'path': 'licenses/dependency-bindings.json'})
 first['files'].append({'source': str(a.out / 'source-oracle.json'), 'path': 'git-source/oracle.json'})
 # Hold the actual accepted package source and inputs, not an approximate checkout.
