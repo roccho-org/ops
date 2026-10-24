@@ -18,12 +18,26 @@ on:
       - "packages/chatgpt-capability/ingress/carrier-job.mjs"
       - "verification/raw-artifact-carry/**"
   workflow_dispatch:
+    inputs:
+      candidate_payload_url:
+        description: 'Explicit opt-in immutable candidate proof payload URL'
+        type: string
+        required: false
+      candidate_payload_sha256:
+        description: 'Exact retained candidate payload SHA-256'
+        type: string
+        required: false
+      candidate_source_commit:
+        description: 'Exact candidate source commit; must match checkout and accepted inputs'
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 jobs:
   build-and-verify:
+    if: github.event_name != 'workflow_dispatch' || inputs.candidate_payload_url == ''
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -298,5 +312,60 @@ jobs:
           path: |
             ${{ runner.temp }}/ops-task-runtime-release.receipt.json
             ${{ runner.temp }}/ops-task-runtime-public-carrier.receipt.json
+          if-no-files-found: error
+          retention-days: 30
+
+  candidate-pure-check:
+    if: github.event_name == 'workflow_dispatch' && inputs.candidate_payload_url != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate_source_commit }}
+      - name: Verify exact candidate source and retained payload
+        env:
+          CANDIDATE_PAYLOAD_URL: ${{ inputs.candidate_payload_url }}
+          CANDIDATE_PAYLOAD_SHA256: ${{ inputs.candidate_payload_sha256 }}
+          CANDIDATE_SOURCE_COMMIT: ${{ inputs.candidate_source_commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SOURCE_COMMIT"
+          python3 - <<'PYTHON'
+          import os,re,urllib.parse
+          u=urllib.parse.urlsplit(os.environ['CANDIDATE_PAYLOAD_URL'])
+          assert u.scheme=='https' and u.netloc=='github.com'
+          assert u.path.startswith('/roccho-org/ops/releases/download/')
+          assert not u.query and not u.fragment
+          assert re.fullmatch('[0-9a-f]{64}',os.environ['CANDIDATE_PAYLOAD_SHA256'])
+          assert re.fullmatch('[0-9a-f]{40}',os.environ['CANDIDATE_SOURCE_COMMIT'])
+          PYTHON
+          curl --fail --location --silent --show-error "$CANDIDATE_PAYLOAD_URL" -o "$RUNNER_TEMP/candidate-payload.tar.gz"
+          python3 - <<'PYTHON'
+          import hashlib,os,pathlib,tarfile
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          p=root/'candidate-payload.tar.gz'
+          h=hashlib.sha256()
+          with p.open('rb') as f:
+              for b in iter(lambda:f.read(1048576),b''): h.update(b)
+          assert h.hexdigest()==os.environ['CANDIDATE_PAYLOAD_SHA256']
+          with tarfile.open(p) as t: t.extractall(root/'candidate-pack',filter='data')
+          PYTHON
+      - name: Execute exact retained pure checks through fresh native runtime
+        env:
+          CANDIDATE_SOURCE_COMMIT: ${{ inputs.candidate_source_commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 packages/ops-task-runtime/candidate/restore-check.py             --pack "$RUNNER_TEMP/candidate-pack"             --target "$RUNNER_TEMP/candidate-target"             --evidence "$RUNNER_TEMP/candidate-evidence"             --expected-commit "$CANDIDATE_SOURCE_COMMIT"
+      - name: Retain actual runner proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-candidate-${{ inputs.candidate_source_commit }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/candidate-evidence/
           if-no-files-found: error
           retention-days: 30
