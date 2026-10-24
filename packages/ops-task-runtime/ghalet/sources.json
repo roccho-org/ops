@@ -1,0 +1,34 @@
+{
+  "schema": "ops.ghaletCandidateSources/1",
+  "status": "CANDIDATE_NOT_ADOPTED",
+  "target": "linux-amd64",
+  "ghalet": {
+    "repository": "Songmu/ghalet",
+    "tag": "v0.2.4",
+    "commit": "bb0fb57ffeded765929efee05fd8cdcaedfbb60f",
+    "asset": "ghalet_v0.2.4_linux_amd64.tar.gz",
+    "bytes": 5012052,
+    "archiveSha256": "c5a8c0b77fc2d684c829f8e3648fd55de492cf68dd80d13f657cb5960b223d18",
+    "binarySha256": "3dd33fd63c3c8fa7997f232a95fd5e9f35c11fb9608ad5c375304ce9865260bf"
+  },
+  "runner": {
+    "repository": "actions/runner",
+    "version": "2.338.0",
+    "asset": "actions-runner-linux-x64-2.338.0.tar.gz",
+    "bytes": 227660598,
+    "archiveSha256": "af4b794c1bc41d73d40535e3fe092a39f9679cd8d965954c2aca25a05ca41d32",
+    "listenerSha256": "50a25191bebce204fa3da9d73c780339543e5591882a9028122fc1165472942e"
+  },
+  "check": {
+    "argv": [
+      "node",
+      "packages/ops-task-runtime/tests/e2e.mjs"
+    ],
+    "scope": "existing native E2E suite only: positive1 and negative2; suite work overlap, not individual child overlap"
+  },
+  "owners": {
+    "runnerLifecycle": "Songmu/ghalet",
+    "distribution": "packages/ops-portable-runtime-pack",
+    "transport": "packages/chatgpt-capability/ingress/carrier-job.mjs"
+  }
+}

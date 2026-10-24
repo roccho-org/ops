@@ -1,4 +1,5 @@
 name: Portable task runtime Carrier
+run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.ghalet_candidate && format('ghalet:{0}', inputs.event_id) || github.event.head_commit.message || github.event.pull_request.title || 'Portable task runtime Carrier' }}
 
 on:
   pull_request:
@@ -18,12 +19,21 @@ on:
       - "packages/chatgpt-capability/ingress/carrier-job.mjs"
       - "verification/raw-artifact-carry/**"
   workflow_dispatch:
+    inputs:
+      ghalet_candidate:
+        type: boolean
+        default: false
+      event_id:
+        type: string
+      source_commit:
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   build-and-verify:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.ghalet_candidate) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -300,3 +310,69 @@ jobs:
             ${{ runner.temp }}/ops-task-runtime-public-carrier.receipt.json
           if-no-files-found: error
           retention-days: 30
+
+  ghalet-native-check:
+    if: github.event_name == 'workflow_dispatch' && inputs.ghalet_candidate
+    runs-on: ops-ghalet-candidate
+    timeout-minutes: 10
+    steps:
+      - name: Validate explicit request
+        shell: bash
+        env:
+          REQUEST_EVENT: ${{ inputs.event_id }}
+          REQUEST_SOURCE: ${{ inputs.source_commit }}
+        run: |
+          set -euo pipefail
+          [[ "$REQUEST_EVENT" =~ ^[A-Za-z0-9_-]{1,80}$ ]]
+          [[ "$REQUEST_SOURCE" =~ ^[0-9a-f]{40}$ ]]
+          test "$REQUEST_SOURCE" = "$GITHUB_SHA"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Existing native E2E suite
+        shell: bash
+        env:
+          REQUEST_EVENT: ${{ inputs.event_id }}
+        run: |
+          set -euo pipefail
+          proof="$RUNNER_TEMP/ghalet-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$GITHUB_JOB"
+          mkdir -m 700 "$proof"
+          mkdir "$proof/home" "$proof/tmp"
+          export HOME="$proof/home" TMPDIR="$proof/tmp"
+          export OPS_TASK_CI_TIMING="$proof/timing.json"
+          node --input-type=module - "$proof/pre.json" <<'JS'
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          const checkout={source:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),
+            clean:git('status','--porcelain','--untracked-files=all')===''};
+          if(!checkout.clean || checkout.source!==process.env.GITHUB_SHA) throw Error('unclean or wrong source');
+          fs.writeFileSync(process.argv[2],JSON.stringify(checkout)+'\n',{flag:'wx'});
+          JS
+          node packages/ops-task-runtime/tests/e2e.mjs > "$proof/receipt.json"
+          node --input-type=module - "$proof" <<'JS'
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const p=process.argv[2], e=process.env;
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          const pre=JSON.parse(fs.readFileSync(p+'/pre.json','utf8'));
+          const post={source:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),
+            clean:git('status','--porcelain','--untracked-files=all')===''};
+          if(!post.clean || JSON.stringify(pre)!==JSON.stringify(post)) throw Error('checkout changed');
+          const timing=JSON.parse(fs.readFileSync(p+'/timing.json','utf8'));
+          fs.writeFileSync(p+'/binding.json',JSON.stringify({
+            event:e.REQUEST_EVENT,source:post.source,tree:post.tree,pre,post,
+            ref:e.GITHUB_REF,workflowRef:e.GITHUB_WORKFLOW_REF,
+            run:e.GITHUB_RUN_ID,jobKey:e.GITHUB_JOB,attempt:e.GITHUB_RUN_ATTEMPT,
+            runner:e.RUNNER_NAME,hostBootId:timing.producer.hostBootId,
+            runtime:timing.producer.nodeSha256,root:timing.producer.root,
+            nodePath:timing.producer.nodePath
+          })+'\n',{flag:'wx'});
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ghalet-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ghalet-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}/
+          if-no-files-found: error

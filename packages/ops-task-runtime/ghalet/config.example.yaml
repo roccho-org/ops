@@ -1,0 +1,18 @@
+# Explicit candidate target. No command here authorizes creating a ScaleSet.
+capacity:
+  maxRunners: 2
+defaults:
+  credential:
+    type: gh
+targets:
+  - scope: roccho-org/ops
+    scaleSet: ops-ghalet-candidate
+    scaling:
+      minRunners: 0
+      maxRunners: 2
+runner:
+  version: "2.338.0"
+  env:
+    PATH: /usr/bin:/bin
+logs:
+  preserve: true
