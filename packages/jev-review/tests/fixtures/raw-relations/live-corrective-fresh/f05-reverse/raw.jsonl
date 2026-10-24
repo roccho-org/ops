@@ -1,0 +1,4 @@
+{"key": "r4", "text": "Technique M must discard a stored result when an input dependency changes."}
+{"key": "r3", "text": "Technique M needs to identify when two requests have the same relevant inputs."}
+{"key": "r2", "text": "Technique M spends storage space to avoid repeating the computation."}
+{"key": "r1", "text": "Technique M reuses the stored result of a computation for a repeated request."}

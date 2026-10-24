@@ -23,14 +23,30 @@ const list = value => value === undefined ? [] : Array.isArray(value) ? value : 
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
 const need = (ok, message) => { if (!ok) throw new Error(message); };
 const RAW_TRIAL_WORKFLOW = '.github/workflows/jev-provider-release.yml';
-const RAW_TRIAL_ID = 'ops676-raw-relations-live-20261025-v1';
-const RAW_PRODUCT = '151f3970bcbe7d9ccf19a54d338a5f98444aa2f4';
+const RAW_TRIAL_ID = "${{ inputs.raw_relations_stage == 'confirmation' && 'ops676-raw-relations-corrective-confirmation-v2' || 'ops676-raw-relations-corrective-development-v2' }}";
+const RAW_CONCURRENCY = 'ops676-raw-relations-corrective-${{ inputs.raw_relations_stage }}-v2';
+const RAW_BUNDLE_DIR = "${{ inputs.raw_relations_stage == 'confirmation' && 'live-corrective-fresh' || 'live' }}";
+const RAW_PRODUCT = 'bc1f991618a2f17ba0e4dc51f7811af5dddf72ac';
 const RAW_GUARD = "github.event_name == 'workflow_dispatch' && inputs.raw_relations_trial && !inputs.publish && github.repository == 'roccho-org/ops' && github.ref == 'refs/heads/codex/raw-annotations-676-20261024' && github.run_attempt == 1";
 const RAW_IDENTITY = `set -euo pipefail
 test "$GITHUB_REPOSITORY" = roccho-org/ops
 test "$GITHUB_EVENT_NAME" = workflow_dispatch
 test "$GITHUB_REF" = refs/heads/codex/raw-annotations-676-20261024
 test "$GITHUB_RUN_ATTEMPT" = 1
+case "$RAW_RELATIONS_STAGE" in
+  development)
+    test "$BUNDLE_SHA" = 9288a688b4eadcc003f1a4f7b0dabe38977826c6fac05a03774a792f43193f02
+    test "$STAGE1_ROOT_GO" = false
+    test -z "$STAGE1_RUN_ID$STAGE1_ARTIFACT_SHA256$STAGE1_REPORT_SHA256"
+    ;;
+  confirmation)
+    test "$BUNDLE_SHA" = 91c24283190300becdb2d6fee700628caad93b38e27a797b1f0ee63dbcf820b2
+    test "$STAGE1_ROOT_GO" = true
+    [[ $STAGE1_RUN_ID =~ ^[1-9][0-9]*$ && $STAGE1_ARTIFACT_SHA256 =~ ^[a-f0-9]{64}$ && $STAGE1_REPORT_SHA256 =~ ^[a-f0-9]{64}$ ]]
+    test "$STAGE1_RUN_ID" != "$GITHUB_RUN_ID"
+    ;;
+  *) exit 1 ;;
+esac
 [[ $EXPECTED_WORKFLOW_SHA =~ ^[a-f0-9]{40}$ && $BUNDLE_SHA =~ ^[a-f0-9]{64}$ ]]
 test "$EXPECTED_WORKFLOW_SHA" = "$GITHUB_SHA"
 test "$EXPECTED_WORKFLOW_SHA" = "$GITHUB_WORKFLOW_SHA"
@@ -38,7 +54,7 @@ printf 'trial_id=%s run_id=%s workflow_sha=%s product_sha=%s\\n' "$TRIAL_ID" "$G
 const RAW_EVALUATE = `set -euo pipefail
 "$NODE" "$GITHUB_WORKSPACE/packages/jev-review/tests/raw-relations-trial.mjs" run \\
   "$GITHUB_WORKSPACE/trial-product" "$ROOT" \\
-  "$GITHUB_WORKSPACE/packages/jev-review/tests/fixtures/raw-relations/live" "$BUNDLE_SHA" "$RUNNER_TEMP/raw-relations-evidence"`;
+  "$GITHUB_WORKSPACE/packages/jev-review/tests/fixtures/raw-relations/$BUNDLE_DIR" "$BUNDLE_SHA" "$RUNNER_TEMP/raw-relations-evidence"`;
 const RAW_PREPARE = `set -euo pipefail
 test "$(git rev-parse HEAD)" = "$EXPECTED_WORKFLOW_SHA"
 test "$(git -C trial-product rev-parse HEAD)" = ${RAW_PRODUCT}
@@ -55,7 +71,7 @@ runner="$GITHUB_WORKSPACE/packages/jev-review/tests/raw-relations-trial.mjs"
 git diff --exit-code -- "$runner"
 "$node" "$runner" selftest "$GITHUB_WORKSPACE/trial-product"
 "$node" "$runner" prepare "$GITHUB_WORKSPACE/trial-product" "$root" \\
-  "$GITHUB_WORKSPACE/packages/jev-review/tests/fixtures/raw-relations/live" "$BUNDLE_SHA" "$RUNNER_TEMP/raw-relations-evidence"
+  "$GITHUB_WORKSPACE/packages/jev-review/tests/fixtures/raw-relations/$BUNDLE_DIR" "$BUNDLE_SHA" "$RUNNER_TEMP/raw-relations-evidence"
 { echo "node=$node"; echo "root=$root"; } >> "$GITHUB_OUTPUT"`;
 const equalData = (a,b) => {
   const canon = x => Array.isArray(x) ? x.map(canon) : x && typeof x === 'object'
@@ -71,14 +87,19 @@ export function assertRawRelationsTrial(workflow, boundary) {
   need(same(Object.keys(workflow.on ?? {}),['pull_request','workflow_dispatch']), 'raw trial workflow event set differs');
   const inputs = workflow.on.workflow_dispatch.inputs;
   need(equalData(inputs.raw_relations_trial,{type:'boolean',default:false})
+    && inputs.raw_relations_stage.type === 'choice' && inputs.raw_relations_stage.default === 'development'
+    && equalData(inputs.raw_relations_stage.options,['development','confirmation'])
+    && inputs.stage1_root_go.type === 'boolean' && inputs.stage1_root_go.default === false
+    && ['stage1_run_id','stage1_artifact_sha256','stage1_report_sha256'].every(k=>inputs[k].type === 'string' && inputs[k].default === '')
     && inputs.publish.type === 'boolean' && inputs.publish.default === false
     && inputs.expected_workflow_sha.type === 'string' && inputs.raw_relations_bundle_sha.type === 'string', 'raw trial input contract differs');
   need(same(Object.keys(workflow.jobs).filter(n=>hasSecret(workflow.jobs[n])),['raw-relations-trial']), 'raw trial unexpected secret path');
   const job=workflow.jobs['raw-relations-trial'];
   need(same(Object.keys(job),['if','runs-on','timeout-minutes','permissions','concurrency','env','steps'])
     && job.if === RAW_GUARD && job['runs-on'] === 'ubuntu-24.04' && job['timeout-minutes'] === 30, 'raw trial fixed guard/job differs');
-  need(equalData(job.permissions,{contents:'read'}) && equalData(job.concurrency,{group:RAW_TRIAL_ID,'cancel-in-progress':false})
-    && equalData(job.env,{EXPECTED_WORKFLOW_SHA:'${{ inputs.expected_workflow_sha }}',BUNDLE_SHA:'${{ inputs.raw_relations_bundle_sha }}',TRIAL_ID:RAW_TRIAL_ID}), 'raw trial scope/concurrency differs');
+  need(equalData(job.permissions,{contents:'read'}) && equalData(job.concurrency,{group:RAW_CONCURRENCY,'cancel-in-progress':false})
+    && equalData(job.env,{EXPECTED_WORKFLOW_SHA:'${{ inputs.expected_workflow_sha }}',BUNDLE_SHA:'${{ inputs.raw_relations_bundle_sha }}',TRIAL_ID:RAW_TRIAL_ID,RAW_RELATIONS_STAGE:'${{ inputs.raw_relations_stage }}',BUNDLE_DIR:RAW_BUNDLE_DIR,
+      STAGE1_ROOT_GO:'${{ inputs.stage1_root_go }}',STAGE1_RUN_ID:'${{ inputs.stage1_run_id }}',STAGE1_ARTIFACT_SHA256:'${{ inputs.stage1_artifact_sha256 }}',STAGE1_REPORT_SHA256:'${{ inputs.stage1_report_sha256 }}'}), 'raw trial scope/concurrency differs');
   const steps=job.steps;
   need(steps.length === 7, 'raw trial step set differs');
   need(equalData(steps[0],{name:'Verify fixed manual identity before checkout or secrets',run:RAW_IDENTITY+'\n'}), 'raw trial identity preflight differs');
@@ -88,7 +109,7 @@ export function assertRawRelationsTrial(workflow, boundary) {
   need(equalData(steps[3],{uses:'cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24',with:{extra_nix_config:'extra-experimental-features = nix-command flakes\n'}}), 'raw trial fixed Nix provision differs');
   need(equalData(steps[4],{name:'Build immutable installed consumer and preflight all sixteen plans without key',id:'trial_prepare',run:RAW_PREPARE+'\n'}), 'raw trial keyless preparation differs');
   need(equalData(steps[5],{name:'Evaluate sixteen frozen plans through installed Jev consumer',env:{JEV_API_KEY:'${{ secrets.JEV_API_KEY }}',NODE:'${{ steps.trial_prepare.outputs.node }}',ROOT:'${{ steps.trial_prepare.outputs.root }}'},run:RAW_EVALUATE+'\n'}), 'raw trial only secret step differs');
-  need(equalData(steps[6],{name:'Upload bounded trial evidence including failed or unknown attempts',if:'always()',uses:'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02',with:{name:'raw-relations-'+RAW_TRIAL_ID+'-${{ github.run_id }}',path:'${{ runner.temp }}/raw-relations-evidence/','if-no-files-found':'warn','retention-days':30}}), 'raw trial bounded evidence step differs');
+  need(equalData(steps[6],{name:'Upload bounded trial evidence including failed or unknown attempts',if:'always()',uses:'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02',with:{name:'raw-relations-${{ env.TRIAL_ID }}-${{ github.run_id }}',path:'${{ runner.temp }}/raw-relations-evidence/','if-no-files-found':'warn','retention-days':30}}), 'raw trial bounded evidence step differs');
   need(workflow.jobs['build-test'].if === '${{ !inputs.raw_relations_trial }}'
     && workflow.jobs.publish.needs === 'build-test'
     && workflow.jobs.publish.if === "github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/proposals' && github.event.repository.default_branch == 'proposals'", 'raw trial release isolation differs');
@@ -113,6 +134,14 @@ export function testRawRelationsTrial(workflow,boundary) {
     w=>{w.jobs['raw-relations-trial'].steps[5].env.EXTRA='${{ secrets.EXTRA }}';},
     w=>{w.jobs['raw-relations-trial'].steps[5].run+='curl https://example.invalid\n';},
     w=>{w.jobs['raw-relations-trial'].concurrency['cancel-in-progress']=true;},
+    w=>{w.on.workflow_dispatch.inputs.raw_relations_stage.options.push('other');},
+    ...['test "$STAGE1_ROOT_GO" = true','test "$STAGE1_RUN_ID" != "$GITHUB_RUN_ID"',
+      'test "$BUNDLE_SHA" = 91c24283190300becdb2d6fee700628caad93b38e27a797b1f0ee63dbcf820b2',
+      'test "$BUNDLE_SHA" = 9288a688b4eadcc003f1a4f7b0dabe38977826c6fac05a03774a792f43193f02'].map(part=>w=>{w.jobs['raw-relations-trial'].steps[0].run=RAW_IDENTITY.replace(part,'true')+'\n';}),
+    w=>{w.jobs['raw-relations-trial'].env.BUNDLE_DIR='live';},
+    w=>{w.jobs['raw-relations-trial'].env.STAGE1_ROOT_GO='true';},
+    w=>{w.on.workflow_dispatch.inputs.stage1_root_go.default=true;},
+    w=>{w.jobs['raw-relations-trial'].steps[0].run=RAW_IDENTITY.replace('[[ $STAGE1_RUN_ID =~ ^[1-9][0-9]*$ && $STAGE1_ARTIFACT_SHA256 =~ ^[a-f0-9]{64}$ && $STAGE1_REPORT_SHA256 =~ ^[a-f0-9]{64}$ ]]','true')+'\n';},
     w=>{w.jobs['build-test'].if='true';},
     w=>{w.on.push={};},
     w=>{w.jobs.other={steps:[{env:{K:'${{ secrets.JEV_API_KEY }}'},run:'true'}]};},

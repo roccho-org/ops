@@ -1,0 +1,79 @@
+{
+  "schema": "ops.raw-relations.plan.v1",
+  "sources": [
+    {
+      "id": "r-input",
+      "revision": "fresh-frozen-v1",
+      "path": "raw.jsonl"
+    }
+  ],
+  "checks": [
+    {
+      "id": "relation",
+      "version": "R-fresh-frozen-v1",
+      "kind": "inconsistent",
+      "meaning": "Are the statements jointly inconsistent, so that no package can satisfy them all?",
+      "applicability": "Only stated conditions apply; do not assume unstated rules.",
+      "context": []
+    }
+  ],
+  "context": [],
+  "obligations": [
+    {
+      "id": "obligation",
+      "check": "relation",
+      "participants": [
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 1,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 2,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 3,
+          "role": "assertion"
+        }
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "candidate",
+      "check": "relation",
+      "participants": [
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 1,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 2,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 3,
+          "role": "assertion"
+        }
+      ]
+    }
+  ],
+  "candidateRule": {
+    "id": "R-explicit-fresh",
+    "version": "1"
+  },
+  "scope": "Only stated conditions apply; do not assume unstated rules.",
+  "asOf": "2026-10-24T00:00:00Z"
+}
