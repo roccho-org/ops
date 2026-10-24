@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -69,6 +70,12 @@ for route in ['direct', 'actrun']:
             shutil.copytree(a.pack / 'sources' / label, work)
             accepted = read(a.pack / 'accepted' / f'{label}.json')
             assert accepted['commit'] == a.expected_commit
+            identity = {k: accepted[k] for k in ['commit', 'tree', 'oracle', 'runtimeIdentity', 'mode', 'target', 'declaredEnv']}
+            assert hashlib.sha256(json.dumps(identity, separators=(',', ':'), ensure_ascii=False).encode()).hexdigest() == accepted['x']
+            expected_runtime = {k: v['sha256'] for k, v in sorted(runtime['tools'].items())}
+            expected_runtime['closure'] = runtime['closureSha256']
+            assert accepted['runtimeIdentity'] == expected_runtime
+            assert hashlib.sha256((work / 'input.bin').read_bytes()).hexdigest() == accepted['inputSha256']
             for rel, expected_hash in accepted['oracle']:
                 assert digest(work / rel) == expected_hash
             env = {'PATH': ':'.join(str(Path(runtime['tools'][k]['path']).parent) for k in ['shell', 'git', 'coreutils']), 'HOME': f'/home/{label}', 'TMPDIR': f'/tmp/{label}', 'LANG': 'C.UTF-8', 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1', 'OPS_CANDIDATE_NODE': runtime['tools']['node']['path'], 'OPS_CANDIDATE_PYTHON': runtime['tools']['python']['path'], 'OPS_CANDIDATE_TASK': '/retained/bin/task.real', 'OPS_CANDIDATE_X': accepted['x'], 'OPS_CANDIDATE_MODE': mode, 'OPS_CANDIDATE_WORK': f'/work/{label}'}
@@ -104,5 +111,5 @@ assert code != 0
 print(json.dumps({'originalStoreHidden':True,'daemonUnavailable':True,'networkConnectError':code}))
 """
 isolation = subprocess.check_output([*namespace, runtime['tools']['python']['path'], '-c', probe], text=True)
-emit(a.evidence / 'offline-receipt.json', {'schema': 'ops.taskCandidateOffline/1', 'status': 'PASS', 'commit': a.expected_commit, 'closurePaths': len(paths), 'exportSha256': digest(a.pack / 'closure/runtime.export'), 'runtimeClosureSha256': runtime['closureSha256'], 'bootstrap': bootstrap, 'isolation': json.loads(isolation), 'checks': checks, 'licenseStatus': 'ROOT_LICENSES_RETAINED_DEPENDENCY_AUDIT_PENDING'})
+emit(a.evidence / 'offline-receipt.json', {'schema': 'ops.taskCandidateOffline/1', 'status': 'PASS', 'commit': a.expected_commit, 'closurePaths': len(paths), 'exportSha256': digest(a.pack / 'closure/runtime.export'), 'runtimeClosureSha256': runtime['closureSha256'], 'bootstrap': bootstrap, 'isolation': json.loads(isolation), 'checks': checks, 'licenseStatus': 'ROOT_LICENSES_RETAINED_DEPENDENCY_AUDIT_PENDING', 'executionHost': {'provider': 'github-actions' if os.environ.get('GITHUB_ACTIONS') == 'true' else 'local', 'runId': os.environ.get('GITHUB_RUN_ID'), 'runAttempt': os.environ.get('GITHUB_RUN_ATTEMPT'), 'workflowRef': os.environ.get('GITHUB_WORKFLOW_REF')}})
 print('fresh full runtime check PASS; dependency license audit remains separately required')
