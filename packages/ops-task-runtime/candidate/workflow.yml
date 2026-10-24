@@ -6,4 +6,4 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Execute the sole Taskfile DAG
-        run: '"$OPS_CANDIDATE_TASK" --taskfile "$PWD/Taskfile.yml" --dir "$PWD" "candidate-$OPS_CANDIDATE_MODE"'
+        run: '"$OPS_CANDIDATE_TASK" --taskfile "$OPS_CANDIDATE_WORK/Taskfile.yml" --dir "$OPS_CANDIDATE_WORK" "candidate-$OPS_CANDIDATE_MODE"'
