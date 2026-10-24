@@ -76,18 +76,17 @@ run([runtime['tools']['python']['path'], pack_cli, 'validate', '--pack-dir', pac
 archive = a.out / 'payload.tar.gz'
 with tarfile.open(archive, 'w:gz', compresslevel=1) as t:
     t.add(pack, arcname='.')
-carrier = a.out / 'payload.b64.txt'
-# Canonical one-line Base64, streamed on multiples of three bytes.
-with archive.open('rb') as src, carrier.open('wb') as dst:
-    for chunk in iter(lambda: src.read(3 * 1024 * 1024), b''):
-        dst.write(base64.b64encode(chunk))
-request = {'schema': 'carrier-job/1', 'request_id': 'task-candidate-offline', 'sources': [{'name': carrier.name, 'url': carrier.as_uri(), 'sha256': digest(carrier)}], 'carrier_name': carrier.name, 'payload_sha256': digest(archive)}
+request = {'schema': 'carrier-job/2', 'request_id': 'task-candidate-offline', 'sources': [{'name': archive.name, 'url': archive.as_uri(), 'bytes': archive.stat().st_size, 'sha256': digest(archive)}], 'payload': {'source': archive.name, 'codec': 'raw'}}
 emit(a.out / 'carrier-request.json', request)
 carrier_cli = a.repo / 'packages/chatgpt-capability/ingress/carrier-job.mjs'
 materialized = a.out / 'materialized'
 run([runtime['tools']['node']['path'], carrier_cli, 'materialize', '--request', a.out / 'carrier-request.json', '--out', materialized], stdout=subprocess.DEVNULL)
 run([runtime['tools']['node']['path'], carrier_cli, 'verify', '--input', materialized, '--receipt', a.out / 'carrier-receipt.json'], stdout=subprocess.DEVNULL)
+recovered = a.out / 'recovered-pack'
+with tarfile.open(materialized / 'files' / archive.name) as t:
+    t.extractall(recovered, filter='data')
+# Use the transported and independently verified bytes, never the build pack.
 # Use the same retained-pack native restore check locally and on actual Actions.
 commit = read(a.e2e / 'direct-success/invocation.json')['commit']
-run([runtime['tools']['python']['path'], a.repo / 'packages/ops-task-runtime/candidate/restore-check.py', '--pack', pack, '--target', a.out / 'fresh-root', '--evidence', a.out / 'restored-check', '--expected-commit', commit])
+run([runtime['tools']['python']['path'], a.repo / 'packages/ops-task-runtime/candidate/restore-check.py', '--pack', recovered, '--target', a.out / 'fresh-root', '--evidence', a.out / 'restored-check', '--expected-commit', commit])
 print('full Carrier and fresh native restore check PASS', flush=True)

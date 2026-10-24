@@ -29,6 +29,8 @@ export function attemptReadback(dir) {
     const p = artifact('result'), a = artifact('a'), b = artifact('b');
     artifact('a-started'); artifact('b-started');
     if (r.exit !== 0 || r.cancelled || p.status !== 'PASS' || p.semantic !== 'AB') fail('success exit/result');
+    const leaf = read(r.route === 'direct' ? path.join(dir, 'stdout') : path.join(dir, 'actrun/run-1/tasks/pure-check__step_1.stdout.log'));
+    if (leaf.schema !== 'ops.taskRuntimeStaticReceipt/1' || leaf.status !== 'PASS' || leaf.target !== r.target) fail('real static leaf receipt');
     if (!(Math.max(a.start, b.start) < Math.min(a.end, b.end)) || p.join < Math.max(a.end, b.end) || a.pid === b.pid) fail('DAG interval/process');
     semantic = {status: p.status, semantic: p.semantic, exitClass: 'zero'};
   } else if (r.mode === 'failure') {

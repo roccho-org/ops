@@ -92,6 +92,8 @@ for route in ['direct', 'actrun']:
             assert not (work / 'out/forbidden.json').exists()
             if mode == 'success':
                 assert result['semantic'] == 'AB'
+                leaf = read(a.evidence / f'{label}.stdout' if route == 'direct' else root / f'tmp/{label}/runs/run-1/tasks/pure-check__step_1.stdout.log')
+                assert leaf['schema'] == 'ops.taskRuntimeStaticReceipt/1' and leaf['status'] == 'PASS'
                 left, right = [read(work / 'out' / f'{n}.json') for n in ['a', 'b']]
                 assert max(left['start'], right['start']) < min(left['end'], right['end'])
                 assert result['join'] >= max(left['end'], right['end'])
