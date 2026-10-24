@@ -1,6 +1,7 @@
 """Restore a verified proof pack with native Nix in a fresh offline user namespace."""
 import argparse
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,8 @@ p.add_argument('--pack', type=Path, required=True)
 p.add_argument('--target', type=Path, required=True)
 p.add_argument('--evidence', type=Path, required=True)
 p.add_argument('--expected-commit', required=True)
+p.add_argument('--expected-runtime-closure', required=True)
+p.add_argument('--source-repo', type=Path, required=True)
 a = p.parse_args()
 read = lambda p: json.loads(Path(p).read_text())
 def digest(p):
@@ -29,6 +32,20 @@ manifest = read(a.pack / 'MANIFEST.json')
 for row in manifest['files']:
     assert digest(a.pack / row['path']) == row['sha256'], row['path']
 runtime = read(a.pack / 'runtime.json')
+assert runtime['closureSha256'] == a.expected_runtime_closure
+source_json = read(a.source_repo / 'packages/ops-task-runtime/source.json')
+for tool, source_key in [('task', 'goTask'), ('actrun', 'actrun')]:
+    assert runtime['tools'][tool]['sha256'] == source_json[source_key]['binarySha256']
+    assert digest(a.pack / 'bin' / (tool + '.real')) == source_json[source_key]['binarySha256']
+git = os.environ.get('OPS_CANDIDATE_GIT', 'git')
+source_archive = subprocess.check_output([git, '-C', str(a.source_repo), 'archive', '--format=tar', a.expected_commit, 'packages/ops-task-runtime/'])
+source_oracle = []
+with tarfile.open(fileobj=io.BytesIO(source_archive)) as t:
+    for member in t.getmembers():
+        if member.isfile():
+            source_oracle.append([member.name.removeprefix('packages/ops-task-runtime/'), hashlib.sha256(t.extractfile(member).read()).hexdigest()])
+source_oracle.sort(key=lambda r:r[0])
+source_tree = subprocess.check_output([git, '-C', str(a.source_repo), 'rev-parse', a.expected_commit + '^{tree}'], text=True).strip()
 assert runtime['profile'] == 'candidate-user-task-SAME-v5.1' and runtime['admission'] == 'NOT_ADOPTED'
 root = a.target
 with tarfile.open(a.pack / 'bootstrap/target-nix.tar.gz') as t:
@@ -69,7 +86,8 @@ for route in ['direct', 'actrun']:
             work = root / 'work' / label
             shutil.copytree(a.pack / 'sources' / label, work)
             accepted = read(a.pack / 'accepted' / f'{label}.json')
-            assert accepted['commit'] == a.expected_commit
+            assert accepted['commit'] == a.expected_commit and accepted['tree'] == source_tree
+            assert [r for r in accepted['oracle'] if r[0] != 'input.bin'] == source_oracle
             identity = {k: accepted[k] for k in ['commit', 'tree', 'oracle', 'runtimeIdentity', 'mode', 'target', 'declaredEnv']}
             assert hashlib.sha256(json.dumps(identity, separators=(',', ':'), ensure_ascii=False).encode()).hexdigest() == accepted['x']
             expected_runtime = {k: v['sha256'] for k, v in sorted(runtime['tools'].items())}
@@ -101,7 +119,10 @@ for route in ['direct', 'actrun']:
                 assert result['errorClass'] == 'fixture-root-failure' and result['leafExit'] == 7
             for rel, expected_hash in accepted['oracle']:
                 assert digest(work / rel) == expected_hash
-            checks.append({'route': route, 'mode': mode, 'inputSha256': accepted['inputSha256'], 'x': accepted['x'], 'exit': r.returncode, 'result': result})
+            semantic = {'status': 'PASS', 'semantic': result['semantic'], 'exitClass': 'zero'} if mode == 'success' else {'status': 'EXPECTED_FAILURE', 'errorClass': result['errorClass'], 'leafExit': result['leafExit'], 'exitClass': 'nonzero'}
+            normalized = {k: accepted[k] for k in ['commit', 'tree', 'x', 'inputSha256', 'runtimeIdentity', 'target', 'mode']}
+            normalized.update(semantic, dependentStarted=False)
+            checks.append({'normalized': normalized, 'route': route, 'mode': mode, 'inputSha256': accepted['inputSha256'], 'x': accepted['x'], 'exit': r.returncode, 'result': result})
 probe = """import os,socket,json
 assert not os.path.exists('/work/repos/ops.git')
 assert not os.path.exists('/nix/var/nix/daemon-socket/socket')

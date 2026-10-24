@@ -88,5 +88,5 @@ with tarfile.open(materialized / 'files' / archive.name) as t:
 # Use the transported and independently verified bytes, never the build pack.
 # Use the same retained-pack native restore check locally and on actual Actions.
 commit = read(a.e2e / 'direct-success/invocation.json')['commit']
-run([runtime['tools']['python']['path'], a.repo / 'packages/ops-task-runtime/candidate/restore-check.py', '--pack', recovered, '--target', a.out / 'fresh-root', '--evidence', a.out / 'restored-check', '--expected-commit', commit])
+run([runtime['tools']['python']['path'], a.repo / 'packages/ops-task-runtime/candidate/restore-check.py', '--pack', recovered, '--target', a.out / 'fresh-root', '--evidence', a.out / 'restored-check', '--expected-commit', commit, '--expected-runtime-closure', runtime['closureSha256'], '--source-repo', a.repo], env={**os.environ, 'OPS_CANDIDATE_GIT': runtime['tools']['git']['path']})
 print('full Carrier and fresh native restore check PASS', flush=True)

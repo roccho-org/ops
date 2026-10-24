@@ -27,6 +27,10 @@ on:
         description: 'Exact retained candidate payload SHA-256'
         type: string
         required: false
+      candidate_runtime_closure_sha256:
+        description: 'Exact independently selected native runtime closure identity'
+        type: string
+        required: false
       candidate_source_commit:
         description: 'Exact candidate source commit; must match checkout and accepted inputs'
         type: string
@@ -330,6 +334,7 @@ jobs:
           CANDIDATE_PAYLOAD_URL: ${{ inputs.candidate_payload_url }}
           CANDIDATE_PAYLOAD_SHA256: ${{ inputs.candidate_payload_sha256 }}
           CANDIDATE_SOURCE_COMMIT: ${{ inputs.candidate_source_commit }}
+          CANDIDATE_RUNTIME_CLOSURE: ${{ inputs.candidate_runtime_closure_sha256 }}
         shell: bash
         run: |
           set -euo pipefail
@@ -342,6 +347,7 @@ jobs:
           assert not u.query and not u.fragment
           assert re.fullmatch('[0-9a-f]{64}',os.environ['CANDIDATE_PAYLOAD_SHA256'])
           assert re.fullmatch('[0-9a-f]{40}',os.environ['CANDIDATE_SOURCE_COMMIT'])
+          assert re.fullmatch('[0-9a-f]{64}',os.environ['CANDIDATE_RUNTIME_CLOSURE'])
           PYTHON
           curl --fail --location --silent --show-error "$CANDIDATE_PAYLOAD_URL" -o "$RUNNER_TEMP/candidate-payload.tar.gz"
           python3 - <<'PYTHON'
@@ -357,10 +363,11 @@ jobs:
       - name: Execute exact retained pure checks through fresh native runtime
         env:
           CANDIDATE_SOURCE_COMMIT: ${{ inputs.candidate_source_commit }}
+          CANDIDATE_RUNTIME_CLOSURE: ${{ inputs.candidate_runtime_closure_sha256 }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 packages/ops-task-runtime/candidate/restore-check.py             --pack "$RUNNER_TEMP/candidate-pack"             --target "$RUNNER_TEMP/candidate-target"             --evidence "$RUNNER_TEMP/candidate-evidence"             --expected-commit "$CANDIDATE_SOURCE_COMMIT"
+          python3 packages/ops-task-runtime/candidate/restore-check.py             --pack "$RUNNER_TEMP/candidate-pack"             --target "$RUNNER_TEMP/candidate-target"             --evidence "$RUNNER_TEMP/candidate-evidence"             --expected-commit "$CANDIDATE_SOURCE_COMMIT" --expected-runtime-closure "$CANDIDATE_RUNTIME_CLOSURE" --source-repo "$GITHUB_WORKSPACE"
       - name: Retain actual runner proof
         if: always()
         uses: actions/upload-artifact@v4
