@@ -31,6 +31,7 @@ export function attemptReadback(dir) {
     for (const value of [a.start, a.end, b.start, b.end, p.start, p.end, p.join, sa.start, sb.start]) {
       if (!Number.isSafeInteger(value) || value < 0) fail('missing or invalid monotonic time');
     }
+    if ([a.pid, b.pid, sa.pid, sb.pid].some(pid => !Number.isSafeInteger(pid) || pid <= 0)) fail('invalid probe PID');
     if (a.end <= a.start || b.end <= b.start || p.start !== Math.min(a.start, b.start) || p.end !== Math.max(a.end, b.end) || sa.start !== a.start || sb.start !== b.start || sa.pid !== a.pid || sb.pid !== b.pid) fail('inconsistent interval');
     if (r.exit !== 0 || r.cancelled || p.status !== 'PASS' || p.semantic !== 'AB') fail('success exit/result');
     const leaf = read(r.route === 'direct' ? path.join(dir, 'stdout') : path.join(dir, 'actrun/run-1/tasks/pure-check__step_1.stdout.log'));
