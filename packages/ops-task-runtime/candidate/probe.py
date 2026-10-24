@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import time
 
@@ -31,6 +32,13 @@ elif op == 'join':
 elif op == 'fail':
     emit('failure', {'status': 'EXPECTED_FAILURE', 'errorClass': 'fixture-root-failure', 'leafExit': 7})
     sys.exit(7)
+elif op == 'cancel-root':
+    child = subprocess.Popen([sys.executable, __file__, 'descendant'])
+    emit('cancel-root', {'pid': os.getpid(), 'child': child.pid})
+    child.wait()
+elif op == 'descendant':
+    emit('descendant', {'pid': os.getpid(), 'start': time.monotonic_ns()})
+    time.sleep(60)
 elif op == 'forbidden':
     emit('forbidden', {'status': 'INVALID'})
 else:
