@@ -107,9 +107,10 @@ export async function requests(args) {
   const archive = git(repo, ['archive', '--format=tar', commit, prefix]);
   const source = path.join(out, 'retained-source');
   fs.mkdirSync(source);
-  const extracted = spawnSync(runtime.tools.python.path, ['-c', "import io,tarfile,sys; t=tarfile.open(fileobj=io.BytesIO(sys.stdin.buffer.read())); t.extractall(sys.argv[1],filter='data')", source], {input: archive});
+  const archivePath = path.join(out, 'source.tar');
+  fs.writeFileSync(archivePath, archive);
+  const extracted = spawnSync(runtime.tools.python.path, ['-c', "import tarfile,sys; t=tarfile.open(sys.argv[1]); t.extractall(sys.argv[2],filter='data')", archivePath, source], {timeout: 10000});
   if (extracted.error || extracted.status !== 0) fail('source archive extraction failed');
-  fs.writeFileSync(path.join(out, 'source.tar'), archive);
   const packageSource = path.join(source, prefix);
   const accepted = [], rejected = [];
   for (const r of req.requests) {
@@ -120,6 +121,7 @@ export async function requests(args) {
     fs.cpSync(packageSource, path.join(dir, 'snapshot'), {recursive: true});
     fs.writeFileSync(path.join(dir, 'snapshot', 'input.bin'), input, {mode: 0o444});
     const oracle = inventory(path.join(dir, 'snapshot'));
+    for (const [rel] of oracle) fs.chmodSync(path.join(dir, 'snapshot', rel), 0o444);
     fs.cpSync(path.join(dir, 'snapshot'), path.join(dir, 'work'), {recursive: true});
     if (JSON.stringify(inventory(path.join(dir, 'work'))) !== JSON.stringify(oracle)) fail('copy mismatch');
     const runtimeIdentity = Object.fromEntries(Object.entries(runtime.tools).sort().map(([k, v]) => [k, v.sha256]));

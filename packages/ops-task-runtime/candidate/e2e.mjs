@@ -12,8 +12,13 @@ export async function candidateE2E(manifest, root, evidence) {
   const cli = path.join(root, 'packages/ops-task-runtime/bin/ops-task-runtime.mjs');
   let invocation = 0;
   const invoke = (args, expected = 0) => {
-    const r = spawnSync(process.execPath, [cli, 'candidate', ...args], {encoding: 'utf8', timeout: 45000});
-    write(path.join(evidence, `cli-${++invocation}.json`), {args, status: r.status, signal: r.signal, stdout: r.stdout, stderr: r.stderr, error: r.error?.message});
+    const serial = ++invocation;
+    const stdoutPath = path.join(evidence, `cli-${serial}.stdout`), stderrPath = path.join(evidence, `cli-${serial}.stderr`);
+    const stdout = fs.openSync(stdoutPath, 'wx'), stderr = fs.openSync(stderrPath, 'wx');
+    const r = spawnSync(process.execPath, [cli, 'candidate', ...args], {stdio: ['ignore', stdout, stderr], timeout: 45000});
+    fs.closeSync(stdout); fs.closeSync(stderr);
+    r.stdout = fs.readFileSync(stdoutPath, 'utf8'); r.stderr = fs.readFileSync(stderrPath, 'utf8');
+    write(path.join(evidence, `cli-${serial}.json`), {args, status: r.status, signal: r.signal, stdout: r.stdout, stderr: r.stderr, error: r.error?.message});
     assert.ifError(r.error);
     assert.equal(r.status, expected, r.stderr || r.stdout); return r.stdout;
   };
