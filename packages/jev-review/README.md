@@ -2,6 +2,218 @@
 
 Shared semantic-evaluation boundary for ops consumers.
 
+## Raw relation consumer (OPS676-v4)
+
+The existing installed `jev-review` also composes external JSONL, explicit finite
+participant groups, versioned checks, and a saved evaluation D. Original files
+remain externally owned, are never written, and are not copied into a second
+Raw ledger. This projection has no adoption, rewrite, deletion or merge authority.
+
+```sh
+nix build .#jev-review
+result/bin/jev-review raw-relations evaluate packages/jev-review/tests/fixtures/raw-relations/plan.json /tmp/unique-D.json
+result/bin/jev-review raw-relations project packages/jev-review/tests/fixtures/raw-relations/plan.json /tmp/unique-D.json > /tmp/evaluated.jsonl
+nix build .#checks.x86_64-linux.jev-review
+nix build .#checks.x86_64-linux.jev-comment-functional .#checks.x86_64-linux.jev-issue-executor
+```
+
+`evaluate` defaults to the deterministic limited baseline (`--provider baseline`
+may be explicit), creates D absent-only (0600), and reads it back. A live run must
+explicitly select `--provider jev` after the two file arguments. The existing
+owner-approved launcher must inject `JEV_API_KEY` into that command's child
+environment; the package does not provision or discover that launcher or key.
+
+```sh
+# Run only inside the existing owner-bound credential supply and finite-run budget.
+result/bin/jev-review raw-relations evaluate PLAN.json /tmp/unique-live-D.json --provider jev
+```
+
+The key is never an argument, stdin input or result field. Missing/blank key,
+invalid/repeated flags and an existing output D are rejected before any call.
+Key presence alone never enables Jev. This path ignores ambient `JEV_API_URL`
+and `JEV_TIMEOUT_MS`: the existing fixed provider and 15-second deadline apply.
+`project` performs an offline deterministic join to stdout and accepts no provider
+flag or credential requirement.
+For a query set the optional plan `filter` to `{"source":"demo","occurrence":4}`;
+either field may be omitted. Filtering does not alter the evaluation binding.
+There is no separate query/export/reconstruction command. Relative source paths
+resolve against the PLAN file directory, not the current working directory.
+
+### Complete plan grammar
+
+See [the executable public example](tests/fixtures/raw-relations/plan.json) and
+[its Raw input](tests/fixtures/raw-relations/raw.jsonl). Unknown keys in plan
+control objects are rejected. Raw objects retain arbitrary original fields,
+including fields named `annotations`, `evaluation`, and `sourceRef`.
+
+| Field | Grammar / meaning |
+| --- | --- |
+| `schema` | Exactly `ops.raw-relations.plan.v1` |
+| `sources` | Ordered array of `{id,revision,path}` nonblank strings; unique `(id,revision)` |
+| `checks` | Ordered 0..N `{id,version,kind,meaning,applicability,context,baseline?}`; ids unique |
+| `kind` | `duplicate`, `inconsistent`, `shared_concept_different_angle`, or `term_alias` |
+| `meaning`, `applicability` | Independent nonblank descriptions; not inferred from score or kind |
+| check `context` | Array of unique ids resolving into the plan context |
+| `context` | Ordered `{id,revision,value}`; ids/revisions nonblank, arbitrary JSON value |
+| `obligations` (U) | Ordered `{id,check,participants}` defining required finite groups |
+| `candidates` (K) | Ordered `{id,check,participants}` explicitly supplied for attempted evaluation; K must be a subset of U by exact check and ordered participants/roles (group ids may differ) |
+| `participants` | Ordered 2..64 `{source,revision,occurrence,role}`; role nonblank; distinct occurrence identities |
+| `occurrence` | Physical 1-based line, including blank lines in line numbering |
+| `candidateRule` | `{id,version}` explicitly binding supplied discovery/membership policy |
+| `scope`, `asOf` | Nonblank scope; parseable date/time string; both bind the join |
+| `filter` | Optional `{source?,occurrence?}`; positive integer occurrence |
+
+Each top-level array is limited to 1000 members. Original source files together
+are bounded to 1 MiB. Invalid UTF-8, invalid JSON, duplicate keys (also escaped or
+nested), unpaired surrogates, nonfinite numbers and integers outside JS's safe
+range are rejected explicitly. The parsed numeric view is finite JavaScript
+binary64: decimals can round (for example `0.100000000000000005` parses as `0.1`),
+underflow and negative-zero lexical distinctions can disappear on serialization.
+This is not an arbitrary-decimal lossless codec. Tasks requiring exact decimal
+semantic input are unsupported by this parsed/model-facing view. Original source
+bytes, hashes and byte spans retain the exact numeric spelling for retrieval;
+binary64 equality does not establish original-byte or record-identity equality.
+Nonblank lines must be objects. This interface explicitly treats optional Raw
+`id` as a nonblank stable record identity within `(source,revision)`, not as a
+logical-subject id: repeated ids with different original record bytes are
+identity conflicts, even for formatting, key order or numeric spelling changes.
+Record bytes are the complete line excluding LF (including any CR and spaces).
+Sources whose `id` has a different meaning are outside this input contract; the
+consumer does not rewrite them or infer an alternate identity meaning. Without
+`id`, occurrence is the identity. Byte-identical repeated records remain distinct
+occurrences, and equal content with different ids remains distinct. Sources may
+include multiple explicit revisions.
+
+Blank lines, leading/trailing whitespace, CRLF and absence of a final newline
+remain in the external original bytes. Each projected `sourceRef` records source,
+revision, original path, whole-file SHA256, occurrence, optional recordId, and
+`startByte`/`endByte` excluding the LF delimiter (including CR where present).
+The original file can be read exactly and its complete hash checked; a span
+decodes to the corresponding `raw`. JSON serialization of `raw` alone does not
+reconstruct original bytes. No original-byte recovery after source loss is promised.
+
+### Limited real baseline and evaluator port
+
+Baseline support must be selected explicitly with the optional check `baseline`.
+It compares supplied structured facts under the following exact rules; it does
+not interpret natural-language meaning/applicability or prose context. Omit the
+rule for free-form checks: those return UNKNOWN, never inferred clean.
+
+| Kind / baseline | Actual computation and limits |
+| --- | --- |
+| duplicate / `exact_context_text` | Requires nonblank `content` and present `scope,authority,time` on every participant. Different declared context is NEGATIVE; identical text with identical context is POSITIVE; different text is UNKNOWN. |
+| inconsistent / `finite_set_intersection` | Requires `constraint:{variable,allowed}` with one shared variable and nonempty string sets. Empty whole-group intersection is POSITIVE, nonempty is NEGATIVE. No inference from prose. |
+| shared_concept_different_angle / `declared_concept_angles` | Requires nonblank `concept,angle`. Distinct concepts are NEGATIVE; one concept with all distinct angles is POSITIVE; repeated angles are UNKNOWN. |
+| term_alias / `declared_term_senses` | Requires nonblank `term,sense,concept`. Same sense/concept with all distinct terms is POSITIVE; same term with all distinct senses is NEGATIVE; otherwise UNKNOWN. |
+
+These are declarations in the input, not independently verified facts. Baseline
+results are candidates under that rule, not proof of general semantic relations.
+Neither unrelated shared words nor fixture ids choose an answer.
+
+The installed CLI binds `existingJevPort` once from the owner-injected slot.
+The exported `evaluateRelations(resolvePlan(plan, planDirectory), {provider:'jev',
+ask:existingJevPort(ownerSuppliedKey)})` uses the existing Review/Core transport,
+fixed Jev model and typed Noul; no new provider/authentication is introduced.
+The owner supplies the opaque key into that bounded process after actual route
+and finite-run approval. There is no credential path, decryption, new auth or
+endpoint-selection interface in this consumer.
+The complete participant group, roles, check, all context and candidate-rule
+version are sent together; no pairwise reduction, clipping, translation or
+summarization occurs. Existing model input budgets can refuse the attempt.
+
+There is no current call-count ceiling or lifetime remaining-call budget.
+Requests are serial with 15-second native deadlines and a per-trial 600-second
+observed-wait window. Failed/UNKNOWN calls are counted; no automatic retry. Missing usage or
+an unknown/failed attempt prevents the next call. Reported total tokens (or input
+plus output) at 100k stops subsequent calls; this is an observation threshold,
+not a hard cap or a byte-to-token guarantee. These time/token windows are
+prospective trial controls, not lifetime caps. Retain all prior attempts and
+failures; do not blindly retry an uncertain effect or reset a stopped trial by
+restarting the CLI.
+Supply both orderings as candidates in one finite plan where appropriate, and
+retain its D before any further invocation. Fixed 16-case stage denominators
+are acceptance gates, not call-count budgets. Dollars and preparation/review effort stay UNKNOWN
+unless separately measured. Noul >= .65 is POSITIVE, <= .35 NEGATIVE, else UNKNOWN.
+The original typed score is retained; it is not truth probability or permission.
+An intermediate score (UNKNOWN), failure or missing usage stops subsequent Jev
+attempts in the invocation. Missing context is NOT_RUN and makes no provider call.
+
+The raw adapter's fixed `ops.raw-relations.question.v2` method sends the original
+`check.meaning` as `instructions.question`, and the original applicability in a
+separate field. Complete participants, roles, Raw and context remain in state;
+yes/no criteria refer symmetrically to the supplied question, including its
+negation. Kind does not invert polarity. Raw text is data, never an instruction.
+The shared provider, model, authentication, response decoder and budget checks
+are unchanged. This is a prospective method hypothesis, not proven quality.
+
+### D, projection, evidence and completion
+
+D (`ops.raw-relations.D.v1`) retains `checks,U,K,T,outcomes,positiveFindings,
+omissions,dependencies,accounting`, plus schema/policy/binding. T includes every
+attempted candidate, including failed attempts. K entries stopped before attempt
+have NOT_RUN outcomes. Obligations outside K retain UNKNOWN with an omission
+cause. Calls, model, usage, elapsed time and unknown costs are separate from
+semantic assessment, evidence validity/currentness, review and adoption.
+New D includes producer v2, the dependency-bound question method and each
+attempt's exact request snapshot/hash in `wire` (null for baseline/NOT_RUN).
+Baseline retains its own `ops.raw-relations.baseline.v1` method and no Jev
+question method in producer; the dependency method identifies adapter capability.
+Saved D without producer/method fields is the known v1 format. Offline projection
+validates its original dependency binding without rewriting saved bytes and marks
+`methodCurrentness:HISTORICAL`; it cannot establish v2 semantic quality. Malformed
+or conflicting method bindings are rejected. Current v2 wire must reconstruct
+from the bound inputs; changed inputs yield stale evidence, not fresh annotations.
+Cross-process trial execution retains attempt/token/time accounting and trial
+stop state; this CLI does not implement a persistent ledger. Historical v1 D
+keeps its original accounting validation, including its former 24-call ceiling;
+that historical restriction does not constrain v2 execution or v2 D projection.
+Each completed Jev outcome requires `measurement:{type:"noul",noul:<number>}`
+and the same finite `[0,1]` number in `score`, the matching threshold assessment,
+VALID evidence and the model-candidate basis. Baseline, failed and not-run
+outcomes have null measurement and score. Failure/not-run assessments remain
+UNKNOWN with matching INVALID/UNRESOLVED evidence. Projection rejects malformed
+typed measurements, usage or inconsistent attempt accounting, rather than
+displaying a supplied positive label as a validated judgment.
+
+The binding covers all exact source hashes, order, checks, context revisions and
+values, U/K and participant roles/order, candidate-rule version, scope, asOf and
+fixed projection policy. Any change invalidates all prior annotations, including
+potential new nary memberships. This deliberately conservative policy does not
+claim fine-grained incremental reuse. The supplied U/K universe is finite; no
+discovery or clean coverage beyond it is claimed.
+
+Projection emits `{sourceRef,raw,annotations,evaluation}` per parsed occurrence
+in original source/line order. Valid current positive outcomes are annotations;
+all current valid outcomes (including negative/UNKNOWN) remain in evaluation.
+Stale, invalid and unresolved outcomes remain separate diagnostics. If any
+candidate on a Raw is failed/not-run/UNKNOWN, or an obligation is omitted, its
+semantic summary stays UNKNOWN; actual current positive candidates remain
+individually available in annotations. Zero checks
+means NOT_SELECTED. Candidate absence and obligations outside K cannot count as
+clean. NEGATIVE_ON_SUPPLIED_CANDIDATES is explicitly limited; review remains
+UNREVIEWED and adoption NOT_ADOPTED. A valid score does not supply a semantic
+explanation: participant/source refs are exact bindings, and the basis identifies
+the actual comparator or an unverified model candidate. No generated explanation
+or per-row manual R approval is assumed. D is externally supplied evidence, not
+signed attestation or a trusted admission record. Structural validation detects
+inconsistent bindings but does not authenticate its author or certify its truth.
+
+Public machine tests cover the #676 counterexample mechanics and baseline
+positive/negative behavior, deterministic replay, bytes/occurrences, failures,
+staleness and query/export. `node tests/raw-relations.mjs --core-only` runs pure
+contract tests; the ordinary runner also runs source and PATH-installed CLI from
+a clean cwd/environment. Core-only success does not prove installed provision.
+Synthetic provider answers test mechanics only, never live semantic quality.
+
+Whole OPS676-v4 completion additionally requires the independent R's private
+8-unit semantic set across four relation kinds, both orderings (16 calls, not 16
+independent cases), all 16 expected decisions correct with no order flip or
+invalid evidence, comparable baseline accounting, actual supplied route,
+distributed entry and required public checks on the same reviewed tree, and R
+unresolved blockers zero. Once exposed, holdout cases become development cases;
+ordinary fixes retain the frozen oracle/threshold, and fresh claims require fresh
+independent cases. This implementation does not claim these live gates passed.
+
 ```text
 deterministic hard filter
 → small declared state

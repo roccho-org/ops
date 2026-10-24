@@ -81,6 +81,10 @@ export function writeAndReadback(file, rows) {
 }
 
 async function main() {
+  if (process.argv[2] === 'raw-relations') {
+    const { rawRelationsMain } = await import('../raw-relations.mjs');
+    return rawRelationsMain(process.argv.slice(3));
+  }
   const [inputFile, outputFile, extra] = process.argv.slice(2);
   if (!inputFile || !outputFile || extra) throw new Error('usage: jev-review INPUT.json OUTPUT.jsonl');
   const input = validateCliInput(JSON.parse(fs.readFileSync(inputFile, 'utf8')));

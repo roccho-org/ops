@@ -1,0 +1,104 @@
+{
+  "schema": "ops.raw-relations.live-bundle.v1",
+  "trialId": "ops676-raw-relations-corrective-fresh-v1",
+  "items": [
+    {
+      "id": "f01-original",
+      "plan": "f01-original/plan.json"
+    },
+    {
+      "id": "f01-reverse",
+      "plan": "f01-reverse/plan.json"
+    },
+    {
+      "id": "f02-original",
+      "plan": "f02-original/plan.json"
+    },
+    {
+      "id": "f02-reverse",
+      "plan": "f02-reverse/plan.json"
+    },
+    {
+      "id": "f03-original",
+      "plan": "f03-original/plan.json"
+    },
+    {
+      "id": "f03-reverse",
+      "plan": "f03-reverse/plan.json"
+    },
+    {
+      "id": "f04-original",
+      "plan": "f04-original/plan.json"
+    },
+    {
+      "id": "f04-reverse",
+      "plan": "f04-reverse/plan.json"
+    },
+    {
+      "id": "f05-original",
+      "plan": "f05-original/plan.json"
+    },
+    {
+      "id": "f05-reverse",
+      "plan": "f05-reverse/plan.json"
+    },
+    {
+      "id": "f06-original",
+      "plan": "f06-original/plan.json"
+    },
+    {
+      "id": "f06-reverse",
+      "plan": "f06-reverse/plan.json"
+    },
+    {
+      "id": "f07-original",
+      "plan": "f07-original/plan.json"
+    },
+    {
+      "id": "f07-reverse",
+      "plan": "f07-reverse/plan.json"
+    },
+    {
+      "id": "f08-original",
+      "plan": "f08-original/plan.json"
+    },
+    {
+      "id": "f08-reverse",
+      "plan": "f08-reverse/plan.json"
+    }
+  ],
+  "files": {
+    "f01-original/plan.json": "9ca8eb7cf209f3a9d218ae67003c3610329cc5e7043ddb5269cebd45b74713b4",
+    "f01-original/raw.jsonl": "7d2624af5481629caeb3bc969188bfd2e520b13e67ea231745944a9768b73149",
+    "f01-reverse/plan.json": "9ca8eb7cf209f3a9d218ae67003c3610329cc5e7043ddb5269cebd45b74713b4",
+    "f01-reverse/raw.jsonl": "d627c685328d78dea4dd724761c66ba705e381ffcdbfa01bb566d6d61711f9a9",
+    "f02-original/plan.json": "9ca8eb7cf209f3a9d218ae67003c3610329cc5e7043ddb5269cebd45b74713b4",
+    "f02-original/raw.jsonl": "aab1f895ddc53237ff0c8be7579757deddfb88f2a362bcd6f753bd559e3c8380",
+    "f02-reverse/plan.json": "9ca8eb7cf209f3a9d218ae67003c3610329cc5e7043ddb5269cebd45b74713b4",
+    "f02-reverse/raw.jsonl": "4e3f220f9404d5d5a74de566ab1fe7d263bb09e08a3c739690db0c8079dc104c",
+    "f03-original/plan.json": "880dcdc57c149ad22c7086e2c91fac06fabf4295ada56e7c916beb12f6fec7be",
+    "f03-original/raw.jsonl": "42f61fe29b1d26b2df2541d2abf84abc3c9005d5dac5ac4aa7644897d518c9b5",
+    "f03-reverse/plan.json": "880dcdc57c149ad22c7086e2c91fac06fabf4295ada56e7c916beb12f6fec7be",
+    "f03-reverse/raw.jsonl": "ff3248deaa5870531e8102656be48d737bda4b8a9df5bce87dc23eef9478e70d",
+    "f04-original/plan.json": "62029b6ad8e78f39d780601f63788c0aef633440ae3da70bdbd37754cdc8f3f7",
+    "f04-original/raw.jsonl": "ec215ead713ce431e41051454ba6e6efbc1aaf578b57a140765def34e80840c9",
+    "f04-reverse/plan.json": "62029b6ad8e78f39d780601f63788c0aef633440ae3da70bdbd37754cdc8f3f7",
+    "f04-reverse/raw.jsonl": "36690b293c2e68a18cc1b3fe50ea64212f8924f8ba8898c433c8aaa32a26b4c3",
+    "f05-original/plan.json": "56e02caf7d5737c5bc9de8de0d194be0542bbb92fa07f8b190cad07865cef387",
+    "f05-original/raw.jsonl": "43ddc655990b52cf62659fec224bf9dd18e97796b2461d11477826be16675773",
+    "f05-reverse/plan.json": "56e02caf7d5737c5bc9de8de0d194be0542bbb92fa07f8b190cad07865cef387",
+    "f05-reverse/raw.jsonl": "e1e0e3858c766198d3b04b589d6392e392f435b2ca31d9b6d30460a3d8f5aa23",
+    "f06-original/plan.json": "cdf9114e8c2f394cbdf7f088d519cc54d77812d50c1fd7f767630bfd93ffcc02",
+    "f06-original/raw.jsonl": "982ddb9b6bdca730704202b992b1c47db290c26e3e0631eff68e1b21b42b7466",
+    "f06-reverse/plan.json": "cdf9114e8c2f394cbdf7f088d519cc54d77812d50c1fd7f767630bfd93ffcc02",
+    "f06-reverse/raw.jsonl": "2b76480c609134836ef1ff4479f294a86907167395bc315a4c54da57889760bc",
+    "f07-original/plan.json": "53cbe956190115f6189aa21222216d3fc0b28878464ef8e6737230ca9263e524",
+    "f07-original/raw.jsonl": "4043ca0cc560275d415f671fe931b8a07fe3792180bea4b437f5feb592655d85",
+    "f07-reverse/plan.json": "53cbe956190115f6189aa21222216d3fc0b28878464ef8e6737230ca9263e524",
+    "f07-reverse/raw.jsonl": "2e141b17d474b974f5b924e8ea5d95c70194f7a245c798ff91d51568dca14445",
+    "f08-original/plan.json": "116ba2a01f235d087b849abeacbe18e071183a00af61511f25097a9702281355",
+    "f08-original/raw.jsonl": "2429dbbad43b7753d3712a04ec9aaa2db2ae30c2b42be175b92ff70db63b1927",
+    "f08-reverse/plan.json": "116ba2a01f235d087b849abeacbe18e071183a00af61511f25097a9702281355",
+    "f08-reverse/raw.jsonl": "bc9ee8d199db868e0d42f0e2aa33fc9bd4467055f2105db57fc0ded405f70f84"
+  }
+}

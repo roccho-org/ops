@@ -1,0 +1,67 @@
+{
+  "schema": "ops.raw-relations.plan.v1",
+  "sources": [
+    {
+      "id": "r-input",
+      "revision": "fresh-frozen-v1",
+      "path": "raw.jsonl"
+    }
+  ],
+  "checks": [
+    {
+      "id": "relation",
+      "version": "R-fresh-frozen-v1",
+      "kind": "term_alias",
+      "meaning": "Do the two named terms denote the same concept within the stated protocol?",
+      "applicability": "Only stated conditions apply; do not assume unstated rules.",
+      "context": []
+    }
+  ],
+  "context": [],
+  "obligations": [
+    {
+      "id": "obligation",
+      "check": "relation",
+      "participants": [
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 1,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 2,
+          "role": "assertion"
+        }
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "candidate",
+      "check": "relation",
+      "participants": [
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 1,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "fresh-frozen-v1",
+          "occurrence": 2,
+          "role": "assertion"
+        }
+      ]
+    }
+  ],
+  "candidateRule": {
+    "id": "R-explicit-fresh",
+    "version": "1"
+  },
+  "scope": "Only stated conditions apply; do not assume unstated rules.",
+  "asOf": "2026-10-24T00:00:00Z"
+}

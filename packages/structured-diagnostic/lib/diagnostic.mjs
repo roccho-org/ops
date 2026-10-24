@@ -78,7 +78,7 @@ function isWellFormedUnicode(value) {
   return true;
 }
 
-function assertNoDuplicateObjectKeys(text) {
+export function assertNoDuplicateObjectKeys(text) {
   let index = 0;
 
   function skipWhitespace() {

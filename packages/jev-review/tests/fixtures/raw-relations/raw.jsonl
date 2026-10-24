@@ -1,0 +1,14 @@
+{"id":"dup-a","content":"Keep the original.","scope":"demo","authority":"external-user","time":"2026","annotations":{"original":true},"evaluation":"raw-field","sourceRef":"raw-field"}
+{"id":"dup-b","content":"Keep the original.","scope":"demo","authority":"external-user","time":"2026"}
+{"id":"set-a","content":"x is A or B","constraint":{"variable":"x","allowed":["A","B"]}}
+{"id":"set-b","content":"x is B or C","constraint":{"variable":"x","allowed":["B","C"]}}
+{"id":"set-c","content":"x is A or C","constraint":{"variable":"x","allowed":["A","C"]}}
+{"id":"angle-a","concept":"retention","angle":"source","content":"Retain original input."}
+{"id":"angle-b","concept":"retention","angle":"identity","content":"Keep source identity."}
+{"id":"angle-c","concept":"retention","angle":"order","content":"Keep occurrence order."}
+{"id":"angle-d","concept":"retention","angle":"bytes","content":"Keep exact bytes."}
+{"id":"alias-a","term":"car","sense":"road vehicle","concept":"automobile","content":"A car is a road vehicle."}
+{"id":"alias-b","term":"automobile","sense":"road vehicle","concept":"automobile","content":"An automobile is a road vehicle."}
+{"id":"homonym-a","term":"bank","sense":"financial institution","concept":"finance","content":"A bank holds deposits."}
+{"id":"homonym-b","term":"bank","sense":"river edge","concept":"geography","content":"The bank borders the river."}
+{"id":"unselected","content":"Outside the supplied comparison groups."}

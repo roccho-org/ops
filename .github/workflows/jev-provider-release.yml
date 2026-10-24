@@ -16,10 +16,43 @@ on:
       publish:
         type: boolean
         default: false
+      raw_relations_trial:
+        type: boolean
+        default: false
+      raw_relations_stage:
+        description: Fixed development or confirmation; confirmation requires external R stage1 acceptance and root GO
+        type: choice
+        options: [development, confirmation]
+        default: development
+      expected_workflow_sha:
+        description: P/R accepted actual workflow commit (not authority by itself)
+        type: string
+        default: ''
+      raw_relations_bundle_sha:
+        description: SHA256 of R frozen public manifest.json (no Gold)
+        type: string
+        default: ''
+      stage1_root_go:
+        description: Root records independently scored stage1 16/16 PASS and reconciled exact source/artifact; assertion, not machine proof
+        type: boolean
+        default: false
+      stage1_run_id:
+        description: Root-reconciled development Actions run ID (confirmation only)
+        type: string
+        default: ''
+      stage1_artifact_sha256:
+        description: Root-reconciled development artifact ZIP SHA256 (confirmation only)
+        type: string
+        default: ''
+      stage1_report_sha256:
+        description: Independent R stage1 scoring report SHA256, held outside key process (confirmation only)
+        type: string
+        default: ''
 permissions:
   contents: read
 jobs:
   build-test:
+    if: ${{ !inputs.raw_relations_trial }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -113,6 +146,110 @@ jobs:
           name: jev-provider-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/jev-provider/
           if-no-files-found: error
+  raw-relations-trial:
+    if: github.event_name == 'workflow_dispatch' && inputs.raw_relations_trial && !inputs.publish && github.repository == 'roccho-org/ops' && github.ref == 'refs/heads/codex/raw-annotations-676-20261024' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    concurrency:
+      group: ops676-raw-relations-corrective-${{ inputs.raw_relations_stage }}-v2
+      cancel-in-progress: false
+    env:
+      EXPECTED_WORKFLOW_SHA: ${{ inputs.expected_workflow_sha }}
+      BUNDLE_SHA: ${{ inputs.raw_relations_bundle_sha }}
+      TRIAL_ID: ${{ inputs.raw_relations_stage == 'confirmation' && 'ops676-raw-relations-corrective-confirmation-v2' || 'ops676-raw-relations-corrective-development-v2' }}
+      RAW_RELATIONS_STAGE: ${{ inputs.raw_relations_stage }}
+      BUNDLE_DIR: ${{ inputs.raw_relations_stage == 'confirmation' && 'live-corrective-fresh' || 'live' }}
+      STAGE1_ROOT_GO: ${{ inputs.stage1_root_go }}
+      STAGE1_RUN_ID: ${{ inputs.stage1_run_id }}
+      STAGE1_ARTIFACT_SHA256: ${{ inputs.stage1_artifact_sha256 }}
+      STAGE1_REPORT_SHA256: ${{ inputs.stage1_report_sha256 }}
+    steps:
+      # P/R independently accept the actual workflow/runner/bundle commit before
+      # dispatch. Matching user inputs alone are not an authorization proof.
+      # P checks Actions history and retained reservations for this fixed trial
+      # before ONE dispatch; concurrency alone cannot prevent duplicate dispatch.
+      # Confirmation inputs record P's external reconciliation and R 16/16 PASS;
+      # no scorer/Gold is loaded here, and these assertions are not machine proof.
+      # Both stages use this same accepted controller commit and product pin.
+      - name: Verify fixed manual identity before checkout or secrets
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = roccho-org/ops
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REF" = refs/heads/codex/raw-annotations-676-20261024
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          case "$RAW_RELATIONS_STAGE" in
+            development)
+              test "$BUNDLE_SHA" = 9288a688b4eadcc003f1a4f7b0dabe38977826c6fac05a03774a792f43193f02
+              test "$STAGE1_ROOT_GO" = false
+              test -z "$STAGE1_RUN_ID$STAGE1_ARTIFACT_SHA256$STAGE1_REPORT_SHA256"
+              ;;
+            confirmation)
+              test "$BUNDLE_SHA" = 91c24283190300becdb2d6fee700628caad93b38e27a797b1f0ee63dbcf820b2
+              test "$STAGE1_ROOT_GO" = true
+              [[ $STAGE1_RUN_ID =~ ^[1-9][0-9]*$ && $STAGE1_ARTIFACT_SHA256 =~ ^[a-f0-9]{64}$ && $STAGE1_REPORT_SHA256 =~ ^[a-f0-9]{64}$ ]]
+              test "$STAGE1_RUN_ID" != "$GITHUB_RUN_ID"
+              ;;
+            *) exit 1 ;;
+          esac
+          [[ $EXPECTED_WORKFLOW_SHA =~ ^[a-f0-9]{40}$ && $BUNDLE_SHA =~ ^[a-f0-9]{64}$ ]]
+          test "$EXPECTED_WORKFLOW_SHA" = "$GITHUB_SHA"
+          test "$EXPECTED_WORKFLOW_SHA" = "$GITHUB_WORKFLOW_SHA"
+          printf 'trial_id=%s run_id=%s workflow_sha=%s product_sha=%s\n' "$TRIAL_ID" "$GITHUB_RUN_ID" "$EXPECTED_WORKFLOW_SHA" bc1f991618a2f17ba0e4dc51f7811af5dddf72ac
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: bc1f991618a2f17ba0e4dc51f7811af5dddf72ac
+          path: trial-product
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+        with:
+          extra_nix_config: |
+            extra-experimental-features = nix-command flakes
+      - name: Build immutable installed consumer and preflight all sixteen plans without key
+        id: trial_prepare
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_WORKFLOW_SHA"
+          test "$(git -C trial-product rev-parse HEAD)" = bc1f991618a2f17ba0e4dc51f7811af5dddf72ac
+          root="$(cd trial-product && nix build --no-write-lock-file --no-link --print-out-paths .#jev-review)"
+          mapfile -t exec_lines < <(grep '^exec ' "$root/bin/jev-review")
+          test "${#exec_lines[@]}" -eq 1
+          pattern='^exec (/nix/store/[a-z0-9]{32}-nodejs-[^/ ]+/bin/node) (/nix/store/[a-z0-9]{32}-jev-review-sources/jev-review)/bin/jev-review[.]mjs "[$]@"$'
+          [[ ${exec_lines[0]} =~ $pattern ]]
+          node="${BASH_REMATCH[1]}" source="${BASH_REMATCH[2]}"
+          diff -r "$source" trial-product/packages/jev-review
+          diff -r "${source%/jev-review}/jev" trial-product/packages/jev
+          diff -r "${source%/jev-review}/structured-diagnostic" trial-product/packages/structured-diagnostic
+          runner="$GITHUB_WORKSPACE/packages/jev-review/tests/raw-relations-trial.mjs"
+          git diff --exit-code -- "$runner"
+          "$node" "$runner" selftest "$GITHUB_WORKSPACE/trial-product"
+          "$node" "$runner" prepare "$GITHUB_WORKSPACE/trial-product" "$root" \
+            "$GITHUB_WORKSPACE/packages/jev-review/tests/fixtures/raw-relations/$BUNDLE_DIR" "$BUNDLE_SHA" "$RUNNER_TEMP/raw-relations-evidence"
+          { echo "node=$node"; echo "root=$root"; } >> "$GITHUB_OUTPUT"
+      - name: Evaluate sixteen frozen plans through installed Jev consumer
+        env:
+          JEV_API_KEY: ${{ secrets.JEV_API_KEY }}
+          NODE: ${{ steps.trial_prepare.outputs.node }}
+          ROOT: ${{ steps.trial_prepare.outputs.root }}
+        run: |
+          set -euo pipefail
+          "$NODE" "$GITHUB_WORKSPACE/packages/jev-review/tests/raw-relations-trial.mjs" run \
+            "$GITHUB_WORKSPACE/trial-product" "$ROOT" \
+            "$GITHUB_WORKSPACE/packages/jev-review/tests/fixtures/raw-relations/$BUNDLE_DIR" "$BUNDLE_SHA" "$RUNNER_TEMP/raw-relations-evidence"
+      - name: Upload bounded trial evidence including failed or unknown attempts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: raw-relations-${{ env.TRIAL_ID }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/raw-relations-evidence/
+          if-no-files-found: warn
+          retention-days: 30
   publish:
     needs: build-test
     if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/proposals' && github.event.repository.default_branch == 'proposals'

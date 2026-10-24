@@ -1,6 +1,8 @@
 import { ownerMain, entryError } from '../semlint-entry.mjs';
 
 async function runMachineTests() {
+const { runRawRelationsTests } = await import('./raw-relations.mjs');
+await runRawRelationsTests();
 const { default: assert } = await import('node:assert/strict');
 const { default: fs } = await import('node:fs');
 const { default: os } = await import('node:os');

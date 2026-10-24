@@ -1,0 +1,3 @@
+{"key": "r3", "text": "A sensor weighs one kilogram and the empty package weighs two kilograms."}
+{"key": "r2", "text": "The package must contain a sensor."}
+{"key": "r1", "text": "A package must weigh at most ten kilograms."}
