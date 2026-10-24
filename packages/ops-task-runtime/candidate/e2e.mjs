@@ -127,7 +127,15 @@ export async function candidateE2E(manifest, root, evidence) {
   const negativeArgs = ['requests', '--repo', root, '--request-file', recoveryReq, '--runtime-manifest', manifest, '--evidence-dir', path.join(evidence, 'must-not-run')];
   await invoke([...negativeArgs, '--unknown', 'x'], 1);
   await invoke(['requests', '--repo', '', ...negativeArgs.slice(1)], 1);
-  const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing', 'runtime-tamper', 'dirty-source', 'invocation-k-mismatch', 'missing-join-time', 'inconsistent-interval', 'stale-pid-unrelated-process', 'unknown-option', 'empty-duplicate-option'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
+  const raceOutput = path.join(evidence, 'head-race');
+  const raceScript = path.join(root, 'packages/ops-task-runtime/tests/head-race.py');
+  const raceLog = fs.openSync(path.join(evidence, 'head-race.log'), 'wx');
+  const race = spawn(tools.tools.python.path, [raceScript, '--source-archive', path.join(evidence, 'direct-success/source.tar'), '--runtime', manifest, '--out', raceOutput], {stdio: ['ignore', raceLog, raceLog], signal: AbortSignal.timeout(45000)});
+  const raceExit = await new Promise((resolve, reject) => { race.once('error', reject); race.once('close', resolve); });
+  fs.closeSync(raceLog);
+  assert.equal(raceExit, 0, fs.readFileSync(path.join(evidence, 'head-race.log'), 'utf8'));
+  assert.equal(read(path.join(raceOutput, 'head-race.json')).status, 'PASS');
+  const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing', 'runtime-tamper', 'dirty-source', 'invocation-k-mismatch', 'missing-join-time', 'inconsistent-interval', 'stale-pid-unrelated-process', 'unknown-option', 'empty-duplicate-option', 'HEAD-moves-after-commit-bind'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
   write(path.join(evidence, 'e2e.json'), packet);
   return packet;
 }
