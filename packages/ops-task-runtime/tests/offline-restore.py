@@ -32,6 +32,25 @@ def emit(p, x):
 def run(argv, **kwargs):
     return subprocess.run([str(x) for x in argv], check=True, **kwargs)
 runtime = read(a.runtime)
+git = runtime['tools']['git']['path']
+assert Path(__file__).resolve() == a.repo / 'packages/ops-task-runtime/tests/offline-restore.py', 'driver path differs from clean source'
+commit = read(a.e2e / 'direct-success/invocation.json')['commit']
+assert subprocess.check_output([git, '-C', str(a.repo), 'rev-parse', 'HEAD'], text=True).strip() == commit, 'driver head differs from accepted source'
+assert not subprocess.check_output([git, '-C', str(a.repo), 'status', '--porcelain'], text=True).strip(), 'driver checkout must be clean'
+# Retain a trusted, externally fixed oracle of native Git archive bytes. This
+# restores exact package source identity, not the entire Git history/object DB.
+import io
+archive = (a.e2e / 'direct-success/source.tar').read_bytes()
+rows = []
+with tarfile.open(fileobj=io.BytesIO(archive)) as t:
+    for m in t.getmembers():
+        if m.isfile():
+            rows.append([m.name.removeprefix('packages/ops-task-runtime/'), hashlib.sha256(t.extractfile(m).read()).hexdigest()])
+assert archive == subprocess.check_output([git, '-C', str(a.repo), 'archive', '--format=tar', commit, 'packages/ops-task-runtime/'])
+source_tree = subprocess.check_output([git, '-C', str(a.repo), 'rev-parse', commit + '^{tree}'], text=True).strip()
+emit(a.out / 'source-oracle.json', {'commit': commit, 'tree': source_tree, 'archiveSha256': hashlib.sha256(archive).hexdigest(), 'oracle': sorted(rows), 'authority': 'external native Git oracle fixed before transport; package source only, not Git history restore'})
+source_oracle_sha = digest(a.out / 'source-oracle.json')
+emit(a.out / 'external-expectations.json', {'commit': commit, 'tree': source_tree, 'sourceOracleSha256': source_oracle_sha, 'runtimeClosureSha256': runtime['closureSha256'], 'driverCommit': commit})
 for key, t in runtime['tools'].items():
     assert digest(t['path']) == t['sha256'], key
 ro = [a.nix_store, '--extra-experimental-features', 'read-only-local-store', '--store', 'local?read-only=true']
@@ -71,12 +90,14 @@ emit(a.out / 'closure-retention.json', {'retainedPack': str(a.reuse_closure_pack
 spec = {'tools': [{'name': k, 'source': t['path']} for k, t in runtime['tools'].items()]}
 first = spec['tools'][0]
 first['files'] = [{'source': str(export), 'path': 'closure/runtime.export'}, {'source': str(a.out / 'closure-paths.json'), 'path': 'closure/paths.json'}, {'source': str(a.out / 'closure-identities.json'), 'path': 'closure/identities.json'}, {'source': str(a.runtime.resolve()), 'path': 'runtime.json'}, {'source': str(a.out / 'target-nix.tar.gz'), 'path': 'bootstrap/target-nix.tar.gz'}, {'source': str(a.out / 'bootstrap-identity.json'), 'path': 'bootstrap/identity.json'}]
-license_paths = [a.assets / 'Node.LICENSE.txt', a.assets / 'actrun.LICENSE.txt', a.assets / 'LICENSE', Path(runtime['tools']['python']['path']).resolve().parent.parent / 'lib/python3.13/LICENSE.txt']
+license_paths = [a.assets / 'Node.LICENSE.txt', a.assets / 'actrun.upstream.LICENSE.txt', a.assets / 'LICENSE', Path(runtime['tools']['python']['path']).resolve().parent.parent / 'lib/python3.13/LICENSE.txt']
 for row, license_path in zip(runtime.get('licenses', []), license_paths):
     assert digest(license_path) == row['sha256'], 'declared root license byte mismatch'
 for i, license_path in enumerate(license_paths):
     assert license_path.is_file(), license_path
     first['files'].append({'source': str(license_path.resolve()), 'path': f'licenses/{i}-{license_path.name}'})
+first['files'].append({'source': str(a.repo / 'packages/ops-task-runtime/candidate/dependency-licenses.json'), 'path': 'licenses/dependency-bindings.json'})
+first['files'].append({'source': str(a.out / 'source-oracle.json'), 'path': 'git-source/oracle.json'})
 # Hold the actual accepted package source and inputs, not an approximate checkout.
 for route in ['direct', 'actrun']:
     for mode in ['success', 'failure']:
@@ -105,6 +126,5 @@ with tarfile.open(materialized / 'files' / archive.name) as t:
     t.extractall(recovered, filter='data')
 # Use the transported and independently verified bytes, never the build pack.
 # Use the same retained-pack native restore check locally and on actual Actions.
-commit = read(a.e2e / 'direct-success/invocation.json')['commit']
-run([runtime['tools']['python']['path'], a.repo / 'packages/ops-task-runtime/candidate/restore-check.py', '--pack', recovered, '--target', a.out / 'fresh-root', '--evidence', a.out / 'restored-check', '--expected-commit', commit, '--expected-runtime-closure', runtime['closureSha256'], '--source-repo', a.repo], env={**os.environ, 'OPS_CANDIDATE_GIT': runtime['tools']['git']['path']})
+run([runtime['tools']['python']['path'], a.repo / 'packages/ops-task-runtime/candidate/restore-check.py', '--pack', recovered, '--target', a.out / 'fresh-root', '--evidence', a.out / 'restored-check', '--expected-commit', commit, '--expected-runtime-closure', runtime['closureSha256'], '--expected-source-oracle-sha256', source_oracle_sha], env={**os.environ, 'OPS_CANDIDATE_GIT': runtime['tools']['git']['path']})
 print('full Carrier and fresh native restore check PASS', flush=True)

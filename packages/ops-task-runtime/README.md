@@ -73,3 +73,33 @@ claimed merely by implementing these checks. Legacy static validation remains
 independent and unchanged in meaning.
 
 The finite execution fixtures do not deliberately escape process groups or PID namespaces. Recovery in a different boot/PID observation context is HOLD; unknown descendants are not treated as stopped. Group/lineage discovery checks live start identities before expanding, and shutdown rescans for new descendants.
+
+
+Candidate restore review contract (R 10752 follow-up): the offline driver must be
+at the same clean commit as every accepted input. It fixes a native Git package
+archive oracle (commit, tree, archive SHA and file inventory) before transport;
+the oracle SHA is an external restore input. Restore uses only retained archive
+and oracle bytes, never a live original repository or a source download. This
+restores the exact package source identity, not a complete Git object/history DB.
+The source.json pins are read from that verified archive. Native import must
+recompute the serialized closure digest against the external expected digest,
+verify actual NAR identities and root reference requisites, then hash all eight
+tool binaries inside the isolated target. The receipt enumerates shared bootstrap
+paths; prepared Nix bootstrap bytes are not claimed physically absent.
+
+The declared PATH equivalence is the ordered bins of bound task, shell, Git and
+coreutils. Task is materialized as `/retained/bin/task`, byte-identical to its
+binding. Only attempt/asset locator prefixes change; bin order, binary bytes,
+`BASH_ENV=''` and `ENV=''` remain fixed. No output-based environment equivalence.
+`tests/restore-contract.py` contains bounded false-PASS negatives; it does not
+replace final fresh offline import/execution.
+
+`candidate/license-metadata.nix` evaluates existing immutable Nixpkgs sources;
+`candidate/license-bindings.py` binds all 151 exact output paths/NARs to evaluated
+license declarations, definition hashes and available native notice bytes in
+`candidate/dependency-licenses.json`. This records upstream declarations and
+provenance, not a legal adjudication or a new distribution scope. Root upstream
+notices are separately byte-bound in `native-profile.json`. The failed actrun
+license binding at Actions run 40097748418 remains historical evidence: the old
+local copy had an added LF; the corrected binding uses untouched pinned upstream
+bytes, with no whitespace normalization.

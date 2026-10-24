@@ -1,13 +1,14 @@
 """Restore a verified proof pack with native Nix in a fresh offline user namespace."""
 import argparse
 import hashlib
-import io
 import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import tarfile
+from license_contract import verify_dependency_licenses
+from restore_contract import closure_binding, source_binding, execution_env, verify_tool_hashes, verify_native_closure
 
 p = argparse.ArgumentParser()
 p.add_argument('--pack', type=Path, required=True)
@@ -15,7 +16,7 @@ p.add_argument('--target', type=Path, required=True)
 p.add_argument('--evidence', type=Path, required=True)
 p.add_argument('--expected-commit', required=True)
 p.add_argument('--expected-runtime-closure', required=True)
-p.add_argument('--source-repo', type=Path, required=True)
+p.add_argument('--expected-source-oracle-sha256', required=True)
 a = p.parse_args()
 read = lambda p: json.loads(Path(p).read_text())
 def digest(p):
@@ -32,20 +33,14 @@ manifest = read(a.pack / 'MANIFEST.json')
 for row in manifest['files']:
     assert digest(a.pack / row['path']) == row['sha256'], row['path']
 runtime = read(a.pack / 'runtime.json')
-assert runtime['closureSha256'] == a.expected_runtime_closure
-source_json = read(a.source_repo / 'packages/ops-task-runtime/source.json')
+closure_binding(runtime, a.expected_runtime_closure)
+source, source_json = source_binding(a.pack / 'git-source/direct-success.tar', a.pack / 'git-source/oracle.json', a.expected_source_oracle_sha256, a.expected_commit)
+source_oracle, source_tree = source['oracle'], source['tree']
+assert digest(a.pack / 'licenses/dependency-bindings.json') == dict(source_oracle)['candidate/dependency-licenses.json']
+dependency_licenses = verify_dependency_licenses(runtime, a.pack / 'licenses/dependency-bindings.json')
 for tool, source_key in [('task', 'goTask'), ('actrun', 'actrun')]:
     assert runtime['tools'][tool]['sha256'] == source_json[source_key]['binarySha256']
     assert digest(a.pack / 'bin' / (tool + '.real')) == source_json[source_key]['binarySha256']
-git = os.environ.get('OPS_CANDIDATE_GIT', 'git')
-source_archive = subprocess.check_output([git, '-C', str(a.source_repo), 'archive', '--format=tar', a.expected_commit, 'packages/ops-task-runtime/'])
-source_oracle = []
-with tarfile.open(fileobj=io.BytesIO(source_archive)) as t:
-    for member in t.getmembers():
-        if member.isfile():
-            source_oracle.append([member.name.removeprefix('packages/ops-task-runtime/'), hashlib.sha256(t.extractfile(member).read()).hexdigest()])
-source_oracle.sort(key=lambda r:r[0])
-source_tree = subprocess.check_output([git, '-C', str(a.source_repo), 'rev-parse', a.expected_commit + '^{tree}'], text=True).strip()
 assert runtime['profile'] == 'candidate-user-task-SAME-v5.1' and runtime['admission'] == 'NOT_ADOPTED'
 root = a.target
 with tarfile.open(a.pack / 'bootstrap/target-nix.tar.gz') as t:
@@ -77,6 +72,19 @@ expected = read(a.pack / 'closure/identities.json')
 actual = subprocess.check_output([*namespace, native_nix, '--store', 'local', '--option', 'build-users-group', '', '--query', '--hash', *paths], text=True).splitlines()
 assert dict(zip(paths, actual)) == expected
 assert sorted([{'path': k, 'narHash': v} for k, v in expected.items()], key=lambda r: r['path']) == runtime['closure']
+assert set(paths) == set(expected) and len(actual) == len(paths)
+target_tool_paths = {k: '/retained/bin/' + k + '.real' if k in ['task', 'actrun'] else v['path'] for k, v in runtime['tools'].items()}
+# Hash inside the target namespace: absolute store symlinks cannot follow the
+# original host store during verification.
+hash_probe = "import sys,json,hashlib; print(json.dumps({k:hashlib.sha256(open(v,'rb').read()).hexdigest() for k,v in json.loads(sys.argv[1]).items()}))"
+observed_tools = json.loads(subprocess.check_output([*namespace, runtime['tools']['python']['path'], '-c', hash_probe, json.dumps(target_tool_paths)], text=True))
+verify_tool_hashes(runtime, observed_tools)
+roots = sorted({'/' + '/'.join(Path(t['path']).parts[1:4]) for t in runtime['tools'].values() if t['path'].startswith('/nix/store/')})
+required_paths = subprocess.check_output([*namespace, native_nix, '--store', 'local', '--option', 'build-users-group', '', '--query', '--requisites', *roots], text=True).splitlines()
+verify_native_closure(runtime, dict(zip(paths, actual)), required_paths)
+# Task's bound bin must be present in PATH, with the same actual bytes.
+(root / 'retained/bin/task').symlink_to('task.real')
+bootstrap_overlap = sorted(set(bootstrap['paths']) & set(paths))
 (root / 'bin/sh').symlink_to(runtime['tools']['shell']['path'])
 checks = []
 for route in ['direct', 'actrun']:
@@ -96,10 +104,10 @@ for route in ['direct', 'actrun']:
             assert hashlib.sha256((work / 'input.bin').read_bytes()).hexdigest() == accepted['inputSha256']
             for rel, expected_hash in accepted['oracle']:
                 assert digest(work / rel) == expected_hash
-            env = {'PATH': ':'.join(str(Path(runtime['tools'][k]['path']).parent) for k in ['shell', 'git', 'coreutils']), 'HOME': f'/home/{label}', 'TMPDIR': f'/tmp/{label}', 'LANG': 'C.UTF-8', 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1', 'OPS_CANDIDATE_NODE': runtime['tools']['node']['path'], 'OPS_CANDIDATE_PYTHON': runtime['tools']['python']['path'], 'OPS_CANDIDATE_TASK': '/retained/bin/task.real', 'OPS_CANDIDATE_X': accepted['x'], 'OPS_CANDIDATE_MODE': mode, 'OPS_CANDIDATE_WORK': f'/work/{label}'}
+            env = execution_env(runtime, accepted, label)
             for key in ['HOME', 'TMPDIR']:
                 (root / env[key].lstrip('/')).mkdir()
-            argv = ['/retained/bin/task.real', '--taskfile', f'/work/{label}/Taskfile.yml', '--dir', f'/work/{label}', f'candidate-{mode}']
+            argv = ['/retained/bin/task', '--taskfile', f'/work/{label}/Taskfile.yml', '--dir', f'/work/{label}', f'candidate-{mode}']
             if route == 'actrun':
                 argv = [runtime['tools']['loader']['path'], '/retained/bin/actrun.real', 'workflow', 'run', f'/work/{label}/candidate/workflow.yml', '--workspace-mode', 'local', '--no-nix', '--run-root', f'/tmp/{label}/runs', '--artifact-root', f'/tmp/{label}/artifacts', '--cache-root', f'/tmp/{label}/cache', '--github-action-cache-root', f'/tmp/{label}/actions', '--registry-root', f'/tmp/{label}/registry']
             with (a.evidence / f'{label}.stdout').open('wb') as of, (a.evidence / f'{label}.stderr').open('wb') as ef:
@@ -134,5 +142,5 @@ assert code != 0
 print(json.dumps({'originalStoreHidden':True,'daemonUnavailable':True,'networkConnectError':code}))
 """
 isolation = subprocess.check_output([*namespace, runtime['tools']['python']['path'], '-c', probe], text=True)
-emit(a.evidence / 'offline-receipt.json', {'schema': 'ops.taskCandidateOffline/1', 'status': 'PASS', 'commit': a.expected_commit, 'closurePaths': len(paths), 'exportSha256': digest(a.pack / 'closure/runtime.export'), 'runtimeClosureSha256': runtime['closureSha256'], 'bootstrap': bootstrap, 'isolation': json.loads(isolation), 'checks': checks, 'licenseStatus': 'ROOT_LICENSES_RETAINED_DEPENDENCY_AUDIT_PENDING', 'executionHost': {'provider': 'github-actions' if os.environ.get('GITHUB_ACTIONS') == 'true' else 'local', 'runId': os.environ.get('GITHUB_RUN_ID'), 'runAttempt': os.environ.get('GITHUB_RUN_ATTEMPT'), 'workflowRef': os.environ.get('GITHUB_WORKFLOW_REF')}})
-print('fresh full runtime check PASS; dependency license audit remains separately required')
+emit(a.evidence / 'offline-receipt.json', {'schema': 'ops.taskCandidateOffline/1', 'status': 'PASS', 'commit': a.expected_commit, 'closurePaths': len(paths), 'exportSha256': digest(a.pack / 'closure/runtime.export'), 'runtimeClosureSha256': runtime['closureSha256'], 'bootstrap': bootstrap, 'bootstrapRuntimeOverlap': bootstrap_overlap, 'sourceOracleSha256': a.expected_source_oracle_sha256, 'sourceTree': source_tree, 'actualToolSha256': observed_tools, 'requiredNativePaths': sorted(required_paths), 'declaredEnvVerified': True, 'isolation': json.loads(isolation), 'checks': checks, 'licenseStatus': 'ROOT_NOTICES_AND_NATIVE_DEPENDENCY_DECLARATIONS_RETAINED', 'dependencyLicenses': dependency_licenses, 'executionHost': {'provider': 'github-actions' if os.environ.get('GITHUB_ACTIONS') == 'true' else 'local', 'runId': os.environ.get('GITHUB_RUN_ID'), 'runAttempt': os.environ.get('GITHUB_RUN_ATTEMPT'), 'workflowRef': os.environ.get('GITHUB_WORKFLOW_REF')}})
+print('fresh full runtime check PASS; license declarations are provenance, not legal adjudication')

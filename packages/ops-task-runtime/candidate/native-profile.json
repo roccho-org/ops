@@ -663,9 +663,9 @@
     {
       "tool": "actrun",
       "license": "Apache-2.0",
-      "sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
       "source": "https://raw.githubusercontent.com/mizchi/actrun/b2fc1c9d88c921b670fc2c2651728967b414a8c7/LICENSE",
-      "fileName": "actrun.LICENSE.txt"
+      "fileName": "actrun.upstream.LICENSE.txt"
     },
     {
       "tool": "task",
@@ -682,6 +682,10 @@
       "fileName": "LICENSE.txt"
     }
   ],
-  "licenseStatus": "ROOT_NOTICES_BOUND_DEPENDENCY_AUDIT_PENDING",
-  "authority": "current user task SAME-v5.1 candidate only; not accepted adrs#317 successor"
+  "licenseStatus": "ROOT_NOTICES_AND_EXACT_NATIVE_DEPENDENCY_DECLARATIONS_BOUND",
+  "authority": "current user task SAME-v5.1 candidate only; not accepted adrs#317 successor",
+  "dependencyLicenses": {
+    "path": "candidate/dependency-licenses.json",
+    "sha256": "c7910ee7013706d6d0b0a513d2fa6e25bb63ee3b4956dabaf8f37b6fe4ca4cc4"
+  }
 }
