@@ -1,0 +1,25 @@
+{
+  "schema":"ops.raw-relations.plan.v1",
+  "sources":[{"id":"demo","revision":"public-fixture-v1","path":"raw.jsonl"}],
+  "checks":[
+    {"id":"dup","version":"1","kind":"duplicate","baseline":"exact_context_text","meaning":"The participants express the same assertion in the same scope, time and authority.","applicability":"Assess all declared participants without merging their identities.","context":["authority"]},
+    {"id":"joint","version":"1","kind":"inconsistent","baseline":"finite_set_intersection","meaning":"The complete participant group cannot hold simultaneously.","applicability":"Use the full group, not only pairwise compatibility.","context":["authority"]},
+    {"id":"angles","version":"1","kind":"shared_concept_different_angle","baseline":"declared_concept_angles","meaning":"The participants describe the same concept from distinct complementary angles.","applicability":"Complementary requirements are not duplicate assertions.","context":["authority"]},
+    {"id":"alias","version":"1","kind":"term_alias","baseline":"declared_term_senses","meaning":"Distinct terms refer to the same concept and sense in this context.","applicability":"Homonyms with different senses are not aliases; suggest no automatic rewrite.","context":["authority"]}
+  ],
+  "context":[{"id":"authority","revision":"1","value":{"owner":"external-user","scope":"demo","purpose":"Public mechanical regression; not independent semantic gold."}}],
+  "obligations":[
+    {"id":"u-duplicate","check":"dup","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":1,"role":"assertion"},{"source":"demo","revision":"public-fixture-v1","occurrence":2,"role":"assertion"}]},
+    {"id":"u-outside","check":"dup","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":1,"role":"assertion"},{"source":"demo","revision":"public-fixture-v1","occurrence":14,"role":"assertion"}]}
+  ],
+  "candidates":[
+    {"id":"k-duplicate","check":"dup","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":1,"role":"assertion"},{"source":"demo","revision":"public-fixture-v1","occurrence":2,"role":"assertion"}]},
+    {"id":"k-triple","check":"joint","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":3,"role":"constraint"},{"source":"demo","revision":"public-fixture-v1","occurrence":4,"role":"constraint"},{"source":"demo","revision":"public-fixture-v1","occurrence":5,"role":"constraint"}]},
+    {"id":"k-four","check":"angles","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":6,"role":"angle"},{"source":"demo","revision":"public-fixture-v1","occurrence":7,"role":"angle"},{"source":"demo","revision":"public-fixture-v1","occurrence":8,"role":"angle"},{"source":"demo","revision":"public-fixture-v1","occurrence":9,"role":"angle"}]},
+    {"id":"k-alias","check":"alias","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":10,"role":"term"},{"source":"demo","revision":"public-fixture-v1","occurrence":11,"role":"term"}]},
+    {"id":"k-homonym","check":"alias","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":12,"role":"term"},{"source":"demo","revision":"public-fixture-v1","occurrence":13,"role":"term"}]}
+  ],
+  "candidateRule":{"id":"explicit-supplied-groups","version":"1"},
+  "scope":"demo",
+  "asOf":"2026-10-24T00:00:00Z"
+}

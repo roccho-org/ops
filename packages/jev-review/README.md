@@ -2,6 +2,153 @@
 
 Shared semantic-evaluation boundary for ops consumers.
 
+## Raw relation consumer (OPS676-v4)
+
+The existing installed `jev-review` also composes external JSONL, explicit finite
+participant groups, versioned checks, and a saved evaluation D. Original files
+remain externally owned, are never written, and are not copied into a second
+Raw ledger. This projection has no adoption, rewrite, deletion or merge authority.
+
+```sh
+nix build .#jev-review
+result/bin/jev-review raw-relations evaluate packages/jev-review/tests/fixtures/raw-relations/plan.json /tmp/unique-D.json
+result/bin/jev-review raw-relations project packages/jev-review/tests/fixtures/raw-relations/plan.json /tmp/unique-D.json > /tmp/evaluated.jsonl
+nix build .#checks.x86_64-linux.jev-review
+nix build .#checks.x86_64-linux.jev-comment-functional .#checks.x86_64-linux.jev-issue-executor
+```
+
+`evaluate` uses the deterministic limited baseline, creates D absent-only (0600),
+and reads it back. `project` performs an offline deterministic join to stdout.
+For a query set the optional plan `filter` to `{"source":"demo","occurrence":4}`;
+either field may be omitted. Filtering does not alter the evaluation binding.
+There is no separate query/export/reconstruction command. Relative source paths
+resolve against the PLAN file directory, not the current working directory.
+
+### Complete plan grammar
+
+See [the executable public example](tests/fixtures/raw-relations/plan.json) and
+[its Raw input](tests/fixtures/raw-relations/raw.jsonl). Unknown keys in plan
+control objects are rejected. Raw objects retain arbitrary original fields,
+including fields named `annotations`, `evaluation`, and `sourceRef`.
+
+| Field | Grammar / meaning |
+| --- | --- |
+| `schema` | Exactly `ops.raw-relations.plan.v1` |
+| `sources` | Ordered array of `{id,revision,path}` nonblank strings; unique `(id,revision)` |
+| `checks` | Ordered 0..N `{id,version,kind,meaning,applicability,context,baseline?}`; ids unique |
+| `kind` | `duplicate`, `inconsistent`, `shared_concept_different_angle`, or `term_alias` |
+| `meaning`, `applicability` | Independent nonblank descriptions; not inferred from score or kind |
+| check `context` | Array of unique ids resolving into the plan context |
+| `context` | Ordered `{id,revision,value}`; ids/revisions nonblank, arbitrary JSON value |
+| `obligations` (U) | Ordered `{id,check,participants}` defining required finite groups |
+| `candidates` (K) | Ordered `{id,check,participants}` explicitly supplied for attempted evaluation |
+| `participants` | Ordered 2..64 `{source,revision,occurrence,role}`; role nonblank; distinct occurrence identities |
+| `occurrence` | Physical 1-based line, including blank lines in line numbering |
+| `candidateRule` | `{id,version}` explicitly binding supplied discovery/membership policy |
+| `scope`, `asOf` | Nonblank scope; parseable date/time string; both bind the join |
+| `filter` | Optional `{source?,occurrence?}`; positive integer occurrence |
+
+Each top-level array is limited to 1000 members. Original source files together
+are bounded to 1 MiB. Invalid UTF-8, invalid JSON, duplicate keys (also escaped or
+nested), unpaired surrogates, nonfinite numbers and integers outside JS's safe
+range are rejected explicitly; lossy numeric parsing is not a success. Nonblank
+lines must be objects. Optional Raw `id` must be a nonblank string; repeated ids
+with different parsed content within one source/revision are identity conflicts.
+Identical records remain distinct occurrences, and equal content with different
+ids remains distinct. Sources may include multiple explicit revisions.
+
+Blank lines, leading/trailing whitespace, CRLF and absence of a final newline
+remain in the external original bytes. Each projected `sourceRef` records source,
+revision, original path, whole-file SHA256, occurrence, optional recordId, and
+`startByte`/`endByte` excluding the LF delimiter (including CR where present).
+The original file can be read exactly and its complete hash checked; a span
+decodes to the corresponding `raw`. JSON serialization of `raw` alone does not
+reconstruct original bytes. No original-byte recovery after source loss is promised.
+
+### Limited real baseline and evaluator port
+
+Baseline support must be selected explicitly with the optional check `baseline`.
+It compares supplied structured facts under the following exact rules; it does
+not interpret natural-language meaning/applicability or prose context. Omit the
+rule for free-form checks: those return UNKNOWN, never inferred clean.
+
+| Kind / baseline | Actual computation and limits |
+| --- | --- |
+| duplicate / `exact_context_text` | Requires nonblank `content` and present `scope,authority,time` on every participant. Different declared context is NEGATIVE; identical text with identical context is POSITIVE; different text is UNKNOWN. |
+| inconsistent / `finite_set_intersection` | Requires `constraint:{variable,allowed}` with one shared variable and nonempty string sets. Empty whole-group intersection is POSITIVE, nonempty is NEGATIVE. No inference from prose. |
+| shared_concept_different_angle / `declared_concept_angles` | Requires nonblank `concept,angle`. Distinct concepts are NEGATIVE; one concept with all distinct angles is POSITIVE; repeated angles are UNKNOWN. |
+| term_alias / `declared_term_senses` | Requires nonblank `term,sense,concept`. Same sense/concept with all distinct terms is POSITIVE; same term with all distinct senses is NEGATIVE; otherwise UNKNOWN. |
+
+These are declarations in the input, not independently verified facts. Baseline
+results are candidates under that rule, not proof of general semantic relations.
+Neither unrelated shared words nor fixture ids choose an answer.
+
+The exported `evaluateRelations(resolvePlan(plan, planDirectory), {provider:'jev',
+ask:existingJevPort(ownerSuppliedKey)})` uses the existing Review/Core transport,
+fixed Jev model and typed Noul; no new provider/authentication is introduced.
+The owner supplies the opaque key into that bounded process after actual route
+and finite-run approval. The CLI never selects live execution from key presence.
+The complete participant group, roles, check, all context and candidate-rule
+version are sent together; no pairwise reduction, clipping, translation or
+summarization occurs. Existing model input budgets can refuse the attempt.
+
+For the agreed single serial finite run, at most 24 callback/POST reservations,
+15-second native deadlines, and 600 seconds cumulative observed waiting are
+allowed. Failed/UNKNOWN calls are counted; no automatic retry. Missing usage or
+an unknown/failed attempt prevents the next call. Reported total tokens (or input
+plus output) at 100k stops subsequent calls; this is an observation threshold,
+not a hard cap or a byte-to-token guarantee. The job owner must retain prior-run
+attempt evidence and subtract reservations before starting any corrective run;
+restarting this pure API is not a budget refill. Remaining calls require an
+explicit within-budget plan. Dollars and preparation/review effort stay UNKNOWN
+unless separately measured. Noul >= .65 is POSITIVE, <= .35 NEGATIVE, else UNKNOWN.
+The original typed score is retained; it is not truth probability or permission.
+
+### D, projection, evidence and completion
+
+D (`ops.raw-relations.D.v1`) retains `checks,U,K,T,outcomes,positiveFindings,
+omissions,dependencies,accounting`, plus schema/policy/binding. T includes every
+attempted candidate, including failed attempts. K entries stopped before attempt
+have NOT_RUN outcomes. Obligations outside K retain UNKNOWN with an omission
+cause. Calls, model, usage, elapsed time and unknown costs are separate from
+semantic assessment, evidence validity/currentness, review and adoption.
+
+The binding covers all exact source hashes, order, checks, context revisions and
+values, U/K and participant roles/order, candidate-rule version, scope, asOf and
+fixed projection policy. Any change invalidates all prior annotations, including
+potential new nary memberships. This deliberately conservative policy does not
+claim fine-grained incremental reuse. The supplied U/K universe is finite; no
+discovery or clean coverage beyond it is claimed.
+
+Projection emits `{sourceRef,raw,annotations,evaluation}` per parsed occurrence
+in original source/line order. Valid current positive outcomes are annotations;
+all current valid outcomes (including negative/UNKNOWN) remain in evaluation.
+Stale, invalid and unresolved outcomes remain separate diagnostics. Zero checks
+means NOT_SELECTED. Candidate absence and obligations outside K cannot count as
+clean. NEGATIVE_ON_SUPPLIED_CANDIDATES is explicitly limited; review remains
+UNREVIEWED and adoption NOT_ADOPTED. A valid score does not supply a semantic
+explanation: participant/source refs are exact bindings, and the basis identifies
+the actual comparator or an unverified model candidate. No generated explanation
+or per-row manual R approval is assumed. D is externally supplied evidence, not
+signed attestation or a trusted admission record. Structural validation detects
+inconsistent bindings but does not authenticate its author or certify its truth.
+
+Public machine tests cover the #676 counterexample mechanics and baseline
+positive/negative behavior, deterministic replay, bytes/occurrences, failures,
+staleness and query/export. `node tests/raw-relations.mjs --core-only` runs pure
+contract tests; the ordinary runner also runs source and PATH-installed CLI from
+a clean cwd/environment. Core-only success does not prove installed provision.
+Synthetic provider answers test mechanics only, never live semantic quality.
+
+Whole OPS676-v4 completion additionally requires the independent R's private
+8-unit semantic set across four relation kinds, both orderings (16 calls, not 16
+independent cases), all 16 expected decisions correct with no order flip or
+invalid evidence, comparable baseline accounting, actual supplied route,
+distributed entry and required public checks on the same reviewed tree, and R
+unresolved blockers zero. Once exposed, holdout cases become development cases;
+ordinary fixes retain the frozen oracle/threshold, and fresh claims require fresh
+independent cases. This implementation does not claim these live gates passed.
+
 ```text
 deterministic hard filter
 → small declared state
