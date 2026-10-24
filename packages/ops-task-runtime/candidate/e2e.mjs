@@ -89,7 +89,10 @@ export async function candidateE2E(manifest, root, evidence) {
   const child = spawn(process.execPath, [cli, 'candidate', 'requests', '--repo', root, '--request-file', recoveryReq, '--runtime-manifest', manifest, '--evidence-dir', recoveryOut], {stdio: 'ignore'});
   const exited = new Promise(resolve => child.once('exit', resolve));
   let a;
-  for (let i = 0; i < 500; i++) {
+  // Admission copies the full retained source/notice set before checks start.
+  // Use the same finite 45s harness budget as ordinary CLI invocations; this
+  // wait is not a physical task-speed requirement.
+  for (let i = 0; i < 4500; i++) {
     if (fs.existsSync(path.join(recoveryOut, 'admission.json'))) {
       const id = read(path.join(recoveryOut, 'admission.json')).accepted[0];
       const dir = path.join(recoveryOut, id.runId, id.attemptId);
