@@ -121,22 +121,30 @@ The complete participant group, roles, check, all context and candidate-rule
 version are sent together; no pairwise reduction, clipping, translation or
 summarization occurs. Existing model input budgets can refuse the attempt.
 
-For the agreed single serial finite run, at most 24 callback/POST reservations,
-15-second native deadlines, and 600 seconds cumulative observed waiting are
-allowed. Failed/UNKNOWN calls are counted; no automatic retry. Missing usage or
+There is no current call-count ceiling or lifetime remaining-call budget.
+Requests are serial with 15-second native deadlines and a per-trial 600-second
+observed-wait window. Failed/UNKNOWN calls are counted; no automatic retry. Missing usage or
 an unknown/failed attempt prevents the next call. Reported total tokens (or input
 plus output) at 100k stops subsequent calls; this is an observation threshold,
-not a hard cap or a byte-to-token guarantee. The job owner must retain prior-run
-attempt evidence and subtract reservations before starting any corrective run;
-restarting the API or CLI is not a budget refill. The 24-attempt bound is per
-invocation; it is not a persistent cross-process job counter. The external
-finite-run caller must account for all prior attempts and may not launch a plan
-whose maximum remaining POST attempts exceed the job's remaining allowance.
+not a hard cap or a byte-to-token guarantee. These time/token windows are
+prospective trial controls, not lifetime caps. Retain all prior attempts and
+failures; do not blindly retry an uncertain effect or reset a stopped trial by
+restarting the CLI.
 Supply both orderings as candidates in one finite plan where appropriate, and
-retain its D before any further invocation. Remaining calls require an
-explicit within-budget plan. Dollars and preparation/review effort stay UNKNOWN
+retain its D before any further invocation. Fixed 16-case stage denominators
+are acceptance gates, not call-count budgets. Dollars and preparation/review effort stay UNKNOWN
 unless separately measured. Noul >= .65 is POSITIVE, <= .35 NEGATIVE, else UNKNOWN.
 The original typed score is retained; it is not truth probability or permission.
+An intermediate score (UNKNOWN), failure or missing usage stops subsequent Jev
+attempts in the invocation. Missing context is NOT_RUN and makes no provider call.
+
+The raw adapter's fixed `ops.raw-relations.question.v2` method sends the original
+`check.meaning` as `instructions.question`, and the original applicability in a
+separate field. Complete participants, roles, Raw and context remain in state;
+yes/no criteria refer symmetrically to the supplied question, including its
+negation. Kind does not invert polarity. Raw text is data, never an instruction.
+The shared provider, model, authentication, response decoder and budget checks
+are unchanged. This is a prospective method hypothesis, not proven quality.
 
 ### D, projection, evidence and completion
 
@@ -146,6 +154,19 @@ attempted candidate, including failed attempts. K entries stopped before attempt
 have NOT_RUN outcomes. Obligations outside K retain UNKNOWN with an omission
 cause. Calls, model, usage, elapsed time and unknown costs are separate from
 semantic assessment, evidence validity/currentness, review and adoption.
+New D includes producer v2, the dependency-bound question method and each
+attempt's exact request snapshot/hash in `wire` (null for baseline/NOT_RUN).
+Baseline retains its own `ops.raw-relations.baseline.v1` method and no Jev
+question method in producer; the dependency method identifies adapter capability.
+Saved D without producer/method fields is the known v1 format. Offline projection
+validates its original dependency binding without rewriting saved bytes and marks
+`methodCurrentness:HISTORICAL`; it cannot establish v2 semantic quality. Malformed
+or conflicting method bindings are rejected. Current v2 wire must reconstruct
+from the bound inputs; changed inputs yield stale evidence, not fresh annotations.
+Cross-process trial execution retains attempt/token/time accounting and trial
+stop state; this CLI does not implement a persistent ledger. Historical v1 D
+keeps its original accounting validation, including its former 24-call ceiling;
+that historical restriction does not constrain v2 execution or v2 D projection.
 Each completed Jev outcome requires `measurement:{type:"noul",noul:<number>}`
 and the same finite `[0,1]` number in `score`, the matching threshold assessment,
 VALID evidence and the model-candidate basis. Baseline, failed and not-run
