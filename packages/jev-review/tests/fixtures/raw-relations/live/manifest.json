@@ -1,0 +1,104 @@
+{
+  "schema": "ops.raw-relations.live-bundle.v1",
+  "trialId": "ops676-raw-relations-live-20261025-v1",
+  "items": [
+    {
+      "id": "u01-original",
+      "plan": "u01-original/plan.json"
+    },
+    {
+      "id": "u01-reverse",
+      "plan": "u01-reverse/plan.json"
+    },
+    {
+      "id": "u02-original",
+      "plan": "u02-original/plan.json"
+    },
+    {
+      "id": "u02-reverse",
+      "plan": "u02-reverse/plan.json"
+    },
+    {
+      "id": "u03-original",
+      "plan": "u03-original/plan.json"
+    },
+    {
+      "id": "u03-reverse",
+      "plan": "u03-reverse/plan.json"
+    },
+    {
+      "id": "u04-original",
+      "plan": "u04-original/plan.json"
+    },
+    {
+      "id": "u04-reverse",
+      "plan": "u04-reverse/plan.json"
+    },
+    {
+      "id": "u05-original",
+      "plan": "u05-original/plan.json"
+    },
+    {
+      "id": "u05-reverse",
+      "plan": "u05-reverse/plan.json"
+    },
+    {
+      "id": "u06-original",
+      "plan": "u06-original/plan.json"
+    },
+    {
+      "id": "u06-reverse",
+      "plan": "u06-reverse/plan.json"
+    },
+    {
+      "id": "u07-original",
+      "plan": "u07-original/plan.json"
+    },
+    {
+      "id": "u07-reverse",
+      "plan": "u07-reverse/plan.json"
+    },
+    {
+      "id": "u08-original",
+      "plan": "u08-original/plan.json"
+    },
+    {
+      "id": "u08-reverse",
+      "plan": "u08-reverse/plan.json"
+    }
+  ],
+  "files": {
+    "u01-original/plan.json": "f432556ec1894b852b9b0514072e696b9318b4cce54e4cdbf52aefc68acec0de",
+    "u01-original/raw.jsonl": "ce895d4c836629b3aed8f96e354a5613b9b2100fabadf64e18bd2acc07944174",
+    "u01-reverse/plan.json": "f432556ec1894b852b9b0514072e696b9318b4cce54e4cdbf52aefc68acec0de",
+    "u01-reverse/raw.jsonl": "9177bdabf47245787c13152c15abdba8ecca4ca75d94e97fbc7aded1e3da91ac",
+    "u02-original/plan.json": "f432556ec1894b852b9b0514072e696b9318b4cce54e4cdbf52aefc68acec0de",
+    "u02-original/raw.jsonl": "2a4e4de4473b75b4f5d0b93480c8a2053fa03ebf0d8234e05ddfe16099e61738",
+    "u02-reverse/plan.json": "f432556ec1894b852b9b0514072e696b9318b4cce54e4cdbf52aefc68acec0de",
+    "u02-reverse/raw.jsonl": "5ee2483a77227d50e0393a8884e3b55fedd4ad5c069637d3a801697f88acd75c",
+    "u03-original/plan.json": "ffe14af9e1623fe945e0d7ace7f6e702538f58422b531812631eec4723d91599",
+    "u03-original/raw.jsonl": "7814929dd824220dfd6adb5f06e3c974dc585dcb0deb15db68aaf50f219a2f58",
+    "u03-reverse/plan.json": "ffe14af9e1623fe945e0d7ace7f6e702538f58422b531812631eec4723d91599",
+    "u03-reverse/raw.jsonl": "fdf5c9c0a2a7cf8880117a03af923f067c298f8e6be211c4531df237c6ce294f",
+    "u04-original/plan.json": "93a602d212d2246c3a6b14178cacfc5104a636c7598dbf4dfe72f4287bdeae04",
+    "u04-original/raw.jsonl": "7655c74d5c2c84576d0adfab14e1591bd6ac30f799ff36a7b6fc42032cff7437",
+    "u04-reverse/plan.json": "93a602d212d2246c3a6b14178cacfc5104a636c7598dbf4dfe72f4287bdeae04",
+    "u04-reverse/raw.jsonl": "cc57132e7fe9b3b5f2dac2001bd1fbcc9715b20e845246bd7083db9e712b51f4",
+    "u05-original/plan.json": "e90b3dc4c5134c289338df33f1fdd882447a6ac1e78dfa103c171bae700cc261",
+    "u05-original/raw.jsonl": "d68a090b8e423a93955dace2f242214c5601b02ad314452aea3a5791d9542bdf",
+    "u05-reverse/plan.json": "e90b3dc4c5134c289338df33f1fdd882447a6ac1e78dfa103c171bae700cc261",
+    "u05-reverse/raw.jsonl": "32f68f3566a9936968775cf977fd9a383705723e3ed6ce6aff5d07daa496bf34",
+    "u06-original/plan.json": "822b9b5fa8366c36bd8ec44b69e2b0dbb17a64a3d96a685fc74b1c689aa313a5",
+    "u06-original/raw.jsonl": "c348204aaf7ef6af3a9761f5fd2791e5ab0f442d4fe5727898f37e66463a5e20",
+    "u06-reverse/plan.json": "822b9b5fa8366c36bd8ec44b69e2b0dbb17a64a3d96a685fc74b1c689aa313a5",
+    "u06-reverse/raw.jsonl": "13d7a00b2e07f6dbed0d682834281f6b0657577f5d854d1b8525b3aea771b867",
+    "u07-original/plan.json": "b7243a8ec340b9686e794d00c2e403eb393b88e35c43c4044f6b216f30cba27e",
+    "u07-original/raw.jsonl": "d8f6d49de26ceafb230b9c0ff26118fabf6af6cebbf5ec0aff90b076f4e92428",
+    "u07-reverse/plan.json": "b7243a8ec340b9686e794d00c2e403eb393b88e35c43c4044f6b216f30cba27e",
+    "u07-reverse/raw.jsonl": "2b881066b45b0c26503664368a6e696d1cf5f1b1d06ef18f10150ca3dad2e152",
+    "u08-original/plan.json": "e3bb55feecf2f45aa78511148db7be3e4271a72654e65a2bc48f3bdea0cc2a56",
+    "u08-original/raw.jsonl": "ceb2e9ec6892e62bc37d2a9538d52640fbf68b2d6ddcfdb9e96ff18be52c1bfe",
+    "u08-reverse/plan.json": "e3bb55feecf2f45aa78511148db7be3e4271a72654e65a2bc48f3bdea0cc2a56",
+    "u08-reverse/raw.jsonl": "0372ad303422840823a0a2f5ecd74b1f35656ade84fb785f961aed744cb97d6b"
+  }
+}

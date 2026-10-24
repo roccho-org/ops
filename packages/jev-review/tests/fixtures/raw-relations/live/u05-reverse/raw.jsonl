@@ -1,0 +1,4 @@
+{"key": "r4", "text": "Mechanism Q needs a rule deciding when the waiting group is sent to disk."}
+{"key": "r3", "text": "Mechanism Q may delay the first write while waiting for others."}
+{"key": "r2", "text": "Mechanism Q spreads fixed disk-operation setup cost across those writes."}
+{"key": "r1", "text": "Mechanism Q stores several writes before issuing one disk operation."}

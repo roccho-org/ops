@@ -1,0 +1,79 @@
+{
+  "schema": "ops.raw-relations.plan.v1",
+  "sources": [
+    {
+      "id": "r-input",
+      "revision": "frozen-v1",
+      "path": "raw.jsonl"
+    }
+  ],
+  "checks": [
+    {
+      "id": "relation",
+      "version": "R-frozen-v1",
+      "kind": "inconsistent",
+      "meaning": "Are these requirements jointly inconsistent, meaning they cannot all hold simultaneously?",
+      "applicability": "Only explicitly stated conditions apply; no unstated rules are assumed.",
+      "context": []
+    }
+  ],
+  "context": [],
+  "obligations": [
+    {
+      "id": "obligation",
+      "check": "relation",
+      "participants": [
+        {
+          "source": "r-input",
+          "revision": "frozen-v1",
+          "occurrence": 1,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "frozen-v1",
+          "occurrence": 2,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "frozen-v1",
+          "occurrence": 3,
+          "role": "assertion"
+        }
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "candidate",
+      "check": "relation",
+      "participants": [
+        {
+          "source": "r-input",
+          "revision": "frozen-v1",
+          "occurrence": 1,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "frozen-v1",
+          "occurrence": 2,
+          "role": "assertion"
+        },
+        {
+          "source": "r-input",
+          "revision": "frozen-v1",
+          "occurrence": 3,
+          "role": "assertion"
+        }
+      ]
+    }
+  ],
+  "candidateRule": {
+    "id": "R-explicit-frozen",
+    "version": "1"
+  },
+  "scope": "Only explicitly stated conditions apply; no unstated rules are assumed.",
+  "asOf": "2026-10-24T00:00:00Z"
+}
