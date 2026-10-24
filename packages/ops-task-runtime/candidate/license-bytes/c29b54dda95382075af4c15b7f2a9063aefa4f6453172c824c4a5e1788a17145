@@ -1,0 +1,47 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// pseudo code is as below
+// Json = Null | Bool | Num | Str | Arr[List[Json]] | Obj[Map<String, Json>]
+// Return Option<Json>: None = “drop this node”
+// fn prune_loc(v: Json) -> Option<Json> {
+//   match v {
+//     Null | Bool(_) | Num(_) | Str(_) => Some(v),
+
+//     Arr(xs) => {
+//       let ys = xs
+//         .map(prune_loc)
+//         .filter_map(id); // keep only Some
+//       Some(Arr(ys)) // arrays are retained even if empty
+//     }
+
+//     Obj(m) => {
+//       // 1) drop "loc"
+//       let m1 = m.remove_key("loc");
+
+//       // 2) prune children, dropping empties
+//       let m2 = Map::new();
+//       for (k, child) in m1 {
+//         match prune_loc(child) {
+//           Some(c2) => m2.insert(k, c2),
+//           None => {} // drop this key
+//         }
+//       }
+
+//       // 3) drop map if empty
+//       if m2.is_empty() { None } else { Some(Obj(m2)) }
+//     }
+//   }
+// }

@@ -1,0 +1,35 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// Retrieves an element at the specified index from a fixed-size array. 
+///
+/// Parameters:
+///
+/// * `array` : The fixed-size array to access.
+/// * `index` : The position in the array from which to retrieve the element.
+///
+/// Returns `Some(element)` if the index is within bounds, or `None` if the index
+/// is out of bounds.
+///
+/// Example:
+///
+/// ```mbt check
+/// test {
+///   let arr : FixedArray[Int] = [1, 2, 3]
+///   inspect(arr.get(1), content="Some(2)")
+///   let arr : FixedArray[Int] = [1, 2, 3]
+///   inspect(arr.get(3), content="None")
+/// }
+/// ```

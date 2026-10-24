@@ -1,0 +1,45 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// A collection of execution threads stored in a Treap-based rope structure.
+///
+/// `ThreadSet` maintains an ordered set of `Thread` instances representing all active
+/// execution paths in the automaton. The order matters because it encodes matching
+/// priorities - the first thread to reach an `End` state produces the match result.
+///
+/// # Data Structure
+///
+/// Uses a Treap (randomized binary search tree) to efficiently:
+/// - Maintain thread ordering while allowing efficient insertion/merging
+/// - Track metadata (`ThreadSetNodeInfo`) to optimize operations
+/// - Support efficient operations like `flat_map`, `merge`, and iteration
+///
+/// Each node tracks `no_match`: true if no thread in the subtree has reached `End` state.
+/// This allows quick pruning of subtrees that cannot contribute to matches.
+///
+/// # Key Operations
+///
+/// - `merge`/`+`: Combines two thread sets while preserving order
+/// - `flat_map`: Applies a function that may expand each thread to multiple threads
+/// - `find_first_match`: Finds the first successful match (if any)
+/// - `remove_matches`: Removes all threads in `End` state from the collection
+/// - `remove_duplicates`: Eliminates redundant threads with same state
+/// - `split_at_first_match`: Separates threads before/after first match
+///
+/// # Usage in Automaton
+///
+/// During execution, each `State` contains a `ThreadSet` collection representing all
+/// possible execution paths from that state. When computing the derivative with
+/// respect to input, threads are transformed and may split into multiple threads.

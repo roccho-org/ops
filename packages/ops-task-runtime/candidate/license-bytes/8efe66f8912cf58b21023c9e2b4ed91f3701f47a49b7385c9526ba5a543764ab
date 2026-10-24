@@ -1,0 +1,1283 @@
+{
+  "schema": "ops.taskCandidateActrunRegistrySources/1",
+  "actrunSourceCommit": "b2fc1c9d88c921b670fc2c2651728967b414a8c7",
+  "indexCommit": "70ee22e56032c2ddb11c19c96aaa95d690e79312",
+  "indexFiles": {
+    "moonbitlang/async": {
+      "sha256": "ab59fd64cd0b1a342a973c901474963efd18d036645908a096b6a3d6b7bfffea",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/moonbitlang/async.index"
+    },
+    "mizchi/bitflow": {
+      "sha256": "8fe62b20e8b6ea576ca22398af3d288243954b878d63f06fc834bf52da230a36",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/bitflow.index"
+    },
+    "mizchi/bit": {
+      "sha256": "182daf3e477a0e2d335b45162d638a085a23da9ab670d58a7306a0e029e75fd9",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/bit.index"
+    },
+    "moonbitlang/x": {
+      "sha256": "7f837e82fe1d6e8a9b7f19361bcff9ed9418a96feddadec0493bcc1c6e246ed4",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/moonbitlang/x.index"
+    },
+    "moonbitlang/quickcheck": {
+      "sha256": "8f9e8fe60572514caee247d1ae5fb3b01499b05c5aa0b3e42c66cd37311f5f2e",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/moonbitlang/quickcheck.index"
+    },
+    "moonbit-community/yaml": {
+      "sha256": "c6055580f6c654313b2e2057c9e59555acd0eb5c2ea9d5b2cbc10d5db55e1c06",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/moonbit-community/yaml.index"
+    },
+    "mizchi/moomaid": {
+      "sha256": "0d82cbc57e3951023e0d72b06e321ae43db463f73c0c75fbf10d15d1d67c5fca",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/moomaid.index"
+    },
+    "bobzhang/toml": {
+      "sha256": "ebd026f21ec2af9f9dbc1a70d0b897a78979dc78008fdc92732dedc844f869fc",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/bobzhang/toml.index"
+    },
+    "mizchi/jq": {
+      "sha256": "a6278195280892d610fd476e16269c3dd604e5715176f8d298e02f9dafbf2efe",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/jq.index"
+    },
+    "mizchi/wite": {
+      "sha256": "90e2a5eb63e7158f71d7e675809fe6fb6fc45af3ba205137d78f145b7c83687e",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/wite.index"
+    },
+    "mizchi/x": {
+      "sha256": "8e327eec5472a73ddf631c200fdc9ab314bfed06c59d5e9e77aea4be6915e44e",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/x.index"
+    },
+    "mizchi/llm": {
+      "sha256": "7951677a4f237fd5491324bd50a339a8715f4a1ebc5ecd2507a919a3d3113779",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/llm.index"
+    },
+    "mizchi/zlib": {
+      "sha256": "7a0a99a8acd716bf13ed83bc566dabbb64ec347f04943fceb02e3c2fe245ac7e",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/zlib.index"
+    },
+    "mizchi/tempfile": {
+      "sha256": "e5b0845c31d141173046f95f4a579cd38f65714a1f4b06d9fdeb3fc52feca5ff",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/tempfile.index"
+    },
+    "mizchi/syntree": {
+      "sha256": "c12bb0841c0b31d4aa6999914b762ef4d1a6d37103e9b89432f770f7d3f0982e",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/syntree.index"
+    },
+    "mizchi/crater": {
+      "sha256": "55b923ef18d51372dc6f63e12f63c209ec6b67732ec9a40bdc94e67832fdec47",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/crater.index"
+    },
+    "mizchi/tui": {
+      "sha256": "c78baf7e0df9172b891cfab4d507b442019904a457531828f5e0bdcc5a1a2a8b",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/tui.index"
+    },
+    "mizchi/signals": {
+      "sha256": "2b0c0aca5c76244a2fcf1fbd0e629479dc1c90fe6b447ae28b6a844a92fc1347",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/signals.index"
+    },
+    "mizchi/svg": {
+      "sha256": "448a151c11df5291782e31bd8d18c8e767b7f419c21917423f960963594be904",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/svg.index"
+    },
+    "mizchi/font": {
+      "sha256": "cfc69cc4e2fb6975196c0a01e5fe9c50c17ca06900111c2be86f2ddbb55e225d",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/font.index"
+    },
+    "bobzhang/lexer": {
+      "sha256": "02a19b413a258d69d1abf4f4e26c4c9ec1a447b65fbf5ff48c186fd5b36793bd",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/bobzhang/lexer.index"
+    },
+    "mizchi/mwac": {
+      "sha256": "b3a1201a5c218d2dfb8ac16b8293a7ca438502f678fc7c6d0a1b0e1d9c143725",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/mwac.index"
+    },
+    "mizchi/wit": {
+      "sha256": "871758068e0eb3a19066dff22b0ecf01a2d7dc2c4bccd7f5295858147492961b",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/wit.index"
+    },
+    "mizchi/oci_wasm": {
+      "sha256": "1e2efe64424410f6f56176da56e05f67cb1274f185eb4a0a6c0a03dce805ee39",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/oci_wasm.index"
+    },
+    "mizchi/pixelmatch": {
+      "sha256": "6b8d7b81fbcbb9427d65544b3a51c11a9cb0efba97bca4f7c0918593f7b027ac",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/pixelmatch.index"
+    },
+    "mizchi/brotli": {
+      "sha256": "404fabb05a6cb7643e1a5d4a405c11d2ca32196b19501b40051c31c9c517ac7c",
+      "path": "/tmp/local-ci-events-w-20261024/P-actrun-moon/registry-index/user/mizchi/brotli.index"
+    }
+  },
+  "roots": {
+    "moonbitlang/async": "0.16.6",
+    "mizchi/bitflow": "0.3.1",
+    "mizchi/bit": "0.29.0",
+    "moonbitlang/x": "0.4.40",
+    "moonbitlang/quickcheck": "0.9.10",
+    "moonbit-community/yaml": "0.0.4",
+    "mizchi/moomaid": "0.1.2",
+    "bobzhang/toml": "0.1.8",
+    "mizchi/jq": "0.2.1",
+    "mizchi/wite": "0.11.0"
+  },
+  "modules": [
+    {
+      "name": "moonbitlang/async",
+      "version": "0.16.6",
+      "url": "https://download.mooncakes.io/user/moonbitlang/async/0.16.6.zip",
+      "sha256": "25df07cdd44c0a968054ecd00696c86841008b63dfaaf50349673fbdd5d4a677",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbitlang__async@0.16.6.zip",
+      "indexRow": {
+        "name": "moonbitlang/async",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "exclude": [
+          "test_directory",
+          "test_keys"
+        ],
+        "license": "Apache-2.0",
+        "version": "0.16.6",
+        "checksum": "25df07cdd44c0a968054ecd00696c86841008b63dfaaf50349673fbdd5d4a677",
+        "keywords": [],
+        "created_at": "2026-02-10T03:37:50.219711+00:00",
+        "repository": "https://github.com/moonbitlang/async",
+        "description": "Asynchronous programming library for MoonBit",
+        "yanked_reason": null,
+        "preferred-target": "native"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/bitflow",
+      "version": "0.3.1",
+      "url": "https://download.mooncakes.io/user/mizchi/bitflow/0.3.1.zip",
+      "sha256": "2531e871aa1496020288509736f4535249e2accf67056ecf0f7a0d3e7286a8f9",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__bitflow@0.3.1.zip",
+      "indexRow": {
+        "deps": {
+          "moonbitlang/x": "0.4.40",
+          "moonbitlang/async": "0.16.2"
+        },
+        "name": "mizchi/bitflow",
+        "readme": "README.mbt.md",
+        "source": "src",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.3.1",
+        "checksum": "2531e871aa1496020288509736f4535249e2accf67056ecf0f7a0d3e7286a8f9",
+        "keywords": [
+          "workflow",
+          "starlark",
+          "dag",
+          "cache",
+          "build"
+        ],
+        "created_at": "2026-02-12T11:31:52.554127+00:00",
+        "repository": "https://github.com/mizchi/bitflow",
+        "description": "Workflow engine core with Starlark-subset parser, DAG execution, and cache planning primitives.",
+        "yanked_reason": null,
+        "preferred-target": "js"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/bit",
+      "version": "0.29.0",
+      "url": "https://download.mooncakes.io/user/mizchi/bit/0.29.0.zip",
+      "sha256": "980cb2f82c5ba9b03704bdfb4d0f3fafac195abb50cc26a087556832a30cb886",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__bit@0.29.0.zip",
+      "indexRow": {
+        "deps": {
+          "mizchi/x": "0.1.4",
+          "mizchi/llm": "0.2.2",
+          "mizchi/zlib": "0.3.0",
+          "bobzhang/toml": "0.1.7",
+          "moonbitlang/x": "0.4.40",
+          "mizchi/bitflow": "0.3.1",
+          "mizchi/tempfile": "0.1.0",
+          "moonbitlang/async": "0.16.6"
+        },
+        "name": "mizchi/bit",
+        "readme": "README.mbt.md",
+        "source": "src",
+        "yanked": false,
+        "exclude": [
+          "component",
+          "tools",
+          "e2e",
+          "fixtures",
+          "docs",
+          "t",
+          "octorus",
+          "third_party/git",
+          "file.txt",
+          "install.sh",
+          "justfile",
+          "AGENTS.md",
+          "CLAUDE.md",
+          "COMPAT_RESULTS.md",
+          "TODO.md"
+        ],
+        "license": "Apache-2.0",
+        "version": "0.29.0",
+        "checksum": "980cb2f82c5ba9b03704bdfb4d0f3fafac195abb50cc26a087556832a30cb886",
+        "keywords": [
+          "git",
+          "packfile",
+          "protocol"
+        ],
+        "created_at": "2026-03-14T07:55:38.462090+00:00",
+        "repository": "https://github.com/mizchi/bit-vcs",
+        "description": "Pure MoonBit Git implementation",
+        "yanked_reason": null,
+        "preferred-target": "native"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "moonbitlang/x",
+      "version": "0.4.40",
+      "url": "https://download.mooncakes.io/user/moonbitlang/x/0.4.40.zip",
+      "sha256": "bab0178e441126a4d2abfb8489a986786454a154894b1562599ac2f66cc8853b",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbitlang__x@0.4.40.zip",
+      "indexRow": {
+        "name": "moonbitlang/x",
+        "readme": "README.md",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.4.40",
+        "checksum": "bab0178e441126a4d2abfb8489a986786454a154894b1562599ac2f66cc8853b",
+        "keywords": [
+          "experimental",
+          "moonbitlang",
+          "json",
+          "time",
+          "crypto"
+        ],
+        "created_at": "2026-01-30T07:20:08.121125+00:00",
+        "repository": "https://github.com/moonbitlang/x",
+        "description": "experimental packages for moonbitlang/core",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "moonbitlang/quickcheck",
+      "version": "0.9.10",
+      "url": "https://download.mooncakes.io/user/moonbitlang/quickcheck/0.9.10.zip",
+      "sha256": "e2b1393ba3e383d7b6defc40ea55e3ed9485d491fc6a8c6e2e2bb2373838f4d8",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbitlang__quickcheck@0.9.10.zip",
+      "indexRow": {
+        "name": "moonbitlang/quickcheck",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.9.10",
+        "checksum": "e2b1393ba3e383d7b6defc40ea55e3ed9485d491fc6a8c6e2e2bb2373838f4d8",
+        "keywords": [
+          "property-based-testing",
+          "quickcheck"
+        ],
+        "created_at": "2026-01-21T10:10:19.892161+00:00",
+        "repository": "https://github.com/moonbitlang/quickcheck",
+        "description": "Automatic testing of MoonBit programs",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "moonbit-community/yaml",
+      "version": "0.0.4",
+      "url": "https://download.mooncakes.io/user/moonbit-community/yaml/0.0.4.zip",
+      "sha256": "8e20c5721d419b5f40445230b5e6d8321f7481d2485d8fe748acfadd2868ecd3",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbit-community__yaml@0.0.4.zip",
+      "indexRow": {
+        "deps": {},
+        "name": "moonbit-community/yaml",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "license": "MIT",
+        "version": "0.0.4",
+        "checksum": "8e20c5721d419b5f40445230b5e6d8321f7481d2485d8fe748acfadd2868ecd3",
+        "keywords": [],
+        "created_at": "2026-03-10T09:17:10.016494+00:00",
+        "repository": "https://github.com/moonbit-community/yaml.mbt",
+        "description": "",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/moomaid",
+      "version": "0.1.2",
+      "url": "https://download.mooncakes.io/user/mizchi/moomaid/0.1.2.zip",
+      "sha256": "aa12e92b6174eccc85bf6eac47b26825e3c3ae42cec613d9a70182d5701879d9",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__moomaid@0.1.2.zip",
+      "indexRow": {
+        "name": "mizchi/moomaid",
+        "version": "0.1.2",
+        "deps": {
+          "moonbitlang/async": "0.16.6",
+          "mizchi/syntree": "0.2.3",
+          "mizchi/crater": "0.4.4",
+          "mizchi/tui": "0.6.0",
+          "mizchi/signals": "0.6.3",
+          "moonbitlang/x": "0.4.40",
+          "mizchi/svg": "0.1.9",
+          "mizchi/font": "0.3.1"
+        },
+        "readme": "README.mbt.md",
+        "repository": "https://github.com/mizchi/moomaid",
+        "license": "Apache-2.0",
+        "keywords": [
+          "mermaid",
+          "diagram",
+          "ascii",
+          "svg",
+          "flowchart",
+          "sequence"
+        ],
+        "description": "Mermaid diagram renderer for MoonBit (ASCII and SVG output)",
+        "source": "src",
+        "preferred-target": "js",
+        "checksum": "aa12e92b6174eccc85bf6eac47b26825e3c3ae42cec613d9a70182d5701879d9",
+        "created_at": "2026-02-18T12:21:34.935882+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "bobzhang/toml",
+      "version": "0.1.8",
+      "url": "https://download.mooncakes.io/user/bobzhang/toml/0.1.8.zip",
+      "sha256": "75344ea0681e50d05825dda54d58f65fbb7ebe8d6e0b93f1bde458e6c78ba5a2",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/bobzhang__toml@0.1.8.zip",
+      "indexRow": {
+        "deps": {
+          "bobzhang/lexer": "0.1.3"
+        },
+        "name": "bobzhang/toml",
+        "readme": "README.md",
+        "yanked": true,
+        "license": "Apache-2.0",
+        "version": "0.1.8",
+        "checksum": "75344ea0681e50d05825dda54d58f65fbb7ebe8d6e0b93f1bde458e6c78ba5a2",
+        "keywords": [
+          "toml",
+          "parser",
+          "config"
+        ],
+        "created_at": "2026-03-18T06:50:49.118031+00:00",
+        "repository": "https://github.com/moonbit-community/toml-parser",
+        "description": "A TOML parser implementation in MoonBit",
+        "yanked_reason": "Moved to moonbit-community/toml. This name gets no further updates; depend on moonbit-community/toml instead."
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/jq",
+      "version": "0.2.1",
+      "url": "https://download.mooncakes.io/user/mizchi/jq/0.2.1.zip",
+      "sha256": "32bd82b9db1fda4f141db8694c5fa3832f21d15f0908e711cba9413a85d20413",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__jq@0.2.1.zip",
+      "indexRow": {
+        "name": "mizchi/jq",
+        "version": "0.2.1",
+        "deps": {
+          "moonbitlang/x": "0.4.41",
+          "moonbitlang/async": "0.16.8"
+        },
+        "readme": "src/README.mbt.md",
+        "repository": "https://github.com/mizchi/jq",
+        "license": "Apache-2.0",
+        "keywords": [
+          "jq",
+          "json",
+          "moonbit"
+        ],
+        "description": "A jq clone implemented in MoonBit",
+        "source": "src",
+        "checksum": "32bd82b9db1fda4f141db8694c5fa3832f21d15f0908e711cba9413a85d20413",
+        "created_at": "2026-03-20T11:40:09.938684+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/wite",
+      "version": "0.11.0",
+      "url": "https://download.mooncakes.io/user/mizchi/wite/0.11.0.zip",
+      "sha256": "3d57588a3b85c3e740fac67d3d997aeeb2bb8b486109048f5f154d63ea1abfdd",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__wite@0.11.0.zip",
+      "indexRow": {
+        "name": "mizchi/wite",
+        "version": "0.11.0",
+        "deps": {
+          "moonbitlang/async": "0.16.6",
+          "moonbitlang/x": "0.4.40",
+          "mizchi/mwac": "0.1.6",
+          "mizchi/wit": "0.2.4",
+          "mizchi/oci_wasm": "0.3.0",
+          "mizchi/x": "0.1.5"
+        },
+        "readme": "README.mbt.md",
+        "repository": "https://github.com/mizchi/wite",
+        "license": "Apache-2.0",
+        "keywords": [
+          "wasm",
+          "component-model",
+          "optimizer",
+          "profiler"
+        ],
+        "description": "Component-model-aware WebAssembly analyzer, optimizer, and profiler",
+        "source": "src",
+        "preferred-target": "js",
+        "checksum": "3d57588a3b85c3e740fac67d3d997aeeb2bb8b486109048f5f154d63ea1abfdd",
+        "created_at": "2026-03-22T13:15:31.546043+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "moonbitlang/async",
+      "version": "0.16.2",
+      "url": "https://download.mooncakes.io/user/moonbitlang/async/0.16.2.zip",
+      "sha256": "c7358f8b15cb8feefd7b58c1101dae87740637edab9025e230b3e9eb7dff24ed",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbitlang__async@0.16.2.zip",
+      "indexRow": {
+        "name": "moonbitlang/async",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "exclude": [
+          "test_directory",
+          "test_keys"
+        ],
+        "license": "Apache-2.0",
+        "version": "0.16.2",
+        "checksum": "c7358f8b15cb8feefd7b58c1101dae87740637edab9025e230b3e9eb7dff24ed",
+        "keywords": [],
+        "created_at": "2026-01-19T09:03:13.402312+00:00",
+        "repository": "https://github.com/moonbitlang/async",
+        "description": "Asynchronous programming library for MoonBit",
+        "yanked_reason": null,
+        "preferred-target": "native"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/x",
+      "version": "0.1.4",
+      "url": "https://download.mooncakes.io/user/mizchi/x/0.1.4.zip",
+      "sha256": "27aa7ab06728d688a26f29af9241bb6468dbc0f54fd6437b33c4be9e4dcbe8ce",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__x@0.1.4.zip",
+      "indexRow": {
+        "name": "mizchi/x",
+        "version": "0.1.4",
+        "deps": {
+          "moonbitlang/async": "0.16.6",
+          "moonbitlang/x": "0.4.40"
+        },
+        "source": "src",
+        "preferred-target": "native",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/bit-vcs/bit",
+        "description": "HTTP and WebSocket utilities for MoonBit",
+        "checksum": "27aa7ab06728d688a26f29af9241bb6468dbc0f54fd6437b33c4be9e4dcbe8ce",
+        "created_at": "2026-02-23T11:54:09.850526+00:00",
+        "yanked": false,
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/llm",
+      "version": "0.2.2",
+      "url": "https://download.mooncakes.io/user/mizchi/llm/0.2.2.zip",
+      "sha256": "e5df48206dd12b4dec0e508f4e452475746cb2f5ebba1850ead8581cad16c66c",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__llm@0.2.2.zip",
+      "indexRow": {
+        "name": "mizchi/llm",
+        "version": "0.2.2",
+        "deps": {},
+        "source": "src",
+        "preferred-target": "js",
+        "readme": "README.mbt.md",
+        "repository": "https://github.com/mizchi/llm",
+        "license": "MIT",
+        "keywords": [
+          "llm",
+          "ai",
+          "client"
+        ],
+        "description": "Pure MoonBit LLM client library",
+        "checksum": "e5df48206dd12b4dec0e508f4e452475746cb2f5ebba1850ead8581cad16c66c",
+        "created_at": "2026-02-11T04:40:36.457644+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/zlib",
+      "version": "0.3.0",
+      "url": "https://download.mooncakes.io/user/mizchi/zlib/0.3.0.zip",
+      "sha256": "7cd42ada917125f249ddb29f7a812df7591b4a68aee1e051faa5d8a51de3fab9",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__zlib@0.3.0.zip",
+      "indexRow": {
+        "deps": {
+          "moonbitlang/x": "0.4.38"
+        },
+        "name": "mizchi/zlib",
+        "readme": "README.mbt.md",
+        "source": "src",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.3.0",
+        "checksum": "7cd42ada917125f249ddb29f7a812df7591b4a68aee1e051faa5d8a51de3fab9",
+        "keywords": [
+          "zlib",
+          "deflate"
+        ],
+        "created_at": "2026-01-29T03:43:07.942149+00:00",
+        "repository": "https://github.com/mizchi/zlib.mbt",
+        "description": "Pure MoonBit zlib/deflate implementation.",
+        "yanked_reason": null,
+        "preferred-target": "js"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "bobzhang/toml",
+      "version": "0.1.7",
+      "url": "https://download.mooncakes.io/user/bobzhang/toml/0.1.7.zip",
+      "sha256": "16f64c7e3bd72055ba71bac5fa6b23b5f2b0e8823b7b394b30972a7bbaa83ac6",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/bobzhang__toml@0.1.7.zip",
+      "indexRow": {
+        "deps": {
+          "bobzhang/lexer": "0.1.1"
+        },
+        "name": "bobzhang/toml",
+        "readme": "README.md",
+        "yanked": true,
+        "license": "Apache-2.0",
+        "version": "0.1.7",
+        "checksum": "16f64c7e3bd72055ba71bac5fa6b23b5f2b0e8823b7b394b30972a7bbaa83ac6",
+        "keywords": [
+          "toml",
+          "parser",
+          "config"
+        ],
+        "created_at": "2025-12-21T03:36:19.159672+00:00",
+        "repository": "https://github.com/moonbit-community/toml-parser",
+        "description": "A TOML parser implementation in MoonBit",
+        "yanked_reason": "Moved to moonbit-community/toml. This name gets no further updates; depend on moonbit-community/toml instead."
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/tempfile",
+      "version": "0.1.0",
+      "url": "https://download.mooncakes.io/user/mizchi/tempfile/0.1.0.zip",
+      "sha256": "ae171ed6647b0f6355f886a70d9ccb708c1dcc49d442b88ec0bb6b238d2dc1a5",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__tempfile@0.1.0.zip",
+      "indexRow": {
+        "deps": {
+          "moonbitlang/x": "0.4.38"
+        },
+        "name": "mizchi/tempfile",
+        "readme": "src/README.mbt.md",
+        "source": "src",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.1.0",
+        "checksum": "ae171ed6647b0f6355f886a70d9ccb708c1dcc49d442b88ec0bb6b238d2dc1a5",
+        "keywords": [
+          "tempfile",
+          "temporary",
+          "filesystem"
+        ],
+        "created_at": "2026-01-29T08:44:41.734647+00:00",
+        "repository": "https://github.com/mizchi/tempfile.mbt",
+        "description": "Temporary file and directory management for MoonBit",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/syntree",
+      "version": "0.2.3",
+      "url": "https://download.mooncakes.io/user/mizchi/syntree/0.2.3.zip",
+      "sha256": "f1e39d862ac55d98809bf8894f07a9de163b5981d621a3142095e3d8469d268a",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__syntree@0.2.3.zip",
+      "indexRow": {
+        "name": "mizchi/syntree",
+        "version": "0.2.3",
+        "deps": {},
+        "source": "src",
+        "preferred-target": "js",
+        "readme": "README.mbt.md",
+        "repository": "https://github.com/mizchi/syntree.mbt",
+        "license": "MIT",
+        "keywords": [
+          "syntax",
+          "tree",
+          "highlight",
+          "moonbit"
+        ],
+        "description": "Incremental syntax tree and highlighting toolkit for MoonBit",
+        "checksum": "f1e39d862ac55d98809bf8894f07a9de163b5981d621a3142095e3d8469d268a",
+        "created_at": "2026-02-11T05:26:31.319384+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/crater",
+      "version": "0.4.4",
+      "url": "https://download.mooncakes.io/user/mizchi/crater/0.4.4.zip",
+      "sha256": "cf56a4f4712bee2fed23fd6095dc66c90952493130eb7712d7dd3dcea84e7779",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__crater@0.4.4.zip",
+      "indexRow": {
+        "name": "mizchi/crater",
+        "version": "0.4.4",
+        "description": "CSS Layout Engine that implements Box/Flex/Grid",
+        "deps": {},
+        "source": "src",
+        "readme": "README.mbt.md",
+        "repository": "https://github.com/mizchi/crater",
+        "license": "Apache-2.0",
+        "keywords": [
+          "css",
+          "browser"
+        ],
+        "exclude": [
+          "wpt",
+          "_build",
+          "node_modules",
+          "browser",
+          "js",
+          "wasm",
+          "tests",
+          "wpt-tests",
+          "scripts",
+          "docs"
+        ],
+        "checksum": "cf56a4f4712bee2fed23fd6095dc66c90952493130eb7712d7dd3dcea84e7779",
+        "created_at": "2026-02-11T04:32:22.071817+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/tui",
+      "version": "0.6.0",
+      "url": "https://download.mooncakes.io/user/mizchi/tui/0.6.0.zip",
+      "sha256": "1c4b510a70aa0c1a36f6ff33f775acc4744e22115e88afb3f291c1ed2507e85c",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__tui@0.6.0.zip",
+      "indexRow": {
+        "name": "mizchi/tui",
+        "version": "0.6.0",
+        "deps": {
+          "mizchi/crater": "0.4.1",
+          "mizchi/signals": "0.6.1",
+          "moonbitlang/async": "0.16.0",
+          "mizchi/syntree": "0.2.0",
+          "moonbitlang/x": "0.4.40"
+        },
+        "readme": "README.md",
+        "repository": "https://github.com/mizchi/tui.mbt",
+        "license": "MIT",
+        "keywords": [
+          "tui",
+          "terminal",
+          "ui",
+          "cli"
+        ],
+        "description": "Terminal UI library for MoonBit with reactive signals",
+        "source": "src",
+        "preferred-target": "js",
+        "checksum": "1c4b510a70aa0c1a36f6ff33f775acc4744e22115e88afb3f291c1ed2507e85c",
+        "created_at": "2026-02-05T15:14:25.059693+00:00",
+        "yanked": false,
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/signals",
+      "version": "0.6.3",
+      "url": "https://download.mooncakes.io/user/mizchi/signals/0.6.3.zip",
+      "sha256": "73aae215f0af59596e4f19a985d49fb627d01c1bfdaa08a1d585289134f7a45e",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__signals@0.6.3.zip",
+      "indexRow": {
+        "name": "mizchi/signals",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "license": "MIT",
+        "version": "0.6.3",
+        "checksum": "73aae215f0af59596e4f19a985d49fb627d01c1bfdaa08a1d585289134f7a45e",
+        "keywords": [
+          "signals",
+          "reactive",
+          "alien-signals",
+          "ui",
+          "vnode"
+        ],
+        "created_at": "2026-02-10T15:54:57.065253+00:00",
+        "repository": "https://github.com/mizchi/signals",
+        "description": "Fine-grained reactive signals for MoonBit (alien-signals inspired)",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/svg",
+      "version": "0.1.9",
+      "url": "https://download.mooncakes.io/user/mizchi/svg/0.1.9.zip",
+      "sha256": "50859cd92afca2bc9955e439e48de056c9be98e43b60f4b69d0e07af90fd1d94",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__svg@0.1.9.zip",
+      "indexRow": {
+        "name": "mizchi/svg",
+        "version": "0.1.9",
+        "description": "Standalone SVG scene graph and renderer",
+        "deps": {},
+        "source": "src",
+        "readme": "README.md",
+        "repository": "https://github.com/mizchi/svg",
+        "license": "Apache-2.0",
+        "keywords": [
+          "svg",
+          "graphics"
+        ],
+        "checksum": "50859cd92afca2bc9955e439e48de056c9be98e43b60f4b69d0e07af90fd1d94",
+        "created_at": "2026-02-14T21:12:16.766075+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/font",
+      "version": "0.3.1",
+      "url": "https://download.mooncakes.io/user/mizchi/font/0.3.1.zip",
+      "sha256": "d48d06377231d0f6f7b44239dac2466944171cc3d4234653d3da53eb30c466c6",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__font@0.3.1.zip",
+      "indexRow": {
+        "name": "mizchi/font",
+        "version": "0.3.1",
+        "deps": {
+          "mizchi/svg": "0.1.8",
+          "mizchi/pixelmatch": "0.3.5",
+          "mizchi/zlib": "0.3.3",
+          "mizchi/brotli": "0.1.0",
+          "moonbitlang/x": "0.4.40"
+        },
+        "readme": "README.md",
+        "repository": "https://github.com/mizchi/font",
+        "license": "Apache-2.0",
+        "keywords": [
+          "font",
+          "ttf",
+          "woff",
+          "woff2",
+          "opentype",
+          "otf",
+          "cff"
+        ],
+        "description": "TrueType/OTF(CFF)/WOFF/WOFF2 font parser for MoonBit",
+        "source": "src",
+        "checksum": "d48d06377231d0f6f7b44239dac2466944171cc3d4234653d3da53eb30c466c6",
+        "created_at": "2026-02-18T06:43:04.970581+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "bobzhang/lexer",
+      "version": "0.1.3",
+      "url": "https://download.mooncakes.io/user/bobzhang/lexer/0.1.3.zip",
+      "sha256": "ce6ef85c5c768e2b0f4d1071e3a0c451ed80170489769e155174ddea97d1c407",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/bobzhang__lexer@0.1.3.zip",
+      "indexRow": {
+        "name": "bobzhang/lexer",
+        "readme": "README.md",
+        "source": ".",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.1.3",
+        "checksum": "ce6ef85c5c768e2b0f4d1071e3a0c451ed80170489769e155174ddea97d1c407",
+        "keywords": [
+          "lexer",
+          "programming language"
+        ],
+        "created_at": "2026-03-18T06:50:30.955962+00:00",
+        "repository": "https://github.com/bobzhang/bob",
+        "description": "A generic lexer library for handwritten lexers in MoonBit",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "moonbitlang/x",
+      "version": "0.4.41",
+      "url": "https://download.mooncakes.io/user/moonbitlang/x/0.4.41.zip",
+      "sha256": "a33de18d32604e3642f1a1208b714ebd6a3d242940113f1a119c7b34c81c4760",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbitlang__x@0.4.41.zip",
+      "indexRow": {
+        "deps": {},
+        "name": "moonbitlang/x",
+        "readme": "README.md",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.4.41",
+        "checksum": "a33de18d32604e3642f1a1208b714ebd6a3d242940113f1a119c7b34c81c4760",
+        "keywords": [
+          "experimental",
+          "moonbitlang",
+          "json",
+          "time",
+          "crypto"
+        ],
+        "created_at": "2026-03-11T07:08:21.485230+00:00",
+        "repository": "https://github.com/moonbitlang/x",
+        "description": "experimental packages for moonbitlang/core",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "moonbitlang/async",
+      "version": "0.16.8",
+      "url": "https://download.mooncakes.io/user/moonbitlang/async/0.16.8.zip",
+      "sha256": "8f07d0d2063474c26f8e2cecd78f5b2d4a452aff42cf2428c6ac44fef871fefa",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbitlang__async@0.16.8.zip",
+      "indexRow": {
+        "deps": {},
+        "name": "moonbitlang/async",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "exclude": [
+          "test_directory",
+          "test_keys"
+        ],
+        "license": "Apache-2.0",
+        "version": "0.16.8",
+        "checksum": "8f07d0d2063474c26f8e2cecd78f5b2d4a452aff42cf2428c6ac44fef871fefa",
+        "keywords": [],
+        "created_at": "2026-03-11T10:18:07.022377+00:00",
+        "repository": "https://github.com/moonbitlang/async",
+        "description": "Asynchronous programming library for MoonBit",
+        "yanked_reason": null,
+        "preferred-target": "native"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/mwac",
+      "version": "0.1.6",
+      "url": "https://download.mooncakes.io/user/mizchi/mwac/0.1.6.zip",
+      "sha256": "9424816b7807d0ed7f9be93f7c6261f74b5def9d02ffbb0f7349f5c5ae1b01d9",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__mwac@0.1.6.zip",
+      "indexRow": {
+        "deps": {
+          "mizchi/wit": "0.2.4",
+          "moonbitlang/x": "0.4.40",
+          "moonbitlang/async": "0.16.6"
+        },
+        "name": "mizchi/mwac",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.1.6",
+        "checksum": "9424816b7807d0ed7f9be93f7c6261f74b5def9d02ffbb0f7349f5c5ae1b01d9",
+        "keywords": [
+          "wasm",
+          "webassembly",
+          "component-model",
+          "wac",
+          "composition"
+        ],
+        "created_at": "2026-02-15T01:57:12.282896+00:00",
+        "repository": "https://github.com/mizchi/mwac",
+        "description": "WAC (WebAssembly Compositions) composer for the Component Model",
+        "yanked_reason": null,
+        "preferred-target": "js"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/wit",
+      "version": "0.2.4",
+      "url": "https://download.mooncakes.io/user/mizchi/wit/0.2.4.zip",
+      "sha256": "2051cdf716f163fb99365f2a4d6c75e5a75cd216605228a63de08a5f1caab59b",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__wit@0.2.4.zip",
+      "indexRow": {
+        "name": "mizchi/wit",
+        "version": "0.2.4",
+        "deps": {
+          "moonbitlang/x": "0.4.40"
+        },
+        "readme": "README.mbt.md",
+        "repository": "https://github.com/mizchi/wit.mbt",
+        "license": "Apache-2.0",
+        "keywords": [
+          "wit",
+          "wasm",
+          "component"
+        ],
+        "description": "WIT parser and resolver in MoonBit",
+        "source": "src",
+        "preferred-target": "js",
+        "checksum": "2051cdf716f163fb99365f2a4d6c75e5a75cd216605228a63de08a5f1caab59b",
+        "created_at": "2026-02-15T01:52:40.196646+00:00",
+        "yanked": false,
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/oci_wasm",
+      "version": "0.3.0",
+      "url": "https://download.mooncakes.io/user/mizchi/oci_wasm/0.3.0.zip",
+      "sha256": "c156d0da568077363a685fef9b921516fcb607ca03603b99234886497010f383",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__oci_wasm@0.3.0.zip",
+      "indexRow": {
+        "deps": {
+          "moonbitlang/async": "0.16.2"
+        },
+        "name": "mizchi/oci_wasm",
+        "readme": "README.mbt.md",
+        "source": "src",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.3.0",
+        "checksum": "c156d0da568077363a685fef9b921516fcb607ca03603b99234886497010f383",
+        "keywords": [
+          "wasm",
+          "oci",
+          "registry"
+        ],
+        "created_at": "2026-02-08T14:51:43.274782+00:00",
+        "repository": "https://github.com/mizchi/oci_wasm",
+        "description": "WebAssembly package registry client",
+        "yanked_reason": null,
+        "preferred-target": "js"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/x",
+      "version": "0.1.5",
+      "url": "https://download.mooncakes.io/user/mizchi/x/0.1.5.zip",
+      "sha256": "a8ec190c0f14d5c398cf978ecdaeef69a9b96d9441eb76f13921dbde2ff1a7d7",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__x@0.1.5.zip",
+      "indexRow": {
+        "name": "mizchi/x",
+        "version": "0.1.5",
+        "deps": {
+          "moonbitlang/async": "0.16.6",
+          "moonbitlang/x": "0.4.40"
+        },
+        "readme": "README.md",
+        "repository": "https://github.com/mizchi/x",
+        "description": "Node.js backend compatibility layer for moonbitlang/async in MoonBit, with native delegation and JS FFI implementations for process, fs, http, websocket, stdio, pipe, and sys.",
+        "keywords": [
+          "moonbit",
+          "async",
+          "backend",
+          "compatibility",
+          "nodejs",
+          "process",
+          "filesystem",
+          "http",
+          "websocket",
+          "wasi"
+        ],
+        "source": "src",
+        "license": "Apache-2.0",
+        "preferred-target": "native",
+        "checksum": "a8ec190c0f14d5c398cf978ecdaeef69a9b96d9441eb76f13921dbde2ff1a7d7",
+        "created_at": "2026-02-28T16:33:36.750215+00:00",
+        "yanked": false,
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "moonbitlang/x",
+      "version": "0.4.38",
+      "url": "https://download.mooncakes.io/user/moonbitlang/x/0.4.38.zip",
+      "sha256": "ba0f9a99f861ebd0bfb31ff01f57bea75a7584786a6468cfd536650aab7a6e16",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbitlang__x@0.4.38.zip",
+      "indexRow": {
+        "name": "moonbitlang/x",
+        "readme": "README.md",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.4.38",
+        "checksum": "ba0f9a99f861ebd0bfb31ff01f57bea75a7584786a6468cfd536650aab7a6e16",
+        "keywords": [
+          "experimental",
+          "moonbitlang",
+          "json",
+          "time",
+          "crypto"
+        ],
+        "warn-list": "-29",
+        "created_at": "2025-12-10T10:41:31.083741+00:00",
+        "repository": "https://github.com/moonbitlang/x",
+        "description": "experimental packages for moonbitlang/core",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "bobzhang/lexer",
+      "version": "0.1.1",
+      "url": "https://download.mooncakes.io/user/bobzhang/lexer/0.1.1.zip",
+      "sha256": "040b7c842fd67fcdd5a0042992c8f4ba03a6743d236cf75c24f1a8cf9f76b19d",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/bobzhang__lexer@0.1.1.zip",
+      "indexRow": {
+        "name": "bobzhang/lexer",
+        "readme": "README.md",
+        "source": ".",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.1.1",
+        "checksum": "040b7c842fd67fcdd5a0042992c8f4ba03a6743d236cf75c24f1a8cf9f76b19d",
+        "keywords": [
+          "lexer",
+          "programming language"
+        ],
+        "created_at": "2025-10-14T05:43:16.490504+00:00",
+        "repository": "https://github.com/bobzhang/bob",
+        "description": "A generic lexer library for handwritten lexers in MoonBit",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/crater",
+      "version": "0.4.1",
+      "url": "https://download.mooncakes.io/user/mizchi/crater/0.4.1.zip",
+      "sha256": "dcf4c8bbc04195c59273f4178c505d89b10835ece5daf92ecd03da2cc10f190b",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__crater@0.4.1.zip",
+      "indexRow": {
+        "name": "mizchi/crater",
+        "version": "0.4.1",
+        "description": "CSS Layout Engine that implements Box/Flex/Grid",
+        "deps": {},
+        "source": "src",
+        "readme": "README.mbt.md",
+        "repository": "https://github.com/mizchi/crater",
+        "license": "Apache-2.0",
+        "keywords": [
+          "css",
+          "browser"
+        ],
+        "exclude": [
+          "wpt",
+          "_build",
+          "node_modules",
+          "browser",
+          "js",
+          "wasm",
+          "tests",
+          "wpt-tests",
+          "scripts",
+          "docs"
+        ],
+        "checksum": "dcf4c8bbc04195c59273f4178c505d89b10835ece5daf92ecd03da2cc10f190b",
+        "created_at": "2026-01-30T08:23:17.791911+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/signals",
+      "version": "0.6.1",
+      "url": "https://download.mooncakes.io/user/mizchi/signals/0.6.1.zip",
+      "sha256": "8774f12c6c783d43677ccba2d15afe7135a293a79830cd451e89d68672ddbbeb",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__signals@0.6.1.zip",
+      "indexRow": {
+        "name": "mizchi/signals",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "license": "MIT",
+        "version": "0.6.1",
+        "checksum": "8774f12c6c783d43677ccba2d15afe7135a293a79830cd451e89d68672ddbbeb",
+        "keywords": [
+          "signals",
+          "reactive",
+          "alien-signals",
+          "ui",
+          "vnode"
+        ],
+        "created_at": "2026-01-26T11:34:16.475414+00:00",
+        "repository": "https://github.com/mizchi/signals",
+        "description": "Fine-grained reactive signals for MoonBit (alien-signals inspired)",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "moonbitlang/async",
+      "version": "0.16.0",
+      "url": "https://download.mooncakes.io/user/moonbitlang/async/0.16.0.zip",
+      "sha256": "6bd4e26011faba8b5b29edce72018c88fe9db3cc146ce628ee554432ca7e9c0a",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/moonbitlang__async@0.16.0.zip",
+      "indexRow": {
+        "name": "moonbitlang/async",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "exclude": [
+          "examples",
+          "test_directory",
+          "test_keys"
+        ],
+        "license": "Apache-2.0",
+        "version": "0.16.0",
+        "checksum": "6bd4e26011faba8b5b29edce72018c88fe9db3cc146ce628ee554432ca7e9c0a",
+        "keywords": [],
+        "created_at": "2026-01-05T09:09:58.011657+00:00",
+        "repository": "https://github.com/moonbitlang/async",
+        "description": "Asynchronous programming library for MoonBit",
+        "yanked_reason": null,
+        "preferred-target": "native"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/syntree",
+      "version": "0.2.0",
+      "url": "https://download.mooncakes.io/user/mizchi/syntree/0.2.0.zip",
+      "sha256": "fde2edea6f54913d1d4fe1cdbec4d8b381b842310118ce03afb53f5ecf5eb516",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__syntree@0.2.0.zip",
+      "indexRow": {
+        "name": "mizchi/syntree",
+        "version": "0.2.0",
+        "deps": {},
+        "source": "src",
+        "preferred-target": "js",
+        "readme": "README.mbt.md",
+        "repository": "https://github.com/mizchi/syntree.mbt",
+        "license": "MIT",
+        "keywords": [
+          "syntax",
+          "tree",
+          "highlight",
+          "moonbit"
+        ],
+        "description": "Incremental syntax tree and highlighting toolkit for MoonBit",
+        "checksum": "fde2edea6f54913d1d4fe1cdbec4d8b381b842310118ce03afb53f5ecf5eb516",
+        "created_at": "2026-01-29T10:04:34.295370+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/svg",
+      "version": "0.1.8",
+      "url": "https://download.mooncakes.io/user/mizchi/svg/0.1.8.zip",
+      "sha256": "ae20545214b6faf7a2f1183af1b923cdf7226183df4c657b57434baeada82f22",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__svg@0.1.8.zip",
+      "indexRow": {
+        "name": "mizchi/svg",
+        "version": "0.1.8",
+        "description": "Standalone SVG scene graph and renderer",
+        "deps": {},
+        "source": "src",
+        "readme": "README.md",
+        "repository": "https://github.com/mizchi/svg",
+        "license": "Apache-2.0",
+        "keywords": [
+          "svg",
+          "graphics"
+        ],
+        "checksum": "ae20545214b6faf7a2f1183af1b923cdf7226183df4c657b57434baeada82f22",
+        "created_at": "2026-02-11T05:23:53.478065+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/pixelmatch",
+      "version": "0.3.5",
+      "url": "https://download.mooncakes.io/user/mizchi/pixelmatch/0.3.5.zip",
+      "sha256": "c6a429c0d12a022bc847a88524cc013b11c5b0784b5d212208d729054c02de16",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__pixelmatch@0.3.5.zip",
+      "indexRow": {
+        "deps": {},
+        "name": "mizchi/pixelmatch",
+        "readme": "README.md",
+        "source": "src",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.3.5",
+        "checksum": "c6a429c0d12a022bc847a88524cc013b11c5b0784b5d212208d729054c02de16",
+        "keywords": [
+          "image",
+          "comparison",
+          "diff",
+          "testing"
+        ],
+        "created_at": "2026-02-14T23:56:40.110129+00:00",
+        "repository": "https://github.com/mizchi/pixelmatch",
+        "description": "Fast pixel-level image comparison library for MoonBit/WASM",
+        "yanked_reason": null
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/zlib",
+      "version": "0.3.3",
+      "url": "https://download.mooncakes.io/user/mizchi/zlib/0.3.3.zip",
+      "sha256": "8cb230efa7880bd0ff615415d7fc23935359147bf58c344e8685b253710e850d",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__zlib@0.3.3.zip",
+      "indexRow": {
+        "deps": {
+          "moonbitlang/x": "0.4.40",
+          "moonbitlang/async": "0.16.6"
+        },
+        "name": "mizchi/zlib",
+        "readme": "README.mbt.md",
+        "source": "src",
+        "yanked": false,
+        "license": "Apache-2.0",
+        "version": "0.3.3",
+        "checksum": "8cb230efa7880bd0ff615415d7fc23935359147bf58c344e8685b253710e850d",
+        "keywords": [
+          "zlib",
+          "deflate"
+        ],
+        "created_at": "2026-02-11T10:51:15.489888+00:00",
+        "repository": "https://github.com/mizchi/zlib.mbt",
+        "description": "Pure MoonBit zlib/deflate implementation.",
+        "yanked_reason": null,
+        "preferred-target": "js"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    },
+    {
+      "name": "mizchi/brotli",
+      "version": "0.1.0",
+      "url": "https://download.mooncakes.io/user/mizchi/brotli/0.1.0.zip",
+      "sha256": "b30f0208f716e1b67f47d59e80f44460e30af661b00b63875227450f9207ab9d",
+      "archive": "/tmp/local-ci-events-w-20261024/P-actrun-moon/module-zips/mizchi__brotli@0.1.0.zip",
+      "indexRow": {
+        "name": "mizchi/brotli",
+        "version": "0.1.0",
+        "license": "Apache-2.0",
+        "repository": "https://github.com/mizchi/brotli",
+        "readme": "README.md",
+        "keywords": [
+          "brotli",
+          "compression",
+          "decompression"
+        ],
+        "description": "Brotli decompression library for MoonBit",
+        "checksum": "b30f0208f716e1b67f47d59e80f44460e30af661b00b63875227450f9207ab9d",
+        "created_at": "2026-02-17T17:52:22.413468+00:00"
+      },
+      "status": "OFFICIAL_REGISTRY_ARCHIVE_CHECKSUM_VERIFIED"
+    }
+  ],
+  "claim": "fixed index declared-version reachable source graph, not self-attested actual build resolution; native resolver/source verification and runtime notice coverage separate",
+  "missing": []
+}

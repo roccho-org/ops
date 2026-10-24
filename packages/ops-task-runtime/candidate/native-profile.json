@@ -682,10 +682,10 @@
       "fileName": "LICENSE.txt"
     }
   ],
-  "licenseStatus": "NATIVE_NOTICE_BYTES_RETAINED_EMBEDDED_BYTES_MISSING",
+  "licenseStatus": "ACTRUN_PUBLISHER_NOTICE_TEXT_GAPS_NATIVE_C_REVISION_UNKNOWN",
   "authority": "current user task SAME-v5.1 candidate only; not accepted adrs#317 successor",
   "dependencyLicenses": {
     "path": "candidate/dependency-licenses.json",
-    "sha256": "eff9f018cea534b09382f6f5fd4f1b4f7c2f3a14d9f726186ed7bac0c06f9ddd"
+    "sha256": "86d1c5ea6d699934dc44baa03bdcc0e3263412b8ed2320194d77edff57391eb5"
   }
 }

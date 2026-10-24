@@ -1,0 +1,32 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// Direct structural representation for debugging/diffing/pretty-printing.
+///
+// `pub` makes it readonly outside this package: it can be pattern-matched but
+// not directly constructed. Use the smart constructors below.
+//
+// Design notes:
+// - `Record` is encoded as `Record([RecordField(name, value), ...])` (not as an array
+//   of `(String, Repr)` pairs) to keep generic traversal/rewrite code simple:
+//   every tree edge is a `Repr`, so `children/with_children`, pruning, and diff
+//   can work uniformly across node kinds.
+// - Labeled enum arguments are encoded as
+//   `Enum(name, [EnumLabeledArg(label, value), ...])`,
+//   which supports mixing positional and labeled args.
+// - `Map` is encoded as `Map([MapEntry(key, value), ...])`, which is
+//   intended for "map-like" collections (MoonBit map literals like `{ k: v }`).
+// - `Opaque` is intended for "container-like" wrappers that keep a type/tag but
+//   otherwise behave structurally through their children.

@@ -1,0 +1,33 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// A newtype wrapper that reverses the comparison order of the wrapped value.
+///
+/// `Reverse[T]` is useful when you need to reverse the natural ordering of a type.
+/// For example, to create a min-heap from a max-heap data structure, or to sort
+/// in descending order instead of ascending order.
+///
+/// # Examples
+///
+/// ```mbt check
+/// test {
+///   let a = @cmp.Reverse(1)
+///   let b = @cmp.Reverse(2)
+///   inspect(a.compare(b), content="1") // 1 > 2 in reversed order
+///   inspect(b.compare(a), content="-1") // 2 < 1 in reversed order
+///   inspect(a == a, content="true") // Equality works correctly
+///   inspect(a.to_string(), content="Reverse(1)") // Shows wrapped value
+/// }
+/// ```

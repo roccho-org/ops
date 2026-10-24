@@ -1,0 +1,2713 @@
+{
+  "schema": "ops.taskCandidateEmbeddedGoModules/1",
+  "taskBinarySha256": "48fc3727244d39e0fe04f99c512d0a6eaabf12be376828d96ad1545054523aeb",
+  "goVersion": "go1.26.5",
+  "toolchain": {
+    "source": "https://go.dev/dl/?mode=json&include=all",
+    "metadataSha256": "6b83804b8dd2d6052bb93cc03e4aba2ddee834f82c15f7bf8faacf5f91825950",
+    "release": "go1.26.5",
+    "archive": {
+      "filename": "go1.26.5.linux-amd64.tar.gz",
+      "os": "linux",
+      "arch": "amd64",
+      "version": "go1.26.5",
+      "sha256": "5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053",
+      "size": 66879095,
+      "kind": "archive"
+    }
+  },
+  "moduleCount": 124,
+  "modules": [
+    {
+      "module": "github.com/go-task/task/v3",
+      "version": "v3.53.1",
+      "expectedSum": "h1:4myl5NHvq30uSkkoWH4Fz0OapYVGRci3AiN11yJti08=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/go-task/task/v3",
+        "Version": "v3.53.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/task/v3/@v/v3.53.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/task/v3/@v/v3.53.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/task/v3/@v/v3.53.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/go-task/task/v3@v3.53.1",
+        "Sum": "h1:4myl5NHvq30uSkkoWH4Fz0OapYVGRci3AiN11yJti08=",
+        "GoModSum": "h1:Rb6QWLxLK710eldhNbispsUirhdhZwT37USDE5iyk7k=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/go-task/task",
+          "Hash": "ff3372fc50a47348610d722616f1a073aace0513",
+          "Ref": "refs/tags/v3.53.1"
+        }
+      }
+    },
+    {
+      "module": "cel.dev/expr",
+      "version": "v0.25.2",
+      "expectedSum": "h1:K6j46C81hXtZQfuX60cVWQFBJahKSE2gfRbNuvr5bFs=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "cel.dev/expr",
+        "Version": "v0.25.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cel.dev/expr/@v/v0.25.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cel.dev/expr/@v/v0.25.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cel.dev/expr/@v/v0.25.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cel.dev/expr@v0.25.2",
+        "Sum": "h1:K6j46C81hXtZQfuX60cVWQFBJahKSE2gfRbNuvr5bFs=",
+        "GoModSum": "h1:hrXvqGP6G6gyx8UAHSHJ5RGk//1Oj5nXQ2NI02Nrsg4=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/google/cel-spec",
+          "Hash": "cb51b4176013ad19bd00df94be273c322916a620",
+          "Ref": "refs/tags/v0.25.2"
+        }
+      }
+    },
+    {
+      "module": "charm.land/bubbles/v2",
+      "version": "v2.1.1",
+      "expectedSum": "h1:7r55WzBxpo/R3z98hGmY7KKPd3ET6vsf0Fb9sDHOV60=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "charm.land/bubbles/v2",
+        "Version": "v2.1.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/bubbles/v2/@v/v2.1.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/bubbles/v2/@v/v2.1.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/bubbles/v2/@v/v2.1.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/charm.land/bubbles/v2@v2.1.1",
+        "Sum": "h1:7r55WzBxpo/R3z98hGmY7KKPd3ET6vsf0Fb9sDHOV60=",
+        "GoModSum": "h1:GE6M31gaWZVXzGw73OeuTTgy4lX+OtkH0E5ymnNsHxo=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/bubbles",
+          "Hash": "d2b2217d6352ce04183623d66d4266115419733c",
+          "Ref": "refs/tags/v2.1.1"
+        }
+      }
+    },
+    {
+      "module": "charm.land/bubbletea/v2",
+      "version": "v2.0.8",
+      "expectedSum": "h1:SxTJMhCAI3lbPmy4SgX5LWZ24AdINr4I6UEqzZvYJuY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "charm.land/bubbletea/v2",
+        "Version": "v2.0.8",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/bubbletea/v2/@v/v2.0.8.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/bubbletea/v2/@v/v2.0.8.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/bubbletea/v2/@v/v2.0.8.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/charm.land/bubbletea/v2@v2.0.8",
+        "Sum": "h1:SxTJMhCAI3lbPmy4SgX5LWZ24AdINr4I6UEqzZvYJuY=",
+        "GoModSum": "h1:2SkdgoTXluXJHOUwAoRlRXF/28vklb1rFl6GcgV1/ss=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/bubbletea",
+          "Hash": "fc707bb7ea0161405bb6c653ec93f6a9c6a72fe1",
+          "Ref": "refs/tags/v2.0.8"
+        }
+      }
+    },
+    {
+      "module": "charm.land/lipgloss/v2",
+      "version": "v2.0.6",
+      "expectedSum": "h1:EaGKeuA8FvF+v2BT5VmZd2LoYLaMZJXA5n34th8nCIQ=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "charm.land/lipgloss/v2",
+        "Version": "v2.0.6",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/lipgloss/v2/@v/v2.0.6.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/lipgloss/v2/@v/v2.0.6.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/charm.land/lipgloss/v2/@v/v2.0.6.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/charm.land/lipgloss/v2@v2.0.6",
+        "Sum": "h1:EaGKeuA8FvF+v2BT5VmZd2LoYLaMZJXA5n34th8nCIQ=",
+        "GoModSum": "h1:ipDDJNSGa1hlwDtSfW1s2/xR8Vdhbut4PXh2zEKZd0Q=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/lipgloss",
+          "Hash": "733ce53541bb688fd735524b665e0d96e35433bb",
+          "Ref": "refs/tags/v2.0.6"
+        }
+      }
+    },
+    {
+      "module": "cloud.google.com/go",
+      "version": "v0.123.0",
+      "expectedSum": "h1:2NAUJwPR47q+E35uaJeYoNhuNEM9kM8SjgRgdeOJUSE=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "cloud.google.com/go",
+        "Version": "v0.123.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/@v/v0.123.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/@v/v0.123.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/@v/v0.123.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cloud.google.com/go@v0.123.0",
+        "Sum": "h1:2NAUJwPR47q+E35uaJeYoNhuNEM9kM8SjgRgdeOJUSE=",
+        "GoModSum": "h1:xBoMV08QcqUGuPW65Qfm1o9Y4zKZBpGS+7bImXLTAZU=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/google-cloud-go",
+          "Hash": "4e8373586a5e48c18fbfd4bb0a3e259184e49a91",
+          "Ref": "refs/tags/v0.123.0"
+        }
+      }
+    },
+    {
+      "module": "cloud.google.com/go/auth",
+      "version": "v0.23.1",
+      "expectedSum": "h1:1tPpBPG02lQHmoiAvs9egyCASqXP0xgobptjZzov/Jg=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "cloud.google.com/go/auth",
+        "Version": "v0.23.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/auth/@v/v0.23.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/auth/@v/v0.23.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/auth/@v/v0.23.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cloud.google.com/go/auth@v0.23.1",
+        "Sum": "h1:1tPpBPG02lQHmoiAvs9egyCASqXP0xgobptjZzov/Jg=",
+        "GoModSum": "h1:4DhBRcqvtljQN3dJ57qtqbib5ZGCYE5f2crfiiC2EM0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/google-cloud-go",
+          "Subdir": "auth",
+          "Hash": "41650dc00a6ca986a14056f2238993f5d4a0b211",
+          "Ref": "refs/tags/auth/v0.23.1"
+        }
+      }
+    },
+    {
+      "module": "cloud.google.com/go/auth/oauth2adapt",
+      "version": "v0.2.8",
+      "expectedSum": "h1:keo8NaayQZ6wimpNSmW5OPc283g65QNIiLpZnkHRbnc=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "cloud.google.com/go/auth/oauth2adapt",
+        "Version": "v0.2.8",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/auth/oauth2adapt/@v/v0.2.8.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/auth/oauth2adapt/@v/v0.2.8.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/auth/oauth2adapt/@v/v0.2.8.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cloud.google.com/go/auth/oauth2adapt@v0.2.8",
+        "Sum": "h1:keo8NaayQZ6wimpNSmW5OPc283g65QNIiLpZnkHRbnc=",
+        "GoModSum": "h1:XQ9y31RkqZCcwJWNSx2Xvric3RrU88hAYYbjDWYDL+c=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/google-cloud-go",
+          "Subdir": "auth/oauth2adapt",
+          "Hash": "7e600b964c1cae3ba47fc7d1d340a536723d18cb",
+          "Ref": "refs/tags/auth/oauth2adapt/v0.2.8"
+        }
+      }
+    },
+    {
+      "module": "cloud.google.com/go/compute/metadata",
+      "version": "v0.9.0",
+      "expectedSum": "h1:pDUj4QMoPejqq20dK0Pg2N4yG9zIkYGdBtwLoEkH9Zs=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "cloud.google.com/go/compute/metadata",
+        "Version": "v0.9.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/compute/metadata/@v/v0.9.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/compute/metadata/@v/v0.9.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/compute/metadata/@v/v0.9.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cloud.google.com/go/compute/metadata@v0.9.0",
+        "Sum": "h1:pDUj4QMoPejqq20dK0Pg2N4yG9zIkYGdBtwLoEkH9Zs=",
+        "GoModSum": "h1:E0bWwX5wTnLPedCKqk3pJmVgCBSM6qQI1yTBdEb3C10=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/google-cloud-go",
+          "Subdir": "compute/metadata",
+          "Hash": "7b2365446764b0bba37198a55644954b437bddd0",
+          "Ref": "refs/tags/compute/metadata/v0.9.0"
+        }
+      }
+    },
+    {
+      "module": "cloud.google.com/go/iam",
+      "version": "v1.13.0",
+      "expectedSum": "h1:ufT3FPT5rFFXu6UtLkNoxaOaV5EuA1dsSkmemCSTo6U=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "cloud.google.com/go/iam",
+        "Version": "v1.13.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/iam/@v/v1.13.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/iam/@v/v1.13.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/iam/@v/v1.13.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cloud.google.com/go/iam@v1.13.0",
+        "Sum": "h1:ufT3FPT5rFFXu6UtLkNoxaOaV5EuA1dsSkmemCSTo6U=",
+        "GoModSum": "h1:gHXdDEiPDvqd1q1KwBDGQlgZY/BwY760zU2LhOZS5w0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/google-cloud-go",
+          "Subdir": "iam",
+          "Hash": "743257eee41a20b038436080320f3b356e9eed2a",
+          "Ref": "refs/tags/iam/v1.13.0"
+        }
+      }
+    },
+    {
+      "module": "cloud.google.com/go/monitoring",
+      "version": "v1.30.0",
+      "expectedSum": "h1:r/d+JUbyKmJ8b07iznuKfzVzrIXTWxHQ3lBRm3x2LlY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "cloud.google.com/go/monitoring",
+        "Version": "v1.30.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/monitoring/@v/v1.30.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/monitoring/@v/v1.30.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/monitoring/@v/v1.30.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cloud.google.com/go/monitoring@v1.30.0",
+        "Sum": "h1:r/d+JUbyKmJ8b07iznuKfzVzrIXTWxHQ3lBRm3x2LlY=",
+        "GoModSum": "h1:htlUR0QWVMrjFzZmN4LGnMAve9xB/eduwjmINxVZ8RM=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/google-cloud-go",
+          "Subdir": "monitoring",
+          "Hash": "4ee97974cedd9df05fd9b48bf0363f2e04eb029b",
+          "Ref": "refs/tags/monitoring/v1.30.0"
+        }
+      }
+    },
+    {
+      "module": "cloud.google.com/go/storage",
+      "version": "v1.64.0",
+      "expectedSum": "h1:KLpxI/oX9LxeRsNqn877d2WyeT3ryiEwnGt8pwcSPZg=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "cloud.google.com/go/storage",
+        "Version": "v1.64.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/storage/@v/v1.64.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/storage/@v/v1.64.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/cloud.google.com/go/storage/@v/v1.64.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cloud.google.com/go/storage@v1.64.0",
+        "Sum": "h1:KLpxI/oX9LxeRsNqn877d2WyeT3ryiEwnGt8pwcSPZg=",
+        "GoModSum": "h1:lWyAtwvDZHdL3k68WVKbESP6bmWaV23ZJJ/JEVw/ZaQ=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/google-cloud-go",
+          "Subdir": "storage",
+          "Hash": "a27528eb510ea3be29f5268cc6cf6343ece58881",
+          "Ref": "refs/tags/storage/v1.64.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp",
+      "version": "v1.35.0",
+      "expectedSum": "h1:bN1gA3of5bXtbnLsRPrwfmbbe7A5UWFlcTHseujLnpc=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp",
+        "Version": "v1.35.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/detectors/gcp/@v/v1.35.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/detectors/gcp/@v/v1.35.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/detectors/gcp/@v/v1.35.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/!google!cloud!platform/opentelemetry-operations-go/detectors/gcp@v1.35.0",
+        "Sum": "h1:bN1gA3of5bXtbnLsRPrwfmbbe7A5UWFlcTHseujLnpc=",
+        "GoModSum": "h1:Yj5vHEz/aAepZGliRJsA6uvHAVAQyEwajq9ORCHPxzM=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/GoogleCloudPlatform/opentelemetry-operations-go",
+          "Subdir": "detectors/gcp",
+          "Hash": "d84f5e91f1cb634b182bdb6b37843480c6f48794",
+          "Ref": "refs/tags/detectors/gcp/v1.35.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric",
+      "version": "v0.59.0",
+      "expectedSum": "h1:c/Ivw7FuawPLfrr+zB0LZKeCchO2cAHQpF2qZ6OV7rQ=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric",
+        "Version": "v0.59.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/exporter/metric/@v/v0.59.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/exporter/metric/@v/v0.59.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/exporter/metric/@v/v0.59.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/!google!cloud!platform/opentelemetry-operations-go/exporter/metric@v0.59.0",
+        "Sum": "h1:c/Ivw7FuawPLfrr+zB0LZKeCchO2cAHQpF2qZ6OV7rQ=",
+        "GoModSum": "h1:Zba7lknY/d78oxbKqFTmCsaGwfpzeJ3ktrrLXtnTV6g=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/GoogleCloudPlatform/opentelemetry-operations-go",
+          "Subdir": "exporter/metric",
+          "Hash": "d84f5e91f1cb634b182bdb6b37843480c6f48794",
+          "Ref": "refs/tags/exporter/metric/v0.59.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping",
+      "version": "v0.59.0",
+      "expectedSum": "h1:18FRm6ZcN/x9+ZmhMr96hLcTtlLn2/gHPuDLVeg7XcY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping",
+        "Version": "v0.59.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/internal/resourcemapping/@v/v0.59.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/internal/resourcemapping/@v/v0.59.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!google!cloud!platform/opentelemetry-operations-go/internal/resourcemapping/@v/v0.59.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/!google!cloud!platform/opentelemetry-operations-go/internal/resourcemapping@v0.59.0",
+        "Sum": "h1:18FRm6ZcN/x9+ZmhMr96hLcTtlLn2/gHPuDLVeg7XcY=",
+        "GoModSum": "h1:YqwkQPrWSC7+byyc1VlKbWLBF5JsW5IoL6xUkemYSXk=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/GoogleCloudPlatform/opentelemetry-operations-go",
+          "Subdir": "internal/resourcemapping",
+          "Hash": "d84f5e91f1cb634b182bdb6b37843480c6f48794",
+          "Ref": "refs/tags/internal/resourcemapping/v0.59.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/Ladicle/tabwriter",
+      "version": "v1.0.0",
+      "expectedSum": "h1:DZQqPvMumBDwVNElso13afjYLNp0Z7pHqHnu0r4t9Dg=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/Ladicle/tabwriter",
+        "Version": "v1.0.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!ladicle/tabwriter/@v/v1.0.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!ladicle/tabwriter/@v/v1.0.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!ladicle/tabwriter/@v/v1.0.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/!ladicle/tabwriter@v1.0.0",
+        "Sum": "h1:DZQqPvMumBDwVNElso13afjYLNp0Z7pHqHnu0r4t9Dg=",
+        "GoModSum": "h1:c4MdCjxQyTbGuQO/gvqJ+IA/89UEwrsD6hUCW98dyp4="
+      }
+    },
+    {
+      "module": "github.com/Masterminds/semver/v3",
+      "version": "v3.5.0",
+      "expectedSum": "h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/Masterminds/semver/v3",
+        "Version": "v3.5.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!masterminds/semver/v3/@v/v3.5.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!masterminds/semver/v3/@v/v3.5.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/!masterminds/semver/v3/@v/v3.5.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/!masterminds/semver/v3@v3.5.0",
+        "Sum": "h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=",
+        "GoModSum": "h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/Masterminds/semver",
+          "Hash": "8b89c86cb53c57cfd5d07c13de12bc4d78954e99",
+          "Ref": "refs/tags/v3.5.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/alecthomas/chroma/v2",
+      "version": "v2.27.0",
+      "expectedSum": "h1:FodwmyOBgJULFYmDqibcp9pvfDLWdtPRh9v/r5BXYZs=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/alecthomas/chroma/v2",
+        "Version": "v2.27.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/alecthomas/chroma/v2/@v/v2.27.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/alecthomas/chroma/v2/@v/v2.27.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/alecthomas/chroma/v2/@v/v2.27.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/alecthomas/chroma/v2@v2.27.0",
+        "Sum": "h1:FodwmyOBgJULFYmDqibcp9pvfDLWdtPRh9v/r5BXYZs=",
+        "GoModSum": "h1:NjJ3ciIgrqBNeIkWZ4e46nseoLDslxU1LmfCoL+wcY8=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/alecthomas/chroma",
+          "Hash": "a6d00fe2cdfc88da0b91396e577da16c75c9c7fb",
+          "Ref": "refs/tags/v2.27.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/atotto/clipboard",
+      "version": "v0.1.4",
+      "expectedSum": "h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/atotto/clipboard",
+        "Version": "v0.1.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/atotto/clipboard/@v/v0.1.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/atotto/clipboard/@v/v0.1.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/atotto/clipboard/@v/v0.1.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/atotto/clipboard@v0.1.4",
+        "Sum": "h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=",
+        "GoModSum": "h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI="
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2",
+      "version": "v1.43.4",
+      "expectedSum": "h1:b9FTvbRwy+JCsfp2Wp6wV/KbOx3Aj7nkoFb2cRX0IhE=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2",
+        "Version": "v1.43.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/@v/v1.43.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/@v/v1.43.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/@v/v1.43.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2@v1.43.4",
+        "Sum": "h1:b9FTvbRwy+JCsfp2Wp6wV/KbOx3Aj7nkoFb2cRX0IhE=",
+        "GoModSum": "h1:70vwSy16txshwG+g55WkpgPKDIByzHI8ccBsOteo3bQ=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/v1.43.4"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream",
+      "version": "v1.7.16",
+      "expectedSum": "h1:aiuaKlDweRC5qExJondpWjOgyzMHpofpwspGXUtwn4c=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream",
+        "Version": "v1.7.16",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/@v/v1.7.16.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/@v/v1.7.16.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/@v/v1.7.16.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream@v1.7.16",
+        "Sum": "h1:aiuaKlDweRC5qExJondpWjOgyzMHpofpwspGXUtwn4c=",
+        "GoModSum": "h1:nG/LOlmox9BDe9HvQnXWzgcK8uKbgBMZ/Hp5pVt/21I=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "aws/protocol/eventstream",
+          "Hash": "e022bf511ea59ead5f366e513e61ab1d4c913b35",
+          "Ref": "refs/tags/aws/protocol/eventstream/v1.7.16"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/config",
+      "version": "v1.32.35",
+      "expectedSum": "h1:UEzXuET8E42lxBPijuACu/tEK7v5lFPlk0Q+GT5WD9E=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/config",
+        "Version": "v1.32.35",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/config/@v/v1.32.35.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/config/@v/v1.32.35.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/config/@v/v1.32.35.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/config@v1.32.35",
+        "Sum": "h1:UEzXuET8E42lxBPijuACu/tEK7v5lFPlk0Q+GT5WD9E=",
+        "GoModSum": "h1:KaMtJpFa2JlL2BStjjHQVwQpzZEmw+ND/EgVrfFoo2g=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "config",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/config/v1.32.35"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/credentials",
+      "version": "v1.19.34",
+      "expectedSum": "h1:y6GkSmcv5myd1ngrYbGmiLlwQqB6TQhOuN/tbSSuWDY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/credentials",
+        "Version": "v1.19.34",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/credentials/@v/v1.19.34.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/credentials/@v/v1.19.34.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/credentials/@v/v1.19.34.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/credentials@v1.19.34",
+        "Sum": "h1:y6GkSmcv5myd1ngrYbGmiLlwQqB6TQhOuN/tbSSuWDY=",
+        "GoModSum": "h1:w3dTcnDVoQIewjo7JG45hduAToikiIFLC4FIO7fndvw=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "credentials",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/credentials/v1.19.34"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/feature/ec2/imds",
+      "version": "v1.18.35",
+      "expectedSum": "h1:+S7kbJoLDDQ5tE+lHrUBgMkzC8NLgsaioS2F3dVoFAE=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/feature/ec2/imds",
+        "Version": "v1.18.35",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/feature/ec2/imds/@v/v1.18.35.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/feature/ec2/imds/@v/v1.18.35.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/feature/ec2/imds/@v/v1.18.35.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/feature/ec2/imds@v1.18.35",
+        "Sum": "h1:+S7kbJoLDDQ5tE+lHrUBgMkzC8NLgsaioS2F3dVoFAE=",
+        "GoModSum": "h1:Ak7xXviIARfFdNUJ9Etb0bdVDt/KAvKjMGJVLWXDzik=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "feature/ec2/imds",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/feature/ec2/imds/v1.18.35"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/internal/configsources",
+      "version": "v1.4.35",
+      "expectedSum": "h1:kzVuGlatQtYinwBJEEyLAbggepCoavosiaHHX9+fD+c=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/internal/configsources",
+        "Version": "v1.4.35",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/configsources/@v/v1.4.35.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/configsources/@v/v1.4.35.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/configsources/@v/v1.4.35.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/internal/configsources@v1.4.35",
+        "Sum": "h1:kzVuGlatQtYinwBJEEyLAbggepCoavosiaHHX9+fD+c=",
+        "GoModSum": "h1:0yLx0yEI+SfqeJMPvOtIEFoZbiQYXMGszBueiutQyaI=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "internal/configsources",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/internal/configsources/v1.4.35"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/internal/endpoints/v2",
+      "version": "v2.7.35",
+      "expectedSum": "h1:WK6CjihTuLisCjSKKbildJ79sGZZgbBz3iNa7VsKIhU=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/internal/endpoints/v2",
+        "Version": "v2.7.35",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/endpoints/v2/@v/v2.7.35.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/endpoints/v2/@v/v2.7.35.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/endpoints/v2/@v/v2.7.35.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/internal/endpoints/v2@v2.7.35",
+        "Sum": "h1:WK6CjihTuLisCjSKKbildJ79sGZZgbBz3iNa7VsKIhU=",
+        "GoModSum": "h1:KYleN57luLoe97R7vTnx8PMcVrr9gAcRECtOjl91DNg=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "internal/endpoints",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/internal/endpoints/v2.7.35"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/internal/v4a",
+      "version": "v1.4.36",
+      "expectedSum": "h1:jbGY4CXLzZElOXgGsexlC3Hi+3YM0rSmk4opFXKqg/k=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/internal/v4a",
+        "Version": "v1.4.36",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/v4a/@v/v1.4.36.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/v4a/@v/v1.4.36.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/internal/v4a/@v/v1.4.36.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/internal/v4a@v1.4.36",
+        "Sum": "h1:jbGY4CXLzZElOXgGsexlC3Hi+3YM0rSmk4opFXKqg/k=",
+        "GoModSum": "h1:uBu/9aKsS/UQGc72RAt3y54kjgYQxmhut8ZD2dXCDNE=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "internal/v4a",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/internal/v4a/v1.4.36"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding",
+      "version": "v1.13.15",
+      "expectedSum": "h1:JJLBQxwY+AFwuPAi5ivGc1ChnTdUt4cXMv7e76m2c/Y=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding",
+        "Version": "v1.13.15",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding/@v/v1.13.15.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding/@v/v1.13.15.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding/@v/v1.13.15.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding@v1.13.15",
+        "Sum": "h1:JJLBQxwY+AFwuPAi5ivGc1ChnTdUt4cXMv7e76m2c/Y=",
+        "GoModSum": "h1:lQknBIe78MVL0cQOQDlag8KGflMbMEVFx9mB6O8ENvk=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/internal/accept-encoding",
+          "Hash": "e022bf511ea59ead5f366e513e61ab1d4c913b35",
+          "Ref": "refs/tags/service/internal/accept-encoding/v1.13.15"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/internal/checksum",
+      "version": "v1.9.28",
+      "expectedSum": "h1:Q1TF1J9jVD+vFo0LzNnmNdQ9EAt52TS+MQlq9Ir+Yxo=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/internal/checksum",
+        "Version": "v1.9.28",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/checksum/@v/v1.9.28.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/checksum/@v/v1.9.28.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/checksum/@v/v1.9.28.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/internal/checksum@v1.9.28",
+        "Sum": "h1:Q1TF1J9jVD+vFo0LzNnmNdQ9EAt52TS+MQlq9Ir+Yxo=",
+        "GoModSum": "h1:4KqXXC/p1hrotmouDFbrRoWaLy962b9PMUReCG6+uWo=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/internal/checksum",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/service/internal/checksum/v1.9.28"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/internal/presigned-url",
+      "version": "v1.13.35",
+      "expectedSum": "h1:BBEElKh4a+rKshvjrfpajTe9CbpZvrbb4Jkg2PB7RzA=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/internal/presigned-url",
+        "Version": "v1.13.35",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/presigned-url/@v/v1.13.35.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/presigned-url/@v/v1.13.35.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/presigned-url/@v/v1.13.35.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/internal/presigned-url@v1.13.35",
+        "Sum": "h1:BBEElKh4a+rKshvjrfpajTe9CbpZvrbb4Jkg2PB7RzA=",
+        "GoModSum": "h1:zaZk983w//8beSruBVec/mr4CmDwgZitW/qzGhAAX0g=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/internal/presigned-url",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/service/internal/presigned-url/v1.13.35"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/internal/s3shared",
+      "version": "v1.19.36",
+      "expectedSum": "h1:EUIwBoN+q7UmhAejxgD27APiRjh1vwCFo53gSqdT0BM=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/internal/s3shared",
+        "Version": "v1.19.36",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/@v/v1.19.36.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/@v/v1.19.36.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/@v/v1.19.36.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/internal/s3shared@v1.19.36",
+        "Sum": "h1:EUIwBoN+q7UmhAejxgD27APiRjh1vwCFo53gSqdT0BM=",
+        "GoModSum": "h1:6u00gmlTGR6W0b2k9NBrld7MnOEmf1Spqx0VVt6AqyE=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/internal/s3shared",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/service/internal/s3shared/v1.19.36"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/s3",
+      "version": "v1.106.5",
+      "expectedSum": "h1:HpN6GgZ3T8pSvRp81ZsgumNjlvRsa+9M0ZL2o6W4uLY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/s3",
+        "Version": "v1.106.5",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/s3/@v/v1.106.5.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/s3/@v/v1.106.5.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/s3/@v/v1.106.5.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/s3@v1.106.5",
+        "Sum": "h1:HpN6GgZ3T8pSvRp81ZsgumNjlvRsa+9M0ZL2o6W4uLY=",
+        "GoModSum": "h1:5FTZoQxhmLEiCAtYVk6V+t0iS/B5yGZVLZ3Wq5FDJZI=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/s3",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/service/s3/v1.106.5"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/signin",
+      "version": "v1.5.4",
+      "expectedSum": "h1:cOJELVNrq5Q3Udry2GLuHUM7MhwpeaQRdYaoa6GI/yI=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/signin",
+        "Version": "v1.5.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/signin/@v/v1.5.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/signin/@v/v1.5.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/signin/@v/v1.5.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/signin@v1.5.4",
+        "Sum": "h1:cOJELVNrq5Q3Udry2GLuHUM7MhwpeaQRdYaoa6GI/yI=",
+        "GoModSum": "h1:f4LxzKBtaTxD7xh3PiVg3CE1tchQemfmghaJr+NbK2c=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/signin",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/service/signin/v1.5.4"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/sso",
+      "version": "v1.33.4",
+      "expectedSum": "h1:AMW7a7S8iQaHjBYZdU3PCq4GKRPijTPRAc7e6XtEThY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/sso",
+        "Version": "v1.33.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/sso/@v/v1.33.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/sso/@v/v1.33.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/sso/@v/v1.33.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/sso@v1.33.4",
+        "Sum": "h1:AMW7a7S8iQaHjBYZdU3PCq4GKRPijTPRAc7e6XtEThY=",
+        "GoModSum": "h1:QQNsFV1DVXoXcZt18FS8lI8rtUrlDyAuWZLQ5shunv4=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/sso",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/service/sso/v1.33.4"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/ssooidc",
+      "version": "v1.38.4",
+      "expectedSum": "h1:AsbZcJAQPRmHDJG8K1N0pof/1zPWjVT8TFlTWuGLSvo=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/ssooidc",
+        "Version": "v1.38.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/ssooidc/@v/v1.38.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/ssooidc/@v/v1.38.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/ssooidc/@v/v1.38.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/ssooidc@v1.38.4",
+        "Sum": "h1:AsbZcJAQPRmHDJG8K1N0pof/1zPWjVT8TFlTWuGLSvo=",
+        "GoModSum": "h1:6imqztH0//t0mKbl6yWl7swSEl7F/w32oAmqB3vP1ag=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/ssooidc",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/service/ssooidc/v1.38.4"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/aws-sdk-go-v2/service/sts",
+      "version": "v1.45.4",
+      "expectedSum": "h1:w/AryDYMjSUANSQ2uoZxJovUsMTwWJNTv3IMex30Y+4=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/aws-sdk-go-v2/service/sts",
+        "Version": "v1.45.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/sts/@v/v1.45.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/sts/@v/v1.45.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/aws-sdk-go-v2/service/sts/@v/v1.45.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/aws-sdk-go-v2/service/sts@v1.45.4",
+        "Sum": "h1:w/AryDYMjSUANSQ2uoZxJovUsMTwWJNTv3IMex30Y+4=",
+        "GoModSum": "h1:WeBiAa67azG7Su9Vf+ChGDBLiAozJCXzdjXiPBUwtbc=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/aws-sdk-go-v2",
+          "Subdir": "service/sts",
+          "Hash": "ebd1f6a02ef341c2c34adfd4d778fb55a35f0228",
+          "Ref": "refs/tags/service/sts/v1.45.4"
+        }
+      }
+    },
+    {
+      "module": "github.com/aws/smithy-go",
+      "version": "v1.27.6",
+      "expectedSum": "h1:0zjT8jgK3jbrTT7JJ3EE6JsMhX8JTrZ+f1sEndYDXrA=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/aws/smithy-go",
+        "Version": "v1.27.6",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/smithy-go/@v/v1.27.6.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/smithy-go/@v/v1.27.6.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/aws/smithy-go/@v/v1.27.6.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/aws/smithy-go@v1.27.6",
+        "Sum": "h1:0zjT8jgK3jbrTT7JJ3EE6JsMhX8JTrZ+f1sEndYDXrA=",
+        "GoModSum": "h1:YE2RhdIuDbA5E5bTdciG9KrW3+TiEONeUWCqxX9i1Fc=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/aws/smithy-go",
+          "Hash": "adb847fc01e0f08394e7c1b0c8dfe4f7b0b40acc",
+          "Ref": "refs/tags/v1.27.6"
+        }
+      }
+    },
+    {
+      "module": "github.com/bgentry/go-netrc",
+      "version": "v0.0.0-20140422174119-9fd32a8b3d3d",
+      "expectedSum": "h1:xDfNPAt8lFiC1UJrqV3uuy861HCTo708pDMbjHHdCas=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/bgentry/go-netrc",
+        "Version": "v0.0.0-20140422174119-9fd32a8b3d3d",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/bgentry/go-netrc/@v/v0.0.0-20140422174119-9fd32a8b3d3d.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/bgentry/go-netrc/@v/v0.0.0-20140422174119-9fd32a8b3d3d.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/bgentry/go-netrc/@v/v0.0.0-20140422174119-9fd32a8b3d3d.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/bgentry/go-netrc@v0.0.0-20140422174119-9fd32a8b3d3d",
+        "Sum": "h1:xDfNPAt8lFiC1UJrqV3uuy861HCTo708pDMbjHHdCas=",
+        "GoModSum": "h1:6QX/PXZ00z/TKoufEY6K/a0k6AhaJrQKdFe6OfVXsa4="
+      }
+    },
+    {
+      "module": "github.com/cespare/xxhash/v2",
+      "version": "v2.3.0",
+      "expectedSum": "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/cespare/xxhash/v2",
+        "Version": "v2.3.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/cespare/xxhash/v2/@v/v2.3.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/cespare/xxhash/v2/@v/v2.3.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/cespare/xxhash/v2/@v/v2.3.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/cespare/xxhash/v2@v2.3.0",
+        "Sum": "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=",
+        "GoModSum": "h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/cespare/xxhash",
+          "Hash": "998dce232f17418a7a5721ecf87ca714025a3243",
+          "Ref": "refs/tags/v2.3.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/chainguard-dev/git-urls",
+      "version": "v1.0.2",
+      "expectedSum": "h1:pSpT7ifrpc5X55n4aTTm7FFUE+ZQHKiqpiwNkJrVcKQ=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/chainguard-dev/git-urls",
+        "Version": "v1.0.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/chainguard-dev/git-urls/@v/v1.0.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/chainguard-dev/git-urls/@v/v1.0.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/chainguard-dev/git-urls/@v/v1.0.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/chainguard-dev/git-urls@v1.0.2",
+        "Sum": "h1:pSpT7ifrpc5X55n4aTTm7FFUE+ZQHKiqpiwNkJrVcKQ=",
+        "GoModSum": "h1:rbGgj10OS7UgZlbzdUQIQpT0k/D4+An04HJY7Ol+Y/o=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/chainguard-dev/git-urls",
+          "Hash": "2c230de71af0263dc74e4b04a7220c74aee78a68",
+          "Ref": "refs/tags/v1.0.2"
+        }
+      }
+    },
+    {
+      "module": "github.com/charmbracelet/colorprofile",
+      "version": "v0.4.3",
+      "expectedSum": "h1:QPa1IWkYI+AOB+fE+mg/5/4HRMZcaXex9t5KX76i20Q=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/charmbracelet/colorprofile",
+        "Version": "v0.4.3",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/colorprofile/@v/v0.4.3.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/colorprofile/@v/v0.4.3.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/colorprofile/@v/v0.4.3.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/charmbracelet/colorprofile@v0.4.3",
+        "Sum": "h1:QPa1IWkYI+AOB+fE+mg/5/4HRMZcaXex9t5KX76i20Q=",
+        "GoModSum": "h1:/zT4BhpD5aGFpqQQqw7a+VtHCzu+zrQtt1zhMt9mR4Q=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/colorprofile",
+          "Hash": "d085584efb48f2ad470e96cd0f3dcb8cc68a034b",
+          "Ref": "refs/tags/v0.4.3"
+        }
+      }
+    },
+    {
+      "module": "github.com/charmbracelet/ultraviolet",
+      "version": "v0.0.0-20260811164956-006e29f97886",
+      "expectedSum": "h1:rdnVWKgJpTVXKuKuJyxDJ+NFJdUaUqGvyGy61OcvlbA=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/charmbracelet/ultraviolet",
+        "Version": "v0.0.0-20260811164956-006e29f97886",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/ultraviolet/@v/v0.0.0-20260811164956-006e29f97886.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/ultraviolet/@v/v0.0.0-20260811164956-006e29f97886.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/ultraviolet/@v/v0.0.0-20260811164956-006e29f97886.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/charmbracelet/ultraviolet@v0.0.0-20260811164956-006e29f97886",
+        "Sum": "h1:rdnVWKgJpTVXKuKuJyxDJ+NFJdUaUqGvyGy61OcvlbA=",
+        "GoModSum": "h1:nAw0d9PhFp1qdzi2xhQU5YOu5sVpDIHWlaW2Uz/bCro=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/ultraviolet",
+          "Hash": "006e29f97886822b5d62d373b29f3143a7220ac3"
+        }
+      }
+    },
+    {
+      "module": "github.com/charmbracelet/x/ansi",
+      "version": "v0.11.8",
+      "expectedSum": "h1:JMFwp0CgDC2+jcOB162HH5k7I3FVbgFSMMYg7dSPBQQ=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/charmbracelet/x/ansi",
+        "Version": "v0.11.8",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/ansi/@v/v0.11.8.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/ansi/@v/v0.11.8.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/ansi/@v/v0.11.8.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/charmbracelet/x/ansi@v0.11.8",
+        "Sum": "h1:JMFwp0CgDC2+jcOB162HH5k7I3FVbgFSMMYg7dSPBQQ=",
+        "GoModSum": "h1:ZNN+3mXny/516oTQPLMPIBeSINvNJJQ8uQXDgbeJxY0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/x",
+          "Subdir": "ansi",
+          "Hash": "00c6608f106b9c6cd8a1a77156f7901f41265e64",
+          "Ref": "refs/tags/ansi/v0.11.8"
+        }
+      }
+    },
+    {
+      "module": "github.com/charmbracelet/x/term",
+      "version": "v0.2.2",
+      "expectedSum": "h1:xVRT/S2ZcKdhhOuSP4t5cLi5o+JxklsoEObBSgfgZRk=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/charmbracelet/x/term",
+        "Version": "v0.2.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/term/@v/v0.2.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/term/@v/v0.2.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/term/@v/v0.2.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/charmbracelet/x/term@v0.2.2",
+        "Sum": "h1:xVRT/S2ZcKdhhOuSP4t5cLi5o+JxklsoEObBSgfgZRk=",
+        "GoModSum": "h1:kF8CY5RddLWrsgVwpw4kAa6TESp6EB5y3uxGLeCqzAI=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/x",
+          "Subdir": "term",
+          "Hash": "4542a189d0fbeb156bb1df8730d253f2ef443c00",
+          "Ref": "refs/heads/main"
+        }
+      }
+    },
+    {
+      "module": "github.com/charmbracelet/x/termios",
+      "version": "v0.1.1",
+      "expectedSum": "h1:o3Q2bT8eqzGnGPOYheoYS8eEleT5ZVNYNy8JawjaNZY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/charmbracelet/x/termios",
+        "Version": "v0.1.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/termios/@v/v0.1.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/termios/@v/v0.1.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/termios/@v/v0.1.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/charmbracelet/x/termios@v0.1.1",
+        "Sum": "h1:o3Q2bT8eqzGnGPOYheoYS8eEleT5ZVNYNy8JawjaNZY=",
+        "GoModSum": "h1:rB7fnv1TgOPOyyKRJ9o+AsTU/vK5WHJ2ivHeut/Pcwo=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/x",
+          "Subdir": "termios",
+          "Hash": "70b8bc4d46effa6f6c6ff1430c0e010f195e394d",
+          "Ref": "refs/tags/termios/v0.1.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/charmbracelet/x/windows",
+      "version": "v0.2.2",
+      "expectedSum": "h1:IofanmuvaxnKHuV04sC0eBy/smG6kIKrWG2/jYn2GuM=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/charmbracelet/x/windows",
+        "Version": "v0.2.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/windows/@v/v0.2.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/windows/@v/v0.2.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/charmbracelet/x/windows/@v/v0.2.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/charmbracelet/x/windows@v0.2.2",
+        "Sum": "h1:IofanmuvaxnKHuV04sC0eBy/smG6kIKrWG2/jYn2GuM=",
+        "GoModSum": "h1:/8XtdKZzedat74NQFn0NGlGL4soHB0YQZrETF96h75k=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/charmbracelet/x",
+          "Subdir": "windows",
+          "Hash": "83e3a29d542fe292a3bd0a965079ea16a432bcda",
+          "Ref": "refs/tags/windows/v0.2.2"
+        }
+      }
+    },
+    {
+      "module": "github.com/clipperhouse/displaywidth",
+      "version": "v0.11.0",
+      "expectedSum": "h1:lBc6kY44VFw+TDx4I8opi/EtL9m20WSEFgwIwO+UVM8=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/clipperhouse/displaywidth",
+        "Version": "v0.11.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/clipperhouse/displaywidth/@v/v0.11.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/clipperhouse/displaywidth/@v/v0.11.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/clipperhouse/displaywidth/@v/v0.11.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/clipperhouse/displaywidth@v0.11.0",
+        "Sum": "h1:lBc6kY44VFw+TDx4I8opi/EtL9m20WSEFgwIwO+UVM8=",
+        "GoModSum": "h1:bkrFNkf81G8HyVqmKGxsPufD3JhNl3dSqnGhOoSD/o0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/clipperhouse/displaywidth",
+          "Hash": "b6da6e784d7796398607efa9883b4d9f6e7be509",
+          "Ref": "refs/tags/v0.11.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/clipperhouse/uax29/v2",
+      "version": "v2.7.0",
+      "expectedSum": "h1:+gs4oBZ2gPfVrKPthwbMzWZDaAFPGYK72F0NJv2v7Vk=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/clipperhouse/uax29/v2",
+        "Version": "v2.7.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/clipperhouse/uax29/v2/@v/v2.7.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/clipperhouse/uax29/v2/@v/v2.7.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/clipperhouse/uax29/v2/@v/v2.7.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/clipperhouse/uax29/v2@v2.7.0",
+        "Sum": "h1:+gs4oBZ2gPfVrKPthwbMzWZDaAFPGYK72F0NJv2v7Vk=",
+        "GoModSum": "h1:EFJ2TJMRUaplDxHKj1qAEhCtQPW2tJSwu5BF98AuoVM=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/clipperhouse/uax29",
+          "Hash": "b03477d1fbba89df95a6b55da0a222b2e2228610",
+          "Ref": "refs/tags/v2.7.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/cncf/xds/go",
+      "version": "v0.0.0-20260202195803-dba9d589def2",
+      "expectedSum": "h1:aBangftG7EVZoUb69Os8IaYg++6uMOdKK83QtkkvJik=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/cncf/xds/go",
+        "Version": "v0.0.0-20260202195803-dba9d589def2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/cncf/xds/go/@v/v0.0.0-20260202195803-dba9d589def2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/cncf/xds/go/@v/v0.0.0-20260202195803-dba9d589def2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/cncf/xds/go/@v/v0.0.0-20260202195803-dba9d589def2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/cncf/xds/go@v0.0.0-20260202195803-dba9d589def2",
+        "Sum": "h1:aBangftG7EVZoUb69Os8IaYg++6uMOdKK83QtkkvJik=",
+        "GoModSum": "h1:qwXFYgsP6T7XnJtbKlf1HP8AjxZZyzxMmc+Lq5GjlU4=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/cncf/xds",
+          "Subdir": "go",
+          "Hash": "dba9d589def2cd10099a3a64887d859188c2f57a"
+        }
+      }
+    },
+    {
+      "module": "github.com/davecgh/go-spew",
+      "version": "v1.1.2-0.20180830191138-d8f796af33cc",
+      "expectedSum": "h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/davecgh/go-spew",
+        "Version": "v1.1.2-0.20180830191138-d8f796af33cc",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/davecgh/go-spew/@v/v1.1.2-0.20180830191138-d8f796af33cc.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/davecgh/go-spew/@v/v1.1.2-0.20180830191138-d8f796af33cc.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/davecgh/go-spew/@v/v1.1.2-0.20180830191138-d8f796af33cc.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/davecgh/go-spew@v1.1.2-0.20180830191138-d8f796af33cc",
+        "Sum": "h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=",
+        "GoModSum": "h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38="
+      }
+    },
+    {
+      "module": "github.com/dlclark/regexp2/v2",
+      "version": "v2.7.1",
+      "expectedSum": "h1:yqDtwI1ptXXvEUNpYTk2lad4jLtAcKqkzepn4savSk4=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/dlclark/regexp2/v2",
+        "Version": "v2.7.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dlclark/regexp2/v2/@v/v2.7.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dlclark/regexp2/v2/@v/v2.7.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dlclark/regexp2/v2/@v/v2.7.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/dlclark/regexp2/v2@v2.7.1",
+        "Sum": "h1:yqDtwI1ptXXvEUNpYTk2lad4jLtAcKqkzepn4savSk4=",
+        "GoModSum": "h1:avUrQvPaLz2DrFNHJF0taWAFFX2C1GMSSoeiqFjcBmU=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/dlclark/regexp2",
+          "Hash": "b65641f915c87c07bd79517ba62703125dfb7b5b",
+          "Ref": "refs/tags/v2.7.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/dominikbraun/graph",
+      "version": "v0.23.0",
+      "expectedSum": "h1:TdZB4pPqCLFxYhdyMFb1TBdFxp8XLcJfTTBQucVPgCo=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/dominikbraun/graph",
+        "Version": "v0.23.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dominikbraun/graph/@v/v0.23.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dominikbraun/graph/@v/v0.23.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dominikbraun/graph/@v/v0.23.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/dominikbraun/graph@v0.23.0",
+        "Sum": "h1:TdZB4pPqCLFxYhdyMFb1TBdFxp8XLcJfTTBQucVPgCo=",
+        "GoModSum": "h1:yOjYyogZLY1LSG9E33JWZJiq5k83Qy2C6POAuiViluc=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/dominikbraun/graph",
+          "Hash": "c61dfea98c04bdb3e321ae0858a3057280585f04",
+          "Ref": "refs/tags/v0.23.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/dustin/go-humanize",
+      "version": "v1.0.1",
+      "expectedSum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/dustin/go-humanize",
+        "Version": "v1.0.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dustin/go-humanize/@v/v1.0.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dustin/go-humanize/@v/v1.0.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/dustin/go-humanize/@v/v1.0.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/dustin/go-humanize@v1.0.1",
+        "Sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+        "GoModSum": "h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/dustin/go-humanize",
+          "Hash": "9ec74ab2f7a7161664182fd4e5e292fccffbc75f",
+          "Ref": "refs/tags/v1.0.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/elliotchance/orderedmap/v3",
+      "version": "v3.1.1",
+      "expectedSum": "h1:eV7lfZ5fVL8d36b8Wogqi/eqm7R/kZcftA9Yiyj+63M=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/elliotchance/orderedmap/v3",
+        "Version": "v3.1.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/elliotchance/orderedmap/v3/@v/v3.1.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/elliotchance/orderedmap/v3/@v/v3.1.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/elliotchance/orderedmap/v3/@v/v3.1.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/elliotchance/orderedmap/v3@v3.1.1",
+        "Sum": "h1:eV7lfZ5fVL8d36b8Wogqi/eqm7R/kZcftA9Yiyj+63M=",
+        "GoModSum": "h1:G+Hc2RwaZvJMcS4JpGCOyViCnGeKf0bTYCGTO4uhjSo=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/elliotchance/orderedmap",
+          "Hash": "52e7d06b83711821d4265e063720cb009c234ded",
+          "Ref": "refs/tags/v3.1.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/envoyproxy/go-control-plane/envoy",
+      "version": "v1.39.0",
+      "expectedSum": "h1:1uwRDYPYG8BIBU9Mj1sUAebNmlM6beu/ZKKweSLDxk8=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/envoyproxy/go-control-plane/envoy",
+        "Version": "v1.39.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/envoyproxy/go-control-plane/envoy/@v/v1.39.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/envoyproxy/go-control-plane/envoy/@v/v1.39.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/envoyproxy/go-control-plane/envoy/@v/v1.39.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/envoyproxy/go-control-plane/envoy@v1.39.0",
+        "Sum": "h1:1uwRDYPYG8BIBU9Mj1sUAebNmlM6beu/ZKKweSLDxk8=",
+        "GoModSum": "h1:5e4ylfTZO723MEEFsCpSW4ZEBWR8mwkEyXfwJBTCZ9c=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/envoyproxy/go-control-plane",
+          "Subdir": "envoy",
+          "Hash": "ca8ce173c36fedaaf7549d780273423c125aa360",
+          "Ref": "refs/tags/envoy/v1.39.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/envoyproxy/protoc-gen-validate",
+      "version": "v1.3.3",
+      "expectedSum": "h1:MVQghNeW+LZcmXe7SY1V36Z+WFMDjpqGAGacLe2T0ds=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/envoyproxy/protoc-gen-validate",
+        "Version": "v1.3.3",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/envoyproxy/protoc-gen-validate/@v/v1.3.3.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/envoyproxy/protoc-gen-validate/@v/v1.3.3.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/envoyproxy/protoc-gen-validate/@v/v1.3.3.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/envoyproxy/protoc-gen-validate@v1.3.3",
+        "Sum": "h1:MVQghNeW+LZcmXe7SY1V36Z+WFMDjpqGAGacLe2T0ds=",
+        "GoModSum": "h1:TsndJ/ngyIdQRhMcVVGDDHINPLWB7C82oDArY51KfB0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/envoyproxy/protoc-gen-validate",
+          "Hash": "92b9a7df69ca9f71bfc492f7a90adf4d36eab569",
+          "Ref": "refs/tags/v1.3.3"
+        }
+      }
+    },
+    {
+      "module": "github.com/fatih/color",
+      "version": "v1.19.0",
+      "expectedSum": "h1:Zp3PiM21/9Ld6FzSKyL5c/BULoe/ONr9KlbYVOfG8+w=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/fatih/color",
+        "Version": "v1.19.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/fatih/color/@v/v1.19.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/fatih/color/@v/v1.19.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/fatih/color/@v/v1.19.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/fatih/color@v1.19.0",
+        "Sum": "h1:Zp3PiM21/9Ld6FzSKyL5c/BULoe/ONr9KlbYVOfG8+w=",
+        "GoModSum": "h1:zNk67I0ZUT1bEGsSGyCZYZNrHuTkJJB+r6Q9VuMi0LE=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/fatih/color",
+          "Hash": "ca25f6e17f118a5a259f3c2c0d395949d1103a5a",
+          "Ref": "refs/tags/v1.19.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/felixge/httpsnoop",
+      "version": "v1.1.0",
+      "expectedSum": "h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/felixge/httpsnoop",
+        "Version": "v1.1.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/felixge/httpsnoop/@v/v1.1.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/felixge/httpsnoop/@v/v1.1.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/felixge/httpsnoop/@v/v1.1.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/felixge/httpsnoop@v1.1.0",
+        "Sum": "h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=",
+        "GoModSum": "h1:Zqxgdd+1Rkcz8euOqdr7lqgCRJztwr5hp9vDSi5UZCE=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/felixge/httpsnoop",
+          "Hash": "0fc9006be0bfd68ee14bc3db0d58f7c7241892e0",
+          "Ref": "refs/tags/v1.1.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/fsnotify/fsnotify",
+      "version": "v1.10.1",
+      "expectedSum": "h1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx59Ho=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/fsnotify/fsnotify",
+        "Version": "v1.10.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/fsnotify/fsnotify/@v/v1.10.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/fsnotify/fsnotify/@v/v1.10.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/fsnotify/fsnotify/@v/v1.10.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/fsnotify/fsnotify@v1.10.1",
+        "Sum": "h1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx59Ho=",
+        "GoModSum": "h1:TLheqan6HD6GBK6PrDWyDPBaEV8LspOxvPSjC+bVfgo=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/fsnotify/fsnotify",
+          "Hash": "76b01a6e8f502187fecedea8b025e79e5a86085c",
+          "Ref": "refs/tags/v1.10.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/go-jose/go-jose/v4",
+      "version": "v4.1.4",
+      "expectedSum": "h1:moDMcTHmvE6Groj34emNPLs/qtYXRVcd6S7NHbHz3kA=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/go-jose/go-jose/v4",
+        "Version": "v4.1.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-jose/go-jose/v4/@v/v4.1.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-jose/go-jose/v4/@v/v4.1.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-jose/go-jose/v4/@v/v4.1.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/go-jose/go-jose/v4@v4.1.4",
+        "Sum": "h1:moDMcTHmvE6Groj34emNPLs/qtYXRVcd6S7NHbHz3kA=",
+        "GoModSum": "h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/go-jose/go-jose",
+          "Hash": "0e59876635f3dbf46d7b5e97b52bb75a3f96e7d9",
+          "Ref": "refs/tags/v4.1.4"
+        }
+      }
+    },
+    {
+      "module": "github.com/go-logr/logr",
+      "version": "v1.4.4",
+      "expectedSum": "h1:tG4xh9yMsRCAiodLVTxyrkzSZ9+o0L1Kg/+cPVcbP/8=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/go-logr/logr",
+        "Version": "v1.4.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-logr/logr/@v/v1.4.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-logr/logr/@v/v1.4.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-logr/logr/@v/v1.4.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/go-logr/logr@v1.4.4",
+        "Sum": "h1:tG4xh9yMsRCAiodLVTxyrkzSZ9+o0L1Kg/+cPVcbP/8=",
+        "GoModSum": "h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/go-logr/logr",
+          "Hash": "96a9abaa56526dd5d51745e817732a2d61505fb7",
+          "Ref": "refs/tags/v1.4.4"
+        }
+      }
+    },
+    {
+      "module": "github.com/go-logr/stdr",
+      "version": "v1.2.2",
+      "expectedSum": "h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/go-logr/stdr",
+        "Version": "v1.2.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-logr/stdr/@v/v1.2.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-logr/stdr/@v/v1.2.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-logr/stdr/@v/v1.2.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/go-logr/stdr@v1.2.2",
+        "Sum": "h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=",
+        "GoModSum": "h1:mMo/vtBO5dYbehREoey6XUKy/eSumjCCveDpRre4VKE="
+      }
+    },
+    {
+      "module": "github.com/go-task/slim-sprig/v3",
+      "version": "v3.0.0",
+      "expectedSum": "h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1vB6EwHI=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/go-task/slim-sprig/v3",
+        "Version": "v3.0.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/slim-sprig/v3/@v/v3.0.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/slim-sprig/v3/@v/v3.0.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/slim-sprig/v3/@v/v3.0.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/go-task/slim-sprig/v3@v3.0.0",
+        "Sum": "h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1vB6EwHI=",
+        "GoModSum": "h1:W848ghGpv3Qj3dhTPRyJypKRiqCdHZiAzKg9hl15HA8=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/go-task/slim-sprig",
+          "Hash": "b05cce61fffa5c6dea6ac8b9a1f12b6e3fb7c894",
+          "Ref": "refs/tags/v3.0.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/go-task/template",
+      "version": "v0.2.0",
+      "expectedSum": "h1:xW7ek0o65FUSTbKcSNeg2Vyf/I7wYXFgLUznptvviBE=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/go-task/template",
+        "Version": "v0.2.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/template/@v/v0.2.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/template/@v/v0.2.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/go-task/template/@v/v0.2.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/go-task/template@v0.2.0",
+        "Sum": "h1:xW7ek0o65FUSTbKcSNeg2Vyf/I7wYXFgLUznptvviBE=",
+        "GoModSum": "h1:dbdoUb6qKnHQi1y6o+IdIrs0J4o/SEhSTA6bbzZmdtc=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/go-task/template",
+          "Hash": "a8e846539ce33dc7702e9f6015be44478006c7d5",
+          "Ref": "refs/tags/v0.2.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/google/s2a-go",
+      "version": "v0.1.9",
+      "expectedSum": "h1:LGD7gtMgezd8a/Xak7mEWL0PjoTQFvpRudN895yqKW0=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/google/s2a-go",
+        "Version": "v0.1.9",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/google/s2a-go/@v/v0.1.9.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/google/s2a-go/@v/v0.1.9.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/google/s2a-go/@v/v0.1.9.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/google/s2a-go@v0.1.9",
+        "Sum": "h1:LGD7gtMgezd8a/Xak7mEWL0PjoTQFvpRudN895yqKW0=",
+        "GoModSum": "h1:YA0Ei2ZQL3acow2O62kdp9UlnvMmU7kA6Eutn0dXayM=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/google/s2a-go",
+          "Hash": "b293be1aa7a6e6e4565f9967c093dd412253b267",
+          "Ref": "refs/tags/v0.1.9"
+        }
+      }
+    },
+    {
+      "module": "github.com/google/uuid",
+      "version": "v1.6.0",
+      "expectedSum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/google/uuid",
+        "Version": "v1.6.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/google/uuid/@v/v1.6.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/google/uuid/@v/v1.6.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/google/uuid/@v/v1.6.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/google/uuid@v1.6.0",
+        "Sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+        "GoModSum": "h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/google/uuid",
+          "Hash": "0f11ee6918f41a04c201eceeadf612a377bc7fbc",
+          "Ref": "refs/tags/v1.6.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/googleapis/enterprise-certificate-proxy",
+      "version": "v0.3.20",
+      "expectedSum": "h1:t/xL64VUoN69MuMRQuJETqYGOw4Z9mSRJK9epIEtwFk=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/googleapis/enterprise-certificate-proxy",
+        "Version": "v0.3.20",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/googleapis/enterprise-certificate-proxy/@v/v0.3.20.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/googleapis/enterprise-certificate-proxy/@v/v0.3.20.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/googleapis/enterprise-certificate-proxy/@v/v0.3.20.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/googleapis/enterprise-certificate-proxy@v0.3.20",
+        "Sum": "h1:t/xL64VUoN69MuMRQuJETqYGOw4Z9mSRJK9epIEtwFk=",
+        "GoModSum": "h1:L3D/IQExI6LqEjBdXcZQ1WluSgigQmSwBboFstVPM4w=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/enterprise-certificate-proxy",
+          "Hash": "99b47472c2d4d3e61fdfe2e56f0f5836318f61c1",
+          "Ref": "refs/tags/v0.3.20"
+        }
+      }
+    },
+    {
+      "module": "github.com/googleapis/gax-go/v2",
+      "version": "v2.23.0",
+      "expectedSum": "h1:Tchl7qkvE7Ip3y+ztvNufYFvkfqTe7NfLTYGIdJRLuE=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/googleapis/gax-go/v2",
+        "Version": "v2.23.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/googleapis/gax-go/v2/@v/v2.23.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/googleapis/gax-go/v2/@v/v2.23.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/googleapis/gax-go/v2/@v/v2.23.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/googleapis/gax-go/v2@v2.23.0",
+        "Sum": "h1:Tchl7qkvE7Ip3y+ztvNufYFvkfqTe7NfLTYGIdJRLuE=",
+        "GoModSum": "h1:rBQKOVJCdb8IFEzg+FCwlt1LP/xMDGuqUXhUG+XMXEg=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/gax-go",
+          "Hash": "aca8aec7f721183fdf17dfb5da0589ebe5004c93",
+          "Ref": "refs/tags/v2.23.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/hashicorp/aws-sdk-go-base/v2",
+      "version": "v2.0.0-beta.74",
+      "expectedSum": "h1:mymLUKThnV9wFvogOK8NnsMP9/vlhnjXY98gr2QIGW8=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/hashicorp/aws-sdk-go-base/v2",
+        "Version": "v2.0.0-beta.74",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/aws-sdk-go-base/v2/@v/v2.0.0-beta.74.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/aws-sdk-go-base/v2/@v/v2.0.0-beta.74.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/aws-sdk-go-base/v2/@v/v2.0.0-beta.74.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/hashicorp/aws-sdk-go-base/v2@v2.0.0-beta.74",
+        "Sum": "h1:mymLUKThnV9wFvogOK8NnsMP9/vlhnjXY98gr2QIGW8=",
+        "GoModSum": "h1:Bh9qYL8ehmDxSg14Tk8oxFCP90XHfs6NxV1D84884xA=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/hashicorp/aws-sdk-go-base",
+          "Hash": "6ac6fae43676a25332c2113c5c246faf7be38630",
+          "Ref": "refs/tags/v2.0.0-beta.74"
+        }
+      }
+    },
+    {
+      "module": "github.com/hashicorp/go-cleanhttp",
+      "version": "v0.5.2",
+      "expectedSum": "h1:035FKYIWjmULyFRBKPs8TBQoi0x6d9G4xc9neXJWAZQ=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/hashicorp/go-cleanhttp",
+        "Version": "v0.5.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-cleanhttp/@v/v0.5.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-cleanhttp/@v/v0.5.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-cleanhttp/@v/v0.5.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/hashicorp/go-cleanhttp@v0.5.2",
+        "Sum": "h1:035FKYIWjmULyFRBKPs8TBQoi0x6d9G4xc9neXJWAZQ=",
+        "GoModSum": "h1:kO/YDlP8L1346E6Sodw+PrpBSV4/SoxCXGY6BqNFT48="
+      }
+    },
+    {
+      "module": "github.com/hashicorp/go-getter",
+      "version": "v1.8.8",
+      "expectedSum": "h1:sRakhf+EH6s0LZLO2IgBwZ6hAFp+fZOZMNREwVELV80=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/hashicorp/go-getter",
+        "Version": "v1.8.8",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-getter/@v/v1.8.8.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-getter/@v/v1.8.8.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-getter/@v/v1.8.8.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/hashicorp/go-getter@v1.8.8",
+        "Sum": "h1:sRakhf+EH6s0LZLO2IgBwZ6hAFp+fZOZMNREwVELV80=",
+        "GoModSum": "h1:fqFlibKpwfns/s4oljLB3upJspyfFLQhS7031PlfUDc=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/hashicorp/go-getter",
+          "Hash": "b8dbabcb0e95ffd32913b7d65813d93349a80217",
+          "Ref": "refs/tags/v1.8.8"
+        }
+      }
+    },
+    {
+      "module": "github.com/hashicorp/go-version",
+      "version": "v1.9.0",
+      "expectedSum": "h1:CeOIz6k+LoN3qX9Z0tyQrPtiB1DFYRPfCIBtaXPSCnA=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/hashicorp/go-version",
+        "Version": "v1.9.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-version/@v/v1.9.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-version/@v/v1.9.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/hashicorp/go-version/@v/v1.9.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/hashicorp/go-version@v1.9.0",
+        "Sum": "h1:CeOIz6k+LoN3qX9Z0tyQrPtiB1DFYRPfCIBtaXPSCnA=",
+        "GoModSum": "h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/hashicorp/go-version",
+          "Hash": "b80b1e68c4854757b38663ec02bada2d839b6f56",
+          "Ref": "refs/tags/v1.9.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/joho/godotenv",
+      "version": "v1.5.1",
+      "expectedSum": "h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/joho/godotenv",
+        "Version": "v1.5.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/joho/godotenv/@v/v1.5.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/joho/godotenv/@v/v1.5.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/joho/godotenv/@v/v1.5.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/joho/godotenv@v1.5.1",
+        "Sum": "h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=",
+        "GoModSum": "h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/joho/godotenv",
+          "Hash": "3fc4292b58a67b78e1dbb6e47b4879a6cc602ec4",
+          "Ref": "refs/tags/v1.5.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/klauspost/compress",
+      "version": "v1.19.2",
+      "expectedSum": "h1:hMRETovs/pu/dVWN7zIT1PGG8t509MwT6bO7XSi26R8=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/klauspost/compress",
+        "Version": "v1.19.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/compress/@v/v1.19.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/compress/@v/v1.19.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/compress/@v/v1.19.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/klauspost/compress@v1.19.2",
+        "Sum": "h1:hMRETovs/pu/dVWN7zIT1PGG8t509MwT6bO7XSi26R8=",
+        "GoModSum": "h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/klauspost/compress",
+          "Hash": "c3b3439a48196b5082c63252bfb8633d0a2faad4",
+          "Ref": "refs/tags/v1.19.2"
+        }
+      }
+    },
+    {
+      "module": "github.com/klauspost/cpuid/v2",
+      "version": "v2.4.0",
+      "expectedSum": "h1:S6Hrbc7+ywsr0r+RLapfGBHfyefhCTwEh3A0tV913Dw=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/klauspost/cpuid/v2",
+        "Version": "v2.4.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/cpuid/v2/@v/v2.4.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/cpuid/v2/@v/v2.4.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/cpuid/v2/@v/v2.4.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/klauspost/cpuid/v2@v2.4.0",
+        "Sum": "h1:S6Hrbc7+ywsr0r+RLapfGBHfyefhCTwEh3A0tV913Dw=",
+        "GoModSum": "h1:19jmZ9mjzoF//ddRSUsv0zfBTJWh3QJh9FNxZTMrGxU=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/klauspost/cpuid",
+          "Hash": "8590c161fbc87954548d2aedb65e2aad4e5137d1",
+          "Ref": "refs/tags/v2.4.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/klauspost/pgzip",
+      "version": "v1.2.6",
+      "expectedSum": "h1:8RXeL5crjEUFnR2/Sn6GJNWtSQ3Dk8pq4CL3jvdDyjU=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/klauspost/pgzip",
+        "Version": "v1.2.6",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/pgzip/@v/v1.2.6.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/pgzip/@v/v1.2.6.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/klauspost/pgzip/@v/v1.2.6.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/klauspost/pgzip@v1.2.6",
+        "Sum": "h1:8RXeL5crjEUFnR2/Sn6GJNWtSQ3Dk8pq4CL3jvdDyjU=",
+        "GoModSum": "h1:Ch1tH69qFZu15pkjo5kYi6mth2Zzwzt50oCQKQE9RUs=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/klauspost/pgzip",
+          "Hash": "17e8dac29df8ce00febbd08ee5d8ee922024a003",
+          "Ref": "refs/tags/v1.2.6"
+        }
+      }
+    },
+    {
+      "module": "github.com/lucasb-eyer/go-colorful",
+      "version": "v1.4.1",
+      "expectedSum": "h1:1EO+WB73+EH8EVbzlrG3KLAfEypQWVHIBqlTf+2hNss=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/lucasb-eyer/go-colorful",
+        "Version": "v1.4.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/lucasb-eyer/go-colorful/@v/v1.4.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/lucasb-eyer/go-colorful/@v/v1.4.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/lucasb-eyer/go-colorful/@v/v1.4.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/lucasb-eyer/go-colorful@v1.4.1",
+        "Sum": "h1:1EO+WB73+EH8EVbzlrG3KLAfEypQWVHIBqlTf+2hNss=",
+        "GoModSum": "h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/lucasb-eyer/go-colorful",
+          "Hash": "315b48282c63bac7b48ba128d0c87b7f827b2285",
+          "Ref": "refs/tags/v1.4.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/mattn/go-colorable",
+      "version": "v0.1.15",
+      "expectedSum": "h1:+u9SLTRGnXv73cEsnsmoZBom+dMU88B2M0aDcWy0/jY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/mattn/go-colorable",
+        "Version": "v0.1.15",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-colorable/@v/v0.1.15.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-colorable/@v/v0.1.15.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-colorable/@v/v0.1.15.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/mattn/go-colorable@v0.1.15",
+        "Sum": "h1:+u9SLTRGnXv73cEsnsmoZBom+dMU88B2M0aDcWy0/jY=",
+        "GoModSum": "h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/mattn/go-colorable",
+          "Hash": "8bf39a204f13f0cfcf86ab9b297c3d6e0668e54a",
+          "Ref": "refs/tags/v0.1.15"
+        }
+      }
+    },
+    {
+      "module": "github.com/mattn/go-isatty",
+      "version": "v0.0.24",
+      "expectedSum": "h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsReI=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/mattn/go-isatty",
+        "Version": "v0.0.24",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-isatty/@v/v0.0.24.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-isatty/@v/v0.0.24.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-isatty/@v/v0.0.24.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/mattn/go-isatty@v0.0.24",
+        "Sum": "h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsReI=",
+        "GoModSum": "h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/mattn/go-isatty",
+          "Hash": "c44dc0b9c702c76577fdb7898032969e0611efc2",
+          "Ref": "refs/tags/v0.0.24"
+        }
+      }
+    },
+    {
+      "module": "github.com/mattn/go-runewidth",
+      "version": "v0.0.27",
+      "expectedSum": "h1:Feg/Oou5zI/wnpgDF6omIU0OokC9GxLC/WRknhVlIR0=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/mattn/go-runewidth",
+        "Version": "v0.0.27",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-runewidth/@v/v0.0.27.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-runewidth/@v/v0.0.27.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mattn/go-runewidth/@v/v0.0.27.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/mattn/go-runewidth@v0.0.27",
+        "Sum": "h1:Feg/Oou5zI/wnpgDF6omIU0OokC9GxLC/WRknhVlIR0=",
+        "GoModSum": "h1:3qAiGCV4Koz/yuveO58qUefmUTRm8r0IGEXZ9jeHp/8=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/mattn/go-runewidth",
+          "Hash": "f2d8bfeff22a28e1d7157559144dcdcab0255152",
+          "Ref": "refs/tags/v0.0.27"
+        }
+      }
+    },
+    {
+      "module": "github.com/mitchellh/go-homedir",
+      "version": "v1.1.0",
+      "expectedSum": "h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/mitchellh/go-homedir",
+        "Version": "v1.1.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mitchellh/go-homedir/@v/v1.1.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mitchellh/go-homedir/@v/v1.1.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mitchellh/go-homedir/@v/v1.1.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/mitchellh/go-homedir@v1.1.0",
+        "Sum": "h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=",
+        "GoModSum": "h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0="
+      }
+    },
+    {
+      "module": "github.com/mitchellh/hashstructure/v2",
+      "version": "v2.0.2",
+      "expectedSum": "h1:vGKWl0YJqUNxE8d+h8f6NJLcCJrgbhC4NcD46KavDd4=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/mitchellh/hashstructure/v2",
+        "Version": "v2.0.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mitchellh/hashstructure/v2/@v/v2.0.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mitchellh/hashstructure/v2/@v/v2.0.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/mitchellh/hashstructure/v2/@v/v2.0.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/mitchellh/hashstructure/v2@v2.0.2",
+        "Sum": "h1:vGKWl0YJqUNxE8d+h8f6NJLcCJrgbhC4NcD46KavDd4=",
+        "GoModSum": "h1:MG3aRVU/N29oo/V/IhBX8GR/zz4kQkprJgF2EVszyDE="
+      }
+    },
+    {
+      "module": "github.com/muesli/cancelreader",
+      "version": "v0.2.2",
+      "expectedSum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/muesli/cancelreader",
+        "Version": "v0.2.2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/muesli/cancelreader/@v/v0.2.2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/muesli/cancelreader/@v/v0.2.2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/muesli/cancelreader/@v/v0.2.2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/muesli/cancelreader@v0.2.2",
+        "Sum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+        "GoModSum": "h1:3XuTXfFS2VjM+HTLZY9Ak0l6eUKfijIfMUZ4EgX0QYo="
+      }
+    },
+    {
+      "module": "github.com/pierrec/lz4/v4",
+      "version": "v4.1.27",
+      "expectedSum": "h1:+PhzhWDrjRj89TH2sw43nE3+4+W8lSxIuQadEHZyjUk=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/pierrec/lz4/v4",
+        "Version": "v4.1.27",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/pierrec/lz4/v4/@v/v4.1.27.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/pierrec/lz4/v4/@v/v4.1.27.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/pierrec/lz4/v4/@v/v4.1.27.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/pierrec/lz4/v4@v4.1.27",
+        "Sum": "h1:+PhzhWDrjRj89TH2sw43nE3+4+W8lSxIuQadEHZyjUk=",
+        "GoModSum": "h1:EoQMVJgeeEOMsCqCzqFm2O0cJvljX2nGZjcRIPL34O4=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/pierrec/lz4",
+          "Hash": "a296161b6e73e177e902d9cdafbd3e8b9ffaa68f",
+          "Ref": "refs/tags/v4.1.27"
+        }
+      }
+    },
+    {
+      "module": "github.com/pmezard/go-difflib",
+      "version": "v1.0.1-0.20181226105442-5d4384ee4fb2",
+      "expectedSum": "h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/pmezard/go-difflib",
+        "Version": "v1.0.1-0.20181226105442-5d4384ee4fb2",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/pmezard/go-difflib/@v/v1.0.1-0.20181226105442-5d4384ee4fb2.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/pmezard/go-difflib/@v/v1.0.1-0.20181226105442-5d4384ee4fb2.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/pmezard/go-difflib/@v/v1.0.1-0.20181226105442-5d4384ee4fb2.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/pmezard/go-difflib@v1.0.1-0.20181226105442-5d4384ee4fb2",
+        "Sum": "h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=",
+        "GoModSum": "h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4="
+      }
+    },
+    {
+      "module": "github.com/puzpuzpuz/xsync/v4",
+      "version": "v4.5.0",
+      "expectedSum": "h1:vOSWu6b57/emh+L/Cw0BeQfvxa/cogFywXHeGUxQxAg=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/puzpuzpuz/xsync/v4",
+        "Version": "v4.5.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/puzpuzpuz/xsync/v4/@v/v4.5.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/puzpuzpuz/xsync/v4/@v/v4.5.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/puzpuzpuz/xsync/v4/@v/v4.5.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/puzpuzpuz/xsync/v4@v4.5.0",
+        "Sum": "h1:vOSWu6b57/emh+L/Cw0BeQfvxa/cogFywXHeGUxQxAg=",
+        "GoModSum": "h1:VJDmTCJMBt8igNxnkQd86r+8KUeN1quSfNKu5bLYFQo=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/puzpuzpuz/xsync",
+          "Hash": "1d45188d8e2d528554c2a97fa2ec6f6fe067ee01",
+          "Ref": "refs/tags/v4.5.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/rivo/uniseg",
+      "version": "v0.4.7",
+      "expectedSum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/rivo/uniseg",
+        "Version": "v0.4.7",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/rivo/uniseg/@v/v0.4.7.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/rivo/uniseg/@v/v0.4.7.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/rivo/uniseg/@v/v0.4.7.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/rivo/uniseg@v0.4.7",
+        "Sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+        "GoModSum": "h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/rivo/uniseg",
+          "Hash": "03509a98a092b522b2ff0de13e53513d18b3b837",
+          "Ref": "refs/tags/v0.4.7"
+        }
+      }
+    },
+    {
+      "module": "github.com/sajari/fuzzy",
+      "version": "v1.0.0",
+      "expectedSum": "h1:+FmwVvJErsd0d0hAPlj4CxqxUtQY/fOoY0DwX4ykpRY=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/sajari/fuzzy",
+        "Version": "v1.0.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/sajari/fuzzy/@v/v1.0.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/sajari/fuzzy/@v/v1.0.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/sajari/fuzzy/@v/v1.0.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/sajari/fuzzy@v1.0.0",
+        "Sum": "h1:+FmwVvJErsd0d0hAPlj4CxqxUtQY/fOoY0DwX4ykpRY=",
+        "GoModSum": "h1:OjYR6KxoWOe9+dOlXeiCJd4dIbED4Oo8wpS89o0pwOo="
+      }
+    },
+    {
+      "module": "github.com/spf13/pflag",
+      "version": "v1.0.10",
+      "expectedSum": "h1:4EBh2KAYBwaONj6b2Ye1GiHfwjqyROoF4RwYO+vPwFk=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/spf13/pflag",
+        "Version": "v1.0.10",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/spf13/pflag/@v/v1.0.10.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/spf13/pflag/@v/v1.0.10.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/spf13/pflag/@v/v1.0.10.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/spf13/pflag@v1.0.10",
+        "Sum": "h1:4EBh2KAYBwaONj6b2Ye1GiHfwjqyROoF4RwYO+vPwFk=",
+        "GoModSum": "h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/spf13/pflag",
+          "Hash": "0491e5702ad2bb108bc519a5221bcc0f52aa9564",
+          "Ref": "refs/tags/v1.0.10"
+        }
+      }
+    },
+    {
+      "module": "github.com/spiffe/go-spiffe/v2",
+      "version": "v2.8.1",
+      "expectedSum": "h1:eXZMLsu+3MLEPJyGJkolqtVrteZfQdUpOWj6LTiDl/E=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/spiffe/go-spiffe/v2",
+        "Version": "v2.8.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/spiffe/go-spiffe/v2/@v/v2.8.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/spiffe/go-spiffe/v2/@v/v2.8.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/spiffe/go-spiffe/v2/@v/v2.8.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/spiffe/go-spiffe/v2@v2.8.1",
+        "Sum": "h1:eXZMLsu+3MLEPJyGJkolqtVrteZfQdUpOWj6LTiDl/E=",
+        "GoModSum": "h1:47Q0Q9/AqGha8QLHp+kxpH4Wca7X7EnOtlIJy3mxZ3U=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/spiffe/go-spiffe",
+          "Hash": "e9973f6314a3fa0e36eb1f00fbfe37bdc1554b96",
+          "Ref": "refs/tags/v2.8.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/stretchr/objx",
+      "version": "v0.5.3",
+      "expectedSum": "h1:jmXUvGomnU1o3W/V5h2VEradbpJDwGrzugQQvL0POH4=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/stretchr/objx",
+        "Version": "v0.5.3",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/stretchr/objx/@v/v0.5.3.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/stretchr/objx/@v/v0.5.3.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/stretchr/objx/@v/v0.5.3.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/stretchr/objx@v0.5.3",
+        "Sum": "h1:jmXUvGomnU1o3W/V5h2VEradbpJDwGrzugQQvL0POH4=",
+        "GoModSum": "h1:rDQraq+vQZU7Fde9LOZLr8Tax6zZvy4kuNKF+QYS+U0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/stretchr/objx",
+          "Hash": "b152998cb1395c270b4ae1659971578328983793",
+          "Ref": "refs/tags/v0.5.3"
+        }
+      }
+    },
+    {
+      "module": "github.com/stretchr/testify",
+      "version": "v1.11.1",
+      "expectedSum": "h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/stretchr/testify",
+        "Version": "v1.11.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/stretchr/testify/@v/v1.11.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/stretchr/testify/@v/v1.11.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/stretchr/testify/@v/v1.11.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/stretchr/testify@v1.11.1",
+        "Sum": "h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=",
+        "GoModSum": "h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/stretchr/testify",
+          "Hash": "2a57335dc9cd6833daa820bc94d9b40c26a7917d",
+          "Ref": "refs/tags/v1.11.1"
+        }
+      }
+    },
+    {
+      "module": "github.com/u-root/u-root",
+      "version": "v0.16.0",
+      "expectedSum": "h1:wY40O83MBVks97+Is0WlFlOPSwKQMIrWP9R1IsrExg8=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/u-root/u-root",
+        "Version": "v0.16.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/u-root/u-root/@v/v0.16.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/u-root/u-root/@v/v0.16.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/u-root/u-root/@v/v0.16.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/u-root/u-root@v0.16.0",
+        "Sum": "h1:wY40O83MBVks97+Is0WlFlOPSwKQMIrWP9R1IsrExg8=",
+        "GoModSum": "h1:yL/XdSSW27PdGLgUh4MNRBy54mKM+TBLzpwiB4nwj90=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/u-root/u-root",
+          "Hash": "a9c0bf61c74128eceaed057ee98f4068b603c5f9",
+          "Ref": "refs/tags/v0.16.0"
+        }
+      }
+    },
+    {
+      "module": "github.com/u-root/uio",
+      "version": "v0.0.0-20240224005618-d2acac8f3701",
+      "expectedSum": "h1:pyC9PaHYZFgEKFdlp3G8RaCKgVpHZnecvArXvPXcFkM=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/u-root/uio",
+        "Version": "v0.0.0-20240224005618-d2acac8f3701",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/u-root/uio/@v/v0.0.0-20240224005618-d2acac8f3701.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/u-root/uio/@v/v0.0.0-20240224005618-d2acac8f3701.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/u-root/uio/@v/v0.0.0-20240224005618-d2acac8f3701.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/u-root/uio@v0.0.0-20240224005618-d2acac8f3701",
+        "Sum": "h1:pyC9PaHYZFgEKFdlp3G8RaCKgVpHZnecvArXvPXcFkM=",
+        "GoModSum": "h1:P3a5rG4X7tI17Nn3aOIAYr5HbIMukwXG0urG0WuL8OA=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/u-root/uio",
+          "Hash": "d2acac8f37018c514adec45c51f58eace3795df4"
+        }
+      }
+    },
+    {
+      "module": "github.com/ulikunitz/xz",
+      "version": "v0.5.16",
+      "expectedSum": "h1:ld6NyySjx5lowVKwJvMRLnW5nxKX/xnpSiFYZ/Lxur0=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/ulikunitz/xz",
+        "Version": "v0.5.16",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/ulikunitz/xz/@v/v0.5.16.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/ulikunitz/xz/@v/v0.5.16.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/ulikunitz/xz/@v/v0.5.16.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/ulikunitz/xz@v0.5.16",
+        "Sum": "h1:ld6NyySjx5lowVKwJvMRLnW5nxKX/xnpSiFYZ/Lxur0=",
+        "GoModSum": "h1:H9Rt/W6/Qj27PGauhQc6nfCDy7vHpzsOThBSaYDoEhw=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/ulikunitz/xz",
+          "Hash": "024f9092972afea64fa5c25157566881bac36938",
+          "Ref": "refs/tags/v0.5.16"
+        }
+      }
+    },
+    {
+      "module": "github.com/xo/terminfo",
+      "version": "v0.0.0-20220910002029-abceb7e1c41e",
+      "expectedSum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/xo/terminfo",
+        "Version": "v0.0.0-20220910002029-abceb7e1c41e",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/xo/terminfo/@v/v0.0.0-20220910002029-abceb7e1c41e.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/xo/terminfo/@v/v0.0.0-20220910002029-abceb7e1c41e.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/xo/terminfo/@v/v0.0.0-20220910002029-abceb7e1c41e.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/xo/terminfo@v0.0.0-20220910002029-abceb7e1c41e",
+        "Sum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+        "GoModSum": "h1:RbqR21r5mrJuqunuUZ/Dhy/avygyECGrLceyNeo4LiM=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/xo/terminfo",
+          "Hash": "abceb7e1c41eed2857facd9bbdaaa5ff8137d901"
+        }
+      }
+    },
+    {
+      "module": "github.com/zeebo/xxh3",
+      "version": "v1.1.0",
+      "expectedSum": "h1:s7DLGDK45Dyfg7++yxI0khrfwq9661w9EN78eP/UZVs=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "github.com/zeebo/xxh3",
+        "Version": "v1.1.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/zeebo/xxh3/@v/v1.1.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/zeebo/xxh3/@v/v1.1.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/github.com/zeebo/xxh3/@v/v1.1.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/github.com/zeebo/xxh3@v1.1.0",
+        "Sum": "h1:s7DLGDK45Dyfg7++yxI0khrfwq9661w9EN78eP/UZVs=",
+        "GoModSum": "h1:IisAie1LELR4xhVinxWS5+zf1lA4p0MW4T+w+W07F5s=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/zeebo/xxh3",
+          "Hash": "84cc04fc61771ea2a564c57277a19f83217a84ff",
+          "Ref": "refs/tags/v1.1.0"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/auto/sdk",
+      "version": "v1.2.1",
+      "expectedSum": "h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/auto/sdk",
+        "Version": "v1.2.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/auto/sdk/@v/v1.2.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/auto/sdk/@v/v1.2.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/auto/sdk/@v/v1.2.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/auto/sdk@v1.2.1",
+        "Sum": "h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=",
+        "GoModSum": "h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go-instrumentation",
+          "Subdir": "sdk",
+          "Hash": "715f58ce2f17e2176b8e53b871e47531a259cc1d",
+          "Ref": "refs/tags/sdk/v1.2.1"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/contrib/detectors/gcp",
+      "version": "v1.45.0",
+      "expectedSum": "h1:9jR0ZPRok9ryaOQ2Wx8rg5F7Aon59mxrqbVI60/vlBk=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/contrib/detectors/gcp",
+        "Version": "v1.45.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/detectors/gcp/@v/v1.45.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/detectors/gcp/@v/v1.45.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/detectors/gcp/@v/v1.45.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/contrib/detectors/gcp@v1.45.0",
+        "Sum": "h1:9jR0ZPRok9ryaOQ2Wx8rg5F7Aon59mxrqbVI60/vlBk=",
+        "GoModSum": "h1:VSme3o2fvSg5bVg0dRzyHaj4Z5EVhG+g2Fde6LKzmQA=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go-contrib",
+          "Subdir": "detectors/gcp",
+          "Hash": "c8a87a60ba1b3374fd16df11fc3eeae6c41abbc9",
+          "Ref": "refs/tags/detectors/gcp/v1.45.0"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+      "version": "v0.70.0",
+      "expectedSum": "h1:oECp5f+hN7nkwjU/8BxQ/q23bGPb8FIrD839owX222E=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+        "Version": "v0.70.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc/@v/v0.70.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc/@v/v0.70.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc/@v/v0.70.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc@v0.70.0",
+        "Sum": "h1:oECp5f+hN7nkwjU/8BxQ/q23bGPb8FIrD839owX222E=",
+        "GoModSum": "h1:DqEFwLumhzMBDQv9PcWbyoDxHI/4lAk6CM4nJBH39sc=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go-contrib",
+          "Subdir": "instrumentation/google.golang.org/grpc/otelgrpc",
+          "Hash": "c8a87a60ba1b3374fd16df11fc3eeae6c41abbc9",
+          "Ref": "refs/tags/instrumentation/google.golang.org/grpc/otelgrpc/v0.70.0"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+      "version": "v0.70.0",
+      "expectedSum": "h1:LMuyCAyfalSjDyjdC65nK6N0zoTT63+E/u95X0JovZI=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+        "Version": "v0.70.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/@v/v0.70.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/@v/v0.70.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/@v/v0.70.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp@v0.70.0",
+        "Sum": "h1:LMuyCAyfalSjDyjdC65nK6N0zoTT63+E/u95X0JovZI=",
+        "GoModSum": "h1:085m8qbm4hgc8rZWGDEa4vmyyo2c3nPxUslYUKUIU04=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go-contrib",
+          "Subdir": "instrumentation/net/http/otelhttp",
+          "Hash": "c8a87a60ba1b3374fd16df11fc3eeae6c41abbc9",
+          "Ref": "refs/tags/instrumentation/net/http/otelhttp/v0.70.0"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/otel",
+      "version": "v1.45.0",
+      "expectedSum": "h1:pdrWmLHofpubmArBv1LgFSv1Z0Ie/ppdZzu+kUN5EeU=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/otel",
+        "Version": "v1.45.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/@v/v1.45.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/@v/v1.45.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/@v/v1.45.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/otel@v1.45.0",
+        "Sum": "h1:pdrWmLHofpubmArBv1LgFSv1Z0Ie/ppdZzu+kUN5EeU=",
+        "GoModSum": "h1:XZxIqPapzEYnhNSScF5DIqXhm/rYi0FzCe2XddAwZfQ=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go",
+          "Hash": "93a693edeed0e07ce5ebd1dfe67af42d1e2055d8",
+          "Ref": "refs/tags/v1.45.0"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/otel/metric",
+      "version": "v1.45.0",
+      "expectedSum": "h1:7Eg1uH7CJ5cXv9is6tnBe1FI6rj1nwUdbFypRm3br/M=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/otel/metric",
+        "Version": "v1.45.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/metric/@v/v1.45.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/metric/@v/v1.45.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/metric/@v/v1.45.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/otel/metric@v1.45.0",
+        "Sum": "h1:7Eg1uH7CJ5cXv9is6tnBe1FI6rj1nwUdbFypRm3br/M=",
+        "GoModSum": "h1:HAPbm1nd3p1PmFH7v2dR+6BjXxw+Lq4a2+pndMAm08s=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go",
+          "Subdir": "metric",
+          "Hash": "93a693edeed0e07ce5ebd1dfe67af42d1e2055d8",
+          "Ref": "refs/tags/metric/v1.45.0"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/otel/sdk",
+      "version": "v1.45.0",
+      "expectedSum": "h1:4VVSMgQ83dUgW2aoX5f6JgLvHwIvzcuLnF9lUdCSpCw=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/otel/sdk",
+        "Version": "v1.45.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/sdk/@v/v1.45.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/sdk/@v/v1.45.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/sdk/@v/v1.45.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/otel/sdk@v1.45.0",
+        "Sum": "h1:4VVSMgQ83dUgW2aoX5f6JgLvHwIvzcuLnF9lUdCSpCw=",
+        "GoModSum": "h1:Sr40LgXV7DsKMMJMKOhUWOgMWTfAaqvm2kF0g7ilwuA=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go",
+          "Subdir": "sdk",
+          "Hash": "93a693edeed0e07ce5ebd1dfe67af42d1e2055d8",
+          "Ref": "refs/tags/sdk/v1.45.0"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/otel/sdk/metric",
+      "version": "v1.45.0",
+      "expectedSum": "h1:oVFszMfyj1Am6s24Vtc7wBb8BKLcwepJjNEYILuiE3o=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/otel/sdk/metric",
+        "Version": "v1.45.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/sdk/metric/@v/v1.45.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/sdk/metric/@v/v1.45.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/sdk/metric/@v/v1.45.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/otel/sdk/metric@v1.45.0",
+        "Sum": "h1:oVFszMfyj1Am6s24Vtc7wBb8BKLcwepJjNEYILuiE3o=",
+        "GoModSum": "h1:vUWUxDZvu1WVRj8JA8S0AdhsPrZoDpA2DdZauIh4mDA=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go",
+          "Subdir": "sdk/metric",
+          "Hash": "93a693edeed0e07ce5ebd1dfe67af42d1e2055d8",
+          "Ref": "refs/tags/sdk/metric/v1.45.0"
+        }
+      }
+    },
+    {
+      "module": "go.opentelemetry.io/otel/trace",
+      "version": "v1.45.0",
+      "expectedSum": "h1:l/mP6Uv7oNO7/TblbhpbgMidxhq1uO/rPsikOyVhxag=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.opentelemetry.io/otel/trace",
+        "Version": "v1.45.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/trace/@v/v1.45.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/trace/@v/v1.45.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.opentelemetry.io/otel/trace/@v/v1.45.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.opentelemetry.io/otel/trace@v1.45.0",
+        "Sum": "h1:l/mP6Uv7oNO7/TblbhpbgMidxhq1uO/rPsikOyVhxag=",
+        "GoModSum": "h1:qoJJA2xNMnxRrdISU/kLtfUH2wNeQbiv+jhs/CxI8bc=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/open-telemetry/opentelemetry-go",
+          "Subdir": "trace",
+          "Hash": "93a693edeed0e07ce5ebd1dfe67af42d1e2055d8",
+          "Ref": "refs/tags/trace/v1.45.0"
+        }
+      }
+    },
+    {
+      "module": "go.yaml.in/yaml/v3",
+      "version": "v3.0.4",
+      "expectedSum": "h1:tfq32ie2Jv2UxXFdLJdh3jXuOzWiL1fo0bu/FbuKpbc=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "go.yaml.in/yaml/v3",
+        "Version": "v3.0.4",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.yaml.in/yaml/v3/@v/v3.0.4.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.yaml.in/yaml/v3/@v/v3.0.4.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/go.yaml.in/yaml/v3/@v/v3.0.4.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/go.yaml.in/yaml/v3@v3.0.4",
+        "Sum": "h1:tfq32ie2Jv2UxXFdLJdh3jXuOzWiL1fo0bu/FbuKpbc=",
+        "GoModSum": "h1:DhzuOOF2ATzADvBadXxruRBLzYTpT36CKvDb3+aBEFg=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/yaml/go-yaml",
+          "Hash": "c3552c15f996075a7634df5159d9161c67bf3d76",
+          "Ref": "refs/tags/v3.0.4"
+        }
+      }
+    },
+    {
+      "module": "golang.org/x/crypto",
+      "version": "v0.55.0",
+      "expectedSum": "h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "golang.org/x/crypto",
+        "Version": "v0.55.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/crypto/@v/v0.55.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/crypto/@v/v0.55.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/crypto/@v/v0.55.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/golang.org/x/crypto@v0.55.0",
+        "Sum": "h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=",
+        "GoModSum": "h1:uq0V9dE/fzQuJtbnL+2EhWOE63vo164FY8xqEnV9xis=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/crypto",
+          "Hash": "f44d03d253a1503e51b059ca880867c51d878242",
+          "Ref": "refs/heads/master"
+        }
+      }
+    },
+    {
+      "module": "golang.org/x/net",
+      "version": "v0.58.0",
+      "expectedSum": "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "golang.org/x/net",
+        "Version": "v0.58.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/net/@v/v0.58.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/net/@v/v0.58.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/net/@v/v0.58.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/golang.org/x/net@v0.58.0",
+        "Sum": "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=",
+        "GoModSum": "h1:YwCddHnFlT7eLQqVprV19OnhLGtc5xOKgE0RyqgfWAU=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/net",
+          "Hash": "acc78e0d2b2c855c0c4fbdcfe5f42a9e3d0f9778",
+          "Ref": "refs/tags/v0.58.0"
+        }
+      }
+    },
+    {
+      "module": "golang.org/x/oauth2",
+      "version": "v0.36.0",
+      "expectedSum": "h1:peZ/1z27fi9hUOFCAZaHyrpWG5lwe0RJEEEeH0ThlIs=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "golang.org/x/oauth2",
+        "Version": "v0.36.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/oauth2/@v/v0.36.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/oauth2/@v/v0.36.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/oauth2/@v/v0.36.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/golang.org/x/oauth2@v0.36.0",
+        "Sum": "h1:peZ/1z27fi9hUOFCAZaHyrpWG5lwe0RJEEEeH0ThlIs=",
+        "GoModSum": "h1:YDBUJMTkDnJS+A4BP4eZBjCqtokkg1hODuPjwiGPO7Q=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/oauth2",
+          "Hash": "4d954e69a88d9e1ccb8439f8d5b6cbef230c4ef9",
+          "Ref": "refs/tags/v0.36.0"
+        }
+      }
+    },
+    {
+      "module": "golang.org/x/sync",
+      "version": "v0.22.0",
+      "expectedSum": "h1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "golang.org/x/sync",
+        "Version": "v0.22.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/sync/@v/v0.22.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/sync/@v/v0.22.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/sync/@v/v0.22.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/golang.org/x/sync@v0.22.0",
+        "Sum": "h1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=",
+        "GoModSum": "h1:9xrNwdLfx4jkKbNva9FpL6vEN7evnE43NNNJQ2LF3+0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/sync",
+          "Hash": "1eb64d4bc0cde6da1bb8ebc7f178bb577508e5d0",
+          "Ref": "refs/tags/v0.22.0"
+        }
+      }
+    },
+    {
+      "module": "golang.org/x/sys",
+      "version": "v0.47.0",
+      "expectedSum": "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "golang.org/x/sys",
+        "Version": "v0.47.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/sys/@v/v0.47.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/sys/@v/v0.47.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/sys/@v/v0.47.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/golang.org/x/sys@v0.47.0",
+        "Sum": "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=",
+        "GoModSum": "h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/sys",
+          "Hash": "9e7e939dcafac07e8ab4cffa6e5fc74908413f00",
+          "Ref": "refs/tags/v0.47.0"
+        }
+      }
+    },
+    {
+      "module": "golang.org/x/term",
+      "version": "v0.45.0",
+      "expectedSum": "h1:NwWyBmoJCbfTHpxrWoZ9C6/VxOf7ic219I8xZZFdrf0=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "golang.org/x/term",
+        "Version": "v0.45.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/term/@v/v0.45.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/term/@v/v0.45.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/term/@v/v0.45.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/golang.org/x/term@v0.45.0",
+        "Sum": "h1:NwWyBmoJCbfTHpxrWoZ9C6/VxOf7ic219I8xZZFdrf0=",
+        "GoModSum": "h1:9aqxs0blBcrm/n0L9QW0aRVD+ktan8ssZromtqJC43w=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/term",
+          "Hash": "9f69229da31ca6a34b522f59dbe07cad5ea21587",
+          "Ref": "refs/tags/v0.45.0"
+        }
+      }
+    },
+    {
+      "module": "golang.org/x/text",
+      "version": "v0.41.0",
+      "expectedSum": "h1:vz/seA0lnX87Othu2f/0L24RcgrXD9/YFTSuGjj3rH8=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "golang.org/x/text",
+        "Version": "v0.41.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/text/@v/v0.41.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/text/@v/v0.41.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/text/@v/v0.41.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/golang.org/x/text@v0.41.0",
+        "Sum": "h1:vz/seA0lnX87Othu2f/0L24RcgrXD9/YFTSuGjj3rH8=",
+        "GoModSum": "h1:jvf1O8ajNzZqhSrQBPbutR/EB83Cc0CFrezNQIwbb5M=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/text",
+          "Hash": "acdba6655fd45cdb5ab73c9d6a8981333bd65a39",
+          "Ref": "refs/tags/v0.41.0"
+        }
+      }
+    },
+    {
+      "module": "golang.org/x/time",
+      "version": "v0.15.0",
+      "expectedSum": "h1:bbrp8t3bGUeFOx08pvsMYRTCVSMk89u4tKbNOZbp88U=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "golang.org/x/time",
+        "Version": "v0.15.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/time/@v/v0.15.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/time/@v/v0.15.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/golang.org/x/time/@v/v0.15.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/golang.org/x/time@v0.15.0",
+        "Sum": "h1:bbrp8t3bGUeFOx08pvsMYRTCVSMk89u4tKbNOZbp88U=",
+        "GoModSum": "h1:Y4YMaQmXwGQZoFaVFk4YpCt4FLQMYKZe9oeV/f4MSno=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/time",
+          "Hash": "812b343c8714c317b0dad633efa6d103e554c006",
+          "Ref": "refs/tags/v0.15.0"
+        }
+      }
+    },
+    {
+      "module": "google.golang.org/api",
+      "version": "v0.293.0",
+      "expectedSum": "h1:p9XIWOf63U4OgYx120ZwVU8+vl4XTPmWfgVPnmOAS9w=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "google.golang.org/api",
+        "Version": "v0.293.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/api/@v/v0.293.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/api/@v/v0.293.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/api/@v/v0.293.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/google.golang.org/api@v0.293.0",
+        "Sum": "h1:p9XIWOf63U4OgYx120ZwVU8+vl4XTPmWfgVPnmOAS9w=",
+        "GoModSum": "h1:6n5tjEB1gzwniZTepZ0g5u+wM7Bof5GeULCx/zh8ZE0=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/google-api-go-client",
+          "Hash": "5b1402ec5cbf03814dc5b35fdd8855f750adcf0a",
+          "Ref": "refs/tags/v0.293.0"
+        }
+      }
+    },
+    {
+      "module": "google.golang.org/genproto",
+      "version": "v0.0.0-20260724162435-b2f20204f0df",
+      "expectedSum": "h1:A7u56ilVtWR3CySHErsWAsimNwD4FoX9KWd8SUCn6vc=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "google.golang.org/genproto",
+        "Version": "v0.0.0-20260724162435-b2f20204f0df",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/@v/v0.0.0-20260724162435-b2f20204f0df.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/@v/v0.0.0-20260724162435-b2f20204f0df.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/@v/v0.0.0-20260724162435-b2f20204f0df.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/google.golang.org/genproto@v0.0.0-20260724162435-b2f20204f0df",
+        "Sum": "h1:A7u56ilVtWR3CySHErsWAsimNwD4FoX9KWd8SUCn6vc=",
+        "GoModSum": "h1:4RPHZcXMGptb7aRZb+M43xI7ixmjEtASEf2VtOOBZbU=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/go-genproto",
+          "Hash": "b2f20204f0dff4926bbbe38cab5248a8e713b44d"
+        }
+      }
+    },
+    {
+      "module": "google.golang.org/genproto/googleapis/api",
+      "version": "v0.0.0-20260724162435-b2f20204f0df",
+      "expectedSum": "h1:NsJx+hCSwIBI6+C4BuJIkb8xOG1M+nfQDsqIrQHT92k=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "google.golang.org/genproto/googleapis/api",
+        "Version": "v0.0.0-20260724162435-b2f20204f0df",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/googleapis/api/@v/v0.0.0-20260724162435-b2f20204f0df.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/googleapis/api/@v/v0.0.0-20260724162435-b2f20204f0df.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/googleapis/api/@v/v0.0.0-20260724162435-b2f20204f0df.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/google.golang.org/genproto/googleapis/api@v0.0.0-20260724162435-b2f20204f0df",
+        "Sum": "h1:NsJx+hCSwIBI6+C4BuJIkb8xOG1M+nfQDsqIrQHT92k=",
+        "GoModSum": "h1:1brfde68Npq6+WA75c1EHWPijZEG1kMus61ygPZfn4A=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/go-genproto",
+          "Subdir": "googleapis/api",
+          "Hash": "b2f20204f0dff4926bbbe38cab5248a8e713b44d"
+        }
+      }
+    },
+    {
+      "module": "google.golang.org/genproto/googleapis/rpc",
+      "version": "v0.0.0-20260807164820-c8921c73eeea",
+      "expectedSum": "h1:kVhQEPTpKQahD5+JSBTfBB19wcgQTTjAIn45MBqnyHk=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "google.golang.org/genproto/googleapis/rpc",
+        "Version": "v0.0.0-20260807164820-c8921c73eeea",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/googleapis/rpc/@v/v0.0.0-20260807164820-c8921c73eeea.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/googleapis/rpc/@v/v0.0.0-20260807164820-c8921c73eeea.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/genproto/googleapis/rpc/@v/v0.0.0-20260807164820-c8921c73eeea.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/google.golang.org/genproto/googleapis/rpc@v0.0.0-20260807164820-c8921c73eeea",
+        "Sum": "h1:kVhQEPTpKQahD5+JSBTfBB19wcgQTTjAIn45MBqnyHk=",
+        "GoModSum": "h1:4Hqkh8ycfw05ld/3BWL7rJOSfebL2Q+DVDeRgYgxUU8=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/googleapis/go-genproto",
+          "Subdir": "googleapis/rpc",
+          "Hash": "c8921c73eeea441e367942dc580c3e37c414d3c1"
+        }
+      }
+    },
+    {
+      "module": "google.golang.org/grpc",
+      "version": "v1.83.0",
+      "expectedSum": "h1:JeNZEKJFbQxArAMl+hiytHauacDNqJUllNfmIMmpqnQ=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "google.golang.org/grpc",
+        "Version": "v1.83.0",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/grpc/@v/v1.83.0.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/grpc/@v/v1.83.0.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/grpc/@v/v1.83.0.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/google.golang.org/grpc@v1.83.0",
+        "Sum": "h1:JeNZEKJFbQxArAMl+hiytHauacDNqJUllNfmIMmpqnQ=",
+        "GoModSum": "h1:kDyl6SKsiHKt0uylY5gtn5cEjkrIOhQOGDgIc4JGwzQ=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/grpc/grpc-go",
+          "Hash": "4c226daff88f54441d70f710815e07b81fb162b2",
+          "Ref": "refs/tags/v1.83.0"
+        }
+      }
+    },
+    {
+      "module": "google.golang.org/protobuf",
+      "version": "v1.36.11",
+      "expectedSum": "h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "google.golang.org/protobuf",
+        "Version": "v1.36.11",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/protobuf/@v/v1.36.11.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/protobuf/@v/v1.36.11.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/google.golang.org/protobuf/@v/v1.36.11.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/google.golang.org/protobuf@v1.36.11",
+        "Sum": "h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=",
+        "GoModSum": "h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://go.googlesource.com/protobuf",
+          "Hash": "96a179180f0ad6bba9b1e7b6e38d0affb0168e9a",
+          "Ref": "refs/tags/v1.36.11"
+        }
+      }
+    },
+    {
+      "module": "gopkg.in/yaml.v3",
+      "version": "v3.0.1",
+      "expectedSum": "h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "gopkg.in/yaml.v3",
+        "Version": "v3.0.1",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/gopkg.in/yaml.v3/@v/v3.0.1.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/gopkg.in/yaml.v3/@v/v3.0.1.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/gopkg.in/yaml.v3/@v/v3.0.1.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/gopkg.in/yaml.v3@v3.0.1",
+        "Sum": "h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=",
+        "GoModSum": "h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM="
+      }
+    },
+    {
+      "module": "mvdan.cc/sh/moreinterp",
+      "version": "v0.0.0-20260817215856-d6550df7ed8d",
+      "expectedSum": "h1:VxKlXmio7XEU6iZ8AgMjDfm071ceDmbjpRnEcgxAqn0=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "mvdan.cc/sh/moreinterp",
+        "Version": "v0.0.0-20260817215856-d6550df7ed8d",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/mvdan.cc/sh/moreinterp/@v/v0.0.0-20260817215856-d6550df7ed8d.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/mvdan.cc/sh/moreinterp/@v/v0.0.0-20260817215856-d6550df7ed8d.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/mvdan.cc/sh/moreinterp/@v/v0.0.0-20260817215856-d6550df7ed8d.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/mvdan.cc/sh/moreinterp@v0.0.0-20260817215856-d6550df7ed8d",
+        "Sum": "h1:VxKlXmio7XEU6iZ8AgMjDfm071ceDmbjpRnEcgxAqn0=",
+        "GoModSum": "h1:SR7UOjTQQhhrUu6d6lNtjAmdqmlMqr0lR/UWTxY8wJM=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/mvdan/sh",
+          "Subdir": "moreinterp",
+          "Hash": "d6550df7ed8dc96f6edc8b500ac7ec51079e2a19"
+        }
+      }
+    },
+    {
+      "module": "mvdan.cc/sh/v3",
+      "version": "v3.13.2-0.20260817215856-d6550df7ed8d",
+      "expectedSum": "h1:LlqUgrIy872/RmROjVtmRg3oK4RvvqZZr5SfqHSg7Ko=",
+      "status": "EXACT_BINARY_MODULE_H1_VERIFIED",
+      "native": {
+        "Path": "mvdan.cc/sh/v3",
+        "Version": "v3.13.2-0.20260817215856-d6550df7ed8d",
+        "Info": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/mvdan.cc/sh/v3/@v/v3.13.2-0.20260817215856-d6550df7ed8d.info",
+        "GoMod": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/mvdan.cc/sh/v3/@v/v3.13.2-0.20260817215856-d6550df7ed8d.mod",
+        "Zip": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/cache/download/mvdan.cc/sh/v3/@v/v3.13.2-0.20260817215856-d6550df7ed8d.zip",
+        "Dir": "/tmp/local-ci-events-w-20261024/P-task-go-modules/module-cache/mvdan.cc/sh/v3@v3.13.2-0.20260817215856-d6550df7ed8d",
+        "Sum": "h1:LlqUgrIy872/RmROjVtmRg3oK4RvvqZZr5SfqHSg7Ko=",
+        "GoModSum": "h1:3tr4oDy8eX1SeblVXiVLVGk0PbLzqwQqOAEdu9yKWBM=",
+        "Origin": {
+          "VCS": "git",
+          "URL": "https://github.com/mvdan/sh",
+          "Hash": "d6550df7ed8dc96f6edc8b500ac7ec51079e2a19"
+        }
+      }
+    }
+  ],
+  "missing": [],
+  "claim": "native Go module source identities versus actual binary buildinfo; license/notice sufficiency separate"
+}

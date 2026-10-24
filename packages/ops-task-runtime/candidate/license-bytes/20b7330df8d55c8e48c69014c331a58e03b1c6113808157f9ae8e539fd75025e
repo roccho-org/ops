@@ -1,0 +1,49 @@
+# 独立R bounded registry/native resolver readback
+
+R x1 / 01a16db5-c075-7743-b1b9-4bddd42bd0f7。
+対象: P-actrun-moon保存物とP-TASK-GO-MODULES.md。取得/再取得、新build、massive restore、product編集なし。
+actrun固定asset SHA-256: 40108290d0c95c5d20de3c3d8eeff1bf312628b7d811dc19db77479f91b1223b。
+actrun publisher source: b2fc1c9d88c921b670fc2c2651728967b414a8c7。
+
+## 独立確認
+
+- registry receiptの39 archiveをRが実bytesから再hashし、全てreceiptおよびofficial index rowのchecksumと一致した。26 index fileの実hashもreceiptに一致した。snapshot index commitは70ee22e56032c2ddb11c19c96aaa95d690e79312。
+- native-tree.stdoutは26 registry moduleを選択。全26の正確なarchiveが取得済みで、対応index created_atの最新は2026-03-22、全てMarch31 releaseより前だった。
+- core0.1.20260310+cd28f524e archiveを再hashし00c0b2c632e150472a58e456851b0dffc5c9d1849d06dd28bd6ee255c3c81e0dへ一致。実NOTICE6007 bytesとLICENSE11356 bytesを読んだ。宣言文字列だけではない。
+- 現在のmoonは0.1.20261023/3778465であり、historical actual compilerとしては扱わない。元10依存を保ったtemporary formatter migration、native tree成功をanalysis記録として読んだ。初期resolver-origin.jsonには失敗履歴exit101があるが、後続native-version/tree記録と混同しない。
+
+## historical MVS countercheck
+
+一次codeを取得した:
+[2026-03-10時点のMVS実装](https://github.com/moonbitlang/moon/blob/5629828c9f5bf515e9467c0e95e3e86ecf1104e8/crates/mooncake/src/resolver/mvs.rs)
+[release前3月18日変更時点](https://github.com/moonbitlang/moon/blob/cd27b48c263090e1364a6c110bf2a814e90c98e6/crates/mooncake/src/resolver/mvs.rs)
+[現在のanalysis toolに対応する実装](https://github.com/moonbitlang/moon/blob/3778465/crates/mooncake/src/resolver/mvs.rs)
+
+旧codeはcaret requirementに合う最小available versionを探索し、収集した互換version集合内の最大要求versionへ併合する。現在codeはpre-v2互換集合を広げており、一般には同じ結果とは限らない。
+
+ただし本データでは、Rが取得済みarchiveの実moon.mod.jsonからroot10依存を再帰的にたどると39version/26nameで閉じ、未処理形式はゼロ。複数要求のあるnameは全て同じ0.x minor内、0.0.xのものは単一versionだけだった。全要求versionはindexにそのまま存在する。この入力に旧caret互換集合の最大要求version選択を適用した結果はnative current treeの全26選択と一致した。async0.16.8、x0.4.41への併合も説明できる。
+
+記録: /tmp/local-ci-events-r-663/actrun-registry-analysis.json。
+これはdata-specificな一次source/MVS解析であり、当時同梱moon commitや当時index snapshotの実測、actual build attestationではない。March以前のcodeを見たことを、入手不能0.8.3 toolchainの実bytesを確認したと読み替えない。
+
+## ここまでで閉じられる範囲
+
+通常のpublisher/registry provenanceとして、固定actrun sourceの宣言・package imports、固定registry archive/checksum、データ固有の旧/新MVS整合、実binaryのmodule symbol対応を組み合わせたsource origin説明は成立する。以前の「selected registry graphがない」という不足は解消した。moving bit cloneの使用を仮定する必要もない。
+
+registry graphに含まれる26 moduleを全てbinaryに存在すると断言はしない。module-level graphはtest/未到達packageも含み得る。肯定的symbol証拠があるbit/crater/syntree/zlib/lexer等は対応を付け、他はpackage到達性または保守的なnotice保持で扱う。compiler build dependency全体へscopeを広げない。
+
+coreのcompilerhashラベル一致はpublisher由来の強いversion対応資料であり、固定archiveの実noticeをcoreの出所・noticeとして保持する通常の方法は妥当。core byte-identical再buildを新DoDにはしない。実buildで同梱されたcoreの厳密なcommitを実測したという追加主張はしない。
+
+## 残る実bytesとtrue Unknown
+
+1. 39archive取得済みはnotice coverage完了ではない。選択archiveを調べるとjq、tui、svg、font、brotliにはLICENSE/NOTICE/COPYING等の名前のfileがなく、moonbitlang/x0.4.41にはlicenserc.tomlだけがある。xには著作権/Apacheの実source headerがあるが、設定fileはlicense本文ではない。特にjqとxは実binary symbolで包含を確認済みなので、先に補完すること。
+2. 最小補完は固定publisher source/tag/commitとregistry source bytesの対応を示し、そのLICENSE/NOTICEと実著作権headerを保持すること。同一の本文はdedupできるが、component/source/versionへのcoverage参照を残す。一般のApacheページやmodule.license宣言だけで欠落bytesが埋まったとはしない。core NOTICEのthird-party対象も当該source範囲へ対応付ける。
+3. native-runtime mirror34489644a0c23b206426386e51932e12b436e03fはpublisherの実C sourceと実LICENSEを保持する正当な資料。ただし「Feb6でrelease前」という時間関係だけでは0.8.3+cd28f同梱native runtimeとの対応は確定しない。現記録はpublisher-family source/notice候補として保持し、exact linked-runtime revisionはUnknownとする。
+4. このUnknownを通常provenanceで縮めるには、publisherのruntime適用範囲の説明、toolchain release/coreラベルとmirrorの対応、source manifestや同梱notice等の既存資料を使えばよい。compiled実行物と全sourceの暗号学的同一性やbit-identical再現buildの提出を唯一の条件にしない。資料がなければ推測commitを埋めず、その限定UnknownをUserへ開示する。historical logs/旧toolchain403を「新compilerをbuildせよ」に変換しない。
+5. full historical build attestationがないという一般的限界と、実際のlicense/notice bytesがまだ無いという作業上のMissingは別。前者を新たな全体DoDへ膨張させず、後者はSAME-v5.1の既存DoDとして残す。normal publisher assertion/source provenanceで閉じた項目に、後からreproducibility条件を追加しない。
+
+## Go/native別scope
+
+P-task-go-modules receiptの124 moduleについてnative.Sum==expectedSum、Missing0を読んだ。task固定assetに対応するactual buildinfoも読んだ。これはGo h1 provenanceの前進であり、実notice選択/coverageは引き続き別工程。再downloadやnative Go実行はRではしていない。151 native output側の229 source/patch取得完了もMoon registry/core coverageを自動代替しない。
+
+限定結論: registry origin説明は大きく閉じた。残すべきものは具体的なnotice coverageとnative C runtime対応の限定Unknownであり、新たなreproducible-build requirementではない。法的適合性の判定、finalsource/Actions/offline/composed全体Greenは出さない。本turnはここで終了する。

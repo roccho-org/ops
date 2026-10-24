@@ -1,0 +1,26 @@
+{
+  "name": "mizchi/crater",
+  "version": "0.4.4",
+  "description": "CSS Layout Engine that implements Box/Flex/Grid",
+  "deps": {},
+  "source": "src",
+  "readme": "README.mbt.md",
+  "repository": "https://github.com/mizchi/crater",
+  "license": "Apache-2.0",
+  "keywords": [
+    "css",
+    "browser"
+  ],
+  "exclude": [
+    "wpt",
+    "_build",
+    "node_modules",
+    "browser",
+    "js",
+    "wasm",
+    "tests",
+    "wpt-tests",
+    "scripts",
+    "docs"
+  ]
+}

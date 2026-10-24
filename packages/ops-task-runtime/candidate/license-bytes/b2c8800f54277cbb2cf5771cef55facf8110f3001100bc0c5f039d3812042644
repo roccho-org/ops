@@ -1,0 +1,30 @@
+// Copyright 2025 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// Create a WebSocket tunnel from an existing HTTP client.
+/// The HTTP client must be in a clean state (i.e. not in the middle of a request).
+/// A WebSocket handshake will be sent to `path` via the HTTP client.
+/// If the handshake succeeds, a WebSocket tunnel will be established and returned.
+///
+/// The ownership of the HTTP client will be transferred to this function.
+/// So caller must not use the client anymore, nor close it.
+///
+/// Extra headers during the WebSocket handshake can be specified via `extra_headers`.
+/// Some headers are reserved for the WebSocket protocol
+/// and must NOT be set in `extra_headers`:
+///
+/// - those headers set by `@http.Client`, see `@http.Client::new`
+/// - `Connection`, `Upgrade`
+/// - `Sec-WebSocket-Key`, `Sec-WebSocket,Version`

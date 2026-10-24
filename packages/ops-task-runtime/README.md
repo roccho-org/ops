@@ -118,15 +118,30 @@ technical coverage review is still required, and no legal verdict is implied.
 
 `license_contract.py` now refuses metadata-only completion, absent/changed blob
 bytes, incomplete component/source/patch coverage and unresolved embedded bytes.
-The current packet is deliberately MISSING: task's actual Go buildinfo binds124
-modules (the own-project notice is retained;123 third-party module notices and
-Go1.26.5 runtime notices remain missing). Actrun's pinned upstream release workflow
-clones bit-vcs/bit at moving HEAD and has no retained exact embedded resolution;
-the declared ten direct MoonBit dependencies and pinned compiler input are
-provenance leads, not an exact embedded graph. Its own Apache notice is retained.
-These125 pending items cannot be cleared by assigning generic/root notices or by
-editing status flags. Actual source/notice evidence and the corresponding reviewed
-integration are needed. Online/offline whole gates fail closed while this remains
-unresolved; the successful ce33 Actions artifact remains historical exact-ce33
-proof. `tests/license-bytes.py` verifies these negative cases without asserting
-license completeness. No final offline export is attempted while Missing exists.
+The packet now verifies all124 actual task Go modules against their binary h1
+anchors. Complete file-hash manifests bind each retained notice to that h1 file
+set. Official Go1.26.5 archive bytes supply runtime/stdlib notices; compiler-only
+src/cmd is excluded. This acquisition is complete, not an external blocker.
+
+For actrun, all26 selected registry modules, pinned registry commit
+39743040d5e9fc28e90fad0ea280a4d30040543c, overlay commit
+4ffc0aab45588a519342178cca9231be94c9bab0, core matching cd28f524e and actual NOTICE /
+LICENSE bytes are retained. R's data-specific old/new resolver readback supports
+normal publisher/registry origin; the moving clone is not proven linked and is
+not a remaining source-graph blocker. No historical build attestation or
+bit-identical rebuild is required. Publisher native C mirror source/Apache and
+musl attribution bytes are retained, while the actual compiler's exact runtime C
+revision stays an explicit limited Unknown; no source byte equivalence is claimed.
+
+The strict byte gate still reports six publisher license-text gaps: jq, tui, svg,
+font, brotli and moonbitlang/x. Literal source headers (including x's108 headers),
+root manifests/README assertions and exact archive identity are kept, but these
+are not silently promoted into missing full license texts. Versioned publisher
+source references are preferred; canonical LICENSE paths were absent at the fixed
+x/font version commits. Normal technical coverage sufficiency belongs to R,
+separate from legal adjudication. Metadata-only or generic root notices cannot
+close source membership, missing byte references or undeclared Unknowns.
+
+`tests/license-bytes.py` checks Go h1 membership, registry/core references and
+missing/tampered bytes. It proves refusal, not completeness. No final offline
+export is attempted while Missing exists.

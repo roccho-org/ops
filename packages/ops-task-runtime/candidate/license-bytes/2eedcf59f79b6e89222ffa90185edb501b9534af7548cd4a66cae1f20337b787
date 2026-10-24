@@ -1,0 +1,54 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// Regular expression AST for the automaton with unique IDs and smart constructors.
+///
+/// This module defines the internal representation of regular expressions used by
+/// the automaton. Unlike the user-facing AST in the `ast` module, these expressions
+/// are optimized for efficient derivative computation and state management.
+///
+/// # Key Features
+///
+/// ## Unique Expression IDs
+///
+/// Each expression has a unique `ExprId` assigned by the `Context`. This enables:
+/// - O(1) equality comparison (just compare IDs)
+/// - O(1) hashing (hash the ID)
+/// - Efficient use as hash map keys during derivative computation
+///
+/// Note: This is NOT full hash-consing. Structurally identical expressions created
+/// at different times will have different IDs. The ID only provides fast identity
+/// comparison, not structural sharing.
+///
+/// ## Smart Constructors
+///
+/// Constructor functions (e_seq, e_alt, etc.) perform automatic simplifications:
+/// - `e_seq(Empty, x)` → `Empty`
+/// - `e_seq(Eps, x)` → `x`
+/// - `e_alt([x])` → `x`
+/// - `e_alt([])` → `Empty`
+///
+/// These simplifications keep the expression tree minimal during derivative computation.
+///
+/// # Expression Types (ExprDef)
+///
+/// - `Chr(RecharSet)`: Matches a character from the set
+/// - `Alt(Array[Expr])`: Alternation - matches any of the alternatives
+/// - `Seq(Preference, Expr, Expr)`: Sequence - matches first then second
+/// - `Rep(QuantifierMode, Preference, Expr)`: Repetition (*, +, {n,m})
+/// - `Eps`: Epsilon - matches empty string
+/// - `Mark(Mark)`: Like Eps but adds the mark to MarkSlotMap (for capture group boundaries)
+/// - `Before(Category)`: Lookahead assertion (matches if next char is in category)
+/// - `After(Category)`: Lookbehind assertion (matches if prev char is in category)

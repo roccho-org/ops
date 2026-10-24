@@ -1,0 +1,25 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// A `Path` represents a binary string divided into multiple segments,
+/// which is used for traversing HAMT.
+/// 
+/// It consists of a 32-bit unsigned integer with a specific layout
+/// (when SEGMENT_LENGTH = 5):
+/// - The highest 2 bits are reserved as a head tag (0b11)
+/// - The remaining bits are divided into segments of 5 bits each
+///
+/// For example, `Path::of(x) = 0b11_10000_10101_00100_11111_01010`
+/// represents segments as [0b_10000, 0b_10101, 0b_00100, 0b_11111, 0b_01010]
