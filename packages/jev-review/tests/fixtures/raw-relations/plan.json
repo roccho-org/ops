@@ -10,7 +10,11 @@
   "context":[{"id":"authority","revision":"1","value":{"owner":"external-user","scope":"demo","purpose":"Public mechanical regression; not independent semantic gold."}}],
   "obligations":[
     {"id":"u-duplicate","check":"dup","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":1,"role":"assertion"},{"source":"demo","revision":"public-fixture-v1","occurrence":2,"role":"assertion"}]},
-    {"id":"u-outside","check":"dup","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":1,"role":"assertion"},{"source":"demo","revision":"public-fixture-v1","occurrence":14,"role":"assertion"}]}
+    {"id":"u-outside","check":"dup","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":1,"role":"assertion"},{"source":"demo","revision":"public-fixture-v1","occurrence":14,"role":"assertion"}]},
+    {"id":"u-triple","check":"joint","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":3,"role":"constraint"},{"source":"demo","revision":"public-fixture-v1","occurrence":4,"role":"constraint"},{"source":"demo","revision":"public-fixture-v1","occurrence":5,"role":"constraint"}]},
+    {"id":"u-four","check":"angles","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":6,"role":"angle"},{"source":"demo","revision":"public-fixture-v1","occurrence":7,"role":"angle"},{"source":"demo","revision":"public-fixture-v1","occurrence":8,"role":"angle"},{"source":"demo","revision":"public-fixture-v1","occurrence":9,"role":"angle"}]},
+    {"id":"u-alias","check":"alias","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":10,"role":"term"},{"source":"demo","revision":"public-fixture-v1","occurrence":11,"role":"term"}]},
+    {"id":"u-homonym","check":"alias","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":12,"role":"term"},{"source":"demo","revision":"public-fixture-v1","occurrence":13,"role":"term"}]}
   ],
   "candidates":[
     {"id":"k-duplicate","check":"dup","participants":[{"source":"demo","revision":"public-fixture-v1","occurrence":1,"role":"assertion"},{"source":"demo","revision":"public-fixture-v1","occurrence":2,"role":"assertion"}]},

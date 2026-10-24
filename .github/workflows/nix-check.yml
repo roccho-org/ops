@@ -92,9 +92,10 @@ jobs:
           node="${BASH_REMATCH[1]}" source="${BASH_REMATCH[2]}"
           diff -r "$source" packages/jev-review # provided source is exactly the checked package directory
           "$node" --test experiments/goal-evaluation-unix/prepare.test.mjs
-          assembly="${source%/jev-review}" sibling="$assembly/jev"
-          test "$(find "$assembly" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | paste -sd ' ')" = "jev jev-review"
+          assembly="${source%/jev-review}" sibling="$assembly/jev" diagnostic="$assembly/structured-diagnostic"
+          test "$(find "$assembly" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | paste -sd ' ')" = "jev jev-review structured-diagnostic"
           diff -r "$sibling" packages/jev # the shared provider is supplied, not an ambient import
+          diff -r "$diagnostic" packages/structured-diagnostic # shared duplicate-key check is supplied exactly
           "$node" "$source/tests/issue-executor.mjs" --source-contract "$GITHUB_WORKSPACE" > "$RUNNER_TEMP/jev-source-contract.json"
           jq -e '.status == "PASS" and .sourceContract == "PASS" and .realProviderCalls == 0 and .githubEffects == 0' "$RUNNER_TEMP/jev-source-contract.json"
           files_json() { (cd "$1" && find . -type f -print0 | xargs -0 sha256sum) | jq -Rn '[inputs | capture("^(?<h>[0-9a-f]{64})  [.]/(?<p>.+)$") | {(.p): .h}] | add'; }
@@ -109,15 +110,17 @@ jobs:
             <(jq -r 'if type == "array" then .[].path else keys[] end' "$RUNNER_TEMP/jev-path-info.json" | sort)
           files_json "$source" > "$RUNNER_TEMP/jev-files.json"
           files_json "$sibling" > "$RUNNER_TEMP/jev-sibling-files.json"
+          files_json "$diagnostic" > "$RUNNER_TEMP/jev-diagnostic-files.json"
           jq -n --arg repo "$GITHUB_REPOSITORY" --arg sha "$EXPECTED_SHA" --arg tree "$(git rev-parse 'HEAD^{tree}')" \
             --arg ref "$GITHUB_WORKFLOW_REF" --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
-            --arg root "$root" --arg node "$node" --arg source "$source" --arg assembly "$assembly" --arg sibling "$sibling" --argjson bytes "$bytes" --arg digest "$digest" \
-            --slurpfile info "$RUNNER_TEMP/jev-path-info.json" --slurpfile files "$RUNNER_TEMP/jev-files.json" --slurpfile sibling_files "$RUNNER_TEMP/jev-sibling-files.json" '{
+            --arg root "$root" --arg node "$node" --arg source "$source" --arg assembly "$assembly" --arg sibling "$sibling" --arg diagnostic "$diagnostic" --argjson bytes "$bytes" --arg digest "$digest" \
+            --slurpfile info "$RUNNER_TEMP/jev-path-info.json" --slurpfile files "$RUNNER_TEMP/jev-files.json" --slurpfile sibling_files "$RUNNER_TEMP/jev-sibling-files.json" --slurpfile diagnostic_files "$RUNNER_TEMP/jev-diagnostic-files.json" '{
               schema: "ops.jev-review.runtime-provenance/2",
               producer: { repository: $repo, workflow_ref: $ref, run_id: $run, run_attempt: $attempt },
               source: { repository: $repo, commit: $sha, tree: $tree },
               runtime: { root: $root, entry: "\($root)/bin/jev-review", node: $node, source: $source, files: $files[0],
-                assembly: $assembly, siblings: { jev: { path: $sibling, files: $sibling_files[0] } },
+                assembly: $assembly, siblings: { jev: { path: $sibling, files: $sibling_files[0] },
+                  "structured-diagnostic": { path: $diagnostic, files: $diagnostic_files[0] } },
                 export: { name: "jev-review-runtime.nix-export", format: "nix-store --export", bytes: $bytes, sha256: $digest },
                 closure: ($info[0] | (if type == "array" then . else to_entries | map(.value + { path: .key }) end)
                   | map({ path, narHash, narSize }) | sort_by(.path)) },
@@ -181,12 +184,15 @@ jobs:
             and ($root | test("^/nix/store/[0-9a-z]{32}-jev-review$"))
             and (.runtime.assembly | test("^/nix/store/[0-9a-z]{32}-jev-review-sources$"))
             and (.runtime.assembly as $a | .runtime.source == "\($a)/jev-review"
-              and (.runtime.siblings | keys) == ["jev"] and .runtime.siblings.jev.path == "\($a)/jev"
-              and (.runtime.siblings.jev.files | has("src/core.mjs")))
+              and (.runtime.siblings | keys) == ["jev", "structured-diagnostic"] and .runtime.siblings.jev.path == "\($a)/jev"
+              and (.runtime.siblings.jev.files | has("src/core.mjs"))
+              and .runtime.siblings["structured-diagnostic"].path == "\($a)/structured-diagnostic"
+              and (.runtime.siblings["structured-diagnostic"].files | has("lib/diagnostic.mjs")))
             and (.runtime.node | test("^/nix/store/[0-9a-z]{32}-nodejs-[^/ ]+/bin/node$"))
             and (.runtime.assembly as $s | any(.runtime.closure[]; .path == $root) and any(.runtime.closure[]; .path == $s))
             and (.runtime.files | has("semlint.mjs") and has("semlint-entry.mjs") and has("github-comment.mjs") and has("issue-executor.mjs")
-              and has("tests/run.mjs") and has("tests/github-comment.mjs") and has("tests/issue-executor.mjs") and (has("semlint-domain.mjs") | not))' "$p" >/dev/null
+              and has("tests/run.mjs") and has("tests/github-comment.mjs") and has("tests/issue-executor.mjs")
+              and has("raw-relations.mjs") and has("tests/raw-relations.mjs") and (has("semlint-domain.mjs") | not))' "$p" >/dev/null
           source="$(jq -r .runtime.source "$p")" node="$(jq -r .runtime.node "$p")"
           test ! -e "$ROOT" # only the import below can supply the runtime
           test ! -e "$source"
@@ -204,8 +210,9 @@ jobs:
           files_json() { (cd "$1" && find . -type f -print0 | xargs -0 sha256sum) | jq -Rn '[inputs | capture("^(?<h>[0-9a-f]{64})  [.]/(?<p>.+)$") | {(.p): .h}] | add'; }
           diff <(files_json "$source" | jq -S .) <(jq -S .runtime.files "$p")
           assembly="$(jq -r .runtime.assembly "$p")"
-          test "$(find "$assembly" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | paste -sd ' ')" = "jev jev-review"
+          test "$(find "$assembly" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | paste -sd ' ')" = "jev jev-review structured-diagnostic"
           diff <(files_json "$assembly/jev" | jq -S .) <(jq -S .runtime.siblings.jev.files "$p")
+          diff <(files_json "$assembly/structured-diagnostic" | jq -S .) <(jq -S '.runtime.siblings["structured-diagnostic"].files' "$p")
           printf '%s\n%s\n' "$node" "$source" > "$RUNNER_TEMP/jev-runtime"
       - name: Run provided unpaid tests from the imported bytes
         run: |

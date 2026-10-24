@@ -26,11 +26,12 @@ export function strictJson(text) {
   try {
     value = JSON.parse(text);
     assertNoDuplicateObjectKeys(text);
-    // JSON.parse admits overflowing numbers and escaped unpaired surrogates.
+    // Parsed numbers are finite binary64, not exact arbitrary decimals. The
+    // owner bytes remain the numeric lexical source; unsafe integers refuse.
     const valid = x => typeof x === 'number' ? Number.isFinite(x) && (!Number.isInteger(x) || Number.isSafeInteger(x))
       : typeof x === 'string' ? x.isWellFormed()
       : Array.isArray(x) ? x.every(valid) : object(x) ? Object.entries(x).every(([k, v]) => k.isWellFormed() && valid(v)) : true;
-    if (!valid(value)) fail('NON_LOSSLESS_JSON');
+    if (!valid(value)) fail('UNSUPPORTED_PARSED_JSON');
   } catch { fail('INVALID_OR_DUPLICATE_JSON'); }
   return value;
 }
@@ -66,6 +67,7 @@ function validatePlan(plan) {
     }
     if (!unique(groups.map(groupKey))) fail('DUPLICATE_GROUP');
   }
+  if (plan.candidates.some(k => !plan.obligations.some(u => groupKey(k) === groupKey(u)))) fail('CANDIDATE_OUTSIDE_OBLIGATIONS');
   if (plan.filter !== undefined && (!exact(plan.filter, [], ['source', 'occurrence'])
     || (plan.filter.source !== undefined && !string(plan.filter.source))
     || (plan.filter.occurrence !== undefined && (!Number.isSafeInteger(plan.filter.occurrence) || plan.filter.occurrence < 1)))) fail('INVALID_FILTER');
@@ -95,8 +97,9 @@ export function resolvePlan(plan, baseDir = '.') {
         if (!object(raw)) fail('RAW_NOT_OBJECT');
         if (Object.hasOwn(raw, 'id')) {
           if (!string(raw.id)) fail('INVALID_RECORD_ID');
-          if (records.has(raw.id) && records.get(raw.id) !== canonical(raw)) fail('RECORD_IDENTITY_CONFLICT');
-          records.set(raw.id, canonical(raw));
+          const recordBytes = bytes.subarray(start, end);
+          if (records.has(raw.id) && !records.get(raw.id).equals(recordBytes)) fail('RECORD_IDENTITY_CONFLICT');
+          records.set(raw.id, recordBytes);
         }
         rows.push({ sourceRef: { source: source.id, revision: source.revision, path: source.path,
           sha256: sourceHash, occurrence: line, recordId: raw.id ?? null,
@@ -165,7 +168,9 @@ export async function evaluateRelations(resolved, { provider = 'baseline', ask, 
         evidenceValidity: 'UNRESOLVED', usage: null, elapsedMs: 0 };
     } else if (provider === 'baseline') {
       attempted.push(candidate.id);
-      result = { execution: 'COMPLETED', ...baseline(check, participants), score: null, evidenceValidity: 'VALID', usage: null, elapsedMs: 0 };
+      const before = clock();
+      result = { execution: 'COMPLETED', ...baseline(check, participants), score: null, evidenceValidity: 'VALID', usage: null, elapsedMs: clock() - before };
+      if (!Number.isFinite(result.elapsedMs) || result.elapsedMs < 0) fail('INVALID_CLOCK');
     } else if (stopped || calls >= 24 || waitMs + 15000 > 600000 || tokenSum >= 100000) {
       result = { execution: 'NOT_RUN', assessment: 'UNKNOWN', basis: stopped ?? 'BUDGET_STOP', score: null, evidenceValidity: 'UNRESOLVED', usage: null, elapsedMs: 0 };
     } else {
@@ -177,7 +182,8 @@ export async function evaluateRelations(resolved, { provider = 'baseline', ask, 
         const reply = await evaluate(state, { themes: [check.id], items: [{ theme: check.id,
           subject: candidate.participants.map(p => canonical(p)), concern: `${check.meaning} Applicability: ${check.applicability}. Assess the entire participant group with its roles, scope, time and authority. Pairwise compatibility is not proof of whole-group compatibility.` }] }, ask);
         const score = reply.judgments[0].noul;
-        const usage = reply.usage;
+        const usage = Object.fromEntries(Object.entries(reply.usage).filter(([key]) => ['input_tokens', 'output_tokens', 'total_tokens'].includes(key)));
+        if (Object.values(usage).some(v => !Number.isSafeInteger(v) || v < 0)) fail('INVALID_USAGE');
         const tokens = Number.isSafeInteger(usage.total_tokens) ? usage.total_tokens
           : Number.isSafeInteger(usage.input_tokens) && Number.isSafeInteger(usage.output_tokens) ? usage.input_tokens + usage.output_tokens : null;
         if (tokens === null) { usageKnown = false; stopped = 'MISSING_USAGE'; } else tokenSum += tokens;
@@ -192,6 +198,7 @@ export async function evaluateRelations(resolved, { provider = 'baseline', ask, 
       waitMs += result.elapsedMs;
     }
     outcomes.push({ candidate: candidate.id, check: candidate.check, participants: candidate.participants,
+      measurement: result.score === null ? null : { type: 'noul', noul: result.score },
       dependency: binding, ...result, review: 'UNREVIEWED', adoption: 'NOT_ADOPTED' });
   }
   const omissions = plan.obligations.filter(u => !plan.candidates.some(k => groupKey(k) === groupKey(u)))
@@ -211,7 +218,21 @@ function validateD(d) {
     || canonical(d.checks) !== canonical(d.dependencies.checks) || canonical(d.U) !== canonical(d.dependencies.obligations)
     || canonical(d.K) !== canonical(d.dependencies.candidates) || !unique(d.T)
     || d.outcomes.length !== d.K.length || !unique(d.outcomes.map(o => o.candidate))) fail('INVALID_D');
+  if (!object(d.dependencies) || d.dependencies.policy !== POLICY || !Array.isArray(d.dependencies.sources)) fail('INVALID_DEPENDENCIES');
+  const { policy: _policy, ...boundPlan } = d.dependencies;
+  boundPlan.sources = d.dependencies.sources.map(s => {
+    if (!exact(s, ['id', 'revision', 'path', 'sha256', 'bytes']) || !/^[a-f0-9]{64}$/.test(s.sha256)
+      || !Number.isSafeInteger(s.bytes) || s.bytes < 0 || s.bytes > 1048576) fail('INVALID_DEPENDENCIES');
+    return { id: s.id, revision: s.revision, path: s.path };
+  });
+  validatePlan(boundPlan);
+  const accounting = d.accounting;
+  if (!exact(accounting, ['provider', 'model', 'calls', 'waitMs', 'reportedTokens', 'elapsedMs', 'dollars', 'preparationReviewEffort', 'tokenPolicy'])
+    || !['baseline', 'jev'].includes(accounting.provider)) fail('INVALID_ACCOUNTING');
+  const isJev = accounting.provider === 'jev';
+  let knownTokens = 0, usageKnown = true, measuredWait = 0;
   for (const o of d.outcomes) {
+    if (!exact(o, ['candidate', 'check', 'participants', 'measurement', 'dependency', 'execution', 'assessment', 'basis', 'score', 'evidenceValidity', 'usage', 'elapsedMs', 'review', 'adoption'])) fail('INVALID_OUTCOME');
     const k = d.K.find(k => k.id === o.candidate);
     if (!k || o.check !== k.check || canonical(o.participants) !== canonical(k.participants) || o.dependency !== d.binding
       || !['COMPLETED', 'FAILED', 'NOT_RUN'].includes(o.execution) || !['POSITIVE', 'NEGATIVE', 'UNKNOWN'].includes(o.assessment)
@@ -221,6 +242,42 @@ function validateD(d) {
     if (!string(o.basis) || !Number.isFinite(o.elapsedMs) || o.elapsedMs < 0
       || (o.score !== null && (!Number.isFinite(o.score) || o.score < 0 || o.score > 1))
       || (o.score !== null && o.assessment !== (o.score >= .65 ? 'POSITIVE' : o.score <= .35 ? 'NEGATIVE' : 'UNKNOWN'))) fail('INVALID_OUTCOME');
+    if (o.execution === 'COMPLETED') {
+      if (o.evidenceValidity !== 'VALID') fail('INVALID_OUTCOME');
+      if (isJev) {
+        if (!exact(o.measurement, ['type', 'noul']) || o.measurement.type !== 'noul'
+          || o.score === null || o.measurement.noul !== o.score
+          || o.basis !== 'MODEL_RELATION_CANDIDATE_NOT_VERIFIED_TRUTH') fail('INVALID_TYPED_MEASUREMENT');
+      } else {
+        if (o.measurement !== null || o.score !== null || o.usage !== null) fail('INVALID_BASELINE_EVIDENCE');
+        const check = d.checks.find(c => c.id === o.check);
+        const allowed = {
+          NO_DECLARED_BASELINE_RULE: ['UNKNOWN'], UNSUPPORTED_STRUCTURED_INPUT: ['UNKNOWN'],
+          DISTINCT_DECLARED_CONTEXT: ['NEGATIVE'], EXACT_TEXT_AND_DECLARED_CONTEXT: ['POSITIVE'],
+          FINITE_ALLOWED_SET_INTERSECTION: ['POSITIVE', 'NEGATIVE'], DISTINCT_DECLARED_CONCEPTS: ['NEGATIVE'],
+          DECLARED_CONCEPT_DISTINCT_ANGLES: ['POSITIVE'], DECLARED_SENSE_CONCEPT_ALIAS: ['POSITIVE'], DECLARED_HOMONYM: ['NEGATIVE'],
+        };
+        const kindBases = {
+          duplicate: ['DISTINCT_DECLARED_CONTEXT', 'EXACT_TEXT_AND_DECLARED_CONTEXT'],
+          inconsistent: ['FINITE_ALLOWED_SET_INTERSECTION'],
+          shared_concept_different_angle: ['DISTINCT_DECLARED_CONCEPTS', 'DECLARED_CONCEPT_DISTINCT_ANGLES'],
+          term_alias: ['DECLARED_SENSE_CONCEPT_ALIAS', 'DECLARED_HOMONYM'],
+        };
+        if (!Object.hasOwn(allowed, o.basis) || !allowed[o.basis].includes(o.assessment)
+          || !['NO_DECLARED_BASELINE_RULE', 'UNSUPPORTED_STRUCTURED_INPUT', ...kindBases[check.kind]].includes(o.basis)
+          || (check.baseline === undefined && o.basis !== 'NO_DECLARED_BASELINE_RULE')
+          || (check.baseline !== undefined && o.basis === 'NO_DECLARED_BASELINE_RULE')) fail('INVALID_BASELINE_EVIDENCE');
+      }
+    } else if (o.measurement !== null || o.score !== null || o.usage !== null
+      || o.evidenceValidity !== (o.execution === 'FAILED' ? 'INVALID' : 'UNRESOLVED')) fail('INVALID_UNRESOLVED_EVIDENCE');
+    if (o.usage !== null && (!exact(o.usage, [], ['input_tokens', 'output_tokens', 'total_tokens'])
+      || Object.values(o.usage).some(v => !Number.isSafeInteger(v) || v < 0))) fail('INVALID_USAGE');
+    if (isJev && o.execution !== 'NOT_RUN') {
+      measuredWait += o.elapsedMs;
+      const tokens = o.usage?.total_tokens ?? (o.usage?.input_tokens !== undefined && o.usage?.output_tokens !== undefined
+        ? o.usage.input_tokens + o.usage.output_tokens : null);
+      if (tokens === null) usageKnown = false; else knownTokens += tokens;
+    }
   }
   if (d.T.some(id => !d.K.some(k => k.id === id))) fail('INVALID_ATTEMPTS');
   const omissions = d.U.filter(u => !d.K.some(k => groupKey(k) === groupKey(u)))
@@ -232,6 +289,9 @@ function validateD(d) {
     || !Number.isFinite(d.accounting.waitMs) || d.accounting.waitMs < 0
     || (d.accounting.provider === 'baseline' && (d.accounting.model !== null || d.outcomes.some(o => o.score !== null)))
     || (d.accounting.provider === 'jev' && d.accounting.model !== JEV_MODEL)) fail('INVALID_ACCOUNTING');
+  if (accounting.reportedTokens !== (usageKnown ? knownTokens : null) || accounting.waitMs !== measuredWait
+    || !Number.isFinite(accounting.elapsedMs) || accounting.elapsedMs < 0 || accounting.dollars !== 'UNKNOWN'
+    || accounting.preparationReviewEffort !== 'UNKNOWN' || accounting.tokenPolicy !== 'OBSERVED_STOP_NOT_HARD_CAP') fail('INVALID_ACCOUNTING');
   if (canonical(d.positiveFindings) !== canonical(d.outcomes.filter(o => o.assessment === 'POSITIVE').map(o => o.candidate))) fail('INVALID_FINDINGS');
 }
 
@@ -248,7 +308,7 @@ export function projectRelations(resolved, d) {
     return { ...row, annotations: valid.filter(o => o.assessment === 'POSITIVE'), evaluation: {
       status: !resolved.plan.checks.length ? 'NOT_SELECTED' : !current ? 'STALE' : !candidates.length ? 'NOT_CANDIDATE'
         : valid.length === candidates.length && !omitted.length ? 'COMPLETED' : 'INCOMPLETE',
-      semanticAssessment: !valid.length || omitted.length || valid.some(o => o.assessment === 'UNKNOWN') ? 'UNKNOWN'
+      semanticAssessment: !valid.length || valid.length !== candidates.length || omitted.length || valid.some(o => o.assessment === 'UNKNOWN') ? 'UNKNOWN'
         : valid.some(o => o.assessment === 'POSITIVE') ? 'FINDING_CANDIDATE' : 'NEGATIVE_ON_SUPPLIED_CANDIDATES',
       evidenceCurrentness: current ? 'CURRENT' : 'STALE', review: 'UNREVIEWED', adoption: 'NOT_ADOPTED',
       outcomes: valid, diagnostics: matches.filter(o => !valid.includes(o)).map(o => ({ ...o, diagnostic: current ? 'INVALID_OR_UNRESOLVED' : 'STALE_DEPENDENCIES' })),

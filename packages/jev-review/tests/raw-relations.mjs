@@ -39,8 +39,9 @@ export async function runRawRelationsTests({ entryTests = true } = {}) {
   const run = async plan => evaluateRelations(resolvePlan(plan, tmp));
   const participants = (...occurrences) => occurrences.map(occurrence => ({ source: 'demo', revision: 'public-fixture-v1', occurrence, role: 'assertion' }));
   const single = (check, ...occurrences) => {
-    const plan = p(); plan.obligations = [];
-    plan.candidates = [{ id: 'only', check, participants: participants(...occurrences) }]; return plan;
+    const plan = p();
+    plan.candidates = [{ id: 'only', check, participants: participants(...occurrences) }];
+    plan.obligations = structuredClone(plan.candidates); return plan;
   };
   const writeRaw = raws => fs.writeFileSync(path.join(tmp, 'raw.jsonl'), raws.map(JSON.stringify).join('\n') + '\n');
   const originals = rows.map(row => structuredClone(row.raw));
@@ -91,12 +92,13 @@ export async function runRawRelationsTests({ entryTests = true } = {}) {
   const many = single('dup', 1, 2);
   many.candidates = Array.from({ length: 25 }, (_, i) => ({ id: 'candidate-' + i, check: 'dup',
     participants: participants(1, 2).map(p => ({ ...p, role: 'test-role-' + i })) }));
+  many.obligations = structuredClone(many.candidates);
   const bounded = await evaluateRelations(resolvePlan(many, tmp), { provider: 'jev', ask: fake(.7) });
   assert.equal(bounded.accounting.calls, 24);
   assert.equal(bounded.outcomes[24].execution, 'NOT_RUN');
   // Class 10: every source/context/check/rule/membership dependency is bound.
   for (const change of [plan => { plan.context[0].revision = '2'; }, plan => { plan.checks[0].meaning += ' Changed.'; },
-    plan => { plan.candidateRule.version = '2'; }, plan => { plan.candidates[1].participants.pop(); },
+    plan => { plan.candidateRule.version = '2'; }, plan => { plan.candidates[1].participants.pop(); plan.obligations.find(u => u.id === 'u-triple').participants.pop(); },
     plan => { plan.sources[0].revision = '2'; plan.obligations = []; plan.candidates = []; }]) {
     const plan = p(); change(plan);
     const stale = projectRelations(resolvePlan(plan, tmp), d);
@@ -116,14 +118,58 @@ export async function runRawRelationsTests({ entryTests = true } = {}) {
   assert.throws(() => resolvePlan(p(), tmp), /INVALID_UTF8/);
   writeRaw([{ id: 'same', content: 'one' }, { id: 'same', content: 'two' }]);
   assert.throws(() => resolvePlan(empty, tmp), /RECORD_IDENTITY_CONFLICT/);
-  fs.writeFileSync(path.join(tmp, 'raw.jsonl'), ' {"id":"same","content":"one"}\r\n\n{"id":"same","content":"one"}');
+  for (const other of [' {"id":"same", "content":"one"}\r', ' {"content":"one","id":"same"}\r', ' {"id":"same","content":"one"}']) {
+    fs.writeFileSync(path.join(tmp, 'raw.jsonl'), ' {"id":"same","content":"one"}\r\n' + other);
+    assert.throws(() => resolvePlan(empty, tmp), /RECORD_IDENTITY_CONFLICT/);
+  }
+  fs.writeFileSync(path.join(tmp, 'raw.jsonl'), ' {"id":"same","content":"one"}\r\n\n {"id":"same","content":"one"}\r');
   const occurrences = resolvePlan(empty, tmp);
   assert.deepEqual(occurrences.rows.map(row => row.sourceRef.occurrence), [1, 3]);
   assert.equal(occurrences.rows.length, 2);
   assert.equal(occurrences.rows[0].sourceRef.endByte, Buffer.byteLength(' {"id":"same","content":"one"}\r'));
+  fs.writeFileSync(path.join(tmp, 'raw.jsonl'), '{"n":0.100000000000000005}\n{"n":0.1}');
+  const rounded = resolvePlan(empty, tmp);
+  assert.equal(rounded.rows[0].raw.n, .1);
+  assert.equal(rounded.rows[0].raw.n, rounded.rows[1].raw.n);
+  const numericBytes = fs.readFileSync(path.join(tmp, 'raw.jsonl'));
+  assert.equal(numericBytes.subarray(rounded.rows[0].sourceRef.startByte, rounded.rows[0].sourceRef.endByte).toString(), '{"n":0.100000000000000005}');
+  assert.deepEqual(fs.readFileSync(path.join(tmp, 'raw.jsonl')), numericBytes);
   const invalidD = structuredClone(d); invalidD.outcomes[0].participants.pop();
   assert.throws(() => projectRelations(resolved, invalidD), /INVALID_D|INVALID_OUTCOME/);
   writeRaw(originals);
+  // R controls: K must be a subset of U by exact check, participant order/roles.
+  const outside = p(); outside.obligations = [];
+  assert.throws(() => resolvePlan(outside, tmp), /CANDIDATE_OUTSIDE_OBLIGATIONS/);
+  const wrongRole = p(); wrongRole.candidates[0].participants[0].role = 'another-role';
+  assert.throws(() => resolvePlan(wrongRole, tmp), /CANDIDATE_OUTSIDE_OBLIGATIONS/);
+  const typed = await evaluateRelations(resolved, { provider: 'jev', ask: fake(.8) });
+  assert.deepEqual(typed.outcomes[0].measurement, { type: 'noul', noul: .8 });
+  assert.equal(projectRelations(resolved, typed)[1].annotations.length, 1);
+  for (const alter of [o => { o.score = null; }, o => { o.score = null; o.measurement = null; }, o => { o.measurement = null; }, o => { delete o.measurement; },
+    o => { o.measurement.type = 'choice'; }, o => { o.measurement.noul = .2; },
+    o => { o.measurement.extra = true; }, o => { o.evidenceValidity = 'INVALID'; },
+    o => { o.usage = { total_tokens: -1 }; }]) {
+    const broken = structuredClone(typed); alter(broken.outcomes[0]);
+    assert.throws(() => projectRelations(resolved, broken), /INVALID_/);
+  }
+  // Same Raw: complete negative + FAILED/NOT_RUN cannot summarize as negative.
+  const partial = single('dup', 1, 2);
+  partial.candidates.push({ id: 'second', check: 'dup', participants: participants(1, 14) });
+  partial.obligations = structuredClone(partial.candidates);
+  const partialResolved = resolvePlan(partial, tmp);
+  for (const score of [.2, .8]) for (const mode of ['FAILED', 'NOT_RUN']) {
+    let calls = 0;
+    const mixed = await evaluateRelations(partialResolved, { provider: 'jev', ask: async (...args) => {
+      calls++;
+      if (calls === 2) throw Error('public-failure');
+      return fake(score, mode === 'NOT_RUN' ? {} : { total_tokens: 2 })(...args);
+    } });
+    assert.equal(mixed.outcomes[1].execution, mode);
+    const projection = projectRelations(partialResolved, mixed);
+    assert.equal(projection[0].evaluation.status, 'INCOMPLETE');
+    assert.equal(projection[0].evaluation.semanticAssessment, 'UNKNOWN');
+    assert.equal(projection[0].annotations.length, score === .8 ? 1 : 0);
+  }
   fs.writeFileSync(path.join(tmp, 'plan.json'), JSON.stringify(originalPlan));
   const entry = fileURLToPath(new URL('../bin/jev-review.mjs', import.meta.url));
   const installed = process.env.PATH?.split(path.delimiter).map(dir => path.join(dir, 'jev-review')).find(file => fs.existsSync(file));
@@ -141,11 +187,11 @@ export async function runRawRelationsTests({ entryTests = true } = {}) {
     assert.equal(projection.stdout.trim().split('\n').length, 14, JSON.stringify({ command, stdout: projection.stdout.slice(0, 250), stderr: projection.stderr }));
     assert.equal(call(['evaluate', path.join(tmp, 'plan.json'), dFile]).status, 1);
   }
-  console.log(JSON.stringify({ check: 'raw-relations', status: 'PASS', classes: 12,
-    realProviderCalls: 0, semanticQuality: 'NOT_PROVEN', entryTests, installedEntry: entryTests && Boolean(installed), publicScratch: tmp }));
+  return { check: 'raw-relations', status: 'PASS', classes: 12,
+    realProviderCalls: 0, semanticQuality: 'NOT_PROVEN', entryTests, installedEntry: entryTests && Boolean(installed), publicScratch: tmp };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   assert.ok(process.argv.length === 2 || (process.argv.length === 3 && process.argv[2] === '--core-only'));
-  await runRawRelationsTests({ entryTests: process.argv[2] !== '--core-only' });
+  console.log(JSON.stringify(await runRawRelationsTests({ entryTests: process.argv[2] !== '--core-only' })));
 }

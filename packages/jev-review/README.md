@@ -41,7 +41,7 @@ including fields named `annotations`, `evaluation`, and `sourceRef`.
 | check `context` | Array of unique ids resolving into the plan context |
 | `context` | Ordered `{id,revision,value}`; ids/revisions nonblank, arbitrary JSON value |
 | `obligations` (U) | Ordered `{id,check,participants}` defining required finite groups |
-| `candidates` (K) | Ordered `{id,check,participants}` explicitly supplied for attempted evaluation |
+| `candidates` (K) | Ordered `{id,check,participants}` explicitly supplied for attempted evaluation; K must be a subset of U by exact check and ordered participants/roles (group ids may differ) |
 | `participants` | Ordered 2..64 `{source,revision,occurrence,role}`; role nonblank; distinct occurrence identities |
 | `occurrence` | Physical 1-based line, including blank lines in line numbering |
 | `candidateRule` | `{id,version}` explicitly binding supplied discovery/membership policy |
@@ -51,11 +51,23 @@ including fields named `annotations`, `evaluation`, and `sourceRef`.
 Each top-level array is limited to 1000 members. Original source files together
 are bounded to 1 MiB. Invalid UTF-8, invalid JSON, duplicate keys (also escaped or
 nested), unpaired surrogates, nonfinite numbers and integers outside JS's safe
-range are rejected explicitly; lossy numeric parsing is not a success. Nonblank
-lines must be objects. Optional Raw `id` must be a nonblank string; repeated ids
-with different parsed content within one source/revision are identity conflicts.
-Identical records remain distinct occurrences, and equal content with different
-ids remains distinct. Sources may include multiple explicit revisions.
+range are rejected explicitly. The parsed numeric view is finite JavaScript
+binary64: decimals can round (for example `0.100000000000000005` parses as `0.1`),
+underflow and negative-zero lexical distinctions can disappear on serialization.
+This is not an arbitrary-decimal lossless codec. Tasks requiring exact decimal
+semantic input are unsupported by this parsed/model-facing view. Original source
+bytes, hashes and byte spans retain the exact numeric spelling for retrieval;
+binary64 equality does not establish original-byte or record-identity equality.
+Nonblank lines must be objects. This interface explicitly treats optional Raw
+`id` as a nonblank stable record identity within `(source,revision)`, not as a
+logical-subject id: repeated ids with different original record bytes are
+identity conflicts, even for formatting, key order or numeric spelling changes.
+Record bytes are the complete line excluding LF (including any CR and spaces).
+Sources whose `id` has a different meaning are outside this input contract; the
+consumer does not rewrite them or infer an alternate identity meaning. Without
+`id`, occurrence is the identity. Byte-identical repeated records remain distinct
+occurrences, and equal content with different ids remains distinct. Sources may
+include multiple explicit revisions.
 
 Blank lines, leading/trailing whitespace, CRLF and absence of a final newline
 remain in the external original bytes. Each projected `sourceRef` records source,
@@ -112,6 +124,13 @@ attempted candidate, including failed attempts. K entries stopped before attempt
 have NOT_RUN outcomes. Obligations outside K retain UNKNOWN with an omission
 cause. Calls, model, usage, elapsed time and unknown costs are separate from
 semantic assessment, evidence validity/currentness, review and adoption.
+Each completed Jev outcome requires `measurement:{type:"noul",noul:<number>}`
+and the same finite `[0,1]` number in `score`, the matching threshold assessment,
+VALID evidence and the model-candidate basis. Baseline, failed and not-run
+outcomes have null measurement and score. Failure/not-run assessments remain
+UNKNOWN with matching INVALID/UNRESOLVED evidence. Projection rejects malformed
+typed measurements, usage or inconsistent attempt accounting, rather than
+displaying a supplied positive label as a validated judgment.
 
 The binding covers all exact source hashes, order, checks, context revisions and
 values, U/K and participant roles/order, candidate-rule version, scope, asOf and
@@ -123,7 +142,10 @@ discovery or clean coverage beyond it is claimed.
 Projection emits `{sourceRef,raw,annotations,evaluation}` per parsed occurrence
 in original source/line order. Valid current positive outcomes are annotations;
 all current valid outcomes (including negative/UNKNOWN) remain in evaluation.
-Stale, invalid and unresolved outcomes remain separate diagnostics. Zero checks
+Stale, invalid and unresolved outcomes remain separate diagnostics. If any
+candidate on a Raw is failed/not-run/UNKNOWN, or an obligation is omitted, its
+semantic summary stays UNKNOWN; actual current positive candidates remain
+individually available in annotations. Zero checks
 means NOT_SELECTED. Candidate absence and obligations outside K cannot count as
 clean. NEGATIVE_ON_SUPPLIED_CANDIDATES is explicitly limited; review remains
 UNREVIEWED and adoption NOT_ADOPTED. A valid score does not supply a semantic
