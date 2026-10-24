@@ -1,2 +1,3 @@
-# Retain upstream notice/provenance bytes exactly, including original line ends.
-candidate/license-bytes/* -text -whitespace
+# Upstream byte artifacts: preserve line ends and disable text merge/diff rules.
+# Their content is reviewed through source/member/hash coverage and raw blobs.
+candidate/license-bytes/* -text -diff -merge -whitespace
