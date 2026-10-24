@@ -1,0 +1,58 @@
+name: ZCode anonymous campaign boundary (not receipt proof)
+
+on:
+  pull_request:
+    paths:
+      - 'verification/zcode-anonymous-campaign/**'
+      - '.github/workflows/zcode-anonymous-campaign.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zcode-anonymous-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  selftest:
+    name: Boundary classifier selftests (not live proof)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - run: node --test verification/zcode-anonymous-campaign/probe.test.mjs
+
+  receipt:
+    name: Anonymous campaign receipt remains UNPROVEN
+    needs: selftest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Observe without user credentials; fail the unproven assertion
+        env:
+          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          CI_RUN_ID: ${{ github.run_id }}
+          CI_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          clean_home="$(mktemp -d)"
+          trap 'rm -rf "$clean_home"' EXIT
+          env -i PATH="$PATH" HOME="$clean_home" \
+            SOURCE_COMMIT="$SOURCE_COMMIT" CI_RUN_ID="$CI_RUN_ID" CI_ATTEMPT="$CI_ATTEMPT" \
+            node verification/zcode-anonymous-campaign/probe.mjs "$RUNNER_TEMP/zcode-anonymous-evidence"
+      - name: Preserve non-success evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: zcode-anonymous-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/zcode-anonymous-evidence/
+          if-no-files-found: error
+          retention-days: 7
