@@ -104,18 +104,20 @@ export async function requests(args) {
   const commit = git(repo, ['rev-parse', 'HEAD']).toString().trim(), tree = git(repo, ['rev-parse', 'HEAD^{tree}']).toString().trim();
   fs.mkdirSync(out, {recursive: false});
   const prefix = 'packages/ops-task-runtime/';
-  const names = git(repo, ['ls-tree', '-r', '--name-only', commit, '--', prefix]).toString().trim().split('\n');
+  const archive = git(repo, ['archive', '--format=tar', commit, prefix]);
+  const source = path.join(out, 'retained-source');
+  fs.mkdirSync(source);
+  const extracted = spawnSync(runtime.tools.python.path, ['-c', "import io,tarfile,sys; t=tarfile.open(fileobj=io.BytesIO(sys.stdin.buffer.read())); t.extractall(sys.argv[1],filter='data')", source], {input: archive});
+  if (extracted.error || extracted.status !== 0) fail('source archive extraction failed');
+  fs.writeFileSync(path.join(out, 'source.tar'), archive);
+  const packageSource = path.join(source, prefix);
   const accepted = [], rejected = [];
   for (const r of req.requests) {
     if (accepted.length >= 2) { rejected.push({eventId: r.eventId, status: 'REJECTED_CAPACITY', queued: false}); continue; }
     const input = Buffer.from(r.inputBase64, 'base64'), runId = crypto.randomUUID(), attemptId = crypto.randomUUID(), dir = path.join(out, runId, attemptId);
     fs.mkdirSync(dir, {recursive: true});
     for (const d of ['snapshot', 'work', 'tmp', 'home']) fs.mkdirSync(path.join(dir, d));
-    for (const n of names) {
-      const p = path.join(dir, 'snapshot', n.slice(prefix.length));
-      fs.mkdirSync(path.dirname(p), {recursive: true});
-      fs.writeFileSync(p, git(repo, ['show', `${commit}:${n}`]), {mode: 0o444});
-    }
+    fs.cpSync(packageSource, path.join(dir, 'snapshot'), {recursive: true});
     fs.writeFileSync(path.join(dir, 'snapshot', 'input.bin'), input, {mode: 0o444});
     const oracle = inventory(path.join(dir, 'snapshot'));
     fs.cpSync(path.join(dir, 'snapshot'), path.join(dir, 'work'), {recursive: true});
