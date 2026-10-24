@@ -1,0 +1,28 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// Decodes UTF-8 encoded bytes into a String using pattern matching.
+/// This implementation demonstrates the use of:
+/// - Pattern matching over bytes
+/// - Byte literal range patterns
+///
+/// The function follows the UTF-8 encoding rules:
+/// - 1-byte sequence: 0xxxxxxx (ASCII, values 0-127)
+/// - 2-byte sequence: 110xxxxx 10xxxxxx (values 128-2047)
+/// - 3-byte sequence: 1110xxxx 10xxxxxx 10xxxxxx (values 2048-65535)
+/// - 4-byte sequence: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx (values 65536-1114111)
+///
+/// @param bytes UTF-8 encoded byte sequence
+/// @return Decoded string

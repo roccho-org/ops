@@ -29,3 +29,17 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 process.stdout.write('{"schema":"ops.taskRuntimeE2E/1","status":"PASS","positive":1,"negative":2}\n');
+
+// Existing static callers keep the static check. Full conformance is explicit.
+if (process.env.OPS_TASK_RUNTIME_CANDIDATE_MANIFEST) {
+  const runtime = JSON.parse(fs.readFileSync(process.env.OPS_TASK_RUNTIME_CANDIDATE_MANIFEST, 'utf8'));
+  for (const name of ['restore-contract.py', 'license-bytes.py']) {
+    const result = spawnSync(runtime.tools.python.path, [path.join(packageRoot, 'tests', name)], {encoding: 'utf8', env: {...process.env, PYTHONDONTWRITEBYTECODE: '1'}});
+    if (result.status !== 0) throw new Error(result.stderr || result.stdout);
+    process.stdout.write(result.stdout);
+  }
+  const {candidateE2E} = await import('../candidate/e2e.mjs');
+  const evidence = process.env.OPS_TASK_RUNTIME_CANDIDATE_EVIDENCE;
+  if (!evidence) throw new Error('candidate evidence path required');
+  await candidateE2E(process.env.OPS_TASK_RUNTIME_CANDIDATE_MANIFEST, path.resolve(packageRoot, '../..'), evidence);
+}

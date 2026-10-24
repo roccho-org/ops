@@ -1,0 +1,46 @@
+// Copyright 2025 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// UUID that complies with RFC 4122.
+///
+/// UUID objects are immutable, hashable and usable as mapping keys.
+/// The Display of UUIDs is like `12345678-1234-1234-1234-123456789abc`;
+/// UUIDs can be constructed using such strings, or 16-bytes strings with big-
+/// endian byte order.
+///
+/// # Usage
+///
+/// ```moonbit check
+/// test {
+///   let u1 = @uuid.from_hex("ddf99703-742f-7505-4c54-df36a9c243fe")
+///   let u2 = @uuid.from_bytes(
+///     Bytes::from_array([
+///       221, 249, 151, 3, 116, 47, 117, 5, 76, 84, 223, 54, 169, 194, 67, 254,
+///     ]),
+///   )
+///   assert_eq(u1, u2)
+/// }
+/// ```
+///
+/// Construct an RFC-4122-compliant v4 UUID:
+///
+/// ```moonbit check
+/// test {
+///   let _u = @uuid.from_hex("9558cfadb48547c70f9adf1f75cdef29").as_version(
+///     @uuid.V4,
+///   )
+/// }
+/// ```
+///

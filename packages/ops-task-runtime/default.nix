@@ -7,7 +7,7 @@ builtins.fromJSON ''
   "primaryTarget": "packages/ops-task-runtime",
   "requiredOutputs": "packages.<system>.ops-task-runtime",
   "requiredChecks": "checks.<system>.ops-task-runtime",
-  "responsibility": "Bind exact actrun, gosh and go-task identities, produce one verified Linux amd64 Carrier closure, and prove the Taskfile entry through direct and actrun adapters.",
+  "responsibility": "Preserve the legacy adrs#317 profile and carry an explicit opt-in local-event candidate proof under the current user task; candidate receipts do not admit a successor or change the default. Bind exact runtime identities and verify isolated Taskfile execution.",
   "forbiddenResponsibility": "Does not own task DAG meaning, add a scheduler, compile JSONL to YAML, or claim GitHub provider effects from local execution."
 }
 ''

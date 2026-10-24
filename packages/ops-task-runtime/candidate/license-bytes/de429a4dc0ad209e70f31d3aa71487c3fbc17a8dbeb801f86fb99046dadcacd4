@@ -1,0 +1,33 @@
+// Copyright 2025 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// Execute a system process with command `cmd`,
+/// and provide `args` as extra arguments to `cmd.
+/// Both `cmd` and elements of `args` are encoded using UTF8.
+/// The process ID of the spawned process will be returned.
+///
+/// The spawned process would be *orphan*, meaning that it will
+/// keep running until completion or explicitly terminated,
+/// even if the task that calls `spawn_orphan` is cancelled.
+/// Users are recommended to use `@process.run` whenever possible,
+/// because `@process.run` has better structured concurrency integration.
+/// `spawn_orphan` should only be used when:
+///
+/// - the process is intended to be orphan,
+///   i.e. keep running after parent process terminates
+/// - operations on the process ID is needed, such as sending signals to the child process
+///
+/// The meaning of the arguments is the same as `@process.run`,
+/// see `@process.run` for more details.

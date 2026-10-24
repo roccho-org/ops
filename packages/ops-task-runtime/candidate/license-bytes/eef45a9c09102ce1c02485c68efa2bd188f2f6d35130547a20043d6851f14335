@@ -1,0 +1,43 @@
+// Copyright 2026 International Digital Economy Academy
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+///|
+/// Calculates the hyperbolic sine of a number.
+///
+/// Parameters:
+///
+/// * `x` : The number for which to calculate the hyperbolic sine.
+///
+/// Returns the hyperbolic sine of `x`.
+///
+/// Special cases:
+///
+/// * Returns `infinity` if `x` is `infinity`
+/// * Returns `NaN` if `x` is `NaN`
+///
+/// Example:
+///
+/// ```mbt check
+/// test {
+///   inspect(@math.sinh(0.0), content="0")
+///   inspect(@math.sinh(-0.0), content="0")
+///   inspect(@math.sinh(1.0), content="1.1752011936438014")
+///   inspect(@math.sinh(2.0), content="3.626860407847019")
+///   inspect(@math.sinh(1000.0), content="Infinity")
+///   inspect(@math.sinh(-1000.0), content="-Infinity")
+///   inspect(@math.sinh(@double.not_a_number), content="NaN")
+///   inspect(@math.sinh(@double.infinity), content="Infinity")
+///   inspect(@math.sinh(@double.neg_infinity), content="-Infinity")
+/// }
+/// ```

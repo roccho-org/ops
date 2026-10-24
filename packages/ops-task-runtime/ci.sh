@@ -3,9 +3,9 @@ set -euo pipefail
 
 package_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 repo_root="${OPS_TASK_RUNTIME_REPO_ROOT:-$(git rev-parse --show-toplevel)}"
-out="${OPS_TASK_RUNTIME_OUT:-${RUNNER_TEMP:-/tmp}/ops-task-runtime}"
-scratch="$repo_root/.ops-task-runtime-build"
-scratch_rel=".ops-task-runtime-build"
+out="${OPS_TASK_RUNTIME_OUT:-$(mktemp -d "${RUNNER_TEMP:-/tmp}/ops-task-runtime.XXXXXXXX")}"
+scratch="$(mktemp -d "$repo_root/.ops-task-runtime-build.XXXXXXXX")"
+scratch_rel="${scratch##*/}"
 work="$scratch/work"
 assets="$out/assets"
 pack="$work/pack"
@@ -13,8 +13,15 @@ source_manifest="$package_dir/source.json"
 
 cleanup() { rm -rf "$scratch"; }
 trap cleanup EXIT
-rm -rf "$out" "$scratch"
-mkdir -p "$work" "$assets"
+if test -e "$out/assets"; then
+  echo "refusing existing output assets: $out/assets" >&2
+  exit 1
+fi
+mkdir -p "$work" "$out"
+if ! mkdir "$assets"; then
+  echo "output assets already owned by another build: $assets" >&2
+  exit 1
+fi
 
 node "$package_dir/tests/e2e.mjs"
 

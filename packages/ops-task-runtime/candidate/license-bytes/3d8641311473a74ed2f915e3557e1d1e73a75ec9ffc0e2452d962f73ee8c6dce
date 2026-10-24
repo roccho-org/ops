@@ -1,0 +1,17 @@
+{
+  "name": "mizchi/syntree",
+  "version": "0.2.3",
+  "deps": {},
+  "source": "src",
+  "preferred-target": "js",
+  "readme": "README.mbt.md",
+  "repository": "https://github.com/mizchi/syntree.mbt",
+  "license": "MIT",
+  "keywords": [
+    "syntax",
+    "tree",
+    "highlight",
+    "moonbit"
+  ],
+  "description": "Incremental syntax tree and highlighting toolkit for MoonBit"
+}

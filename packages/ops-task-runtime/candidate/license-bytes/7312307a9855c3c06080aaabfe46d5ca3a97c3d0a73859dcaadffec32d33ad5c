@@ -1,0 +1,42 @@
+{
+  "name": "mizchi/bit",
+  "version": "0.29.0",
+  "deps": {
+    "moonbitlang/async": "0.16.6",
+    "mizchi/zlib": "0.3.0",
+    "moonbitlang/x": "0.4.40",
+    "mizchi/tempfile": "0.1.0",
+    "mizchi/llm": "0.2.2",
+    "mizchi/bitflow": "0.3.1",
+    "mizchi/x": "0.1.4",
+    "bobzhang/toml": "0.1.7"
+  },
+  "readme": "README.mbt.md",
+  "repository": "https://github.com/mizchi/bit-vcs",
+  "license": "Apache-2.0",
+  "keywords": [
+    "git",
+    "packfile",
+    "protocol"
+  ],
+  "description": "Pure MoonBit Git implementation",
+  "source": "src",
+  "exclude": [
+    "component",
+    "tools",
+    "e2e",
+    "fixtures",
+    "docs",
+    "t",
+    "octorus",
+    "third_party/git",
+    "file.txt",
+    "install.sh",
+    "justfile",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "COMPAT_RESULTS.md",
+    "TODO.md"
+  ],
+  "preferred-target": "native"
+}
