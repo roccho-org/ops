@@ -25,7 +25,7 @@ for filename, key, binary in [('task_linux_amd64.tar.gz', 'goTask', 'task'), ('a
         t.extractall(a.assets, filter='data')
     assert sha(a.assets / binary) == source[key]['binarySha256'], binary
 paths = dict(node=a.node, python=a.python, shell=a.shell, loader=a.loader, git=a.git, coreutils=a.coreutils, task=str(a.assets.resolve() / 'task'), actrun=str(a.assets.resolve() / 'actrun'))
-value = {'schema': 'ops.taskCandidateRuntime/1', 'target': 'linux-amd64', 'tools': {k: {'path': str(Path(v).absolute()), 'sha256': sha(v)} for k, v in paths.items()}}
+value = {'schema': 'ops.taskCandidateRuntime/1', 'target': 'linux-amd64', 'tools': {k: {'path': str(Path(v).resolve()), 'sha256': sha(v)} for k, v in paths.items()}}
 a.out.write_text(json.dumps(value, indent=2) + '\n')
 subprocess.run([paths['task'], '--version'], check=True)
 subprocess.run([paths['loader'], paths['actrun'], '--help'], check=True, stdout=subprocess.DEVNULL)

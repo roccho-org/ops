@@ -10,8 +10,10 @@ import {stopTree} from './process.mjs';
 export async function candidateE2E(manifest, root, evidence) {
   fs.mkdirSync(evidence, {recursive: false});
   const cli = path.join(root, 'packages/ops-task-runtime/bin/ops-task-runtime.mjs');
+  let invocation = 0;
   const invoke = (args, expected = 0) => {
     const r = spawnSync(process.execPath, [cli, 'candidate', ...args], {encoding: 'utf8', timeout: 45000});
+    write(path.join(evidence, `cli-${++invocation}.json`), {args, status: r.status, signal: r.signal, stdout: r.stdout, stderr: r.stderr, error: r.error?.message});
     assert.equal(r.status, expected, r.stderr || r.stdout); return r.stdout;
   };
   const summaries = {};
