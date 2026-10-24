@@ -31,7 +31,7 @@ export function inventory(root) {
 export function binding(file) {
   const x = read(file);
   if (x.schema !== 'ops.taskCandidateRuntime/1' || x.target !== 'linux-amd64') fail('runtime schema/target');
-  for (const k of ['node', 'python', 'task', 'actrun', 'shell', 'loader']) {
+  for (const k of ['node', 'python', 'task', 'actrun', 'shell', 'loader', 'git']) {
     const t = x.tools[k];
     if (!t || !path.isAbsolute(t.path) || sha(fs.readFileSync(t.path)) !== t.sha256) fail(`runtime identity: ${k}`);
   }
@@ -47,10 +47,10 @@ export function inputIdentity(a) {
 }
 export async function execute(a, runtime) {
   const work = path.join(a.dir, 'work');
-  const env = {LANG: declaredEnv.LANG, PYTHONDONTWRITEBYTECODE: '1', PYTHONNOUSERSITE: '1', BASH_ENV: '', ENV: '', PATH: [path.dirname(runtime.tools.task.path), path.dirname(runtime.tools.shell.path)].join(':'), HOME: path.join(a.dir, 'home'), TMPDIR: path.join(a.dir, 'tmp'), OPS_CANDIDATE_NODE: runtime.tools.node.path, OPS_CANDIDATE_PYTHON: runtime.tools.python.path, OPS_CANDIDATE_TASK: runtime.tools.task.path, OPS_CANDIDATE_X: a.x, OPS_CANDIDATE_MODE: a.mode};
+  const env = {LANG: declaredEnv.LANG, PYTHONDONTWRITEBYTECODE: '1', PYTHONNOUSERSITE: '1', BASH_ENV: '', ENV: '', PATH: [path.dirname(runtime.tools.task.path), path.dirname(runtime.tools.shell.path), path.dirname(runtime.tools.git.path)].join(':'), HOME: path.join(a.dir, 'home'), TMPDIR: path.join(a.dir, 'tmp'), OPS_CANDIDATE_NODE: runtime.tools.node.path, OPS_CANDIDATE_PYTHON: runtime.tools.python.path, OPS_CANDIDATE_TASK: runtime.tools.task.path, OPS_CANDIDATE_X: a.x, OPS_CANDIDATE_MODE: a.mode};
   const argv = ['--taskfile', path.join(work, 'Taskfile.yml'), '--dir', work, `candidate-${a.mode}`];
   const executable = a.route === 'direct' ? runtime.tools.task.path : runtime.tools.loader.path;
-  const actualArgv = a.route === 'direct' ? argv : [runtime.tools.actrun.path, 'workflow', 'run', path.join(work, 'candidate', 'workflow.yml'), '--workspace-mode', 'local', '--no-nix', '--run-root', path.join(a.dir, 'actrun'), '--artifact-root', path.join(a.dir, 'artifacts'), '--cache-root', path.join(a.dir, 'cache'), '--github-action-cache-root', path.join(a.dir, 'action-cache'), '--registry-root', path.join(a.dir, 'registry')];
+  const actualArgv = a.route === 'direct' ? argv : [runtime.tools.actrun.path, 'workflow', 'run', path.join(work, 'candidate', 'workflow.yml'), '--workspace-mode', 'local', '--workspace', work, '--no-nix', '--run-root', path.join(a.dir, 'actrun'), '--artifact-root', path.join(a.dir, 'artifacts'), '--cache-root', path.join(a.dir, 'cache'), '--github-action-cache-root', path.join(a.dir, 'action-cache'), '--registry-root', path.join(a.dir, 'registry')];
   const stdout = fs.openSync(path.join(a.dir, 'stdout'), 'wx'), stderr = fs.openSync(path.join(a.dir, 'stderr'), 'wx');
   const child = spawn(executable, actualArgv, {cwd: work, env, stdio: ['ignore', stdout, stderr], detached: true});
   fs.closeSync(stdout); fs.closeSync(stderr);
