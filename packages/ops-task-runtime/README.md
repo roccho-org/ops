@@ -66,11 +66,33 @@ runtime/runner binding, independently compared with external expectations.
 `node tests/ghalet-proof.mjs --selftest` tests only the finite evidence validator.
 `node tests/ghalet-proof.mjs EXPECTED OBSERVED` checks two externally bound success
 intervals on one host boot. Its scoped PASS is NOT the composed live gate.
-Expected jobs contain event/source/ref/runtime/run/job/attempt/runner strings;
-observations add exitCode, the static receipt and timing. Provider job numeric ID,
-runner host identity, workflow ref and actual runner/runtime bytes must also be
-independently retained and verified for the composed gate; local artifacts alone
-cannot authenticate these claims.
+The version2 expectation/observation schemas distinguish artifact `jobKey`
+(`GITHUB_JOB`, always `ghalet-native-check`) from provider numeric `jobId`.
+Expected jobs contain event/source/tree/ref/workflowRef/runtime/run/jobKey/jobId/
+attempt/runner/runnerId/root/nodePath strings. Observations retain those artifact
+fields and add exitCode, the entire fixed static receipt, timing, per-job
+hostBootId, pre/post clean checkout records, providerRuns and providerJob.
+Provider numeric IDs must come from independent GETs, never overwrite the
+artifact's logical key, and join run/attempt/jobKey/runner. Independent dispatches
+require distinct run IDs. Source/tree/ref/workflowRef and the actual check Node
+bytes must match external expectations, not just mutually consistent artifacts.
+
+The timing producer itself records PID/startTicks, Node path/SHA256, root and host boot ID
+before starting the validation interval. Post-check binding uses that producer's
+identity, not the hash of a later Node process. Pre/post checkout checks require
+the exact clean source/tree. This is observation within the trusted same-UID
+boundary, not protection from adversarial mutation.
+
+Candidate runs have provider-visible `run-name: ghalet:<event_id>` before artifact
+creation. Legacy runs retain execution routing; their display metadata uses
+commit message/PR title or the workflow-name fallback. The pure `identifyRun`
+helper joins marker/source/branch/workflow-path/attempt, returning HOLD for zero
+or multiple candidates, never retry permission. Retain raw provider GETs:
+providerRuns uses id/run_attempt/display_title/head_sha/head_branch/path/status/
+conclusion; providerJob uses id/run_id/run_attempt/name/runner_name/runner_id/
+status/conclusion. This fixed job has no matrix/name override.
+Actual runner/runtime bytes must still be independently verified for the composed
+gate; local artifacts alone cannot authenticate their claims.
 
 Required live closure remains: actual CLI dispatch and collection; two real check
 intervals overlapping (no observation means Missing); third demand after two

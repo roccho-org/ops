@@ -1,4 +1,5 @@
 name: Portable task runtime Carrier
+run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.ghalet_candidate && format('ghalet:{0}', inputs.event_id) || github.event.head_commit.message || github.event.pull_request.title || 'Portable task runtime Carrier' }}
 
 on:
   pull_request:
@@ -340,18 +341,33 @@ jobs:
           mkdir "$proof/home" "$proof/tmp"
           export HOME="$proof/home" TMPDIR="$proof/tmp"
           export OPS_TASK_VALIDATION_TIMING="$proof/timing.json"
+          node --input-type=module - "$proof/pre.json" <<'JS'
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          const checkout={source:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),
+            clean:git('status','--porcelain','--untracked-files=all')===''};
+          if(!checkout.clean || checkout.source!==process.env.GITHUB_SHA) throw Error('unclean or wrong source');
+          fs.writeFileSync(process.argv[2],JSON.stringify(checkout)+'\n',{flag:'wx'});
+          JS
           node packages/ops-task-runtime/bin/ops-task-runtime.mjs selftest --root packages/ops-task-runtime > "$proof/receipt.json"
           node --input-type=module - "$proof" <<'JS'
           import fs from 'node:fs';
-          import crypto from 'node:crypto';
           import {execFileSync} from 'node:child_process';
           const p=process.argv[2], e=process.env;
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+          const pre=JSON.parse(fs.readFileSync(p+'/pre.json','utf8'));
+          const post={source:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),
+            clean:git('status','--porcelain','--untracked-files=all')===''};
+          if(!post.clean || JSON.stringify(pre)!==JSON.stringify(post)) throw Error('checkout changed');
+          const timing=JSON.parse(fs.readFileSync(p+'/timing.json','utf8'));
           fs.writeFileSync(p+'/binding.json',JSON.stringify({
-            event:e.REQUEST_EVENT,source:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+            event:e.REQUEST_EVENT,source:post.source,tree:post.tree,pre,post,
             ref:e.GITHUB_REF,workflowRef:e.GITHUB_WORKFLOW_REF,
-            run:e.GITHUB_RUN_ID,job:e.GITHUB_JOB,attempt:e.GITHUB_RUN_ATTEMPT,
-            runner:e.RUNNER_NAME,hostBootId:fs.readFileSync('/proc/sys/kernel/random/boot_id','utf8').trim(),
-            runtime:crypto.createHash('sha256').update(fs.readFileSync(process.execPath)).digest('hex')
+            run:e.GITHUB_RUN_ID,jobKey:e.GITHUB_JOB,attempt:e.GITHUB_RUN_ATTEMPT,
+            runner:e.RUNNER_NAME,hostBootId:timing.producer.hostBootId,
+            runtime:timing.producer.nodeSha256,root:timing.producer.root,
+            nodePath:timing.producer.nodePath
           })+'\n',{flag:'wx'});
           JS
       - uses: actions/upload-artifact@v4
