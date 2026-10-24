@@ -171,6 +171,20 @@ export async function runRawRelationsTests({ entryTests = true } = {}) {
     assert.equal(projection[0].annotations.length, score === .8 ? 1 : 0);
   }
   fs.writeFileSync(path.join(tmp, 'plan.json'), JSON.stringify(originalPlan));
+  // Test-only native preload replaces fetch before the real installed entry
+  // imports its provider. There is no product test selector or network fallback.
+  const preload = path.join(tmp, 'fetch-stub.mjs');
+  fs.writeFileSync(preload, `import fs from 'node:fs';
+globalThis.fetch = async (url, init) => {
+  const body = JSON.parse(init.body);
+  fs.appendFileSync(process.env.OPS676_TEST_FETCH_LOG, JSON.stringify({url, method:init.method, redirect:init.redirect, model:body.model})+'\\n');
+  if (url !== 'https://api.typesafe.ai/v1/systemone' || init.method !== 'POST' || init.redirect !== 'error'
+    || init.headers.authorization !== 'Bearer OPS676_PUBLIC_SYNTHETIC_KEY') throw Error('UNEXPECTED_TEST_BINDING');
+  if (process.env.OPS676_TEST_FETCH_MODE === 'fail') throw Error('PUBLIC_SYNTHETIC_FAILURE');
+  return {ok:true, json:async()=>({model:body.model,
+    answers:Object.fromEntries(Object.keys(body.questions).map(id=>[id,{type:'noul',noul:.8}])),usage:{input_tokens:1,output_tokens:1}})};
+};
+`);
   const entry = fileURLToPath(new URL('../bin/jev-review.mjs', import.meta.url));
   const installed = process.env.PATH?.split(path.delimiter).map(dir => path.join(dir, 'jev-review')).find(file => fs.existsSync(file));
   for (const command of entryTests ? [[process.execPath, entry], ...(installed ? [[installed]] : [])] : []) {
@@ -186,6 +200,54 @@ export async function runRawRelationsTests({ entryTests = true } = {}) {
     assert.equal(projection.status, 0, projection.stderr);
     assert.equal(projection.stdout.trim().split('\n').length, 14, JSON.stringify({ command, stdout: projection.stdout.slice(0, 250), stderr: projection.stderr }));
     assert.equal(call(['evaluate', path.join(tmp, 'plan.json'), dFile]).status, 1);
+    const mockCall = (name, flags, { key = 'OPS676_PUBLIC_SYNTHETIC_KEY', mode = 'ok', operation = 'evaluate', output } = {}) => {
+      const logFile = path.join(tmp, path.basename(dFile) + '-' + name + '-calls.jsonl');
+      const outputFile = output ?? path.join(tmp, path.basename(dFile) + '-' + name + '.json');
+      const child = spawnSync(command[0], command.slice(1).concat('raw-relations', operation,
+        path.join(tmp, 'plan.json'), outputFile, flags), {
+        cwd: tmp, env: { PATH: process.env.PATH, LANG: 'C.UTF-8', NODE_OPTIONS: '--import=' + preload,
+          JEV_API_KEY: key, JEV_API_URL: 'https://unused.invalid', OPS676_TEST_FETCH_LOG: logFile, OPS676_TEST_FETCH_MODE: mode },
+        encoding: 'utf8', timeout: 20000,
+      });
+      assert.equal(child.error, undefined, 'native process spawn must be available');
+      assert.equal((child.stdout + child.stderr).includes('OPS676_PUBLIC_SYNTHETIC_KEY'), false);
+      const calls = fs.existsSync(logFile) ? fs.readFileSync(logFile, 'utf8').trim().split('\n').map(JSON.parse) : [];
+      return { child, calls, outputFile };
+    };
+    const liveSelection = mockCall('selected', ['--provider', 'jev']);
+    assert.equal(liveSelection.child.status, 0, liveSelection.child.stderr);
+    assert.equal(liveSelection.calls.length, 5);
+    const liveD = strictJson(fs.readFileSync(liveSelection.outputFile, 'utf8'));
+    assert.equal(liveD.accounting.provider, 'jev'); assert.equal(liveD.accounting.model, JEV_MODEL);
+    assert.equal(liveD.accounting.calls, 5);
+    assert.ok(liveD.outcomes.every(o => o.measurement.type === 'noul' && o.measurement.noul === .8));
+    assert.equal(fs.readFileSync(liveSelection.outputFile, 'utf8').includes('OPS676_PUBLIC_SYNTHETIC_KEY'), false);
+    assert.equal(projectRelations(resolved, liveD)[1].annotations.length, 1);
+    for (const [name, flags] of [['implicit-baseline', []], ['explicit-baseline', ['--provider', 'baseline']]]) {
+      const baselineSelection = mockCall(name, flags);
+      assert.equal(baselineSelection.child.status, 0, baselineSelection.child.stderr);
+      assert.equal(baselineSelection.calls.length, 0);
+      assert.equal(strictJson(fs.readFileSync(baselineSelection.outputFile, 'utf8')).accounting.provider, 'baseline');
+    }
+    for (const [name, flags, options] of [
+      ['missing-key', ['--provider', 'jev'], { key: '' }], ['blank-key', ['--provider', 'jev'], { key: ' ' }],
+      ['invalid-provider', ['--provider', 'other'], {}], ['unknown-flag', ['--key', 'not-a-key'], {}],
+      ['missing-value', ['--provider'], {}], ['repeated-provider', ['--provider', 'jev', '--provider', 'jev'], {}],
+      ['project-provider', ['--provider', 'jev'], { operation: 'project' }],
+    ]) {
+      const refused = mockCall(name, flags, options);
+      assert.equal(refused.child.status, 1);
+      assert.equal(refused.child.stdout, ''); assert.equal(refused.calls.length, 0);
+      assert.equal(fs.existsSync(refused.outputFile), false);
+    }
+    const collision = mockCall('existing-D', ['--provider', 'jev'], { output: liveSelection.outputFile });
+    assert.equal(collision.child.status, 1); assert.equal(collision.calls.length, 0);
+    const failure = mockCall('failed', ['--provider', 'jev'], { mode: 'fail' });
+    assert.equal(failure.child.status, 0, failure.child.stderr);
+    assert.equal(failure.calls.length, 1);
+    const failureD = strictJson(fs.readFileSync(failure.outputFile, 'utf8'));
+    assert.equal(failureD.accounting.calls, 1);
+    assert.deepEqual(failureD.outcomes.map(o => o.execution), ['FAILED', 'NOT_RUN', 'NOT_RUN', 'NOT_RUN', 'NOT_RUN']);
   }
   return { check: 'raw-relations', status: 'PASS', classes: 12,
     realProviderCalls: 0, semanticQuality: 'NOT_PROVEN', entryTests, installedEntry: entryTests && Boolean(installed), publicScratch: tmp };

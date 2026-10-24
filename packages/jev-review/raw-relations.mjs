@@ -320,14 +320,27 @@ export function projectRelations(resolved, d) {
 }
 
 export async function rawRelationsMain(args) {
-  const [operation, planFile, dFile, extra] = args;
-  if (!['evaluate', 'project'].includes(operation) || !planFile || !dFile || extra) fail('RAW_RELATIONS_USAGE');
+  const [operation, planFile, dFile, ...flags] = args;
+  let provider = 'baseline';
+  if (!['evaluate', 'project'].includes(operation) || !planFile || !dFile
+    || (flags.length && (operation !== 'evaluate' || flags.length !== 2 || flags[0] !== '--provider'
+      || !['baseline', 'jev'].includes(flags[1])))) fail('RAW_RELATIONS_USAGE');
+  if (flags.length) provider = flags[1];
+  // Only explicit selection reads the existing owner-injected slot. Bind once;
+  // no key path/argv/stdin, endpoint override, acquisition or retry is admitted.
+  let ask;
+  if (provider === 'jev') {
+    const key = process.env.JEV_API_KEY;
+    if (typeof key !== 'string' || !key.trim()) fail('JEV_API_KEY_REQUIRED');
+    ask = existingJevPort(key);
+  }
+  if (operation === 'evaluate' && fs.existsSync(dFile)) fail('D_ALREADY_EXISTS');
   const plan = strictJson(fs.readFileSync(planFile, 'utf8'));
   const resolved = resolvePlan(plan, path.dirname(path.resolve(planFile)));
   if (operation === 'evaluate') {
     // CLI defaults to a real deterministic baseline. Live selection is explicit
     // via the existing owner-injected provider binding, never inferred from a key.
-    const d = await evaluateRelations(resolved);
+    const d = await evaluateRelations(resolved, { provider, ask });
     const bytes = JSON.stringify(d) + '\n';
     fs.writeFileSync(dFile, bytes, { flag: 'wx', mode: 0o600 });
     if (fs.readFileSync(dFile, 'utf8') !== bytes) fail('D_READBACK_MISMATCH');

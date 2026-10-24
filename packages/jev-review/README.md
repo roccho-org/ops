@@ -17,8 +17,23 @@ nix build .#checks.x86_64-linux.jev-review
 nix build .#checks.x86_64-linux.jev-comment-functional .#checks.x86_64-linux.jev-issue-executor
 ```
 
-`evaluate` uses the deterministic limited baseline, creates D absent-only (0600),
-and reads it back. `project` performs an offline deterministic join to stdout.
+`evaluate` defaults to the deterministic limited baseline (`--provider baseline`
+may be explicit), creates D absent-only (0600), and reads it back. A live run must
+explicitly select `--provider jev` after the two file arguments. The existing
+owner-approved launcher must inject `JEV_API_KEY` into that command's child
+environment; the package does not provision or discover that launcher or key.
+
+```sh
+# Run only inside the existing owner-bound credential supply and finite-run budget.
+result/bin/jev-review raw-relations evaluate PLAN.json /tmp/unique-live-D.json --provider jev
+```
+
+The key is never an argument, stdin input or result field. Missing/blank key,
+invalid/repeated flags and an existing output D are rejected before any call.
+Key presence alone never enables Jev. This path ignores ambient `JEV_API_URL`
+and `JEV_TIMEOUT_MS`: the existing fixed provider and 15-second deadline apply.
+`project` performs an offline deterministic join to stdout and accepts no provider
+flag or credential requirement.
 For a query set the optional plan `filter` to `{"source":"demo","occurrence":4}`;
 either field may be omitted. Filtering does not alter the evaluation binding.
 There is no separate query/export/reconstruction command. Relative source paths
@@ -95,11 +110,13 @@ These are declarations in the input, not independently verified facts. Baseline
 results are candidates under that rule, not proof of general semantic relations.
 Neither unrelated shared words nor fixture ids choose an answer.
 
+The installed CLI binds `existingJevPort` once from the owner-injected slot.
 The exported `evaluateRelations(resolvePlan(plan, planDirectory), {provider:'jev',
 ask:existingJevPort(ownerSuppliedKey)})` uses the existing Review/Core transport,
 fixed Jev model and typed Noul; no new provider/authentication is introduced.
 The owner supplies the opaque key into that bounded process after actual route
-and finite-run approval. The CLI never selects live execution from key presence.
+and finite-run approval. There is no credential path, decryption, new auth or
+endpoint-selection interface in this consumer.
 The complete participant group, roles, check, all context and candidate-rule
 version are sent together; no pairwise reduction, clipping, translation or
 summarization occurs. Existing model input budgets can refuse the attempt.
@@ -111,7 +128,12 @@ an unknown/failed attempt prevents the next call. Reported total tokens (or inpu
 plus output) at 100k stops subsequent calls; this is an observation threshold,
 not a hard cap or a byte-to-token guarantee. The job owner must retain prior-run
 attempt evidence and subtract reservations before starting any corrective run;
-restarting this pure API is not a budget refill. Remaining calls require an
+restarting the API or CLI is not a budget refill. The 24-attempt bound is per
+invocation; it is not a persistent cross-process job counter. The external
+finite-run caller must account for all prior attempts and may not launch a plan
+whose maximum remaining POST attempts exceed the job's remaining allowance.
+Supply both orderings as candidates in one finite plan where appropriate, and
+retain its D before any further invocation. Remaining calls require an
 explicit within-budget plan. Dollars and preparation/review effort stay UNKNOWN
 unless separately measured. Noul >= .65 is POSITIVE, <= .35 NEGATIVE, else UNKNOWN.
 The original typed score is retained; it is not truth probability or permission.
