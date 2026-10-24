@@ -17,7 +17,11 @@ if test -e "$out/assets"; then
   echo "refusing existing output assets: $out/assets" >&2
   exit 1
 fi
-mkdir -p "$work" "$assets"
+mkdir -p "$work" "$out"
+if ! mkdir "$assets"; then
+  echo "output assets already owned by another build: $assets" >&2
+  exit 1
+fi
 
 node "$package_dir/tests/e2e.mjs"
 

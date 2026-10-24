@@ -8,11 +8,11 @@ profile. `candidate requests` is an explicit opt-in proof under the current
 or completion of #463 / #675. No global gosh retirement is included.
 
 The candidate CLI accepts an `ops.taskCandidateRequests/1` JSON request batch
-with `eventId`, canonical `inputBase64`, `mode` (`success` / `failure`) and
+with `eventId`, canonical `inputBase64`, `mode` (`success` / `failure` / `cancel`) and
 `route` (`direct` / `actrun`). It requires `--repo`, `--request-file`,
 `--runtime-manifest`, and a new `--evidence-dir`. The runtime manifest schema is
 `ops.taskCandidateRuntime/1`, with exact absolute `path` and `sha256` for
-`tools.node`, `python`, `task`, `actrun`, and `shell`. Run it using the bound Node:
+`tools.node`, `python`, `task`, `actrun`, `shell`, `loader`, `git` and `coreutils`, plus the native Nix closure path/NAR identities. Official actrun bytes are executed through the bound glibc loader without patching the binary. The generated manifest explicitly records candidate-only status. Run it using the bound Node:
 
 ```text
 node bin/ops-task-runtime.mjs candidate requests --repo REPO \
@@ -34,9 +34,37 @@ and dependent suppression. Exclude route, location, event/run/attempt IDs, PID,
 raw timestamps and adapter-specific nonzero numeric exit codes. Every route must
 still independently prove its actual exit and complete run-bound artifacts.
 
-Current implementation is an initial review slice. Mandatory proofs still missing:
-real CLI success/third refusal/readback, direct/actrun/actual Actions same-input
-parity, cancellation and descendant recovery, stale/partial destructive tests,
-full licensed runtime Carrier and fresh native offline import with original
-store/daemon/cache/network unavailable, and independent R whole-gate readback.
-No ACTIVE or proof-complete claim is made. Static validator tests pass separately.
+Full local conformance uses the actual OS CLI and exact runtime:
+
+```text
+OPS_TASK_RUNTIME_CANDIDATE_MANIFEST=RUNTIME \
+OPS_TASK_RUNTIME_CANDIDATE_EVIDENCE=NEW_EVIDENCE_DIR node tests/e2e.mjs
+```
+
+It compares both declared input byte strings for direct/actrun success, expected
+failure and cancellation, checks third refusal and disjoint attempts, rejects
+stale/partial/missing results and invalid runtime/dirty source, and kills an
+actual caller to exercise live HOLD, stopped-incomplete retry with the same x,
+and completed-result collection without replay. `candidate recover --attempt DIR`
+only reads state; `--retry-runtime RUNTIME` explicitly permits a new attempt
+only after the prior process tree is proven stopped. These are finite proof
+operations, with no persistent automatic retry owner.
+
+`tests/offline-restore.py` queries/exports the whole native closure, uses existing
+portable-pack and Carrier owners, and calls `candidate/restore-check.py` to
+import/run inside a new user/mount/net/PID namespace and chroot. The original
+store and daemon are absent. The retained Nix bootstrap is the prepared-target
+native authority; candidate Node/Python must be absent before import. No host
+root permission, service or global install changes are involved.
+
+The existing release workflow has an explicit `workflow_dispatch` candidate
+job accepting an immutable payload URL/hash and exact source commit. The same
+restore-check runs on the actual Actions runner; upload and provider permissions
+are outside semantic parity. An unexecuted job is not Actions proof.
+
+Evidence remains outside source, keyed by exact commit/input/closure and attempt.
+Source changes invalidate affected proof. Mandatory final gates still include
+actual Actions, full fresh restore/readback, dependency-license audit and
+independent R whole-gate Green. No proof-complete or final ACTIVE admission is
+claimed merely by implementing these checks. Legacy static validation remains
+independent and unchanged in meaning.
