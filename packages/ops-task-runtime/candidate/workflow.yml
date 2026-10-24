@@ -1,0 +1,9 @@
+name: Explicit candidate task check
+on: push
+permissions: {}
+jobs:
+  pure-check:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Execute the sole Taskfile DAG
+        run: '"$OPS_CANDIDATE_TASK" --taskfile "$PWD/Taskfile.yml" --dir "$PWD" "candidate-$OPS_CANDIDATE_MODE"'

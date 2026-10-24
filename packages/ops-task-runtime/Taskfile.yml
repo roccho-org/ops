@@ -44,3 +44,25 @@ tasks:
     deps: [fail-root]
     cmds:
       - /usr/bin/python3 probe.py forbidden out/failure/unexpected.txt
+
+  # Explicit opt-in proof profile; legacy ci above remains unchanged.
+  candidate-selftest:
+    cmds:
+      - '"{{.OPS_CANDIDATE_NODE}}" bin/ops-task-runtime.mjs selftest'
+  candidate-a:
+    cmds:
+      - '"{{.OPS_CANDIDATE_PYTHON}}" candidate/probe.py run a'
+  candidate-b:
+    cmds:
+      - '"{{.OPS_CANDIDATE_PYTHON}}" candidate/probe.py run b'
+  candidate-success:
+    deps: [candidate-selftest, candidate-a, candidate-b]
+    cmds:
+      - '"{{.OPS_CANDIDATE_PYTHON}}" candidate/probe.py join'
+  candidate-root-failure:
+    cmds:
+      - '"{{.OPS_CANDIDATE_PYTHON}}" candidate/probe.py fail'
+  candidate-failure:
+    deps: [candidate-root-failure]
+    cmds:
+      - '"{{.OPS_CANDIDATE_PYTHON}}" candidate/probe.py forbidden'

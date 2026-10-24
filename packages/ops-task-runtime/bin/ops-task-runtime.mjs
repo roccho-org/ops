@@ -82,7 +82,11 @@ function main() {
   process.stdout.write(`${JSON.stringify(validate(root), null, 2)}\n`);
 }
 
-try { main(); } catch (error) {
+try {
+  if (process.argv[2] === 'candidate' && process.argv[3] === 'requests') {
+    await (await import('../candidate/requests.mjs')).requests(process.argv.slice(4));
+  } else main();
+} catch (error) {
   process.stderr.write(`ops-task-runtime: ${error.message}\n`);
   process.exit(1);
 }
