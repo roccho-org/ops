@@ -109,8 +109,9 @@ export async function requests(args) {
   fs.mkdirSync(source);
   const archivePath = path.join(out, 'source.tar');
   fs.writeFileSync(archivePath, archive);
-  const extracted = spawnSync(runtime.tools.python.path, ['-c', "import tarfile,sys; t=tarfile.open(sys.argv[1]); t.extractall(sys.argv[2],filter='data')", archivePath, source], {timeout: 10000});
-  if (extracted.error || extracted.status !== 0) fail('source archive extraction failed');
+  const extraction = spawn(runtime.tools.python.path, ['-c', "import tarfile,sys; t=tarfile.open(sys.argv[1]); t.extractall(sys.argv[2],filter='data')", archivePath, source], {stdio: 'ignore', signal: AbortSignal.timeout(10000)});
+  const extractionExit = await new Promise((resolve, reject) => { extraction.once('error', reject); extraction.once('close', resolve); });
+  if (extractionExit !== 0) fail('source archive extraction failed');
   const packageSource = path.join(source, prefix);
   const accepted = [], rejected = [];
   for (const r of req.requests) {

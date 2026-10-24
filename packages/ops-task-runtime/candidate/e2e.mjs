@@ -11,11 +11,12 @@ export async function candidateE2E(manifest, root, evidence) {
   fs.mkdirSync(evidence, {recursive: false});
   const cli = path.join(root, 'packages/ops-task-runtime/bin/ops-task-runtime.mjs');
   let invocation = 0;
-  const invoke = (args, expected = 0) => {
+  const invoke = async (args, expected = 0) => {
     const serial = ++invocation;
     const stdoutPath = path.join(evidence, `cli-${serial}.stdout`), stderrPath = path.join(evidence, `cli-${serial}.stderr`);
     const stdout = fs.openSync(stdoutPath, 'wx'), stderr = fs.openSync(stderrPath, 'wx');
-    const r = spawnSync(process.execPath, [cli, 'candidate', ...args], {stdio: ['ignore', stdout, stderr], timeout: 45000});
+    const child = spawn(process.execPath, [cli, 'candidate', ...args], {stdio: ['ignore', stdout, stderr], signal: AbortSignal.timeout(45000)});
+    const r = await new Promise((resolve, reject) => {child.once('error', reject); child.once('close', (status, signal) => resolve({status, signal}));});
     fs.closeSync(stdout); fs.closeSync(stderr);
     r.stdout = fs.readFileSync(stdoutPath, 'utf8'); r.stderr = fs.readFileSync(stderrPath, 'utf8');
     write(path.join(evidence, `cli-${serial}.json`), {args, status: r.status, signal: r.signal, stdout: r.stdout, stderr: r.stderr, error: r.error?.message});
@@ -26,7 +27,7 @@ export async function candidateE2E(manifest, root, evidence) {
   for (const route of ['direct', 'actrun']) for (const mode of ['success', 'failure', 'cancel']) {
     const req = path.join(evidence, `${route}-${mode}.request.json`), out = path.join(evidence, `${route}-${mode}`);
     write(req, {schema: 'ops.taskCandidateRequests/1', requests: ['QQ==', 'Qg==', 'Qw=='].map((inputBase64, i) => ({eventId: `${route}-${mode}-${i}`, inputBase64, route, mode}))});
-    invoke(['requests', '--repo', root, '--request-file', req, '--runtime-manifest', manifest, '--evidence-dir', out]);
+    await invoke(['requests', '--repo', root, '--request-file', req, '--runtime-manifest', manifest, '--evidence-dir', out]);
     const result = readback(out);
     assert.equal(result.rejected.length, 1);
     assert.equal(result.normalized.length, 2);
@@ -45,7 +46,7 @@ export async function candidateE2E(manifest, root, evidence) {
   fs.renameSync(resultPath, resultPath + '.missing');
   assert.throws(() => readback(path.join(evidence, 'direct-success')));
   fs.renameSync(resultPath + '.missing', resultPath);
-  const collected = JSON.parse(invoke(['recover', '--attempt', run.dir]));
+  const collected = JSON.parse(await invoke(['recover', '--attempt', run.dir]));
   assert.equal(collected.status, 'COLLECTED_NO_REPLAY');
   assert.equal(fs.readFileSync(resultPath).toString(), original.toString());
   const recoveryReq = path.join(evidence, 'recovery.request.json'), recoveryOut = path.join(evidence, 'recovery');
@@ -63,11 +64,11 @@ export async function candidateE2E(manifest, root, evidence) {
   }
   if (!a) { child.kill('SIGKILL'); await exited; throw Error('recovery fixture did not start'); }
   child.kill('SIGKILL'); await exited;
-  const hold = JSON.parse(invoke(['recover', '--attempt', a.dir])); assert.equal(hold.status, 'HOLD');
+  const hold = JSON.parse(await invoke(['recover', '--attempt', a.dir])); assert.equal(hold.status, 'HOLD');
   const processState = read(path.join(a.dir, 'process.json'));
   await stopTree(processState.root, processState.descendants);
-  const stopped = JSON.parse(invoke(['recover', '--attempt', a.dir])); assert.equal(stopped.status, 'STOPPED_INCOMPLETE');
-  const retry = JSON.parse(invoke(['recover', '--attempt', a.dir, '--retry-runtime', manifest]));
+  const stopped = JSON.parse(await invoke(['recover', '--attempt', a.dir])); assert.equal(stopped.status, 'STOPPED_INCOMPLETE');
+  const retry = JSON.parse(await invoke(['recover', '--attempt', a.dir, '--retry-runtime', manifest]));
   assert.equal(retry.status, 'RETRIED_STOPPED_INCOMPLETE'); assert.equal(retry.result.x, a.x); assert.notEqual(retry.attempt, a.dir);
   const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
   write(path.join(evidence, 'e2e.json'), packet);
