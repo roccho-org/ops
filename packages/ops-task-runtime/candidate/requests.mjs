@@ -31,7 +31,7 @@ export function inventory(root) {
 export function binding(file) {
   const x = read(file);
   if (x.schema !== 'ops.taskCandidateRuntime/1' || x.target !== 'linux-amd64') fail('runtime schema/target');
-  for (const k of ['node', 'python', 'task', 'actrun', 'shell', 'loader', 'git']) {
+  for (const k of ['node', 'python', 'task', 'actrun', 'shell', 'loader', 'git', 'coreutils']) {
     const t = x.tools[k];
     if (!t || !path.isAbsolute(t.path) || sha(fs.readFileSync(t.path)) !== t.sha256) fail(`runtime identity: ${k}`);
   }
@@ -41,13 +41,13 @@ export function binding(file) {
   if (x.tools.task.sha256 !== source.goTask.binarySha256 || x.tools.actrun.sha256 !== source.actrun.binarySha256) fail('upstream binary binding');
   return x;
 }
-export const declaredEnv = {LANG: 'C.UTF-8', PYTHONDONTWRITEBYTECODE: '1', PYTHONNOUSERSITE: '1', HOME: '<attempt>/home', TMPDIR: '<attempt>/tmp', PATH: '<bound task+shell bins>', BASH_ENV: '', ENV: ''};
+export const declaredEnv = {LANG: 'C.UTF-8', PYTHONDONTWRITEBYTECODE: '1', PYTHONNOUSERSITE: '1', HOME: '<attempt>/home', TMPDIR: '<attempt>/tmp', PATH: '<bound task+shell+git+coreutils bins>', BASH_ENV: '', ENV: ''};
 export function inputIdentity(a) {
   return sha(JSON.stringify({commit: a.commit, tree: a.tree, oracle: a.oracle, runtimeIdentity: a.runtimeIdentity, mode: a.mode, target: a.target, declaredEnv: a.declaredEnv}));
 }
 export async function execute(a, runtime) {
   const work = path.join(a.dir, 'work');
-  const env = {LANG: declaredEnv.LANG, PYTHONDONTWRITEBYTECODE: '1', PYTHONNOUSERSITE: '1', BASH_ENV: '', ENV: '', PATH: [path.dirname(runtime.tools.task.path), path.dirname(runtime.tools.shell.path), path.dirname(runtime.tools.git.path)].join(':'), HOME: path.join(a.dir, 'home'), TMPDIR: path.join(a.dir, 'tmp'), OPS_CANDIDATE_NODE: runtime.tools.node.path, OPS_CANDIDATE_PYTHON: runtime.tools.python.path, OPS_CANDIDATE_TASK: runtime.tools.task.path, OPS_CANDIDATE_X: a.x, OPS_CANDIDATE_MODE: a.mode};
+  const env = {LANG: declaredEnv.LANG, PYTHONDONTWRITEBYTECODE: '1', PYTHONNOUSERSITE: '1', BASH_ENV: '', ENV: '', PATH: [path.dirname(runtime.tools.task.path), path.dirname(runtime.tools.shell.path), path.dirname(runtime.tools.git.path), path.dirname(runtime.tools.coreutils.path)].join(':'), HOME: path.join(a.dir, 'home'), TMPDIR: path.join(a.dir, 'tmp'), OPS_CANDIDATE_NODE: runtime.tools.node.path, OPS_CANDIDATE_PYTHON: runtime.tools.python.path, OPS_CANDIDATE_TASK: runtime.tools.task.path, OPS_CANDIDATE_X: a.x, OPS_CANDIDATE_MODE: a.mode};
   const argv = ['--taskfile', path.join(work, 'Taskfile.yml'), '--dir', work, `candidate-${a.mode}`];
   const executable = a.route === 'direct' ? runtime.tools.task.path : runtime.tools.loader.path;
   const actualArgv = a.route === 'direct' ? argv : [runtime.tools.actrun.path, 'workflow', 'run', path.join(work, 'candidate', 'workflow.yml'), '--workspace-mode', 'local', '--workspace', work, '--no-nix', '--run-root', path.join(a.dir, 'actrun'), '--artifact-root', path.join(a.dir, 'artifacts'), '--cache-root', path.join(a.dir, 'cache'), '--github-action-cache-root', path.join(a.dir, 'action-cache'), '--registry-root', path.join(a.dir, 'registry')];
