@@ -15,6 +15,7 @@ p.add_argument('--repo', type=Path, required=True)
 p.add_argument('--e2e', type=Path, required=True)
 p.add_argument('--assets', type=Path, required=True)
 p.add_argument('--out', type=Path, required=True)
+p.add_argument('--reuse-closure-pack', type=Path, help='explicit verified retained bytes; target is still fresh and offline')
 p.add_argument('--nix-store', default='/run/current-system/sw/bin/nix-store')
 a = p.parse_args()
 a.repo = a.repo.resolve()
@@ -38,8 +39,18 @@ roots = sorted({'/' + '/'.join(Path(t['path']).resolve().parts[1:4]) for t in ru
 paths = subprocess.check_output([*ro, '--query', '--requisites', *roots], text=True).splitlines()
 emit(a.out / 'closure-paths.json', paths)
 export = a.out / 'runtime.export'
-with export.open('wb') as f:
-    run([*ro, '--export', *paths], stdout=f)
+if a.reuse_closure_pack:
+    old = a.reuse_closure_pack.resolve()
+    old_manifest = read(old / 'MANIFEST.json')
+    retained_files = {r['path']: r for r in old_manifest['files']}
+    for rel in ['closure/runtime.export', 'closure/paths.json', 'closure/identities.json', 'runtime.json', 'bootstrap/target-nix.tar.gz', 'bootstrap/identity.json']:
+        assert digest(old / rel) == retained_files[rel]['sha256'], 'retained byte mismatch: ' + rel
+    assert read(old / 'runtime.json')['closureSha256'] == runtime['closureSha256']
+    assert sorted([{'path': p, 'narHash': h} for p, h in read(old / 'closure/identities.json').items()], key=lambda r:r['path']) == runtime['closure']
+    shutil.copyfile(old / 'closure/runtime.export', export)
+else:
+    with export.open('wb') as f:
+        run([*ro, '--export', *paths], stdout=f)
 hashes = subprocess.check_output([*ro, '--query', '--hash', *paths], text=True).splitlines()
 assert len(hashes) == len(paths)
 emit(a.out / 'closure-identities.json', dict(zip(paths, hashes)))
@@ -49,13 +60,20 @@ native_nix = Path(a.nix_store).resolve().parent / 'nix-store'
 nix_root = '/' + '/'.join(native_nix.parts[1:4])
 bootstrap_paths = subprocess.check_output([*ro, '--query', '--requisites', nix_root], text=True).splitlines()
 emit(a.out / 'bootstrap-identity.json', {'nixStore': str(native_nix), 'paths': bootstrap_paths, 'authority': 'prepared target native Nix bootstrap; not preinstalled candidate runtime'})
-with tarfile.open(a.out / 'target-nix.tar.gz', 'w:gz', compresslevel=1) as t:
-    for src in bootstrap_paths:
-        t.add(src, arcname='nix/store/' + Path(src).name)
+if a.reuse_closure_pack:
+    assert read(a.reuse_closure_pack / 'bootstrap/identity.json')['nixStore'] == str(native_nix)
+    shutil.copyfile(a.reuse_closure_pack / 'bootstrap/target-nix.tar.gz', a.out / 'target-nix.tar.gz')
+else:
+    with tarfile.open(a.out / 'target-nix.tar.gz', 'w:gz', compresslevel=1) as t:
+        for src in bootstrap_paths:
+            t.add(src, arcname='nix/store/' + Path(src).name)
+emit(a.out / 'closure-retention.json', {'retainedPack': str(a.reuse_closure_pack) if a.reuse_closure_pack else None, 'exportSha256': digest(export), 'closureSha256': runtime['closureSha256'], 'freshTargetRequired': True})
 spec = {'tools': [{'name': k, 'source': t['path']} for k, t in runtime['tools'].items()]}
 first = spec['tools'][0]
 first['files'] = [{'source': str(export), 'path': 'closure/runtime.export'}, {'source': str(a.out / 'closure-paths.json'), 'path': 'closure/paths.json'}, {'source': str(a.out / 'closure-identities.json'), 'path': 'closure/identities.json'}, {'source': str(a.runtime.resolve()), 'path': 'runtime.json'}, {'source': str(a.out / 'target-nix.tar.gz'), 'path': 'bootstrap/target-nix.tar.gz'}, {'source': str(a.out / 'bootstrap-identity.json'), 'path': 'bootstrap/identity.json'}]
-license_paths = [a.assets / 'actrun.LICENSE.txt', a.assets / 'node.LICENSE.txt', a.assets / 'LICENSE', Path(runtime['tools']['python']['path']).resolve().parent.parent / 'lib/python3.13/LICENSE.txt']
+license_paths = [a.assets / 'Node.LICENSE.txt', a.assets / 'actrun.LICENSE.txt', a.assets / 'LICENSE', Path(runtime['tools']['python']['path']).resolve().parent.parent / 'lib/python3.13/LICENSE.txt']
+for row, license_path in zip(runtime.get('licenses', []), license_paths):
+    assert digest(license_path) == row['sha256'], 'declared root license byte mismatch'
 for i, license_path in enumerate(license_paths):
     assert license_path.is_file(), license_path
     first['files'].append({'source': str(license_path.resolve()), 'path': f'licenses/{i}-{license_path.name}'})

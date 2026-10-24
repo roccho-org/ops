@@ -19,20 +19,16 @@ on:
       - "verification/raw-artifact-carry/**"
   workflow_dispatch:
     inputs:
-      candidate_payload_url:
-        description: 'Explicit opt-in immutable candidate proof payload URL'
-        type: string
-        required: false
-      candidate_payload_sha256:
-        description: 'Exact retained candidate payload SHA-256'
+      candidate_check:
+        description: 'Explicit opt-in online conformance from the existing official Nix cache'
+        type: boolean
+        default: false
+      candidate_source_commit:
+        description: 'Exact candidate source commit; must match workflow ref and checkout'
         type: string
         required: false
       candidate_runtime_closure_sha256:
-        description: 'Exact independently selected native runtime closure identity'
-        type: string
-        required: false
-      candidate_source_commit:
-        description: 'Exact candidate source commit; must match checkout and accepted inputs'
+        description: 'Optional independent expected closure; must match the checked profile'
         type: string
         required: false
 
@@ -41,7 +37,7 @@ permissions:
 
 jobs:
   build-and-verify:
-    if: github.event_name != 'workflow_dispatch' || inputs.candidate_payload_url == ''
+    if: github.event_name != 'workflow_dispatch' || !inputs.candidate_check
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
@@ -320,59 +316,53 @@ jobs:
           retention-days: 30
 
   candidate-pure-check:
-    if: github.event_name == 'workflow_dispatch' && inputs.candidate_payload_url != ''
+    if: github.event_name == 'workflow_dispatch' && inputs.candidate_check
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.candidate_source_commit }}
-      - name: Verify exact candidate source and retained payload
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+      - name: Provision exact signed online runtime through existing Nix owner
         env:
-          CANDIDATE_PAYLOAD_URL: ${{ inputs.candidate_payload_url }}
-          CANDIDATE_PAYLOAD_SHA256: ${{ inputs.candidate_payload_sha256 }}
           CANDIDATE_SOURCE_COMMIT: ${{ inputs.candidate_source_commit }}
           CANDIDATE_RUNTIME_CLOSURE: ${{ inputs.candidate_runtime_closure_sha256 }}
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$CANDIDATE_SOURCE_COMMIT"
+          test "$GITHUB_SHA" = "$CANDIDATE_SOURCE_COMMIT"
           python3 - <<'PYTHON'
-          import os,re,urllib.parse
-          u=urllib.parse.urlsplit(os.environ['CANDIDATE_PAYLOAD_URL'])
-          assert u.scheme=='https' and u.netloc=='github.com'
-          assert u.path.startswith('/roccho-org/ops/releases/download/')
-          assert not u.query and not u.fragment
-          assert re.fullmatch('[0-9a-f]{64}',os.environ['CANDIDATE_PAYLOAD_SHA256'])
+          import json,os,re
+          x=json.load(open('packages/ops-task-runtime/candidate/native-profile.json'))
           assert re.fullmatch('[0-9a-f]{40}',os.environ['CANDIDATE_SOURCE_COMMIT'])
-          assert re.fullmatch('[0-9a-f]{64}',os.environ['CANDIDATE_RUNTIME_CLOSURE'])
+          expected=os.environ['CANDIDATE_RUNTIME_CLOSURE']
+          assert not expected or expected==x['closureSha256']
           PYTHON
-          curl --fail --location --silent --show-error "$CANDIDATE_PAYLOAD_URL" -o "$RUNNER_TEMP/candidate-payload.tar.gz"
-          python3 - <<'PYTHON'
-          import hashlib,os,pathlib,tarfile
-          root=pathlib.Path(os.environ['RUNNER_TEMP'])
-          p=root/'candidate-payload.tar.gz'
-          h=hashlib.sha256()
-          with p.open('rb') as f:
-              for b in iter(lambda:f.read(1048576),b''): h.update(b)
-          assert h.hexdigest()==os.environ['CANDIDATE_PAYLOAD_SHA256']
-          with tarfile.open(p) as t: t.extractall(root/'candidate-pack',filter='data')
-          PYTHON
-      - name: Execute exact retained pure checks through fresh native runtime
-        env:
-          CANDIDATE_SOURCE_COMMIT: ${{ inputs.candidate_source_commit }}
-          CANDIDATE_RUNTIME_CLOSURE: ${{ inputs.candidate_runtime_closure_sha256 }}
+          mkdir "$RUNNER_TEMP/candidate-proof"
+          python3 packages/ops-task-runtime/candidate/online-setup.py --profile packages/ops-task-runtime/candidate/native-profile.json --assets "$RUNNER_TEMP/candidate-proof/assets" --out "$RUNNER_TEMP/candidate-proof/setup"
+      - name: Execute actual CLI checks with the same source, inputs and runtime bytes
         shell: bash
         run: |
           set -euo pipefail
-          python3 packages/ops-task-runtime/candidate/restore-check.py             --pack "$RUNNER_TEMP/candidate-pack"             --target "$RUNNER_TEMP/candidate-target"             --evidence "$RUNNER_TEMP/candidate-evidence"             --expected-commit "$CANDIDATE_SOURCE_COMMIT" --expected-runtime-closure "$CANDIDATE_RUNTIME_CLOSURE" --source-repo "$GITHUB_WORKSPACE"
+          binding="$RUNNER_TEMP/candidate-proof/setup/runtime.json"
+          runtime_node="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["tools"]["node"]["path"])' "$binding")"
+          runtime_git="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["tools"]["git"]["path"])' "$binding")"
+          OPS_CANDIDATE_GIT="$runtime_git" OPS_TASK_RUNTIME_CANDIDATE_MANIFEST="$binding" OPS_TASK_RUNTIME_CANDIDATE_EVIDENCE="$RUNNER_TEMP/candidate-proof/e2e" "$runtime_node" packages/ops-task-runtime/tests/e2e.mjs
+          python3 - <<'PYTHON'
+          import json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'candidate-proof'
+          (root/'provider.json').write_text(json.dumps({k:os.environ.get(k) for k in ['GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT','GITHUB_SHA','GITHUB_WORKFLOW_REF','GITHUB_EVENT_NAME']},indent=2)+'\n')
+          PYTHON
       - name: Retain actual runner proof
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: task-candidate-${{ inputs.candidate_source_commit }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/candidate-evidence/
+          path: ${{ runner.temp }}/candidate-proof/
           if-no-files-found: error
           retention-days: 30

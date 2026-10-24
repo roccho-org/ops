@@ -58,8 +58,11 @@ native authority; candidate Node/Python must be absent before import. No host
 root permission, service or global install changes are involved.
 
 The existing release workflow has an explicit `workflow_dispatch` candidate
-job accepting an immutable payload URL/hash and exact source commit. The same
-restore-check runs on the actual Actions runner; upload and provider permissions
+job selecting an exact source commit and the checked candidate native profile.
+It uses the repository's existing pinned Nix setup owner and native signed copy
+from cache.nixos.org, verifies NAR contents and binary hashes, downloads the pinned
+official task/actrun archives, then runs the same actual CLI conformance. This
+online setup is separate from the no-cache offline restore proof. Upload and provider permissions
 are outside semantic parity. An unexecuted job is not Actions proof.
 
 Evidence remains outside source, keyed by exact commit/input/closure and attempt.
