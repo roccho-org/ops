@@ -330,7 +330,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Existing native static check
+      - name: Existing native E2E suite
         shell: bash
         env:
           REQUEST_EVENT: ${{ inputs.event_id }}
@@ -340,7 +340,7 @@ jobs:
           mkdir -m 700 "$proof"
           mkdir "$proof/home" "$proof/tmp"
           export HOME="$proof/home" TMPDIR="$proof/tmp"
-          export OPS_TASK_VALIDATION_TIMING="$proof/timing.json"
+          export OPS_TASK_CI_TIMING="$proof/timing.json"
           node --input-type=module - "$proof/pre.json" <<'JS'
           import fs from 'node:fs';
           import {execFileSync} from 'node:child_process';
@@ -350,7 +350,7 @@ jobs:
           if(!checkout.clean || checkout.source!==process.env.GITHUB_SHA) throw Error('unclean or wrong source');
           fs.writeFileSync(process.argv[2],JSON.stringify(checkout)+'\n',{flag:'wx'});
           JS
-          node packages/ops-task-runtime/bin/ops-task-runtime.mjs selftest --root packages/ops-task-runtime > "$proof/receipt.json"
+          node packages/ops-task-runtime/tests/e2e.mjs > "$proof/receipt.json"
           node --input-type=module - "$proof" <<'JS'
           import fs from 'node:fs';
           import {execFileSync} from 'node:child_process';

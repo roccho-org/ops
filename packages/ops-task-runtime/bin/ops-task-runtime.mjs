@@ -2,7 +2,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const fail = (message) => { throw new Error(message); };
@@ -80,31 +79,7 @@ function main() {
     if (args.length !== 2 || args[0] !== '--root') fail('usage: ops-task-runtime [selftest] [--root DIR]');
     root = path.resolve(args[1]);
   }
-  // Optional observation surrounds only validation, including its source reads.
-  // Output creation and Node startup are outside this interval.
-  const processStat = process.env.OPS_TASK_VALIDATION_TIMING ?
-    fs.readFileSync('/proc/self/stat', 'utf8') : undefined;
-  const producer = process.env.OPS_TASK_VALIDATION_TIMING ? {
-    pid: process.pid, nodePath: process.execPath,
-    startTicks: processStat.slice(processStat.lastIndexOf(')') + 2).split(' ')[19],
-    nodeSha256: crypto.createHash('sha256').update(fs.readFileSync(process.execPath)).digest('hex'),
-    hostBootId: fs.readFileSync('/proc/sys/kernel/random/boot_id', 'utf8').trim(),
-    root,
-  } : undefined;
-  let receipt, error;
-  const start = process.hrtime.bigint();
-  try { receipt = validate(root); } catch (caught) { error = caught; }
-  const end = process.hrtime.bigint();
-  if (process.env.OPS_TASK_VALIDATION_TIMING) {
-    fs.writeFileSync(process.env.OPS_TASK_VALIDATION_TIMING, JSON.stringify({
-      schema: 'ops.taskRuntimeValidationTiming/1',
-      startNs: String(start), endNs: String(end),
-      outcome: error ? 'failure' : 'success',
-      producer,
-    }) + '\n', { flag: 'wx', mode: 0o600 });
-  }
-  if (error) throw error;
-  process.stdout.write(`${JSON.stringify(receipt, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify(validate(root), null, 2)}\n`);
 }
 
 try { main(); } catch (error) {

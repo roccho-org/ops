@@ -5,10 +5,7 @@ import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 
 const receiptContract = {
-  schema: 'ops.taskRuntimeStaticReceipt/1', status: 'PASS',
-  authority: 'roccho-dev/adrs#317', target: 'linux-amd64',
-  dagAuthority: 'Taskfile.yml',
-  entryAuthority: '.gosh/events.jsonl generated at materialization',
+  schema: 'ops.taskRuntimeE2E/1', status: 'PASS', positive: 1, negative: 2,
 };
 const keys = ['event','source','tree','ref','workflowRef','runtime',
   'run','jobKey','jobId','attempt','runner','runnerId','root','nodePath'];
@@ -30,8 +27,8 @@ export function identifyRun(expectedJob, records) {
 }
 
 export function verify(expected, observed) {
-  assert.equal(expected.schema, 'ops.ghaletOverlapExpectation/2');
-  assert.equal(observed.schema, 'ops.ghaletOverlapObservation/2');
+  assert.equal(expected.schema, 'ops.ghaletOverlapExpectation/3');
+  assert.equal(observed.schema, 'ops.ghaletOverlapObservation/3');
   assert.equal(expected.jobs.length, 2);
   assert.equal(observed.jobs.length, 2);
   assert.match(expected.hostBootId, /^[0-9a-f-]{36}$/);
@@ -68,7 +65,7 @@ export function verify(expected, observed) {
       assert.deepEqual(checkout,{source:want.source,tree:want.tree,clean:true});
     assert.equal(job.exitCode,0);
     assert.deepEqual(job.receipt,receiptContract);
-    assert.equal(job.timing?.schema,'ops.taskRuntimeValidationTiming/1');
+    assert.equal(job.timing?.schema,'ops.taskRuntimeE2ETiming/1');
     assert.equal(job.timing.outcome,'success');
     const producer=job.timing.producer;
     assert.ok(Number.isSafeInteger(producer.pid) && producer.pid>0);
@@ -88,13 +85,13 @@ export function verify(expected, observed) {
   for (const key of ['source','tree','runtime','ref','workflowRef'])
     assert.equal(expected.jobs[0][key],expected.jobs[1][key],key);
   const [[a,b],[c,d]]=intervals;
-  assert.ok((a>c?a:c)<(b<d?b:d),'Missing: actual validation overlap');
-  return {status:'PASS',scope:'externally-bound two-success-validation-overlap-only',
+  assert.ok((a>c?a:c)<(b<d?b:d),'Missing: actual E2E suite overlap');
+  return {status:'PASS',scope:'externally-bound two-success-E2E-suite-overlap-only',
     wholeLiveGate:'NOT_EVALUATED'};
 }
 
 function selftest() {
-  const expected={schema:'ops.ghaletOverlapExpectation/2',
+  const expected={schema:'ops.ghaletOverlapExpectation/3',
     hostBootId:'11111111-1111-1111-1111-111111111111',jobs:[0,1].map(i=>({
       event:'event'+i,source:'a'.repeat(40),tree:'b'.repeat(40),
       ref:'refs/heads/candidate',workflowRef:'roccho-org/ops/'+workflowPath+'@refs/heads/candidate',
@@ -102,7 +99,7 @@ function selftest() {
       jobId:String(200+i),attempt:'1',runner:'runner'+i,runnerId:String(300+i),
       root:'/work/package',nodePath:'/nix/store/example/bin/node',
     }))};
-  const observed={schema:'ops.ghaletOverlapObservation/2',hostBootId:expected.hostBootId,
+  const observed={schema:'ops.ghaletOverlapObservation/3',hostBootId:expected.hostBootId,
     jobs:expected.jobs.map((j,i)=>({...j,hostBootId:expected.hostBootId,
       pre:{source:j.source,tree:j.tree,clean:true},post:{source:j.source,tree:j.tree,clean:true},
       providerRuns:[{id:Number(j.run),run_attempt:1,display_title:'ghalet:'+j.event,
@@ -110,7 +107,7 @@ function selftest() {
       providerJob:{id:Number(j.jobId),run_id:Number(j.run),run_attempt:1,name:j.jobKey,
         runner_name:j.runner,runner_id:Number(j.runnerId),status:'completed',conclusion:'success'},
       exitCode:0,receipt:structuredClone(receiptContract),
-      timing:{schema:'ops.taskRuntimeValidationTiming/1',outcome:'success',
+      timing:{schema:'ops.taskRuntimeE2ETiming/1',outcome:'success',
         startNs:String(10+i),endNs:String(20+i),producer:{pid:400+i,startTicks:'123',nodePath:j.nodePath,
           nodeSha256:j.runtime,hostBootId:expected.hostBootId,root:j.root}}}))};
   verify(expected,observed); // Same real logical job key in independent runs is valid.
@@ -123,6 +120,10 @@ function selftest() {
     ...Object.keys(receiptContract).map(k=>o=>{o.jobs[0].receipt[k]='wrong';}),
     o=>{o.jobs[0].receipt.extra='not-in-contract';},
     o=>{o.jobs[0].timing.outcome='failure';},
+    o=>{o.jobs[0].timing.schema='ops.taskRuntimeValidationTiming/1';},
+    o=>{o.jobs[0].receipt={schema:'ops.taskRuntimeStaticReceipt/1',status:'PASS',
+      authority:'roccho-dev/adrs#317',target:'linux-amd64',dagAuthority:'Taskfile.yml',
+      entryAuthority:'.gosh/events.jsonl generated at materialization'};},
     ...['nodeSha256','nodePath','hostBootId','root'].map(k=>o=>{o.jobs[0].timing.producer[k]='wrong';}),
     o=>{o.jobs[0].timing.producer.pid=0;},
     o=>{o.jobs[0].timing.producer.startTicks='0';},

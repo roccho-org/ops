@@ -22,12 +22,9 @@
   "check": {
     "argv": [
       "node",
-      "packages/ops-task-runtime/bin/ops-task-runtime.mjs",
-      "selftest",
-      "--root",
-      "packages/ops-task-runtime"
+      "packages/ops-task-runtime/tests/e2e.mjs"
     ],
-    "scope": "existing legacy static validation only"
+    "scope": "existing native E2E suite only: positive1 and negative2; suite work overlap, not individual child overlap"
   },
   "owners": {
     "runnerLifecycle": "Songmu/ghalet",
