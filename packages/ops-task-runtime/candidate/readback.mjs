@@ -48,13 +48,20 @@ export function attemptReadback(dir) {
   } else fail('unknown mode');
   return {commit: r.commit, tree: r.tree, x: r.x, inputSha256: r.inputSha256, runtimeIdentity: r.runtimeIdentity, target: r.target, mode: r.mode, ...semantic, dependentStarted: false};
 }
-export function readback(root) {
+export function readback(root, expected) {
+  root = fs.realpathSync(root);
   const x = read(path.join(root, 'invocation.json')), admission = read(path.join(root, 'admission.json'));
   if (!x.accepted.length || x.accepted.length > 2 || admission.bound !== 2 || admission.boundScope !== 'one invocation') fail('admission bound');
   assert.deepEqual(admission.accepted, x.accepted.map(({eventId, runId, attemptId, x}) => ({eventId, runId, attemptId, x})));
   assert.deepEqual(admission.rejected, x.rejected);
   if (x.rejected.some(r => r.status !== 'REJECTED_CAPACITY' || r.queued !== false) || (x.rejected.length && x.accepted.length !== 2)) fail('rejection');
-  const dirs = x.accepted.map(a => fs.realpathSync(a.dir));
+  for (const key of ['eventId', 'runId', 'attemptId']) if (new Set(x.accepted.map(a => a[key])).size !== x.accepted.length) fail(`duplicate ${key}`);
+  const dirs = x.accepted.map(a => {
+    for (const id of [a.runId, a.attemptId]) if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id)) fail('invalid run/attempt ID');
+    const actual = fs.realpathSync(a.dir);
+    if (actual !== path.join(root, a.runId, a.attemptId)) fail('attempt outside invocation root');
+    return actual;
+  });
   if (new Set(dirs).size !== dirs.length || dirs.some((a, i) => dirs.some((b, j) => i !== j && a.startsWith(b + path.sep)))) fail('write isolation');
   const normalized = x.accepted.map(a => {
     if (a.commit !== x.commit || a.tree !== x.tree) fail('invocation source');
@@ -63,6 +70,19 @@ export function readback(root) {
   });
   const success = x.accepted.filter(a => a.mode === 'success').map(a => read(path.join(a.dir, 'work', 'out', 'result.json')));
   if (success.length === 2 && !(Math.max(success[0].start, success[1].start) < Math.min(success[0].end, success[1].end))) fail('run overlap');
-  return {schema: 'ops.taskCandidateReadback/1', status: 'PASS', normalized, rejected: x.rejected};
+  if (expected) {
+    if (x.commit !== expected.commit || x.tree !== expected.tree) fail('external source identity');
+    assert.deepEqual(x.rejected.map(r => r.eventId), expected.requests.slice(2).map(r => r.eventId));
+    assert.equal(x.accepted.length, Math.min(2, expected.requests.length));
+    x.accepted.forEach((a, i) => {
+      const request = expected.requests[i];
+      for (const key of ['eventId', 'mode', 'route']) assert.equal(a[key], request[key], `external request ${key}`);
+      assert.equal(a.inputSha256, sha(Buffer.from(request.inputBase64, 'base64')));
+      assert.deepEqual(a.runtimeIdentity, expected.runtimeIdentity, 'external runtime closure');
+      const oracle = [...expected.packageOracle, ['input.bin', a.inputSha256]].sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+      assert.deepEqual(a.oracle, oracle, 'external Git source bytes');
+    });
+  }
+  return {schema: 'ops.taskCandidateReadback/1', status: expected ? 'PASS' : 'SELF_CONSISTENT_EXPECTATION_MISSING', expectationSha256: expected ? sha(JSON.stringify(expected)) : null, normalized, rejected: x.rejected};
 }
-if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(readback(process.argv[2]), null, 2));
+if (process.argv[1] === new URL(import.meta.url).pathname) console.log(JSON.stringify(readback(process.argv[2], process.argv[3] === '--expect' ? read(process.argv[4]) : undefined), null, 2));

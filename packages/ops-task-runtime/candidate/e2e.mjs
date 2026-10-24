@@ -3,7 +3,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {spawn, spawnSync} from 'node:child_process';
 import {setTimeout as delay} from 'node:timers/promises';
-import {read, write} from './requests.mjs';
+import {read, write, inventory} from './requests.mjs';
 import {readback} from './readback.mjs';
 import {stopTree, processIdentity, discover, alive} from './process.mjs';
 
@@ -23,12 +23,24 @@ export async function candidateE2E(manifest, root, evidence) {
     assert.ifError(r.error);
     assert.equal(r.status, expected, r.stderr || r.stdout); return r.stdout;
   };
+  const git = process.env.OPS_CANDIDATE_GIT || 'git';
+  const resolve = args => {
+    const r = spawnSync(git, ['-C', root, ...args], {encoding: 'utf8'});
+    assert.equal(r.status, 0); return r.stdout.trim();
+  };
+  const commit = resolve(['rev-parse', 'HEAD']), tree = resolve(['rev-parse', `${commit}^{tree}`]);
+  assert.match(commit, /^[0-9a-f]{40}$/); assert.match(tree, /^[0-9a-f]{40}$/);
+  const tools = read(manifest);
+  const runtimeIdentity = {...Object.fromEntries(Object.entries(tools.tools).sort().map(([k, v]) => [k, v.sha256])), closure: tools.closureSha256};
+  const packageOracle = inventory(path.join(root, 'packages/ops-task-runtime'));
   const summaries = {};
   for (const route of ['direct', 'actrun']) for (const mode of ['success', 'failure', 'cancel']) {
     const req = path.join(evidence, `${route}-${mode}.request.json`), out = path.join(evidence, `${route}-${mode}`);
     write(req, {schema: 'ops.taskCandidateRequests/1', requests: ['QQ==', 'Qg==', 'Qw=='].map((inputBase64, i) => ({eventId: `${route}-${mode}-${i}`, inputBase64, route, mode}))});
     await invoke(['requests', '--repo', root, '--request-file', req, '--runtime-manifest', manifest, '--evidence-dir', out]);
-    const result = readback(out);
+    const expected = {commit, tree, runtimeIdentity, packageOracle, requests: read(req).requests};
+    write(path.join(evidence, `${route}-${mode}.expected.json`), expected);
+    const result = readback(out, expected);
     assert.equal(result.rejected.length, 1);
     assert.equal(result.normalized.length, 2);
     write(path.join(evidence, `${route}-${mode}.readback.json`), result);
@@ -112,7 +124,10 @@ export async function candidateE2E(manifest, root, evidence) {
     await invoke(requestArgs, 1);
     assert.equal(fs.existsSync(path.join(evidence, 'must-not-run')), false);
   } finally { fs.unlinkSync(marker); }
-  const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing', 'runtime-tamper', 'dirty-source', 'invocation-k-mismatch', 'missing-join-time', 'inconsistent-interval', 'stale-pid-unrelated-process'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
+  const negativeArgs = ['requests', '--repo', root, '--request-file', recoveryReq, '--runtime-manifest', manifest, '--evidence-dir', path.join(evidence, 'must-not-run')];
+  await invoke([...negativeArgs, '--unknown', 'x'], 1);
+  await invoke(['requests', '--repo', '', ...negativeArgs.slice(1)], 1);
+  const packet = {schema: 'ops.taskCandidateE2E/1', status: 'PASS', parity: ['success', 'failure', 'cancel'], destructive: ['stale', 'partial', 'missing', 'runtime-tamper', 'dirty-source', 'invocation-k-mismatch', 'missing-join-time', 'inconsistent-interval', 'stale-pid-unrelated-process', 'unknown-option', 'empty-duplicate-option'], recovery: [collected.status, hold.status, stopped.status, retry.status], normalized: summaries, evidence};
   write(path.join(evidence, 'e2e.json'), packet);
   return packet;
 }

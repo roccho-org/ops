@@ -90,7 +90,7 @@ export async function execute(a, runtime) {
 export async function requests(args) {
   const opts = {};
   for (let i = 0; i < args.length; i += 2) {
-    if (!['--repo', '--request-file', '--runtime-manifest', '--evidence-dir'].includes(args[i]) || args[i + 1] === undefined || opts[args[i]]) fail('unique option/value required');
+    if (!['--repo', '--request-file', '--runtime-manifest', '--evidence-dir'].includes(args[i]) || args[i + 1] === undefined || Object.hasOwn(opts, args[i])) fail('unique option/value required');
     opts[args[i]] = args[i + 1];
   }
   for (const k of ['--repo', '--request-file', '--runtime-manifest', '--evidence-dir']) if (!opts[k]) fail(`missing ${k}`);

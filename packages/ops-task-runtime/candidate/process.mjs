@@ -44,12 +44,16 @@ export function discover(root, known = []) {
 }
 export async function stopTree(root, known) {
   if (!sameContext(root)) throw Error('process namespace/boot unknown: HOLD');
-  const identities = discover(root, known);
+  let identities = discover(root, known);
   for (const signal of ['SIGTERM', 'SIGKILL']) {
+    identities = discover(root, identities);
     if (root && alive(root)) { try { process.kill(-root.pid, signal); } catch (e) { if (e.code !== 'ESRCH') throw e; } }
     for (const p of identities) if (alive(p)) { try { process.kill(p.pid, signal); } catch (e) { if (e.code !== 'ESRCH') throw e; } }
-    for (let i = 0; i < 25 && identities.some(alive); i++) await delay(20);
+    for (let i = 0; i < 25 && identities.some(alive); i++) {
+      await delay(20); identities = discover(root, identities);
+    }
   }
+  identities = discover(root, identities);
   if (identities.some(alive)) throw Error('unresolved live descendants: HOLD');
   return identities;
 }

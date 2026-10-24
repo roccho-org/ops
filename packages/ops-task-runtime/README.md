@@ -17,7 +17,7 @@ with `eventId`, canonical `inputBase64`, `mode` (`success` / `failure` / `cancel
 ```text
 node bin/ops-task-runtime.mjs candidate requests --repo REPO \
   --request-file REQUESTS --runtime-manifest RUNTIME --evidence-dir NEW_DIR
-node candidate/readback.mjs NEW_DIR
+node candidate/readback.mjs NEW_DIR --expect EXPECTED_JSON
 ```
 
 One finite invocation admits at most two requests and explicitly refuses excess
@@ -45,7 +45,7 @@ It compares both declared input byte strings for direct/actrun success, expected
 failure and cancellation, checks third refusal and disjoint attempts, rejects
 stale/partial/missing results and invalid runtime/dirty source, and kills an
 actual caller to exercise live HOLD, stopped-incomplete retry with the same x,
-and completed-result collection without replay. `candidate recover --attempt DIR`
+and completed-result collection without replay. External request/source/runtime expectations are saved separately and checked for PASS; readback without them reports only SELF_CONSISTENT_EXPECTATION_MISSING. `candidate recover --attempt DIR`
 only reads state; `--retry-runtime RUNTIME` explicitly permits a new attempt
 only after the prior process tree is proven stopped. These are finite proof
 operations, with no persistent automatic retry owner.
@@ -68,3 +68,5 @@ actual Actions, full fresh restore/readback, dependency-license audit and
 independent R whole-gate Green. No proof-complete or final ACTIVE admission is
 claimed merely by implementing these checks. Legacy static validation remains
 independent and unchanged in meaning.
+
+The finite execution fixtures do not deliberately escape process groups or PID namespaces. Recovery in a different boot/PID observation context is HOLD; unknown descendants are not treated as stopped. Group/lineage discovery checks live start identities before expanding, and shutdown rescans for new descendants.
