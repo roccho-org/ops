@@ -29,3 +29,11 @@ try {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 process.stdout.write('{"schema":"ops.taskRuntimeE2E/1","status":"PASS","positive":1,"negative":2}\n');
+
+// Existing static callers keep the static check. Full conformance is explicit.
+if (process.env.OPS_TASK_RUNTIME_CANDIDATE_MANIFEST) {
+  const {candidateE2E} = await import('../candidate/e2e.mjs');
+  const evidence = process.env.OPS_TASK_RUNTIME_CANDIDATE_EVIDENCE;
+  if (!evidence) throw new Error('candidate evidence path required');
+  await candidateE2E(process.env.OPS_TASK_RUNTIME_CANDIDATE_MANIFEST, path.resolve(packageRoot, '../..'), evidence);
+}

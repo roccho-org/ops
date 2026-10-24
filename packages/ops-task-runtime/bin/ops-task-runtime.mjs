@@ -85,6 +85,8 @@ function main() {
 try {
   if (process.argv[2] === 'candidate' && process.argv[3] === 'requests') {
     await (await import('../candidate/requests.mjs')).requests(process.argv.slice(4));
+  } else if (process.argv[2] === 'candidate' && process.argv[3] === 'recover') {
+    await (await import('../candidate/recovery.mjs')).recover(process.argv.slice(4));
   } else main();
 } catch (error) {
   process.stderr.write(`ops-task-runtime: ${error.message}\n`);

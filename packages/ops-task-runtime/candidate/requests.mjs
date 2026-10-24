@@ -64,6 +64,7 @@ export async function execute(a, runtime) {
   const started = Date.now();
   const monitor = setInterval(() => {
     descendants = discover(root, descendants);
+    write(path.join(a.dir, 'process.json'), {root, descendants, executable, argv: actualArgv});
     if ((a.mode === 'cancel' && fs.existsSync(path.join(work, 'out', 'descendant.json'))) || Date.now() - started > 30000) {
       if (!stopping) { cancelled = true; stopping = stopTree(root, descendants); }
     }
