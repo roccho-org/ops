@@ -64,11 +64,18 @@ child through its two negative checks and finally cleanup. Child startup, copies
 mutations and cleanup are real suite work. Outer Node startup, producer metadata
 reads/hash, stdout/evidence writes, rendezvous and holds are excluded. The bin is
 byte-identical to base83; default suite stdout/behavior and expected negative child
-exits remain unchanged. Exceptions including cleanup failures make the suite fail.
+exits remain unchanged. Every child must finish normally: positive exit0, each
+negative exit1. Spawn errors, signals, null/missing status and other exit codes
+are suite failures, not negative-check success. Exceptions including cleanup
+failures make the suite fail.
 A full artifact must include exit/result, timing and provider/source/
 runtime/runner binding, independently compared with external expectations.
 
-`node tests/ghalet-proof.mjs --selftest` tests only the finite evidence validator.
+`node tests/ghalet-proof.mjs --selftest` tests the finite evidence validator and
+the actual suite producer using test-local child_process patches/dynamic imports.
+It checks a controlled normal 0/1/1 trace and26 injected child faults, observes
+failure timing, and restores builtin exports/stdout/env in finally. This is local
+fault-injection proof, not execution of real runner jobs or real child processes.
 `node tests/ghalet-proof.mjs EXPECTED OBSERVED` checks two externally bound success
 intervals on one host boot. Its scoped PASS is NOT the composed live gate.
 The version3 expectation/observation schemas distinguish artifact `jobKey`

@@ -11,7 +11,10 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const cli = path.join(packageRoot, 'bin', 'ops-task-runtime.mjs');
 const run = (root, expected) => {
   const result = spawnSync(process.execPath, [cli, 'selftest', '--root', root], { encoding: 'utf8' });
-  if ((result.status === 0) !== expected) throw new Error(`unexpected status ${result.status}: ${result.stderr || result.stdout}`);
+  if (result.error) throw result.error;
+  const exit = expected ? 0 : 1;
+  if (result.signal != null || result.status !== exit)
+    throw new Error(`expected exit ${exit}, status ${result.status}, signal ${result.signal}: ${result.stderr || result.stdout}`);
 };
 
 // Producer metadata is outside the suite interval. No child interval is claimed.

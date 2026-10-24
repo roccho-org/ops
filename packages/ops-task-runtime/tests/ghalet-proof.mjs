@@ -3,6 +3,10 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
+import childProcess from 'node:child_process';
+import { syncBuiltinESMExports } from 'node:module';
+import os from 'node:os';
+import path from 'node:path';
 
 const receiptContract = {
   schema: 'ops.taskRuntimeE2E/1', status: 'PASS', positive: 1, negative: 2,
@@ -90,7 +94,85 @@ export function verify(expected, observed) {
     wholeLiveGate:'NOT_EVALUATED'};
 }
 
-function selftest() {
+async function suiteProducerFaults() {
+  // Exercise the actual suite module, not fabricated observed receipts.
+  // All patches are test-local and restored; no fault flags enter product code.
+  const out=fs.mkdtempSync(path.join(os.tmpdir(),'ghalet-suite-faults-'));
+  const spawn=childProcess.spawnSync, write=process.stdout.write;
+  const hadTiming=Object.hasOwn(process.env,'OPS_TASK_CI_TIMING');
+  const oldTiming=process.env.OPS_TASK_CI_TIMING;
+  const faults=[
+    {name:'spawn-error',result:{status:null,error:Object.assign(new Error('spawnSync EPERM'),{code:'EPERM'})}},
+    {name:'signal',result:{status:null,signal:'SIGTERM'}},
+    {name:'null-status',result:{status:null}},
+    {name:'missing-status',result:{status:undefined}},
+    {name:'abnormal-exit',result:{status:2}},
+    {name:'string-status',result:{status:'1'}},
+    {name:'error-with-status',result:{status:1,error:new Error('spawnSync EPERM')}},
+    {name:'signal-with-status',result:{status:1,signal:'SIGTERM'}},
+  ];
+  const records=[];
+  try {
+    // Positive, negative1 and negative2 must each reject every OS/abnormal fault.
+    for (const target of [0,1,2]) for (const fault of faults) {
+      let calls=0,stdout='';
+      const timing=path.join(out,'case-'+records.length+'.json');
+      process.env.OPS_TASK_CI_TIMING=timing;
+      childProcess.spawnSync=()=>{
+        const call=calls++;
+        return {status:call===0?0:1,signal:null,stdout:'',stderr:'',
+          ...(call===target?fault.result:{})};
+      };
+      syncBuiltinESMExports();
+      process.stdout.write=(chunk)=>{stdout+=String(chunk);return true;};
+      const module=new URL('./e2e.mjs',import.meta.url);
+      module.searchParams.set('faultCase',String(records.length));
+      let rejected=false;
+      try { await import(module.href); } catch { rejected=true; }
+      assert.ok(rejected,'actual suite accepted '+fault.name);
+      assert.equal(calls,target+1);
+      assert.equal(stdout,'');
+      assert.equal(JSON.parse(fs.readFileSync(timing,'utf8')).outcome,'failure');
+      records.push({target,fault:fault.name,rejected:true,timingOutcome:'failure'});
+    }
+    // A normal exit1 is still required: exit0 on either negative is a failure.
+    for (const target of [1,2]) {
+      let calls=0;
+      const timing=path.join(out,'negative-zero-'+target+'.json');
+      process.env.OPS_TASK_CI_TIMING=timing;
+      childProcess.spawnSync=()=>({status:calls++===target?0:(calls===1?0:1),signal:null,stdout:'',stderr:''});
+      syncBuiltinESMExports();
+      const module=new URL('./e2e.mjs',import.meta.url);
+      module.searchParams.set('negativeZero',String(target));
+      await assert.rejects(import(module.href));
+      assert.equal(JSON.parse(fs.readFileSync(timing,'utf8')).outcome,'failure');
+      records.push({target,fault:'negative-exit0',rejected:true,timingOutcome:'failure'});
+    }
+    // Controlled normal trace proves this test is not satisfied by unconditional failure.
+    let calls=0,stdout='';
+    const timing=path.join(out,'normal-trace.json');
+    process.env.OPS_TASK_CI_TIMING=timing;
+    childProcess.spawnSync=()=>({status:calls++===0?0:1,signal:null,stdout:'',stderr:''});
+    syncBuiltinESMExports();
+    process.stdout.write=(chunk)=>{stdout+=String(chunk);return true;};
+    const module=new URL('./e2e.mjs',import.meta.url);
+    module.searchParams.set('normalTraceControl','1');
+    await import(module.href);
+    assert.equal(calls,3);
+    assert.deepEqual(JSON.parse(stdout),receiptContract);
+    assert.equal(JSON.parse(fs.readFileSync(timing,'utf8')).outcome,'success');
+  } finally {
+    childProcess.spawnSync=spawn;
+    syncBuiltinESMExports();
+    process.stdout.write=write;
+    if(hadTiming) process.env.OPS_TASK_CI_TIMING=oldTiming;
+    else delete process.env.OPS_TASK_CI_TIMING;
+  }
+  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(records,null,2)+'\n');
+  return {negativeCases:records.length,controlledNormalTrace:true,evidence:out};
+}
+
+async function selftest() {
   const expected={schema:'ops.ghaletOverlapExpectation/3',
     hostBootId:'11111111-1111-1111-1111-111111111111',jobs:[0,1].map(i=>({
       event:'event'+i,source:'a'.repeat(40),tree:'b'.repeat(40),
@@ -153,11 +235,11 @@ function selftest() {
   assert.equal(identifyRun(expected.jobs[0],[...observed.jobs[0].providerRuns,
     ...observed.jobs[0].providerRuns]).status,'HOLD');
   console.log(JSON.stringify({status:'PASS',scope:'LOCAL_VALIDATOR_TEST_ONLY',
-    negatives:mutations.length+2,liveProof:'MISSING'}));
+    negatives:mutations.length+2,suiteProducerFaults:await suiteProducerFaults(),liveProof:'MISSING'}));
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
   try {
-    if(process.argv[2]==='--selftest') selftest();
+    if(process.argv[2]==='--selftest') await selftest();
     else {
       assert.equal(process.argv.length,4,'usage: ghalet-proof.mjs EXPECTED OBSERVED | --selftest');
       console.log(JSON.stringify(verify(...process.argv.slice(2).map(p=>JSON.parse(fs.readFileSync(p,'utf8'))))));
