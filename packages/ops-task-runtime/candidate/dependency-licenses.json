@@ -34562,38 +34562,6 @@
                     "blobSha256": "c0c244e12c26f17e6a000f0bc476f41e35d78c377939950f10bcd2a29c85f4b1"
                   },
                   {
-                    "member": "fixtures/NotoSans-subset.otf",
-                    "blobSha256": "71b18d6cda591bd032029c8c3f5fa59fe200058a11bb9e3c6b364f73fd422bc9"
-                  },
-                  {
-                    "member": "fixtures/cff-opcodes/cff.add.otf",
-                    "blobSha256": "ab85580808c1859f5fa31eddef8e760a910048fbf5abe44ce5eca8c12ecbc835"
-                  },
-                  {
-                    "member": "fixtures/cff-opcodes/cff.div.otf",
-                    "blobSha256": "95babb248634ebad075f8c23513bcdf67a3e4ef1a39f8477090d8cd7b7b9f247"
-                  },
-                  {
-                    "member": "fixtures/cff-opcodes/cff.drop.otf",
-                    "blobSha256": "5f96cd35dd70b6878ee3d2b2653d04d91c43082820f422e3f74b11731121968a"
-                  },
-                  {
-                    "member": "fixtures/cff-opcodes/cff.dup.otf",
-                    "blobSha256": "355bb8357d8a29571fc236aec3a92b8ce056fb31f8fd3cfa368285e764043b96"
-                  },
-                  {
-                    "member": "fixtures/cff-opcodes/cff.mul.otf",
-                    "blobSha256": "8b762a3fa0a21e0589ffe2a8e12b77e3195384a678a5c4f97f83d8ee7f7ac91a"
-                  },
-                  {
-                    "member": "fixtures/cff-opcodes/cff.neg.otf",
-                    "blobSha256": "4f89cf158cb84bbcef194c322c92098d67681c64fa5feccb23b07eae79c8411a"
-                  },
-                  {
-                    "member": "fixtures/cff-opcodes/cff.sub.otf",
-                    "blobSha256": "577b387c8d50702533c1ef2647c14f219e01d0752ea7dcfcfacb6a066c74a446"
-                  },
-                  {
                     "member": "moon.mod.json",
                     "blobSha256": "233720468fe1a33abc3f57a2a7df935717036e74d91cbb835e4ad018c135d3fd"
                   },
@@ -44151,44 +44119,190 @@
             "sourceArchiveSha256": "a30408e22e5fcbf75833b2cc47c9589ae3e586259c69495ee2de3e94cebc8aaa",
             "records": [
               {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/NotoSans-subset.otf",
+                "fontSha256": "71b18d6cda591bd032029c8c3f5fa59fe200058a11bb9e3c6b364f73fd422bc9",
+                "nameRecords": [
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 0,
+                    "blobSha256": "392a1635782303d15c5bb3d03f6f047cca01d8aca3eddeaee6c6666a93e48cfe",
+                    "decodedText": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "ee0c633066b672a0eecc4ccb331b991abd28caf03737f552f6e7a7f875bc496e",
+                    "decodedText": "Noto Sans"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "390c27be1bc5ae0a8f1a61dc5fbd320057272f0fbd4dc1b77ae31967cc4cc657",
+                    "decodedText": "2.014;GOOG;NotoSans-Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "de622ad01b7035890a204f9215848c433ca66acea9d9a6d2aeeadcae04fc77d6",
+                    "decodedText": "Noto Sans Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "e7ec779e646655ba9c3130be875a49f3f9f1052d97f52f023fb4b54a4faf96c2",
+                    "decodedText": "Version 2.014"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "c8f4ed26ba73d6288bf8f5c85d6917b3d918be552fae1835ddfe0b0347cdbfd6",
+                    "decodedText": "NotoSans-Regular"
+                  }
+                ]
+              },
+              {
                 "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/NotoSansMono-Bold.ttf",
                 "fontSha256": "beb857bd799a114de7d5d90cc75cc69f4b6ee8d401f4ab20697e6f9719a66dfc",
                 "nameRecords": [
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 0,
-                    "blobSha256": "22d412afdcd346b1d08d30973b3ccef6194765d58d3119cb71c3f4270e47fe3c"
+                    "blobSha256": "22d412afdcd346b1d08d30973b3ccef6194765d58d3119cb71c3f4270e47fe3c",
+                    "decodedText": "Copyright 2015-2021 Google LLC. All Rights Reserved."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "1052d4c9ca508c5df54e3751bfd8fe26d29dec42b6996076da73f6b2600a18bc",
+                    "decodedText": "Noto Sans Mono"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "a493abdfc35734aee85a7e0a10a94e595073ded925098315c72f608548dce3d7",
+                    "decodedText": "Bold"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "b8be4ebd91a2affdc26a74d1a05444f88f6d74daee65d772cec3e40c061fd400",
+                    "decodedText": "2.007;GOOG;NotoSansMono-Bold"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "e8cfa2f6e4aa42bb10f065ac1c677ae0206e64388ae2169a82d6424efa0b19de",
+                    "decodedText": "Noto Sans Mono Bold"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "6a3d8c88891b2c791b927e2e4bd099b70ecc3679a166735742cf8873af8b8496",
+                    "decodedText": "Version 2.007; ttfautohint (v1.8) -l 8 -r 50 -G 200 -x 14 -D latn -f none -a qsq -X \"\""
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "863baf3c9106100bcd6dd5e16003e0ab9a3d9f9cd5d5c467b7ab10d3c8324f4a",
+                    "decodedText": "NotoSansMono-Bold"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 7,
-                    "blobSha256": "b77be32e497e725758f2f118a6ffe2943f8f1016242c9d28030f657a2715cbf0"
+                    "blobSha256": "b77be32e497e725758f2f118a6ffe2943f8f1016242c9d28030f657a2715cbf0",
+                    "decodedText": "Noto is a trademark of Google LLC."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 8,
-                    "blobSha256": "0471b92d6930ff706dbeaee293e33ef38039a371da2bb7f07bd9dca5ec66aca6"
+                    "blobSha256": "0471b92d6930ff706dbeaee293e33ef38039a371da2bb7f07bd9dca5ec66aca6",
+                    "decodedText": "Monotype Imaging Inc."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 9,
-                    "blobSha256": "51f2d1a93728927e4fcf71fd2ec20728f558f77916722818b055a098682052c0"
+                    "blobSha256": "51f2d1a93728927e4fcf71fd2ec20728f558f77916722818b055a098682052c0",
+                    "decodedText": "Monotype Design Team"
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 10,
+                    "blobSha256": "d27b5d3ebb509da5c6a3af5d8acf75947a48c43bffd48488890243fb1d2ec888",
+                    "decodedText": "Designed by Monotype design team."
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 11,
+                    "blobSha256": "eb8d3f62b78904b3d276471facdc28afb31cf0b98de1768cad9d56188e3da575",
+                    "decodedText": "http://www.google.com/get/noto/"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 12,
+                    "blobSha256": "b0dafb47bf22754f65da34b19ad87c7c7ec9f502d86e40e22e9e38fcd40b20ac",
+                    "decodedText": "http://www.monotype.com/studio"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 13,
-                    "blobSha256": "e93c6cd92908600e1609df82e30a5a1f2dd74d39fc0bdb80890383879cb39006"
+                    "blobSha256": "e93c6cd92908600e1609df82e30a5a1f2dd74d39fc0bdb80890383879cb39006",
+                    "decodedText": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 14,
-                    "blobSha256": "a2bdbc6b27ca3cfc00aac086caee01c9c6a921b24d95388457b0e3d9e38e5503"
+                    "blobSha256": "a2bdbc6b27ca3cfc00aac086caee01c9c6a921b24d95388457b0e3d9e38e5503",
+                    "decodedText": "http://scripts.sil.org/OFL"
                   }
                 ]
               },
@@ -44198,39 +44312,139 @@
                 "nameRecords": [
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 0,
-                    "blobSha256": "22d412afdcd346b1d08d30973b3ccef6194765d58d3119cb71c3f4270e47fe3c"
+                    "blobSha256": "22d412afdcd346b1d08d30973b3ccef6194765d58d3119cb71c3f4270e47fe3c",
+                    "decodedText": "Copyright 2015-2021 Google LLC. All Rights Reserved."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "509c53fc6bac5253842f60dba813a5d4445411e52716dee58f72bc05a93fc0c8",
+                    "decodedText": "Noto Sans Mono Light"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "261dbf52ae98126b243579a177edf61bb1f86ec16c6f92b3e1327a89923985dd",
+                    "decodedText": "2.007;GOOG;NotoSansMono-Light"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "509c53fc6bac5253842f60dba813a5d4445411e52716dee58f72bc05a93fc0c8",
+                    "decodedText": "Noto Sans Mono Light"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "6a3d8c88891b2c791b927e2e4bd099b70ecc3679a166735742cf8873af8b8496",
+                    "decodedText": "Version 2.007; ttfautohint (v1.8) -l 8 -r 50 -G 200 -x 14 -D latn -f none -a qsq -X \"\""
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "650b3f70e783257a6d2b1636165d50dd1ce9ff2238d48460104d68ec69937f25",
+                    "decodedText": "NotoSansMono-Light"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 7,
-                    "blobSha256": "b77be32e497e725758f2f118a6ffe2943f8f1016242c9d28030f657a2715cbf0"
+                    "blobSha256": "b77be32e497e725758f2f118a6ffe2943f8f1016242c9d28030f657a2715cbf0",
+                    "decodedText": "Noto is a trademark of Google LLC."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 8,
-                    "blobSha256": "0471b92d6930ff706dbeaee293e33ef38039a371da2bb7f07bd9dca5ec66aca6"
+                    "blobSha256": "0471b92d6930ff706dbeaee293e33ef38039a371da2bb7f07bd9dca5ec66aca6",
+                    "decodedText": "Monotype Imaging Inc."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 9,
-                    "blobSha256": "51f2d1a93728927e4fcf71fd2ec20728f558f77916722818b055a098682052c0"
+                    "blobSha256": "51f2d1a93728927e4fcf71fd2ec20728f558f77916722818b055a098682052c0",
+                    "decodedText": "Monotype Design Team"
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 10,
+                    "blobSha256": "d27b5d3ebb509da5c6a3af5d8acf75947a48c43bffd48488890243fb1d2ec888",
+                    "decodedText": "Designed by Monotype design team."
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 11,
+                    "blobSha256": "eb8d3f62b78904b3d276471facdc28afb31cf0b98de1768cad9d56188e3da575",
+                    "decodedText": "http://www.google.com/get/noto/"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 12,
+                    "blobSha256": "b0dafb47bf22754f65da34b19ad87c7c7ec9f502d86e40e22e9e38fcd40b20ac",
+                    "decodedText": "http://www.monotype.com/studio"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 13,
-                    "blobSha256": "e93c6cd92908600e1609df82e30a5a1f2dd74d39fc0bdb80890383879cb39006"
+                    "blobSha256": "e93c6cd92908600e1609df82e30a5a1f2dd74d39fc0bdb80890383879cb39006",
+                    "decodedText": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 14,
-                    "blobSha256": "a2bdbc6b27ca3cfc00aac086caee01c9c6a921b24d95388457b0e3d9e38e5503"
+                    "blobSha256": "a2bdbc6b27ca3cfc00aac086caee01c9c6a921b24d95388457b0e3d9e38e5503",
+                    "decodedText": "http://scripts.sil.org/OFL"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 16,
+                    "blobSha256": "1052d4c9ca508c5df54e3751bfd8fe26d29dec42b6996076da73f6b2600a18bc",
+                    "decodedText": "Noto Sans Mono"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 17,
+                    "blobSha256": "b2b93247028cac87079b7be02f4e9b1cfaaa49d1082aff364d36adc4ba18c017",
+                    "decodedText": "Light"
                   }
                 ]
               },
@@ -44240,39 +44454,131 @@
                 "nameRecords": [
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 0,
-                    "blobSha256": "392a1635782303d15c5bb3d03f6f047cca01d8aca3eddeaee6c6666a93e48cfe"
+                    "blobSha256": "392a1635782303d15c5bb3d03f6f047cca01d8aca3eddeaee6c6666a93e48cfe",
+                    "decodedText": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)"
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "1052d4c9ca508c5df54e3751bfd8fe26d29dec42b6996076da73f6b2600a18bc",
+                    "decodedText": "Noto Sans Mono"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "5def8dcf16b5c2ee6be950f92ee7a513cc3fd7569826fb94746f55fe7489559c",
+                    "decodedText": "2.014;GOOG;NotoSansMono-Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "7bb3905d1964a67f6df3792be924945b7ba92142daafe410a79d13177647d944",
+                    "decodedText": "Noto Sans Mono Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "e7ec779e646655ba9c3130be875a49f3f9f1052d97f52f023fb4b54a4faf96c2",
+                    "decodedText": "Version 2.014"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "05c8ceef0a55870e42f428e840c6a9d195fec6eef30faca49f9102fd5ccf273c",
+                    "decodedText": "NotoSansMono-Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 7,
-                    "blobSha256": "b77be32e497e725758f2f118a6ffe2943f8f1016242c9d28030f657a2715cbf0"
+                    "blobSha256": "b77be32e497e725758f2f118a6ffe2943f8f1016242c9d28030f657a2715cbf0",
+                    "decodedText": "Noto is a trademark of Google LLC."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 8,
-                    "blobSha256": "0471b92d6930ff706dbeaee293e33ef38039a371da2bb7f07bd9dca5ec66aca6"
+                    "blobSha256": "0471b92d6930ff706dbeaee293e33ef38039a371da2bb7f07bd9dca5ec66aca6",
+                    "decodedText": "Monotype Imaging Inc."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 9,
-                    "blobSha256": "51f2d1a93728927e4fcf71fd2ec20728f558f77916722818b055a098682052c0"
+                    "blobSha256": "51f2d1a93728927e4fcf71fd2ec20728f558f77916722818b055a098682052c0",
+                    "decodedText": "Monotype Design Team"
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 10,
+                    "blobSha256": "d27b5d3ebb509da5c6a3af5d8acf75947a48c43bffd48488890243fb1d2ec888",
+                    "decodedText": "Designed by Monotype design team."
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 11,
+                    "blobSha256": "eb8d3f62b78904b3d276471facdc28afb31cf0b98de1768cad9d56188e3da575",
+                    "decodedText": "http://www.google.com/get/noto/"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 12,
+                    "blobSha256": "b0dafb47bf22754f65da34b19ad87c7c7ec9f502d86e40e22e9e38fcd40b20ac",
+                    "decodedText": "http://www.monotype.com/studio"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 13,
-                    "blobSha256": "b79d66e8bb6af8d35725d909312827b883f11371e5c31b32c6dc47f8a3e4e1ca"
+                    "blobSha256": "b79d66e8bb6af8d35725d909312827b883f11371e5c31b32c6dc47f8a3e4e1ca",
+                    "decodedText": "This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL"
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 14,
-                    "blobSha256": "c6805a9d111778287a4b595e93d84616dae8d350a36a80170fd499265a2ec1bd"
+                    "blobSha256": "c6805a9d111778287a4b595e93d84616dae8d350a36a80170fd499265a2ec1bd",
+                    "decodedText": "https://scripts.sil.org/OFL"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 256,
+                    "blobSha256": "8818db3d41ab4ce90809e4adda41b457222f08e5c25c101f9bd576ce42e19ea6",
+                    "decodedText": "Alternate f-hook"
                   }
                 ]
               },
@@ -44282,54 +44588,1433 @@
                 "nameRecords": [
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 0,
-                    "blobSha256": "9b8cc275c99dc699775e103afdda61985ee50239d193c937a392cdba3e505130"
+                    "blobSha256": "9b8cc275c99dc699775e103afdda61985ee50239d193c937a392cdba3e505130",
+                    "decodedText": "Copyright \u00a92016 by Unicode Inc."
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "53de11f4395dd0c2f5e7fd34975069211fea22d4e1ae9f8093fb2084d9edceb5",
+                    "decodedText": "OpenTypeTest GLYF One"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "f55f361c6a4e59f171d8b042e0321bfb374267f38c37ae6b41b40c35e1df03c3",
+                    "decodedText": "OpenTypeTestGLYFOne-Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 9,
-                    "blobSha256": "31a72d13b430730db4eb9862daddf599adced45af3147b7cc9470e10f0d757b7"
+                    "blobSha256": "31a72d13b430730db4eb9862daddf599adced45af3147b7cc9470e10f0d757b7",
+                    "decodedText": "Dalton Maag Ltd"
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 12,
+                    "blobSha256": "1573ca3f192f3e9912eb1eb92b679bd4903960ab52104e2552f226f699e8ef06",
+                    "decodedText": "http://www.daltonmaag.com/"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 13,
-                    "blobSha256": "cbe116e54c321c4795b5b8e28459f97dda8716eff7cfa715e7de216905e4cb47"
+                    "blobSha256": "cbe116e54c321c4795b5b8e28459f97dda8716eff7cfa715e7de216905e4cb47",
+                    "decodedText": "This Font Software is licensed under the SIL Open Font License Version 1.1. This license is available with a FAQ at: http://scripts.sil.org/OFL"
                   },
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 14,
-                    "blobSha256": "81037d19f4465d3d9a4bf7616bd3ae68575a6319d81d4e143ee4833b1e50a7b1"
+                    "blobSha256": "81037d19f4465d3d9a4bf7616bd3ae68575a6319d81d4e143ee4833b1e50a7b1",
+                    "decodedText": "https://opensource.org/licenses/OFL-1.1"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/cff-opcodes/cff.add.otf",
+                "fontSha256": "ab85580808c1859f5fa31eddef8e760a910048fbf5abe44ce5eca8c12ecbc835",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 0,
+                    "blobSha256": "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 3,
+                    "blobSha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 4,
+                    "blobSha256": "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 5,
+                    "blobSha256": "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 6,
+                    "blobSha256": "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 7,
+                    "blobSha256": "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 13,
+                    "blobSha256": "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639",
+                    "decodedText": "License free"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 0,
+                    "blobSha256": "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 7,
+                    "blobSha256": "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 13,
+                    "blobSha256": "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0",
+                    "decodedText": "License free"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/cff-opcodes/cff.div.otf",
+                "fontSha256": "95babb248634ebad075f8c23513bcdf67a3e4ef1a39f8477090d8cd7b7b9f247",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 0,
+                    "blobSha256": "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 3,
+                    "blobSha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 4,
+                    "blobSha256": "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 5,
+                    "blobSha256": "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 6,
+                    "blobSha256": "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 7,
+                    "blobSha256": "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 13,
+                    "blobSha256": "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639",
+                    "decodedText": "License free"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 0,
+                    "blobSha256": "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 7,
+                    "blobSha256": "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 13,
+                    "blobSha256": "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0",
+                    "decodedText": "License free"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/cff-opcodes/cff.drop.otf",
+                "fontSha256": "5f96cd35dd70b6878ee3d2b2653d04d91c43082820f422e3f74b11731121968a",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 0,
+                    "blobSha256": "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 3,
+                    "blobSha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 4,
+                    "blobSha256": "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 5,
+                    "blobSha256": "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 6,
+                    "blobSha256": "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 7,
+                    "blobSha256": "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 13,
+                    "blobSha256": "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639",
+                    "decodedText": "License free"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 0,
+                    "blobSha256": "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 7,
+                    "blobSha256": "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 13,
+                    "blobSha256": "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0",
+                    "decodedText": "License free"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/cff-opcodes/cff.dup.otf",
+                "fontSha256": "355bb8357d8a29571fc236aec3a92b8ce056fb31f8fd3cfa368285e764043b96",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 0,
+                    "blobSha256": "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 3,
+                    "blobSha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 4,
+                    "blobSha256": "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 5,
+                    "blobSha256": "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 6,
+                    "blobSha256": "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 7,
+                    "blobSha256": "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 13,
+                    "blobSha256": "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639",
+                    "decodedText": "License free"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 0,
+                    "blobSha256": "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 7,
+                    "blobSha256": "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 13,
+                    "blobSha256": "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0",
+                    "decodedText": "License free"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/cff-opcodes/cff.mul.otf",
+                "fontSha256": "8b762a3fa0a21e0589ffe2a8e12b77e3195384a678a5c4f97f83d8ee7f7ac91a",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 0,
+                    "blobSha256": "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 3,
+                    "blobSha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 4,
+                    "blobSha256": "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 5,
+                    "blobSha256": "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 6,
+                    "blobSha256": "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 7,
+                    "blobSha256": "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 13,
+                    "blobSha256": "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639",
+                    "decodedText": "License free"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 0,
+                    "blobSha256": "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 7,
+                    "blobSha256": "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 13,
+                    "blobSha256": "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0",
+                    "decodedText": "License free"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/cff-opcodes/cff.neg.otf",
+                "fontSha256": "4f89cf158cb84bbcef194c322c92098d67681c64fa5feccb23b07eae79c8411a",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 0,
+                    "blobSha256": "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 3,
+                    "blobSha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 4,
+                    "blobSha256": "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 5,
+                    "blobSha256": "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 6,
+                    "blobSha256": "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 7,
+                    "blobSha256": "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 13,
+                    "blobSha256": "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639",
+                    "decodedText": "License free"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 0,
+                    "blobSha256": "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 7,
+                    "blobSha256": "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 13,
+                    "blobSha256": "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0",
+                    "decodedText": "License free"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/cff-opcodes/cff.sub.otf",
+                "fontSha256": "577b387c8d50702533c1ef2647c14f219e01d0752ea7dcfcfacb6a066c74a446",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 0,
+                    "blobSha256": "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 3,
+                    "blobSha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 4,
+                    "blobSha256": "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 5,
+                    "blobSha256": "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 6,
+                    "blobSha256": "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 7,
+                    "blobSha256": "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 13,
+                    "blobSha256": "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639",
+                    "decodedText": "License free"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 0,
+                    "blobSha256": "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9",
+                    "decodedText": "Free of copyright"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d",
+                    "decodedText": "Custom"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789",
+                    "decodedText": "-"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636",
+                    "decodedText": "Custom Glyph Font"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb",
+                    "decodedText": "Version 1.0"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a",
+                    "decodedText": "customfont"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 7,
+                    "blobSha256": "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7",
+                    "decodedText": "Free of trademarks"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 13,
+                    "blobSha256": "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0",
+                    "decodedText": "License free"
                   }
                 ]
               },
               {
                 "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/minimal-avar.ttf",
                 "fontSha256": "5f3713c817c714511dcc6b01107f123a9dae7fd9313593a832eedbb9fb3e61bc",
-                "nameRecords": []
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "cf7007255b13261ce8d4f65b856f510a1ac01de050ce208c997f1ef37b8f6aa2",
+                    "decodedText": "TestAvar"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 256,
+                    "blobSha256": "81d27ef6d5033c3e1d46b7b2b50868604fd432ddb77716b5ed9383c30c08432f",
+                    "decodedText": "Weight"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "2071adf6fbde078cb8e5961c7444af66578e04e5032b9e161a585d5f0e9fc426",
+                    "decodedText": "TestAvar"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 256,
+                    "blobSha256": "7f8d501139928a9c3d58d86c6348de5f6c63c8c33d444bb3efd1c367bcee8632",
+                    "decodedText": "Weight"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/minimal-cff2-var.otf",
+                "fontSha256": "ba76c8d2741825249e4a1580b2f90e01aebfb379acfe0729957db80343d0a7db",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "3c6e9ae579f8e317d077bd307eaa1e0c4a568c661783994823a31ce2aefe8b02",
+                    "decodedText": "TestCFF2Var"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 256,
+                    "blobSha256": "81d27ef6d5033c3e1d46b7b2b50868604fd432ddb77716b5ed9383c30c08432f",
+                    "decodedText": "Weight"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "0800a7577a8f1db7d3e809cd4c4607b28cb4819de79394cd4ff38350cfc2c832",
+                    "decodedText": "TestCFF2Var"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 256,
+                    "blobSha256": "7f8d501139928a9c3d58d86c6348de5f6c63c8c33d444bb3efd1c367bcee8632",
+                    "decodedText": "Weight"
+                  }
+                ]
+              },
+              {
+                "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/minimal-cff2.otf",
+                "fontSha256": "e506ff7dd887d294bdf9a086aee11fdb369c08891341b10fff3b3d4298e5a368",
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "7e45390cc874151eb15abda725473ac1c320075e38e84359fafd1ac5f2aaf01e",
+                    "decodedText": "TestCFF2"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "e964197fbfe37b98cccea97c277ff86305f64b66e0130e56af2e50bb8ac0c4e6",
+                    "decodedText": "TestCFF2"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  }
+                ]
               },
               {
                 "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/minimal-cmap12.ttf",
                 "fontSha256": "e86c06ae76d6db67b105461a4d657a9dc95a194d01e380f5b26094819f45bb64",
-                "nameRecords": []
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "3ccdf8cef35fedcc6c8a4ea03fe385f0afe89ca936da2d3a10e9b91080f9059d",
+                    "decodedText": "TestCmap12"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "9483d8dde19d83c72e544385e066a2f73e55614513e4afe984bd159646c81b9f",
+                    "decodedText": "TestCmap12"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  }
+                ]
               },
               {
                 "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/minimal-gvar.ttf",
                 "fontSha256": "48296f1e80e9a088073d69204c3a8bf0d446d043dd7402a25c16ed46646182b2",
-                "nameRecords": []
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "00b1bdb7367c3d69fd98675a71d2e16a9b87ce2fdc821926f0484b1991af7ccf",
+                    "decodedText": "TestGvar"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 256,
+                    "blobSha256": "81d27ef6d5033c3e1d46b7b2b50868604fd432ddb77716b5ed9383c30c08432f",
+                    "decodedText": "Weight"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "874308e681bf28ae2c61d6b2eac2e4c42821e5f8340b8d8e3f80abf17b9ebfbf",
+                    "decodedText": "TestGvar"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 256,
+                    "blobSha256": "7f8d501139928a9c3d58d86c6348de5f6c63c8c33d444bb3efd1c367bcee8632",
+                    "decodedText": "Weight"
+                  }
+                ]
               },
               {
                 "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/minimal-kern-multi.ttf",
                 "fontSha256": "893d61c7c8d539de096ac1ae033fe5097916d6807a3db1caae03ee753b98b6e0",
-                "nameRecords": []
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "8c21eb810fbe36644cce923bbafd0822ba8ed8f03cfc88f3023a82cec914770d",
+                    "decodedText": "TestKernMulti"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "29a74452d92af48776f3bd6274188f48fdfe29d357ad38afa9aeb9601eab552b",
+                    "decodedText": "TestKernMulti"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  }
+                ]
               },
               {
                 "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/minimal-kern.ttf",
                 "fontSha256": "43ae83abc1762de535904e6aa9ee108644d6831abbd5940c4c0fa7a62748c5cb",
-                "nameRecords": []
+                "nameRecords": [
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 1,
+                    "blobSha256": "7281698e1791e117837a249a4add0b2d7fb3575b02d3791d46bf897f02c74c74",
+                    "decodedText": "TestKern"
+                  },
+                  {
+                    "platform": 1,
+                    "encoding": 0,
+                    "language": 0,
+                    "nameId": 2,
+                    "blobSha256": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "94e395851414660084d74193ff2d1e48d0219f1e5dad4d2641a82016a1636d55",
+                    "decodedText": "TestKern"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  }
+                ]
               },
               {
                 "member": "font-f2fb3ad1b87167900f6ce9fe6caf9fbf7b253042/fixtures/subset.ttf",
@@ -44337,9 +46022,59 @@
                 "nameRecords": [
                   {
                     "platform": 3,
+                    "encoding": 1,
                     "language": 1033,
                     "nameId": 0,
-                    "blobSha256": "392a1635782303d15c5bb3d03f6f047cca01d8aca3eddeaee6c6666a93e48cfe"
+                    "blobSha256": "392a1635782303d15c5bb3d03f6f047cca01d8aca3eddeaee6c6666a93e48cfe",
+                    "decodedText": "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 1,
+                    "blobSha256": "1052d4c9ca508c5df54e3751bfd8fe26d29dec42b6996076da73f6b2600a18bc",
+                    "decodedText": "Noto Sans Mono"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 2,
+                    "blobSha256": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+                    "decodedText": "Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 3,
+                    "blobSha256": "5def8dcf16b5c2ee6be950f92ee7a513cc3fd7569826fb94746f55fe7489559c",
+                    "decodedText": "2.014;GOOG;NotoSansMono-Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 4,
+                    "blobSha256": "7bb3905d1964a67f6df3792be924945b7ba92142daafe410a79d13177647d944",
+                    "decodedText": "Noto Sans Mono Regular"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 5,
+                    "blobSha256": "e7ec779e646655ba9c3130be875a49f3f9f1052d97f52f023fb4b54a4faf96c2",
+                    "decodedText": "Version 2.014"
+                  },
+                  {
+                    "platform": 3,
+                    "encoding": 1,
+                    "language": 1033,
+                    "nameId": 6,
+                    "blobSha256": "05c8ceef0a55870e42f428e840c6a9d195fec6eef30faca49f9102fd5ccf273c",
+                    "decodedText": "NotoSansMono-Regular"
                   }
                 ]
               }
@@ -55864,38 +57599,6 @@
         "file": "bfb1112d49db5b1daecdfef24bd7e2f3ea0bafb33aa67aa0ab51e2bf8407c03d",
         "bytes": 838
       },
-      "71b18d6cda591bd032029c8c3f5fa59fe200058a11bb9e3c6b364f73fd422bc9": {
-        "file": "71b18d6cda591bd032029c8c3f5fa59fe200058a11bb9e3c6b364f73fd422bc9",
-        "bytes": 9020
-      },
-      "ab85580808c1859f5fa31eddef8e760a910048fbf5abe44ce5eca8c12ecbc835": {
-        "file": "ab85580808c1859f5fa31eddef8e760a910048fbf5abe44ce5eca8c12ecbc835",
-        "bytes": 1824
-      },
-      "95babb248634ebad075f8c23513bcdf67a3e4ef1a39f8477090d8cd7b7b9f247": {
-        "file": "95babb248634ebad075f8c23513bcdf67a3e4ef1a39f8477090d8cd7b7b9f247",
-        "bytes": 1824
-      },
-      "5f96cd35dd70b6878ee3d2b2653d04d91c43082820f422e3f74b11731121968a": {
-        "file": "5f96cd35dd70b6878ee3d2b2653d04d91c43082820f422e3f74b11731121968a",
-        "bytes": 1824
-      },
-      "355bb8357d8a29571fc236aec3a92b8ce056fb31f8fd3cfa368285e764043b96": {
-        "file": "355bb8357d8a29571fc236aec3a92b8ce056fb31f8fd3cfa368285e764043b96",
-        "bytes": 1824
-      },
-      "8b762a3fa0a21e0589ffe2a8e12b77e3195384a678a5c4f97f83d8ee7f7ac91a": {
-        "file": "8b762a3fa0a21e0589ffe2a8e12b77e3195384a678a5c4f97f83d8ee7f7ac91a",
-        "bytes": 1824
-      },
-      "4f89cf158cb84bbcef194c322c92098d67681c64fa5feccb23b07eae79c8411a": {
-        "file": "4f89cf158cb84bbcef194c322c92098d67681c64fa5feccb23b07eae79c8411a",
-        "bytes": 1824
-      },
-      "577b387c8d50702533c1ef2647c14f219e01d0752ea7dcfcfacb6a066c74a446": {
-        "file": "577b387c8d50702533c1ef2647c14f219e01d0752ea7dcfcfacb6a066c74a446",
-        "bytes": 1824
-      },
       "35a702512ff158a30afe40e3026534d519a9de80acf12b8b570a0162c1b0431d": {
         "file": "35a702512ff158a30afe40e3026534d519a9de80acf12b8b570a0162c1b0431d",
         "bytes": 5123
@@ -56452,9 +58155,245 @@
         "file": "81037d19f4465d3d9a4bf7616bd3ae68575a6319d81d4e143ee4833b1e50a7b1",
         "bytes": 78
       },
-      "dd7d6040819a7883bbea34e485e21d0c1cc1982f698b1e2df8bfa382a1c0dca2": {
-        "file": "dd7d6040819a7883bbea34e485e21d0c1cc1982f698b1e2df8bfa382a1c0dca2",
-        "bytes": 559705
+      "ee0c633066b672a0eecc4ccb331b991abd28caf03737f552f6e7a7f875bc496e": {
+        "file": "ee0c633066b672a0eecc4ccb331b991abd28caf03737f552f6e7a7f875bc496e",
+        "bytes": 18
+      },
+      "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334": {
+        "file": "603c8beb99ba70976ff530c83dc90c83681fbf947e23c6a7cf60f7f4e46a5334",
+        "bytes": 14
+      },
+      "390c27be1bc5ae0a8f1a61dc5fbd320057272f0fbd4dc1b77ae31967cc4cc657": {
+        "file": "390c27be1bc5ae0a8f1a61dc5fbd320057272f0fbd4dc1b77ae31967cc4cc657",
+        "bytes": 54
+      },
+      "de622ad01b7035890a204f9215848c433ca66acea9d9a6d2aeeadcae04fc77d6": {
+        "file": "de622ad01b7035890a204f9215848c433ca66acea9d9a6d2aeeadcae04fc77d6",
+        "bytes": 34
+      },
+      "e7ec779e646655ba9c3130be875a49f3f9f1052d97f52f023fb4b54a4faf96c2": {
+        "file": "e7ec779e646655ba9c3130be875a49f3f9f1052d97f52f023fb4b54a4faf96c2",
+        "bytes": 26
+      },
+      "c8f4ed26ba73d6288bf8f5c85d6917b3d918be552fae1835ddfe0b0347cdbfd6": {
+        "file": "c8f4ed26ba73d6288bf8f5c85d6917b3d918be552fae1835ddfe0b0347cdbfd6",
+        "bytes": 32
+      },
+      "1052d4c9ca508c5df54e3751bfd8fe26d29dec42b6996076da73f6b2600a18bc": {
+        "file": "1052d4c9ca508c5df54e3751bfd8fe26d29dec42b6996076da73f6b2600a18bc",
+        "bytes": 28
+      },
+      "a493abdfc35734aee85a7e0a10a94e595073ded925098315c72f608548dce3d7": {
+        "file": "a493abdfc35734aee85a7e0a10a94e595073ded925098315c72f608548dce3d7",
+        "bytes": 8
+      },
+      "b8be4ebd91a2affdc26a74d1a05444f88f6d74daee65d772cec3e40c061fd400": {
+        "file": "b8be4ebd91a2affdc26a74d1a05444f88f6d74daee65d772cec3e40c061fd400",
+        "bytes": 56
+      },
+      "e8cfa2f6e4aa42bb10f065ac1c677ae0206e64388ae2169a82d6424efa0b19de": {
+        "file": "e8cfa2f6e4aa42bb10f065ac1c677ae0206e64388ae2169a82d6424efa0b19de",
+        "bytes": 38
+      },
+      "6a3d8c88891b2c791b927e2e4bd099b70ecc3679a166735742cf8873af8b8496": {
+        "file": "6a3d8c88891b2c791b927e2e4bd099b70ecc3679a166735742cf8873af8b8496",
+        "bytes": 172
+      },
+      "863baf3c9106100bcd6dd5e16003e0ab9a3d9f9cd5d5c467b7ab10d3c8324f4a": {
+        "file": "863baf3c9106100bcd6dd5e16003e0ab9a3d9f9cd5d5c467b7ab10d3c8324f4a",
+        "bytes": 34
+      },
+      "d27b5d3ebb509da5c6a3af5d8acf75947a48c43bffd48488890243fb1d2ec888": {
+        "file": "d27b5d3ebb509da5c6a3af5d8acf75947a48c43bffd48488890243fb1d2ec888",
+        "bytes": 66
+      },
+      "eb8d3f62b78904b3d276471facdc28afb31cf0b98de1768cad9d56188e3da575": {
+        "file": "eb8d3f62b78904b3d276471facdc28afb31cf0b98de1768cad9d56188e3da575",
+        "bytes": 62
+      },
+      "b0dafb47bf22754f65da34b19ad87c7c7ec9f502d86e40e22e9e38fcd40b20ac": {
+        "file": "b0dafb47bf22754f65da34b19ad87c7c7ec9f502d86e40e22e9e38fcd40b20ac",
+        "bytes": 60
+      },
+      "509c53fc6bac5253842f60dba813a5d4445411e52716dee58f72bc05a93fc0c8": {
+        "file": "509c53fc6bac5253842f60dba813a5d4445411e52716dee58f72bc05a93fc0c8",
+        "bytes": 40
+      },
+      "261dbf52ae98126b243579a177edf61bb1f86ec16c6f92b3e1327a89923985dd": {
+        "file": "261dbf52ae98126b243579a177edf61bb1f86ec16c6f92b3e1327a89923985dd",
+        "bytes": 58
+      },
+      "650b3f70e783257a6d2b1636165d50dd1ce9ff2238d48460104d68ec69937f25": {
+        "file": "650b3f70e783257a6d2b1636165d50dd1ce9ff2238d48460104d68ec69937f25",
+        "bytes": 36
+      },
+      "b2b93247028cac87079b7be02f4e9b1cfaaa49d1082aff364d36adc4ba18c017": {
+        "file": "b2b93247028cac87079b7be02f4e9b1cfaaa49d1082aff364d36adc4ba18c017",
+        "bytes": 10
+      },
+      "5def8dcf16b5c2ee6be950f92ee7a513cc3fd7569826fb94746f55fe7489559c": {
+        "file": "5def8dcf16b5c2ee6be950f92ee7a513cc3fd7569826fb94746f55fe7489559c",
+        "bytes": 62
+      },
+      "7bb3905d1964a67f6df3792be924945b7ba92142daafe410a79d13177647d944": {
+        "file": "7bb3905d1964a67f6df3792be924945b7ba92142daafe410a79d13177647d944",
+        "bytes": 44
+      },
+      "05c8ceef0a55870e42f428e840c6a9d195fec6eef30faca49f9102fd5ccf273c": {
+        "file": "05c8ceef0a55870e42f428e840c6a9d195fec6eef30faca49f9102fd5ccf273c",
+        "bytes": 40
+      },
+      "8818db3d41ab4ce90809e4adda41b457222f08e5c25c101f9bd576ce42e19ea6": {
+        "file": "8818db3d41ab4ce90809e4adda41b457222f08e5c25c101f9bd576ce42e19ea6",
+        "bytes": 32
+      },
+      "53de11f4395dd0c2f5e7fd34975069211fea22d4e1ae9f8093fb2084d9edceb5": {
+        "file": "53de11f4395dd0c2f5e7fd34975069211fea22d4e1ae9f8093fb2084d9edceb5",
+        "bytes": 42
+      },
+      "f55f361c6a4e59f171d8b042e0321bfb374267f38c37ae6b41b40c35e1df03c3": {
+        "file": "f55f361c6a4e59f171d8b042e0321bfb374267f38c37ae6b41b40c35e1df03c3",
+        "bytes": 54
+      },
+      "1573ca3f192f3e9912eb1eb92b679bd4903960ab52104e2552f226f699e8ef06": {
+        "file": "1573ca3f192f3e9912eb1eb92b679bd4903960ab52104e2552f226f699e8ef06",
+        "bytes": 52
+      },
+      "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85": {
+        "file": "086c1130ee068df7c246ee7ecd127c22471e799c4c29b78db0b2b6d3110b0b85",
+        "bytes": 17
+      },
+      "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e": {
+        "file": "494ca78f7374e46fb2de9ad9f2dbd4aaae89b50b2ca044177a1566a59e06627e",
+        "bytes": 6
+      },
+      "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235": {
+        "file": "b455784ab53072773e72df494aa4b12ac467976447e250c694c11b6f1268e235",
+        "bytes": 7
+      },
+      "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112": {
+        "file": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+        "bytes": 1
+      },
+      "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454": {
+        "file": "06ebe7c2851c9b7ec3ed28df4ef2d7e3128f4e6bb407f140d02a31146668a454",
+        "bytes": 17
+      },
+      "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c": {
+        "file": "ee33e7e3108e98cb9543de275baaee9add61ae07fdbad40db1fac6b55c0ce53c",
+        "bytes": 11
+      },
+      "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177": {
+        "file": "228901a459bf7cd1186e9959dcd1d8e9b46b66ffd1f9646ceafabb6fef037177",
+        "bytes": 10
+      },
+      "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb": {
+        "file": "05126300e6aa87df5b1c33f9069ee989cc3397b6df85b41b2e7a507e996575bb",
+        "bytes": 18
+      },
+      "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639": {
+        "file": "e2260097a44fb38e3bc61eefa64d94154fc59b4f897fbebb1d52cdf569d64639",
+        "bytes": 12
+      },
+      "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9": {
+        "file": "c2d91efb73b1216b1519ea8dc40a8882c737df844f517bcf40d78154456dfaf9",
+        "bytes": 34
+      },
+      "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d": {
+        "file": "39e020f9c0ef6d9797ae0f176832ed67ae5600e0024150a0f60c081078e6ae4d",
+        "bytes": 12
+      },
+      "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789": {
+        "file": "50370e36b4952b59654148674fafada508972b5c90de162a29ba3383a360a789",
+        "bytes": 2
+      },
+      "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636": {
+        "file": "6a92d7442ef1cb48bdd7575b6e6b43a541f77ddf9ddd6f0e16613c6c6375e636",
+        "bytes": 34
+      },
+      "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb": {
+        "file": "88dc347034b79c3c0891f42a7d908616ee84c4d32c19ad1201c76e2a713cf8bb",
+        "bytes": 22
+      },
+      "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a": {
+        "file": "6d9103a1be8cc42fcfd78baa830bd375ecdd216b5163564ae7cfb5e82bf3998a",
+        "bytes": 20
+      },
+      "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7": {
+        "file": "27ce827a7a921c536517beddf22689dc02383c31e8703578a3037861cb9bb1f7",
+        "bytes": 36
+      },
+      "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0": {
+        "file": "dd7e52ae1b8cf0e32a23c3ee1a681a397c95ae15bdcb6eef9602ffd8c9a935a0",
+        "bytes": 24
+      },
+      "cf7007255b13261ce8d4f65b856f510a1ac01de050ce208c997f1ef37b8f6aa2": {
+        "file": "cf7007255b13261ce8d4f65b856f510a1ac01de050ce208c997f1ef37b8f6aa2",
+        "bytes": 8
+      },
+      "81d27ef6d5033c3e1d46b7b2b50868604fd432ddb77716b5ed9383c30c08432f": {
+        "file": "81d27ef6d5033c3e1d46b7b2b50868604fd432ddb77716b5ed9383c30c08432f",
+        "bytes": 6
+      },
+      "2071adf6fbde078cb8e5961c7444af66578e04e5032b9e161a585d5f0e9fc426": {
+        "file": "2071adf6fbde078cb8e5961c7444af66578e04e5032b9e161a585d5f0e9fc426",
+        "bytes": 16
+      },
+      "7f8d501139928a9c3d58d86c6348de5f6c63c8c33d444bb3efd1c367bcee8632": {
+        "file": "7f8d501139928a9c3d58d86c6348de5f6c63c8c33d444bb3efd1c367bcee8632",
+        "bytes": 12
+      },
+      "3c6e9ae579f8e317d077bd307eaa1e0c4a568c661783994823a31ce2aefe8b02": {
+        "file": "3c6e9ae579f8e317d077bd307eaa1e0c4a568c661783994823a31ce2aefe8b02",
+        "bytes": 11
+      },
+      "0800a7577a8f1db7d3e809cd4c4607b28cb4819de79394cd4ff38350cfc2c832": {
+        "file": "0800a7577a8f1db7d3e809cd4c4607b28cb4819de79394cd4ff38350cfc2c832",
+        "bytes": 22
+      },
+      "7e45390cc874151eb15abda725473ac1c320075e38e84359fafd1ac5f2aaf01e": {
+        "file": "7e45390cc874151eb15abda725473ac1c320075e38e84359fafd1ac5f2aaf01e",
+        "bytes": 8
+      },
+      "e964197fbfe37b98cccea97c277ff86305f64b66e0130e56af2e50bb8ac0c4e6": {
+        "file": "e964197fbfe37b98cccea97c277ff86305f64b66e0130e56af2e50bb8ac0c4e6",
+        "bytes": 16
+      },
+      "3ccdf8cef35fedcc6c8a4ea03fe385f0afe89ca936da2d3a10e9b91080f9059d": {
+        "file": "3ccdf8cef35fedcc6c8a4ea03fe385f0afe89ca936da2d3a10e9b91080f9059d",
+        "bytes": 10
+      },
+      "9483d8dde19d83c72e544385e066a2f73e55614513e4afe984bd159646c81b9f": {
+        "file": "9483d8dde19d83c72e544385e066a2f73e55614513e4afe984bd159646c81b9f",
+        "bytes": 20
+      },
+      "00b1bdb7367c3d69fd98675a71d2e16a9b87ce2fdc821926f0484b1991af7ccf": {
+        "file": "00b1bdb7367c3d69fd98675a71d2e16a9b87ce2fdc821926f0484b1991af7ccf",
+        "bytes": 8
+      },
+      "874308e681bf28ae2c61d6b2eac2e4c42821e5f8340b8d8e3f80abf17b9ebfbf": {
+        "file": "874308e681bf28ae2c61d6b2eac2e4c42821e5f8340b8d8e3f80abf17b9ebfbf",
+        "bytes": 16
+      },
+      "8c21eb810fbe36644cce923bbafd0822ba8ed8f03cfc88f3023a82cec914770d": {
+        "file": "8c21eb810fbe36644cce923bbafd0822ba8ed8f03cfc88f3023a82cec914770d",
+        "bytes": 13
+      },
+      "29a74452d92af48776f3bd6274188f48fdfe29d357ad38afa9aeb9601eab552b": {
+        "file": "29a74452d92af48776f3bd6274188f48fdfe29d357ad38afa9aeb9601eab552b",
+        "bytes": 26
+      },
+      "7281698e1791e117837a249a4add0b2d7fb3575b02d3791d46bf897f02c74c74": {
+        "file": "7281698e1791e117837a249a4add0b2d7fb3575b02d3791d46bf897f02c74c74",
+        "bytes": 8
+      },
+      "94e395851414660084d74193ff2d1e48d0219f1e5dad4d2641a82016a1636d55": {
+        "file": "94e395851414660084d74193ff2d1e48d0219f1e5dad4d2641a82016a1636d55",
+        "bytes": 16
+      },
+      "198fc1a51fc221f0ce0be9cf4eff8aeebf41c6ee531351f3ec1db53d905192de": {
+        "file": "198fc1a51fc221f0ce0be9cf4eff8aeebf41c6ee531351f3ec1db53d905192de",
+        "bytes": 762574
       }
     },
     "missing": [],
@@ -56474,6 +58413,6 @@
     "unknowns": [
       "actrun:native-C-runtime-exact-revision-not-measured-publisher-family-origin-only"
     ],
-    "noticeMembershipAnchorBlobSha256": "dd7d6040819a7883bbea34e485e21d0c1cc1982f698b1e2df8bfa382a1c0dca2"
+    "noticeMembershipAnchorBlobSha256": "198fc1a51fc221f0ce0be9cf4eff8aeebf41c6ee531351f3ec1db53d905192de"
   }
 }

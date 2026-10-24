@@ -4,6 +4,14 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import struct
+
+def is_sfnt(raw):
+    """Recognize complete standalone SFNT fonts by signature and table bounds."""
+    if len(raw)<12 or raw[:4] not in (b"OTTO",b"\x00\x01\x00\x00",b"true",b"typ1"):return False
+    count=struct.unpack_from(">H",raw,4)[0]
+    if not count or 12+16*count>len(raw):return False
+    return all(off<=len(raw) and length<=len(raw)-off for off,length in (struct.unpack_from(">II",raw,12+i*16+8) for i in range(count)))
 
 class MissingLicenseBytes(AssertionError):
     pass
@@ -43,7 +51,9 @@ def assess_dependency_licenses(runtime, packet, blob_root=None):
         assert p.is_file() and not p.is_symlink(), 'required license bytes missing: '+h
         raw=p.read_bytes()
         assert len(raw)==row['bytes'] and _sha(raw)==h, 'required license bytes changed: '+h
+        assert not is_sfnt(raw), 'raw fixture font payload contradicts notice-only scope'
         blobs[h]=raw
+    assert {p.name for p in root.iterdir()}==set(blobs), 'unregistered notice payload file'
     def blob(h):
         assert h in blobs, 'required license blob reference missing: '+h
         return blobs[h]
@@ -170,9 +180,12 @@ def assess_dependency_licenses(runtime, packet, blob_root=None):
             p=m['publisherSource'];publisher=json.loads(blob(p['manifestBlobSha256']))
             assert (publisher['name'],publisher['version'])==(m['name'],m['version'])
             assert p['registryManifestByteEqual']==(p['manifestBlobSha256']==m['manifestBlobSha256'])
-        full=any(n['kind']=='upstream notice file' for n in m['notices'])
+        variant=anchor['moonNoticeVariants'][m['name']]
+        assert variant['archiveSha256']==m['archiveSha256'] and variant['notices']==m['notices'], 'Moon source notice variant membership'
+        assert variant['fullLicenseTextRetained']==m['fullLicenseTextRetained'], 'Moon independent notice classification'
+        full=variant['fullLicenseTextRetained']
         assert m['fullLicenseTextRetained']==full
-        if not full:
+        if m['name'] in anchor['publisherReferences']:
             p=m.get('publisherLicenseReference')
             assert p==anchor['publisherReferences'][m['name']], 'publisher reference independent component binding'
             assert (p['component'],p['version'],p['registryArchiveSha256'])==(m['name'],m['version'],m['archiveSha256'])
@@ -182,6 +195,7 @@ def assess_dependency_licenses(runtime, packet, blob_root=None):
             assert body['licenseId']==p['licenseId'] and body['sha256']==_sha(raw) and body['bytes']==len(raw)
             assert body['source']=='https://raw.githubusercontent.com/spdx/license-list-data/'+body['upstreamGitCommit']+'/text/'+p['licenseId']+'.txt'
             assert p['codeCorrespondence']['differentCodeFiles']==[]
+        else:assert full, 'missing independently required publisher reference'
     assert actrun['fontFixtureNotices']==anchor['fontFixtureNotices'], 'font fixture notice binding'
     for row in actrun['fontFixtureNotices']['records']:
         for n in row['nameRecords']:blob(n['blobSha256'])

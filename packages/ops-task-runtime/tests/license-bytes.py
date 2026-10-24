@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
+import struct
 
 package=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(package/'candidate'))
@@ -77,6 +78,24 @@ with tempfile.TemporaryDirectory() as tmp:
     altered('publisher-existing-notices-dropped',lambda v:reference(v)['existingNotices'].clear())
     altered('font-OFL-notices-dropped',lambda v:v['byteCoverage']['embedded']['tools']['actrun']['fontFixtureNotices']['records'].clear())
     altered('membership-anchor-replaced',lambda v:v['byteCoverage'].update(noticeMembershipAnchorBlobSha256=first))
+    def moon_composite(v):
+        m=next(m for m in v['byteCoverage']['embedded']['tools']['actrun']['modules'] if m['name']=='mizchi/brotli')
+        m['notices']=[{'member':'LICENSE','sourceFileSha256':mit,'blobSha256':mit,'bytes':original['byteCoverage']['blobs'][mit]['bytes'],'offset':0,'kind':'upstream notice file'}]
+        m['noticeRefs']=[mit];m['fullLicenseTextRetained']=True
+        m['publisherLicenseReference'].update(licenseId='MIT',commit='0'*40)
+    altered('Moon-kind-full-composite-anchor-bypass',moon_composite)
+    altered('Moon-full-classification-changed',lambda v:next(m for m in v['byteCoverage']['embedded']['tools']['actrun']['modules'] if m['name']=='mizchi/brotli').update(fullLicenseTextRetained=True))
+    altered('Moon-required-reference-removed',lambda v:next(m for m in v['byteCoverage']['embedded']['tools']['actrun']['modules'] if m['name']=='mizchi/brotli').pop('publisherLicenseReference'))
+    altered('font-canonical-OFL-body-removed',lambda v:v['byteCoverage']['embedded']['tools']['actrun']['fontFixtureNotices'].pop('canonicalBody'))
+    altered('font-decoded-name-record-forged',lambda v:v['byteCoverage']['embedded']['tools']['actrun']['fontFixtureNotices']['records'][0]['nameRecords'][0].update(decodedText='fabricated'))
+    font=b'OTTO'+struct.pack('>HHHH',1,0,0,0)+b'name'+struct.pack('>III',0,28,1)+b'x'
+    font_hash=hashlib.sha256(font).hexdigest();(dest/font_hash).write_bytes(font)
+    current.write_bytes(packet.read_bytes())
+    reject('raw-font-unregistered-payload-reintroduced',lambda:assess_dependency_licenses(profile,current,dest))
+    value=copy.deepcopy(original);value['byteCoverage']['blobs'][font_hash]={'file':font_hash,'bytes':len(font)}
+    current.write_text(json.dumps(value));binding=copy.deepcopy(profile);binding['dependencyLicenses']['sha256']=hashlib.sha256(current.read_bytes()).hexdigest()
+    reject('raw-font-registered-payload-reintroduced',lambda:assess_dependency_licenses(binding,current,dest))
+    (dest/font_hash).unlink()
     value=copy.deepcopy(original);value.pop('byteCoverage');current.write_text(json.dumps(value));binding=copy.deepcopy(profile);binding['dependencyLicenses']['sha256']=hashlib.sha256(current.read_bytes()).hexdigest()
     report=assess_dependency_licenses(binding,current,dest)
     assert report['status']=='MISSING_LICENSE_BYTES'

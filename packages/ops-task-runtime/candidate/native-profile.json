@@ -686,7 +686,7 @@
   "authority": "current user task SAME-v5.1 candidate only; not accepted adrs#317 successor",
   "dependencyLicenses": {
     "path": "candidate/dependency-licenses.json",
-    "sha256": "3b970a0d346179d479c7b28b5e85ec36203b304a48817e568479e0f6efd6c737",
-    "noticeMembershipSha256": "dd7d6040819a7883bbea34e485e21d0c1cc1982f698b1e2df8bfa382a1c0dca2"
+    "sha256": "d6d72afd6cb639e3576d218b0c36d5eef8995900797e65bf218284f89c5edd04",
+    "noticeMembershipSha256": "198fc1a51fc221f0ce0be9cf4eff8aeebf41c6ee531351f3ec1db53d905192de"
   }
 }

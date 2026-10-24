@@ -138,7 +138,7 @@ The six publisher references now retain exact canonical bodies from SPDX commit
 and all selected existing headers/notices. Registry manifests remain authoritative;
 Git source metadata differences are explicitly preserved. Canonical template
 placeholders are unmodified; they are not invented project copyright statements.
-Font fixture raw name-record notices and the OFL-1.1 body are retained separately.
+All20 SFNT fixture fonts (TTF and OTF) have exact raw/decoded name records and source font hashes retained separately with the OFL-1.1 body. Type-aware extraction excludes complete fixture-font payloads from notice assets; obsolete tracked font blobs are removed. This says nothing about fonts potentially inside opaque runtime binaries.
 The font files and complete source archives are acquisition evidence, not shipped
 runtime assets; the packet ships notice/header bytes and source identities.
 
@@ -148,7 +148,11 @@ runtime members from the exact official archive. It also checks matched publishe
 code/package bytes against registry archives. The resulting member inventory has
 an independent digest in native-profile.json, separate from the packet digest.
 Consumer validation binds source identity, member name and actual notice blob to
-that inventory. A newly generated inventory requires independent source review;
+that inventory. All26 Moon notice variants/classifications are independently
+anchored to actual registry members. Six required publisher references are selected
+from that anchor, never skipped through packet-supplied notice kind/full flags.
+The complete notice asset directory must equal the registered file set, and
+complete SFNT payloads are refused even if added to the registry. A newly generated inventory requires independent source review;
 changing packet and its digest alone cannot adopt different notice membership.
 
 `tests/license-bytes.py` includes native/Go runtime wrong-body and member/source
