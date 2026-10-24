@@ -85,7 +85,7 @@ for route in ['direct', 'actrun']:
             if route == 'actrun':
                 argv = [runtime['tools']['loader']['path'], '/retained/bin/actrun.real', 'workflow', 'run', f'/work/{label}/candidate/workflow.yml', '--workspace-mode', 'local', '--no-nix', '--run-root', f'/tmp/{label}/runs', '--artifact-root', f'/tmp/{label}/artifacts', '--cache-root', f'/tmp/{label}/cache', '--github-action-cache-root', f'/tmp/{label}/actions', '--registry-root', f'/tmp/{label}/registry']
             with (a.evidence / f'{label}.stdout').open('wb') as of, (a.evidence / f'{label}.stderr').open('wb') as ef:
-                r = subprocess.run([*namespace, runtime['tools']['coreutils']['path'], '-i', *[f'{k}={v}' for k, v in env.items()], *argv], stdout=of, stderr=ef, timeout=40)
+                r = subprocess.run([*namespace, str(Path(runtime['tools']['coreutils']['path']).parent / 'env'), '-i', *[f'{k}={v}' for k, v in env.items()], *argv], stdout=of, stderr=ef, timeout=40)
             assert (r.returncode == 0) == (mode == 'success'), (label, (a.evidence / f'{label}.stderr').read_text())
             result = read(work / 'out' / ('result.json' if mode == 'success' else 'failure.json'))
             assert result['x'] == accepted['x'] and result['inputSha256'] == accepted['inputSha256']
