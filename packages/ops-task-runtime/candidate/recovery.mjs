@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import {read, write, inventory, binding, execute, inputIdentity} from './requests.mjs';
-import {discover, alive} from './process.mjs';
+import {discover, alive, sameContext} from './process.mjs';
 import {attemptReadback} from './readback.mjs';
 
 export async function recover(args) {
@@ -15,6 +15,7 @@ export async function recover(args) {
     return;
   }
   const state = read(path.join(dir, 'process.json'));
+  if (!sameContext(state.root)) { console.log(JSON.stringify({status: 'HOLD', attempt: dir, reason: 'process namespace/boot not observable'})); return; }
   const processes = discover(state.root, state.descendants);
   if (processes.some(alive)) { console.log(JSON.stringify({status: 'HOLD', attempt: dir, processes})); return; }
   if (args.length !== 4) { console.log(JSON.stringify({status: 'STOPPED_INCOMPLETE', attempt: dir, retryPermitted: true})); return; }

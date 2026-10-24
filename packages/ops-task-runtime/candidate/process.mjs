@@ -1,12 +1,16 @@
 import fs from 'node:fs';
 import {setTimeout as delay} from 'node:timers/promises';
 
+const bootId = fs.readFileSync('/proc/sys/kernel/random/boot_id', 'utf8').trim();
+const namespace = fs.readlinkSync('/proc/self/ns/pid');
+export const sameContext = identity => identity?.bootId === bootId && identity?.namespace === namespace;
+
 // Linux process start identity, group and parent; PID alone is never sufficient.
 export function processIdentity(pid) {
   try {
     const text = fs.readFileSync(`/proc/${pid}/stat`, 'utf8');
     const fields = text.slice(text.lastIndexOf(')') + 2).split(' ');
-    return {pid: Number(pid), state: fields[0], ppid: Number(fields[1]), group: Number(fields[2]), start: fields[19]};
+    return {bootId, namespace, pid: Number(pid), state: fields[0], ppid: Number(fields[1]), group: Number(fields[2]), start: fields[19]};
   } catch (error) {
     if (['ENOENT', 'ESRCH'].includes(error.code)) return null;
     throw error;
@@ -14,7 +18,7 @@ export function processIdentity(pid) {
 }
 export function alive(identity) {
   const current = processIdentity(identity.pid);
-  return current?.start === identity.start && current.state !== 'Z';
+  return sameContext(identity) && current?.start === identity.start && current.state !== 'Z';
 }
 export function discover(root, known = []) {
   const found = new Map(known.map(p => [p.pid, p]));
@@ -28,6 +32,7 @@ export function discover(root, known = []) {
   return [...found.values()];
 }
 export async function stopTree(root, known) {
+  if (!sameContext(root)) throw Error('process namespace/boot unknown: HOLD');
   const identities = discover(root, known);
   for (const signal of ['SIGTERM', 'SIGKILL']) {
     if (root && alive(root)) { try { process.kill(-root.pid, signal); } catch (e) { if (e.code !== 'ESRCH') throw e; } }

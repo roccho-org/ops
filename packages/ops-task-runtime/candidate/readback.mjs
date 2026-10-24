@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {sha, read, inventory, inputIdentity, declaredEnv} from './requests.mjs';
-import {alive, discover} from './process.mjs';
+import {alive, discover, sameContext} from './process.mjs';
 const fail = s => { throw Error(s); };
 export function attemptReadback(dir) {
   const a = read(path.join(dir, 'accepted.json')), r = read(path.join(dir, 'receipt.json'));
@@ -15,7 +15,7 @@ export function attemptReadback(dir) {
   if (sha(input) !== r.inputSha256) fail('input bytes');
   for (const [rel, digest] of r.oracle) if (sha(fs.readFileSync(path.join(dir, 'work', rel))) !== digest) fail('work source changed');
   const process = read(path.join(dir, 'process-final.json'));
-  if (!process.allStopped || discover(process.root, process.descendants).some(alive)) fail('live process tree');
+  if (!process.allStopped || (sameContext(process.root) && discover(process.root, process.descendants).some(alive))) fail('live process tree');
   const out = path.join(dir, 'work', 'out');
   if (fs.readdirSync(out).some(n => n.endsWith('.partial'))) fail('partial artifact');
   if (fs.existsSync(path.join(out, 'forbidden.json'))) fail('dependent executed');
